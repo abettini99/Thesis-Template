@@ -12,9 +12,12 @@
 ]
 % \RequirePackage{newpxtext} %% previous main text (Palatino clone)
 
-%% Heading font: Source Sans Pro (Adobe, SIL Open Font License), included in TeX Live, so no font
-%% files are needed in the project. Light for titles, semibold for section headings.
-\newfontfamily{\sourcesans}{SourceSansPro}[
+%% Heading font: Source Sans (Adobe, SIL Open Font License), included in TeX Live, so no font files
+%% are needed in the project. Light for titles, semibold for section headings.
+%% TeX Live 2026 renamed the fonts from Source Sans Pro to Source Sans 3 (file names SourceSans3-...);
+%% use whichever is installed, so the template works with old and new TeX Live (and on Overleaf).
+\IfFontExistsTF{SourceSans3-Light.otf}{\def\thesis@sourcesans{SourceSans3}}{\def\thesis@sourcesans{SourceSansPro}}
+\newfontfamily{\sourcesans}{\thesis@sourcesans}[
     Extension   = {.otf},
     UprightFont = {*-Light},
     BoldFont    = {*-Semibold},
@@ -23,7 +26,7 @@
 ]
 
 %% Also the document's sans-serif font (\sffamily, \textsf), so nothing falls back to Latin Modern Sans.
-\setsansfont{SourceSansPro}[Extension={.otf}, UprightFont={*-Regular}, BoldFont={*-Semibold}, ItalicFont={*-RegularIt}, BoldItalicFont={*-SemiboldIt}, Ligatures=TeX, Scale=\thesis@fontscale]
+\setsansfont{\thesis@sourcesans}[Extension={.otf}, UprightFont={*-Regular}, BoldFont={*-Semibold}, ItalicFont={*-RegularIt}, BoldItalicFont={*-SemiboldIt}, Ligatures=TeX, Scale=\thesis@fontscale]
 
 %% Typewriter font (code listings, file names): Latin Modern Mono, scaled with the rest.
 \setmonofont{lmmono10-regular.otf}[ItalicFont=lmmono10-italic.otf, BoldFont=lmmonolt10-bold.otf, Scale=\thesis@fontscale]
