@@ -8,10 +8,14 @@
 
 \def\blfootnote{\xdef\@thefnmark{}\@footnotetext}
 
-\if@print
+%% Same heading styles for book (print) and report.
 
     %% Chapter formatting
-    \openright % Makes sure that chapter is on recto page (clearing the verso page)
+    \if@print
+        \openright % Makes sure that chapter is on recto page (clearing the verso page)
+    \else
+        \openany % report: chapters start on the next page, no blank pages
+    \fi
     \makechapterstyle{mainmatter}{%
         % \renewcommand{\chapterheadstart}{}
         \renewcommand{\chapternamenum}{\space}
@@ -123,12 +127,6 @@
     \renewcommand{\afterloftitle}{\afterchaptertitle\insertchapterspace} % for some reason the spacing between the title and first entry of ToC and LoF/LoT is not the same.
     \renewcommand{\afterlottitle}{\afterchaptertitle\insertchapterspace}
     
-\else
-
-    %% Chapter formatting
-    \openany % clears a single page instead of double for chapters % 
-    
-\fi
 
 
 

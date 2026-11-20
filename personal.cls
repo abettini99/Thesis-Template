@@ -11,7 +11,7 @@
 \DeclareOption{british}{\@britishtrue}
 \DeclareOption{print}{\@printtrue}
 \DeclareOption{thumb}{\if@print \@thumbtrue \fi}
-\DeclareOption{showtrims}{\if@print \PassOptionsToClass{\CurrentOption}{memoir} \fi} 
+\DeclareOption{showtrims}{\PassOptionsToClass{\CurrentOption}{memoir}} %% in report mode this marks the book page on the A4 sheet 
 \DeclareOption{showframe}{\@showframetrue}
 
 \ExecuteOptions{}
@@ -19,53 +19,39 @@
 
 \RequirePackage[l2tabu, orthodox]{nag} % https://ctan.org/pkg/nag %% In case I commit a cardinal sin of loading depreciated modules, or some dumb stuff that can be picked up (i.e use \centering instead of \begin{center}[...]\end{center})
 
-%% Load this in for book
+%% Page layout. The book page (170 x 240 mm, TU Delft dissertation format) is the same in both modes;
+%% only the paper it sits on differs:
+%%   print  : the book page plus 2mm bleed on every side (174 x 244 mm), for the printer.
+%%   report : the book page centred on an A4 sheet, for reading on screen or printing at home.
+\LoadClass[10pt]{memoir}
 \if@print
-    \LoadClass[10pt]{memoir}[openright]
     \setstocksize{244mm}{174mm}             %% Paper stock size = trimmed size + 2mm bleed on every side (matches TU Delft dissertation template).
-    \settrimmedsize{240mm}{170mm}{*}        %% This is the layout/trimmed/paper size for which you work on,
-                                            %% 170 x 240 mm: final book size of the TU Delft dissertation template
-    \settrims{2mm}{2mm}                     %% Bleed: how far from {top}{right} that layout is placed on the stock (TU Delft uses 2mm)
-    \settypeblocksize{192mm}{113mm}{*}      %% This is your workspace - where you write on.
-    \setbinding{7.0mm}           %% Binding margin is handled here
-                                 %% 3.00mm binding from TUD PhD template
-                                 %% 7.00mm binding might be better? based on what I have seen.
-                                 
-    %% foreedge_margin = (2/3)*(trimmedsize_width - binding_offset - typeblock_width)
-    %% topdown_margin  = (1/2)*(trimmedsize_height - typeblock_height)
-    \setlrmargins{*}{33.40mm}{*} %% fore-edge margin is handled here (scaled from 35.33mm for the 170mm page)
-                                 %% Normally, your spine margin should be smaller, but the binding process is hot garbage based on what I have seen of previous theses.
-                                 %% spine margin automatically handled.
-                                 %% 35.33mm ~= 1.00in * 1.39
-    \setulmargins{23.90mm}{*}{*} %% top margin handled here, bottom margin automatically handled (scaled from 27.00mm for the 240mm page).
-                                 %% 27.00mm ~= 1.00in * 1.06
-    \setheadfoot{\onelineskip}{2\onelineskip}
-    \setheaderspaces{*}{2\onelineskip}{*}
-    \setmarginnotes{17pt}{51pt}{\onelineskip}
-    \checkandfixthelayout
-    \sloppybottom % see memoir manual
-%% Load this in for report
 \else
-    \LoadClass[12pt]{memoir}
-    \setstocksize{297mm}{210mm}             %% This is the paper stocksize, which is a4
-    \settrimmedsize{291mm}{204mm}{*}        %% This is the layout/trimmed/paper size for which you work on.
-    \settrims{2mm}{2mm}                     %% Bleed: how far from {top}{right} that layout is placed on the stock (TU Delft uses 2mm)
-    \settypeblocksize{240.2mm}{153.2mm}{*}  %% This is your workspace - where you write on.
-    \setbinding{0.0mm}                      %% Binding margin is handled here
-    
-    %% foreedge_margin = (2/3)*(trimmedsize_width - binding_offset - typeblock_width)
-    %% topdown_margin  = (1/2)*(trimmedsize_height - typeblock_height)
-    \setlrmargins{*}{25.4mm}{*}  %% fore-edge margin is handled here
-                                 %% Normally, your spine margin should be smaller, but the binding process is hot garbage based on what I have seen of previous theses.
-                                 %% spine margin automatically handled.
-                                 %% 25.40mm = 1.00in * 1.00
-    \setulmargins{25.4mm}{*}{*}  %% top margin handled here, bottom margin automatically handled.
-                                 %% 25.40mm = 1.00in * 1.00
-    \setheadfoot{\onelineskip}{2\onelineskip}
-    \setheaderspaces{*}{2\onelineskip}{*}
-    \setmarginnotes{17pt}{51pt}{\onelineskip}
-    \checkandfixthelayout
+    \setstocksize{297mm}{210mm}             %% Paper stock size = A4.
 \fi
+\settrimmedsize{240mm}{170mm}{*}            %% This is the layout/trimmed/paper size for which you work on,
+                                            %% 170 x 240 mm: final book size of the TU Delft dissertation template
+\if@print
+    \settrims{2mm}{2mm}                     %% Bleed: how far from {top}{right} that layout is placed on the stock (TU Delft uses 2mm)
+\else
+    \settrims{28.5mm}{20mm}                 %% Centres the book page on A4: (297-240)/2 = 28.5mm, (210-170)/2 = 20mm
+\fi
+\settypeblocksize{192mm}{113mm}{*}          %% This is your workspace - where you write on.
+\setbinding{7.0mm}           %% Binding margin is handled here
+                             %% 3.00mm binding from TUD PhD template
+                             %% 7.00mm binding might be better? based on what I have seen.
+
+%% foreedge_margin = (2/3)*(trimmedsize_width - binding_offset - typeblock_width)
+%% topdown_margin  = (1/2)*(trimmedsize_height - typeblock_height)
+\setlrmargins{*}{33.40mm}{*} %% fore-edge margin is handled here (scaled from 35.33mm for the 170mm page)
+                             %% Normally, your spine margin should be smaller, but the binding process is hot garbage based on what I have seen of previous theses.
+                             %% spine margin automatically handled.
+\setulmargins{23.90mm}{*}{*} %% top margin handled here, bottom margin automatically handled (scaled from 27.00mm for the 240mm page).
+\setheadfoot{\onelineskip}{2\onelineskip}
+\setheaderspaces{*}{2\onelineskip}{*}
+\setmarginnotes{17pt}{51pt}{\onelineskip}
+\checkandfixthelayout
+\sloppybottom % see memoir manual
 
 \if@showframe
     \RequirePackage{showframe}

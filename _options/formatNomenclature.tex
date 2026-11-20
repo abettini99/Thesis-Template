@@ -3,19 +3,12 @@
 \newlength\unitswidth
 \newlength\definitionwidth
 \newlength\symbolwidth
-\if@print
-    \setlength\descriptionwidth{13em}
-    \setlength\dimensionswidth{8em}
-    \setlength\unitswidth{5em}
-    \setlength\definitionwidth{13em}
-    \setlength\symbolwidth{4.5em}
-\else
-    \setlength\descriptionwidth{19em}
-    \setlength\dimensionswidth{8em}
-    \setlength\unitswidth{5em}
-    \setlength\definitionwidth{13em}
-    \setlength\symbolwidth{6em}
-\fi
+%% Column widths (book page, used in both print and report mode)
+\setlength\descriptionwidth{13em}
+\setlength\dimensionswidth{8em}
+\setlength\unitswidth{5em}
+\setlength\definitionwidth{13em}
+\setlength\symbolwidth{4.5em}
 
 \newcommand{\nomdescr}[1]{\parbox[t]{\descriptionwidth}{\RaggedRight #1}} % the cm box changes the size of the description box
 \newcommand{\DimensUnits}[2]{\hfill\makebox[\dimensionswidth]{#1\hfill}%
