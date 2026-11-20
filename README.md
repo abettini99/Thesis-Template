@@ -44,11 +44,14 @@ Set in the first line of `main.tex`, for example:
 |---|---|
 | `a5` *(default)*, `royal`, `tudelft` | Book page size: 148 × 210 mm, 156 × 234 mm or 170 × 240 mm. Text block, margins and chapter-title size follow automatically. |
 | `print` | Book version: the page plus 2 mm bleed on every side, chapters start on right-hand pages. Without it you get the report version: the same page centred on A4, no blank pages. |
-| `thumb` | Chapter thumb tabs on the page edge (print version only). |
+| `thumb` | Chapter thumb tabs on the page edge (print version only). Appendices continue below the last chapter; the spacing adapts so all tabs fit on the page (it uses the chapter count from the previous compile, so compile twice after adding chapters). |
 | `showtrims` | Crop marks showing where the page is trimmed (print) or where the book page sits on A4 (report). |
 | `british` *(default)*, `american` | Language: hyphenation, quotation marks and dates. |
 | `showframe` | Shows the page layout frames, for checking the layout. |
 | `draft` | Fast compiles while writing: images as boxes, overfull lines marked, *DRAFT* and the date on every page. |
+| `final` | The version for the printer and the repository: hides all todo notes. |
+| `backreferences` | Each reference in the bibliography ends with the pages it is cited on: "(cited on pages 12, 45)". |
+| `chapterbib` | Every chapter ends with its own reference list instead of one list at the end of the book, as is common for a thesis built from papers. |
 
 ## Where things are
 
@@ -71,6 +74,7 @@ Set in the first line of `main.tex`, for example:
 - **Citations:** `\cite{key}` for [1], `\citet{key}` for "Author [1]", `\citeauthor{key}`, `\citeyear{key}`.
 - **Units:** `\qty{1.225}{\kilo\gram\per\cubic\metre}`, `\num{6.02e23}`, `\unit{\metre\per\second}` (siunitx).
 - **Custom maths commands** (in `_options/commands.tex`): `\vec{u}` (bold, underlined vector), `\grad`, `\div`, `\curl`, `\deriv{y}{x}`, `\pderiv{y}{x}`, `\sderiv{y}{t}` (material derivative), `\transpose`, `\cddot`, and dimensionless numbers such as `\Re`, `\Ma`, `\Pr`.
+- **Todo notes:** `\todo{...}` puts a note in the margin, `\todo[inline]{...}` in the text, `\missingfigure{...}` a placeholder figure. The class option `final` removes them all.
 - **Figures and tables:** prefer `[tbp]` placement over `[H]`, so floats don't leave half-empty pages. Set full-width blocks that are *not* inside a figure or table environment with `\noindent` in front, so they don't pick up the paragraph indent.
 - **Acronyms and symbols:** define them once in `_nomenclature.tex` and use them with `\gls{label}`. An acronym is written out in full the first time ("blade element momentum theory (BEM)") and abbreviated afterwards; a symbol is printed as defined, in text or maths. In headings and captions, use `\glsfmtshort{label}` for acronyms. Everything defined appears in the nomenclature; delete `\glsaddall` in `Chapters/00Nomenclature.tex` to list only what the text actually uses.
 
@@ -86,6 +90,27 @@ Set in the first line of `main.tex`, for example:
   Symbols, dimensions and definitions are written as maths without `$...$` (dimensions with `\Lunit`, `\Munit`, `\Tunit`, `\Qunit`); write `--` for a dimensionless quantity. Latin symbols are sorted by the optional sort key (the label if none is given); Greek symbols and sub- and superscripts appear in the order they are defined.
 
 - **A chapter based on a published paper:** see `Chapters/01Introduction.tex` for the chapter opener with an epigraph, a short abstract and a "parts of this chapter have been published in…" note. To include the published PDF itself, uncomment `pdfpages` in `_options/packages.tex` and use `\includepdf[pages=-]{paper.pdf}`.
+
+## Plots
+
+Make plots in Python with the style file `Python/thesis.mplstyle` (see `Python/example_plot.py`):
+
+```python
+import matplotlib.pyplot as plt
+plt.style.use("Python/thesis.mplstyle")
+```
+
+It sets Times (or STIX, a Times-like font included with matplotlib), 8–9 pt text, colour-blind-safe colours each with its own line style (so lines stay apart in greyscale), and PDF output with embedded TrueType fonts, as needed for PDF/A. Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
+
+| Page size | Full text width | Half width (two side by side) |
+|---|---|---|
+| `a5` | 100 mm (3.94 in) | 48 mm (1.89 in) |
+| `royal` | 105 mm (4.13 in) | 50 mm (1.98 in) |
+| `tudelft` | 113 mm (4.45 in) | 54 mm (2.13 in) |
+
+## Print costs
+
+Printers usually charge every page that contains any colour as a colour page. So the print version keeps everything that appears on many pages black and white: the thumb tabs are black, links are invisible and code listings use bold and grey instead of colours. Colour in your own figures is fine; it only affects the pages they are on.
 
 ## Overleaf ↔ GitHub
 

@@ -11,6 +11,9 @@ This chapter shows the elements a thesis typically needs, typeset with this temp
 Body text is set in Times with indented paragraphs. Use \emph{emphasis} sparingly, \textbf{bold} even more so, and \textsc{small capitals} for the occasional acronym that should not shout. Quotation marks follow British style: \enquote{single quotes outside, with \enquote{double quotes} inside}. Numbers and units stay together on one line, as in a span of \qty{1.397}{\metre}, and references never start a line on their own, as in \cref{fig:single}.%
 \footnote{Footnotes are numbered per chapter and set in a smaller size at the bottom of the page.}
 
+Notes to yourself go in the margin\todo{Check this value against the measurements.} or, for longer remarks, in the text:
+\todo[inline]{Rewrite this paragraph once the results are in. Todo notes disappear when the class option \texttt{final} is used.}
+
 \subsection{Lists}
 
 An unordered list:
@@ -142,6 +145,17 @@ Two separate figures can also sit side by side, each with its own number, as \cr
         \caption{The right figure, with a caption long enough to wrap.}
         \label{fig:right}
     \end{minipage}
+\end{figure}
+
+\subsection{Plots}
+
+Plots are made in Python and included as PDF, at the width they were made for (\cref{fig:plot}). The style file \texttt{thesis.mplstyle} in the \texttt{Python} folder uses Times, sizes the text just below the caption size, and draws each line in a colour that is safe for colour-blind readers and with its own line style, so the lines stay apart when printed in greyscale. The script \texttt{example\_plot.py} in the same folder makes this figure.
+
+\begin{figure}[tbp]
+    \centering
+    \includegraphics{Images/example_plot.pdf}
+    \caption{A plot made with \texttt{thesis.mplstyle} (illustrative data).}
+    \label{fig:plot}
 \end{figure}
 
 \subsection{Diagrams}

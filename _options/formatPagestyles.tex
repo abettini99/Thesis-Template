@@ -11,13 +11,20 @@
 %   \createmark{chapter}{left}{nonumber}{}{}}
 
 \makepagestyle{appendix}
-\makeevenhead{appendix}{\headingfont\thepage}{\headingfont\MakeUppercase{Appendix \thechapter~\textendash~\leftmark}}{}
-\makeoddhead{appendix}{}{\headingfont\MakeUppercase{Appendix \thechapter~\textendash~\leftmark}}{\headingfont\thepage}
+\makeevenhead{appendix}{\headingfont\lthumb\thepage}{\headingfont\MakeUppercase{Appendix \thechapter~\textendash~\leftmark}}{}
+\makeoddhead{appendix}{}{\headingfont\MakeUppercase{Appendix \thechapter~\textendash~\leftmark}}{\headingfont\thepage\rthumb}
 \makeevenfoot{appendix}{}{}{}
 \makeoddfoot{appendix}{}{}{}
 \makeheadrule{appendix}{\textwidth}{\normalrulethickness}
 % \makepsmarks{mystyle}{%
 %   \createmark{chapter}{left}{nonumber}{}{}}
+
+%% Chapter opening pages: no running head, but the thumb tab (the page a reader is looking for).
+\makepagestyle{chapteropening}
+\makeevenhead{chapteropening}{\lthumb}{}{}
+\makeoddhead{chapteropening}{}{}{\rthumb}
+\makeevenfoot{chapteropening}{}{}{}
+\makeoddfoot{chapteropening}{}{}{}
 
 \makepagestyle{frontmatter}
 \makeevenhead{frontmatter}{}{}{}

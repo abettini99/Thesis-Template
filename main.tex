@@ -16,6 +16,9 @@
 %   showtrims -- crop marks: where the page is trimmed (print) or where it sits on A4 (report)
 %   showframe -- show construction guide (page layout)
 %   draft     -- fast compile while writing: images as boxes, overfull lines marked, DRAFT on every page
+%   final     -- version for the printer and repository: hides all todo notes
+%   backreferences -- each reference lists the pages it is cited on
+%   chapterbib -- every chapter ends with its own reference list
 
 % packages
 \input{_options/packages}
@@ -112,22 +115,26 @@
     %% ========== %%
     \pagenumbering{arabic}
     \chapterstyle{mainmatter}
-    \aliaspagestyle{chapter}{empty}
+    \aliaspagestyle{chapter}{chapteropening}
     
     \include{Chapters/01Introduction} % actual pagestyle set in here
 
     \include{Chapters/02Examples} % actual pagestyle set in here
 
-    \chapterstyle{bibliography}
-    \aliaspagestyle{chapter}{plain}
-    \DeclareRobustCommand{\VAN}[0]{van} % Change from Van to van
-    % \printbibliography[title={References}, heading=bibintoc]
-    \renewcommand{\bibname}{References}
-    %\begin{multicols}{2}[\printbibheading]
-    \setlength\bibitemsep{0.5\baselineskip} %% space between references
-    \printbibliography%[heading=none]
-    \pagestyle{intro-biblio}
-    %\end{multicols}
+    %% One reference list at the end of the book (not with the chapterbib option: then every chapter has its own)
+    \ifchapterbib\else
+        \thumbsoff % no thumb tab on the reference pages
+        \chapterstyle{bibliography}
+        \aliaspagestyle{chapter}{plain}
+        \DeclareRobustCommand{\VAN}[0]{van} % Change from Van to van
+        % \printbibliography[title={References}, heading=bibintoc]
+        \renewcommand{\bibname}{References}
+        %\begin{multicols}{2}[\printbibheading]
+        \setlength\bibitemsep{0.5\baselineskip} %% space between references
+        \printbibliography%[heading=none]
+        \pagestyle{intro-biblio}
+        %\end{multicols}
+    \fi
     \DeclareRobustCommand{\VAN}[0]{Van} % Change from van to Van for appendix purposes
 
     %% ======== %%
@@ -135,8 +142,9 @@
     %% ======== %%
     \bookmarksetup{startatroot} % https://tex.stackexchange.com/questions/131959/pdf-bookmarks-for-references-and-index-appear-as-contained-in-the-appendix-wron/131966
     \chapterstyle{appendix}
-    \aliaspagestyle{chapter}{empty}
+    \aliaspagestyle{chapter}{chapteropening}
     \appendix
+    \thumbson % appendices get tabs, continuing below the last chapter
 
     \clearpage
     \include{Chapters/A_Appendix}

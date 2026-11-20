@@ -1,0 +1,52 @@
+## Matplotlib style for figures that match the thesis.
+## Use it with:   import matplotlib.pyplot as plt
+##                plt.style.use("path/to/thesis.mplstyle")
+## Then save figures as PDF and include them with \includegraphics, at the width they were made for
+## (see the README for the text widths of each page size).
+
+## --- Fonts: Times, like the text --------------------------------------------------------
+## Times New Roman if installed (Windows, macOS); otherwise STIX, a Times-like font that ships with
+## matplotlib, so the result looks the same on every computer.
+font.family:        serif
+font.serif:         Times New Roman, STIXGeneral, Nimbus Roman, TeX Gyre Termes, DejaVu Serif
+mathtext.fontset:   stix            # Times-like maths: $\alpha$, $C_L$, $U_\infty$
+## Sizes: the text is 10 pt, captions 9 pt; figure text slightly smaller than captions.
+font.size:          9
+axes.titlesize:     9
+axes.labelsize:     9
+xtick.labelsize:    8
+ytick.labelsize:    8
+legend.fontsize:    8
+
+## --- Size: full text width of the A5 book (100 mm) -----------------------------------------
+## Change the width per figure with plt.figure(figsize=(width_in, height_in)).
+figure.figsize:     3.94, 2.44      # inches: 100 mm wide, golden-ratio height
+figure.dpi:         150
+figure.constrained_layout.use: True
+savefig.format:     pdf
+savefig.bbox:       standard        # keep the exact figure size (no "tight" cropping)
+savefig.dpi:        300             # for raster elements inside the PDF
+
+## --- Colours: colour-blind safe, and line styles so lines stay apart in greyscale ----------
+## Paul Tol's "bright" scheme (https://personal.sron.nl/~pault/), each colour with its own line style.
+axes.prop_cycle:    (cycler('color', ['4477AA', 'EE6677', '228833', 'CCBB44', '66CCEE', 'AA3377', 'BBBBBB']) + cycler('linestyle', ['-', '--', '-.', ':', (0, (5, 1, 1, 1)), (0, (3, 1, 1, 1, 1, 1)), (0, (1, 2))]))
+
+## --- Lines and axes ------------------------------------------------------------------------
+lines.linewidth:    1.2
+lines.markersize:   4
+axes.linewidth:     0.6
+axes.grid:          True
+grid.color:         d9d9d9
+grid.linewidth:     0.4
+axes.axisbelow:     True
+axes.spines.top:    False
+axes.spines.right:  False
+xtick.major.width:  0.6
+ytick.major.width:  0.6
+xtick.direction:    out
+ytick.direction:    out
+legend.frameon:     False
+
+## --- PDF output: embed fonts as TrueType (Type 42), as needed for PDF/A ---------------------
+pdf.fonttype:       42
+ps.fonttype:        42

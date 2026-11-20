@@ -21,6 +21,12 @@
 \usepackage{ragged2e}           % https://ctan.org/pkg/ragged2e %% \RaggedRight and FlushLeft that still hyphenate
 \usepackage{listings}           % https://ctan.org/pkg/listings %% code listings (style in formatCode.tex)
 
+%% Todo notes while writing: \todo{...} in the margin, \todo[inline]{...} in the text,
+%% \missingfigure{...} as a placeholder figure. All of them disappear with the class option final.
+\setlength{\marginparsep}{3mm}
+\setlength{\marginparwidth}{\dimexpr\foremargin-\marginparsep-3mm\relax} % margin notes fill the outer margin
+\usepackage[textsize=scriptsize, color=tudelft-yellow, linecolor=black!50]{todonotes}
+
 %% Paragraphs: book style, first line indented and no blank space between paragraphs.
 %% (The first paragraph after a heading is not indented, as usual.)
 \setlength{\parindent}{1.5em}

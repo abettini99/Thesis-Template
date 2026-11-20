@@ -28,6 +28,19 @@
 \DeclareOption{royal}{\renewcommand*{\thesis@pagesize}{royal}}
 \DeclareOption{tudelft}{\renewcommand*{\thesis@pagesize}{tudelft}}
 
+%% Bibliography options
+%%   backreferences: each reference lists the pages it is cited on ("Cited on pages 12, 45.")
+%%   chapterbib : every chapter ends with its own reference list (for a thesis built from papers),
+%%                instead of one list at the end of the book
+\newif\if@backref
+\DeclareOption{backreferences}{\@backreftrue} % (not "backref": that name would also switch on hyperref's own back-references)
+\newif\ifchapterbib
+\DeclareOption{chapterbib}{\chapterbibtrue}
+
+%% final: the version for the printer and the repository; hides all \todo notes.
+\newif\if@final
+\DeclareOption{final}{\@finaltrue \PassOptionsToPackage{disable}{todonotes}}
+
 \ExecuteOptions{british} %% default language: British English
 \ProcessOptions\relax
 
@@ -96,6 +109,12 @@
 \setmarginnotes{17pt}{51pt}{\onelineskip}
 \checkandfixthelayout
 \sloppybottom % see memoir manual
+%% No widows or orphans: never leave a single line of a paragraph alone at the top or bottom of a
+%% page. \sloppybottom lets a page run one line long instead, so pages stay full.
+\clubpenalty=10000          % first line of a paragraph alone at the bottom of a page
+\widowpenalty=10000         % last line of a paragraph alone at the top of a page
+\displaywidowpenalty=10000  % last line before a displayed equation alone at the top of a page
+\brokenpenalty=5000         % avoid a page break right after a hyphenated line
 
 \if@showframe
     \RequirePackage{showframe}
@@ -155,6 +174,32 @@
 \captionsetup*{font={small}, labelfont={sc, bf}, labelsep=quad}
 \renewcommand{\arraystretch}{1.2}
 
-\RequirePackage[backend=biber,natbib=true,style=numeric,sorting=none]{biblatex} % natbib has some cool commands like \citet, \citep which i really like.
+%% Bibliography: numbered in order of citation, compressed ([2-4]), \citet/\citep available (natbib=true).
+\RequirePackage[
+    backend     = biber,
+    natbib      = true,
+    style       = numeric-comp,  % [2-4] instead of [2, 3, 4]
+    sorting     = none,          % numbered in order of first citation
+    maxbibnames = 3,             % more than three authors: first three, then "et al."
+    minbibnames = 3,
+    doi         = true,          % DOIs shown and clickable
+    isbn        = false,
+    eprint      = false,
+]{biblatex}
 \addbibresource{references.bib}
+%% A URL adds nothing when there is a DOI: hide it (and its access date).
+\setlength\bibitemsep{0.5\baselineskip} % space between references
+\AtEveryBibitem{\iffieldundef{doi}{}{\clearfield{url}\clearfield{urlyear}\clearfield{urlmonth}\clearfield{urlday}}}
+\if@backref
+    \ExecuteBibliographyOptions{backref=true, backrefstyle=three}
+    \DefineBibliographyStrings{english}{backrefpage={cited on page}, backrefpages={cited on pages}}
+    \DefineBibliographyStrings{british}{backrefpage={cited on page}, backrefpages={cited on pages}}
+    \DefineBibliographyStrings{american}{backrefpage={cited on page}, backrefpages={cited on pages}}
+\fi
+\ifchapterbib
+    %% Every \chapter starts a new reference section; its list is printed at the end of the chapter
+    %% file (\include). Chapters without citations print nothing.
+    \ExecuteBibliographyOptions{refsection=chapter}
+    \AddToHook{include/end}{\printbibliography[heading=subbibintoc, title={References}]}
+\fi
 

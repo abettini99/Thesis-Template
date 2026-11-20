@@ -1,74 +1,68 @@
+%% =====================================================================
+%% Thumb tabs (class option thumb, print version only)
+%% A tab with the chapter number on the outer page edge, running into the bleed, so the
+%% chapters can be found by flipping through the closed book.
+%%  - Tabs step down the page, one position per chapter; appendices continue below the last
+%%    chapter instead of starting again at the top.
+%%  - The spacing adapts to the number of chapters and appendices (counted on the previous
+%%    compile), so the tabs always fit between the top and bottom of the text block, on any
+%%    page size. With few chapters, tabs are spaced 2 tab heights apart; with many, they move
+%%    closer and become shorter.
+%%  - Black (tudelft-black, set as "thumb" in formatColor.tex): coloured tabs would make every
+%%    page of the book a colour page at the printer.
+%% \thumbsoff and \thumbson switch them off and on, e.g. around the references.
+%% =====================================================================
+\newlength\thumbheight      \setlength\thumbheight{24pt}    % tab height (maximum)
+\newlength\thumbedge        \setlength\thumbedge{4pt}       % corner radius
+\newlength\thumbhspace      \setlength\thumbhspace{36pt}    % how far the tab reaches into the page
+\newlength\thumbvspace                                      % step between tab positions (computed)
+\newlength\thesis@thumbtab                                  % actual tab height (computed)
 
-%%% Thumb indices consist of white text on a rectangular colored background. The
-%%% font-size is 75% of the size of thumb height.
-% \newif\ifthumb
-\newlength\thumbheight
-\setlength\thumbheight{24pt}
-\newlength\thumbedge
-\setlength\thumbedge{4pt}
-\newlength\thumbhspace
-\setlength\thumbhspace{36pt}
-\newlength\thumbvspace
-\setlength\thumbvspace{2\thumbheight}
+\newif\ifthesis@thumbson \thesis@thumbsontrue
+\newcommand{\thumbsoff}{\thesis@thumbsonfalse}
+\newcommand{\thumbson}{\thesis@thumbsontrue}
 
-\newlength\thumbwidth
-\setlength\thumbwidth{36pt}
-\newlength\thumbspacing
-\setlength\thumbspacing{2\thumbheight}
+%% Tab position = chapter number, plus the number of main chapters once in the appendices.
+\newcounter{thesis@mainchapters}
+\AddToHook{cmd/appendix/before}{\setcounter{thesis@mainchapters}{\value{chapter}}}
+\newcommand{\thesis@thumbpos}{\the\numexpr\value{chapter}+\value{thesis@mainchapters}\relax}
 
-%% We need the TikZ library calc to calculate the coordinates of the thumb
-%% indices.
+%% Total number of tab positions, saved for the next compile.
+\AtEndDocument{\immediate\write\@auxout{\gdef\string\thesis@thumbtotal{\thesis@thumbpos}}}
+\AtBeginDocument{%
+    \ifdefined\thesis@thumbtotal\else\gdef\thesis@thumbtotal{1}\fi
+    \ifnum\thesis@thumbtotal<1 \gdef\thesis@thumbtotal{1}\fi
+    %% step = text height / number of tabs, but at most 2 tab heights
+    \setlength\thumbvspace{\dimexpr\textheight/\thesis@thumbtotal\relax}%
+    \ifdim\thumbvspace>2\thumbheight \setlength\thumbvspace{2\thumbheight}\fi
+    %% tab height = the maximum, or 80% of the step if the tabs are packed closely
+    \setlength\thesis@thumbtab{\thumbheight}%
+    \ifdim\thesis@thumbtab>0.8\thumbvspace \setlength\thesis@thumbtab{0.8\thumbvspace}\fi
+}
+
+%% TikZ library calc for the coordinates of the tabs.
 \usetikzlibrary{calc}
 
-%% The lthumb command prints the current chapter number in a thumb index on the
-%% left (even) page.
-\newcommand*\lthumb{%
-    \if@thumb%
+%% Draws the tab. #1: west (left, even page) or east (right, odd page).
+\def\thesis@west{west}
+\newcommand*{\thesis@thumb}[1]{%
+    \if@thumb\ifthesis@thumbson\ifnum\value{chapter}>0
         \begin{tikzpicture}[remember picture,overlay]
             \coordinate (top margin) at (0pt,1in+\topmargin+\headheight+\headsep);
-            \coordinate (left margin) at (1in+\evensidemargin,0pt);
-            %% Calculate the corners of the thumb index based on the current
-            %% chapter number.
-            \coordinate (top left) at ($(current page.north west)-(top margin)-(0pt,\value{chapter}\thumbvspace-\thumbvspace)$);
-            \coordinate (bottom right) at ($(top left)+(left margin)-(\thumbhspace,\thumbheight)$);
-            %% Shift the left edge to prevent the rounded corner from showing.
-            \coordinate (top left) at ($(top left)-(3*\thumbedge,0pt)$);
-            %% Draw the thumb index.
-            \fill[fill=thumb,rounded corners=\thumbedge](top left) rectangle (bottom right);
-            %% Print the chapter number at the center right in the thumb index.
-            \coordinate (center right) at ($(bottom right)+(0pt,0.5\thumbheight)$);
-            \node at (center right)[anchor=east,inner sep=2\thumbedge]{
-                % \titlefont\bfseries\color{tudelft-white}
-                \bfseries\color{tudelft-white}
-                \fontsize{0.75\thumbheight}{0.75\thumbheight}\selectfont
-                \thechapter
-            };
+            \coordinate (tab top) at ($(current page.north #1)-(top margin)-(0pt,\thesis@thumbpos\thumbvspace-\thumbvspace)$);
+            \def\thesis@side{#1}%
+            \ifx\thesis@side\thesis@west
+                %% left page: the tab runs from beyond the left edge (bleed) into the page
+                \fill[fill=thumb,rounded corners=\thumbedge] ($(tab top)-(3*\thumbedge,0pt)$) rectangle ($(tab top)+(\thumbhspace,-\thesis@thumbtab)$);
+                \node at ($(tab top)+(\thumbhspace,-0.5\thesis@thumbtab)$)[anchor=east,inner sep=2\thumbedge]{%
+                    \bfseries\color{tudelft-white}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
+            \else
+                %% right page: mirror image
+                \fill[fill=thumb,rounded corners=\thumbedge] ($(tab top)+(3*\thumbedge,0pt)$) rectangle ($(tab top)+(-\thumbhspace,-\thesis@thumbtab)$);
+                \node at ($(tab top)+(-\thumbhspace,-0.5\thesis@thumbtab)$)[anchor=west,inner sep=2\thumbedge]{%
+                    \bfseries\color{tudelft-white}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
+            \fi
         \end{tikzpicture}%
-    \fi%
-}
-
-%% rthumb draws a thumb index on the right (odd) page.
-\newcommand*\rthumb{%
-    \if@thumb%
-        \begin{tikzpicture}[remember picture,overlay]
-            \coordinate (top margin) at (0pt,1in+\topmargin+\headheight+\headsep);
-            \coordinate (right margin) at (1in+\evensidemargin,0pt);
-            %% Calculate the corners of the thumb index based on the current
-            %% chapter number.
-            \coordinate (top right) at ($(current page.north east)-(top margin)-(0pt,\value{chapter}\thumbvspace-\thumbvspace)$);
-            \coordinate (bottom left) at ($(top right)-(right margin)-(-\thumbhspace,\thumbheight)$);
-            %% Shift the left right to prevent the rounded corner from showing.
-            \coordinate (top right) at ($(top right)+(3*\thumbedge,0pt)$);
-            %% Draw the thumb index.
-            \fill[fill=thumb,rounded corners=\thumbedge](top right) rectangle (bottom left);
-            %% Print the chapter number at the center right in the thumb index.
-            \coordinate (center left) at ($(bottom left)+(0pt,0.5\thumbheight)$);
-            \node at (center left)[anchor=west,inner sep=2\thumbedge]{
-                % \titlefont\bfseries\color{tudelft-white}
-                \bfseries\color{tudelft-white}
-                \fontsize{0.75\thumbheight}{0.75\thumbheight}\selectfont
-                \thechapter
-            };
-        \end{tikzpicture}%
-    \fi%
-}
+    \fi\fi\fi}
+\newcommand*{\lthumb}{\thesis@thumb{west}}
+\newcommand*{\rthumb}{\thesis@thumb{east}}

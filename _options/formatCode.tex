@@ -1,5 +1,8 @@
+%% Code listings (listings package).
+%% Report version: coloured syntax highlighting. Print version: black and white (bold keywords,
+%% grey italic comments), because printers often charge every page with colour as a colour page.
 \definecolor{dkgreen}{rgb}{0,0.6,0}
-\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{gray}{gray}{0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 % https://tex.stackexchange.com/questions/24528/having-problems-with-listings-and-utf-8-can-it-be-fixed
 \lstset{
@@ -13,9 +16,6 @@
     numbers=left,
     numbersep=5pt,
     numberstyle=\tiny\color{gray},
-    keywordstyle=\color{blue},
-    commentstyle=\color{dkgreen},
-    stringstyle=\color{mauve},
     breaklines=true,
     breakatwhitespace=false,
     tabsize=3,
@@ -23,3 +23,16 @@
     extendedchars=true,
     literate={á}{{\'a}}1 {ã}{{\~a}}1 {é}{{\'e}}1 {ü}{{\"u}}1,
 }
+\ifprintversion
+    \lstset{
+        keywordstyle=\bfseries,
+        commentstyle=\itshape\color{gray},
+        stringstyle=\color{black},
+    }
+\else
+    \lstset{
+        keywordstyle=\color{blue},
+        commentstyle=\color{dkgreen},
+        stringstyle=\color{mauve},
+    }
+\fi
