@@ -10,17 +10,18 @@
 font.family:        serif
 font.serif:         Times New Roman, STIXGeneral, Nimbus Roman, TeX Gyre Termes, DejaVu Serif
 mathtext.fontset:   stix            # Times-like maths: $\alpha$, $C_L$, $U_\infty$
-## Sizes: the text is 10 pt, captions 9 pt; figure text slightly smaller than captions.
-font.size:          9
-axes.titlesize:     9
-axes.labelsize:     9
-xtick.labelsize:    8
-ytick.labelsize:    8
-legend.fontsize:    8
+## Sizes, set for the Dover default (9.5 pt text, captions about 8.5 pt): figure text at about the
+## caption size. For the other page sizes (10 pt text), add 0.5 to each.
+font.size:          8.5
+axes.titlesize:     8.5
+axes.labelsize:     8.5
+xtick.labelsize:    7.5
+ytick.labelsize:    7.5
+legend.fontsize:    7.5
 
-## --- Size: full text width of the A5 book (100 mm); Dover 92 mm, Royal 105 mm, TU Delft 113 mm --
+## --- Size: full text width of the Dover book (92 mm); A5 100 mm, Royal 105 mm, TU Delft 113 mm --
 ## Change the width per figure with plt.figure(figsize=(width_in, height_in)).
-figure.figsize:     3.94, 2.44      # inches: 100 mm wide, golden-ratio height
+figure.figsize:     3.62, 2.24      # inches: 92 mm wide, golden-ratio height
 figure.dpi:         150
 figure.constrained_layout.use: True
 savefig.format:     pdf

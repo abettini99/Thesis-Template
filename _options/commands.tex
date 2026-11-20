@@ -28,16 +28,12 @@
 \newcommand\cpderiv[3][]{\pdiff[#1]{}_{#3}{#2}} % creates a compact form nth-order partial derivative
 \newcommand\csderiv[3][]{\sdiff[#1]{}_{#3}{#2}} % creates a compact form nth-order substantial derivative
 
-\newcommand\uVec[2]{\hat{\Vec{#1}}_{#2}}        % creates a unit vector
-\newcommand\uVecT[2]{\overline{\Vec{#1}}_{#2}}  % creates a transformed unit vector
+\newcommand\uVec[2]{\hat{\bm{#1}}_{#2}}         % creates a unit vector
+\newcommand\uVecT[2]{\overline{\bm{#1}}_{#2}}   % creates a transformed unit vector
 \newcommand\transpose{^\textsf{T}}              % places in a transpose symbol
 
-%https://tex.stackexchange.com/questions/417310/double-bar-notation-for-second-order-tensors4
-\newcommand\barbelow[1]{\stackunder[1.6pt]{$#1$}% creates a bar below an object
-                        {\rule{0.9ex}{.1ex}}}   
-
-\newcommand{\grad}{ \barbelow{\nabla}}          % \grad now includes bar below.
-\newcommand{\curl}{ \barbelow{\nabla}\times}    % \curl now includes bar below.
+\newcommand{\grad}{\nabla}                     % gradient
+\newcommand{\curl}{\nabla\times}               % curl
 \newcommand\proj[2]{ \mathsf{proj}_{#1}^{#2}\,} % Projection operator
 \newcommand{\Res}{ \mathsf{Res}}                % Residual operator
 
@@ -86,8 +82,11 @@
 
 % Renew Commands:
 % --------------------
-\renewcommand{\vec}[1]{ \barbelow{\bm{#1}} }    % \vec to \bm combination
-\renewcommand{\div}{ \barbelow{\nabla}\cdot}    % \div now includes bar below.
+%% Vectors and tensors are bold (upright letters stay upright, italic stay italic).
+%% Change these two lines to switch notation everywhere, e.g. arrows or underlines.
+\renewcommand{\vec}[1]{\bm{#1}}                 % vector:  \vec{u}
+\newcommand{\tensor}[1]{\bm{#1}}                % tensor:  \tensor{\tau}
+\renewcommand{\div}{\nabla\cdot}               % divergence
 
 \renewcommand*{\tocheadstart}{\vspace*{0pt}}    % straight from the memoir manual, may need to change if you change
 \renewcommand*{\lofheadstart}{\vspace*{0pt}}    % titlespacing for chapters... investigate?

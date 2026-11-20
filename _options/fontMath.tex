@@ -6,9 +6,12 @@
 %% newtxmath takes digits, \mathrm, \mathbf, \mathit and operator names (sin, log, ...) from the current
 %% roman font. Under fontspec that font has no math encoding, so it would fall back to Computer Modern.
 %% Temporarily point it at newtx's own Times while loading, then restore the fontspec main font.
+%% Scaled like the text (95 % for the Dover size): maths fonts via newtxmath's option, digits and
+%% operator names via newtx's text-font scaling.
+\edef\ntx@scaled{s*[\thesis@fontscale]}
 \let\thesis@rmdefault\rmdefault
 \renewcommand{\rmdefault}{ntxtlf}
-\RequirePackage{newtxmath}
+\edef\thesis@tmp{\noexpand\RequirePackage[scaled=\thesis@fontscale]{newtxmath}}\thesis@tmp
 \let\rmdefault\thesis@rmdefault
 
 %% Previous setup: Euler math with upright Roman capitals. Kept for reference; uncomment (and remove newtxmath) to go back.

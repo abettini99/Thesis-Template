@@ -19,12 +19,12 @@
 \newif\if@draft
 \DeclareOption{draft}{\@drafttrue \PassOptionsToPackage{draft}{graphicx} \PassOptionsToClass{draft}{memoir}}
 
-%% Book page size. Choose one; a5 is the default.
+%% Book page size. Choose one; dover is the default.
 %%   dover   : 137 x 213 mm  (5 3/8 x 8 3/8 in, the classic Dover paperback)
 %%   a5      : 148 x 210 mm  (handbook / paperback size)
 %%   royal   : 156 x 234 mm  (typical academic book)
 %%   tudelft : 170 x 240 mm  (TU Delft dissertation template, most common thesis size in NL)
-\newcommand*{\thesis@pagesize}{a5}
+\newcommand*{\thesis@pagesize}{dover}
 \DeclareOption{dover}{\renewcommand*{\thesis@pagesize}{dover}}
 \DeclareOption{a5}{\renewcommand*{\thesis@pagesize}{a5}}
 \DeclareOption{royal}{\renewcommand*{\thesis@pagesize}{royal}}
@@ -77,15 +77,22 @@
     \setlength{\thesis@pagewidth}{156mm}   \setlength{\thesis@pageheight}{234mm}
     \setlength{\thesis@textwidth}{105mm}   \setlength{\thesis@textheight}{180mm}
     \setlength{\thesis@foremargin}{29.3mm} \setlength{\thesis@topmargin}{25mm}
-}{\ifthenelse{\equal{\thesis@pagesize}{dover}}{%
+}{\ifthenelse{\equal{\thesis@pagesize}{dover}}{% (default)
     \setlength{\thesis@pagewidth}{137mm}   \setlength{\thesis@pageheight}{213mm}
     \setlength{\thesis@textwidth}{92mm}    \setlength{\thesis@textheight}{168mm}
     \setlength{\thesis@foremargin}{25.3mm} \setlength{\thesis@topmargin}{20mm}
-}{% a5 (default)
+}{% a5
     \setlength{\thesis@pagewidth}{148mm}   \setlength{\thesis@pageheight}{210mm}
     \setlength{\thesis@textwidth}{100mm}   \setlength{\thesis@textheight}{165mm}
     \setlength{\thesis@foremargin}{27.3mm} \setlength{\thesis@topmargin}{20mm}
 }}}
+%% Type size and line spacing. Dover: 9.5 pt type (all fonts scaled to 95 %, maths included) on
+%% 12.4 pt leading, like the Dover paperbacks; this also keeps about 57 characters per line on the
+%% narrower page. Other sizes: 10 pt type on 13.2 pt leading.
+\newcommand*{\thesis@fontscale}{1}
+\newcommand*{\thesisspacing}{1.1}
+\ifthenelse{\equal{\thesis@pagesize}{dover}}{\renewcommand*{\thesis@fontscale}{0.95}\renewcommand*{\thesisspacing}{1.03}}{}
+
 %% Chapter title size scales with the page, so long titles such as "Acknowledgements" still fit on one line.
 \newcommand*{\chaptertitlesize}{30pt}
 \ifthenelse{\equal{\thesis@pagesize}{tudelft}}{\renewcommand*{\chaptertitlesize}{36pt}}{}

@@ -57,7 +57,7 @@ Citations use numbered references~\cite{Allen2002}, several at once~\cite{Sinnig
 \section{Mathematics}\label{sec:maths}
 %% =====================================================================
 
-Inline maths such as $\Re = \rho U L / \mu$ uses the same Times letters as the text. Vectors are bold and underlined, $\vec{u}$, and second-order tensors carry two bars, $\barbelow{\barbelow{\bm{\tau}}}$. For an incompressible flow, mass and momentum conservation read
+Inline maths such as $\Re = \rho U L / \mu$ uses the same Times letters as the text. Vectors and tensors are bold: the velocity $\vec{u}$ and the stress tensor $\tensor{\tau}$. For an incompressible flow, mass and momentum conservation read
 \begin{align}
     \div \vec{u} &= 0, \label{eq:continuity} \\
     \sderiv{\vec{u}}{t} &= -\frac{1}{\rho} \grad p + \nu \nabla^2 \vec{u}, \label{eq:navier-stokes}
@@ -76,7 +76,7 @@ A derivation over several lines numbers only its result:
 
 Derivatives of any order, and their compact forms:
 \begin{equation*}
-    \deriv{y}{x}, \quad \deriv[2]{y}{x}, \quad \pderiv[2]{\phi}{x}, \quad \cpderiv{\phi}{x}, \quad \vec{A}\transpose \vec{B}, \quad \barbelow{\barbelow{\bm{\sigma}}} \cddot \barbelow{\barbelow{\bm{\varepsilon}}}.
+    \deriv{y}{x}, \quad \deriv[2]{y}{x}, \quad \pderiv[2]{\phi}{x}, \quad \cpderiv{\phi}{x}, \quad \vec{A}\transpose \vec{B}, \quad \tensor{\sigma} \cddot \tensor{\varepsilon}.
 \end{equation*}
 
 Piecewise definitions, matrices and operators:
@@ -87,12 +87,12 @@ Piecewise definitions, matrices and operators:
         C_{L,\text{max}},       & \text{otherwise},
     \end{cases}
     \qquad
-    \barbelow{\barbelow{\bm{R}}} =
+    \tensor{R} =
     \begin{bmatrix}
         \cos\theta & -\sin\theta \\
         \sin\theta & \cos\theta
     \end{bmatrix}, \\
-    \hat{\vec{x}} = \argmin_{\vec{x}} \, \lVert \barbelow{\barbelow{\bm{A}}} \vec{x} - \vec{b} \rVert_2^2 .
+    \hat{\vec{x}} = \argmin_{\vec{x}} \, \lVert \tensor{A} \vec{x} - \vec{b} \rVert_2^2 .
 \end{gather}
 Dimensionless numbers are upright: $\Re$, $\Ma$, $\Pr$, $\St$ and $\Fr$.
 
