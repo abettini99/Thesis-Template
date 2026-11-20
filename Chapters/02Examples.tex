@@ -46,7 +46,7 @@ Longer quotations are set apart from the text:
 \section{Cross-references and citations}\label{sec:references}
 %% =====================================================================
 
-Cross-references name the thing they point to: \cref{sec:text} discusses text, \cref{eq:navier-stokes} is the momentum equation, \cref{fig:subfigures} has two parts, of which \cref{subfig:left} is the left one, \cref{tab:geometry} lists the model geometry and \cref{app:derivation} contains a derivation. Several references at once are combined: \cref{eq:continuity,eq:navier-stokes}. \Cref{fig:plot} is on \cpageref{fig:plot}.
+Cross-references name the thing they point to: \cref{sec:text} discusses text, \cref{eq:navier-stokes} is the momentum equation, \cref{fig:panels} has two panels, of which \cref{fig:panels}a is the left one, \cref{tab:geometry} lists the model geometry and \cref{app:derivation} contains a derivation. Several references at once are combined: \cref{eq:continuity,eq:navier-stokes}. \Cref{fig:diagram} is on \cpageref{fig:diagram}.
 
 Citations use numbered references~\cite{Allen2002}, several at once~\cite{Sinnige2020,Bettini2021,Eitelberg2020}, or name the authors, as in \citet{Herrez2016}, who published in \citeyear{Herrez2016}. A page or table can be added to a citation~\cite[Tab.~4]{Bettini2021}.
 
@@ -112,58 +112,41 @@ Figures float to the top or bottom of a page, or onto a page of their own, so th
     \label{fig:single}
 \end{figure}
 
-\subsection{Sub-figures}
+\subsection{Figures with several panels}
 
-Figures with several parts are labelled (a), (b) and so on, as in \cref{fig:subfigures}.
+A figure with several panels is best made as one PDF, with the panel letters drawn in by the plotting tool. The caption then describes each panel, and the text refers to a panel as \cref{fig:panels}a.
 
 \begin{figure}[tbp]
     \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{Images/graph.jpg}
-        \caption{Left part.}
-        \label{subfig:left}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{Images/graph.jpg}
-        \caption{Right part, with a caption long enough to wrap.}
-        \label{subfig:right}
-    \end{subfigure}
-    \caption{A figure with two sub-figures.}
-    \label{fig:subfigures}
+    \includegraphics[width=0.48\textwidth]{Images/graph.jpg}\hfill
+    \includegraphics[width=0.48\textwidth]{Images/graph.jpg}
+    \caption{A figure with two panels: (a) the left panel; (b) the right panel. In a real figure, the letters are part of the image.}
+    \label{fig:panels}
 \end{figure}
 
-\subsection{Plots}
+\subsection{Figures side by side}
 
-Plots drawn with \texttt{pgfplots} use the fonts of the document, so labels match the text exactly and stay sharp at any zoom level (\cref{fig:plot}).
+Two separate figures can also sit side by side, each with its own number, as \cref{fig:left,fig:right} show.
 
 \begin{figure}[tbp]
     \centering
-    \begin{tikzpicture}
-        \begin{axis}[
-            width=\linewidth, height=0.62\linewidth,
-            xlabel={Angle of attack $\alpha$ (\unit{\degree})},
-            ylabel={Lift coefficient $C_L$},
-            xmin=-4, xmax=20, ymin=-0.5, ymax=1.6,
-            grid=major, grid style={gray!25},
-            legend pos=south east, legend cell align=left,
-            tick label style={font=\small}, label style={font=\small}, legend style={font=\small},
-        ]
-            \addplot[domain=-4:20, samples=50, thick, dashed, black] {2*pi*x*pi/180};
-            \addlegendentry{Thin-aerofoil theory}
-            \addplot[domain=-4:20, samples=100, thick, tudelft-dark-blue] {1.35*tanh(2*pi*x*pi/180/1.35) - 0.0018*max(x-12,0)^2};
-            \addlegendentry{Measurement (illustrative)}
-        \end{axis}
-    \end{tikzpicture}
-    \caption{A plot drawn with \texttt{pgfplots}.}
-    \label{fig:plot}
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Images/graph.jpg}
+        \caption{The left figure.}
+        \label{fig:left}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Images/graph.jpg}
+        \caption{The right figure, with a caption long enough to wrap.}
+        \label{fig:right}
+    \end{minipage}
 \end{figure}
 
 \subsection{Diagrams}
 
-Diagrams drawn with TikZ use the same fonts and colours (\cref{fig:diagram}).
+Simple diagrams can be drawn with TikZ, in the same fonts and colours as the text (\cref{fig:diagram}). For anything elaborate, a PDF made in a drawing program works just as well.
 
 \begin{figure}[tbp]
     \centering
@@ -181,38 +164,6 @@ Diagrams drawn with TikZ use the same fonts and colours (\cref{fig:diagram}).
     \end{tikzpicture}
     \caption{A diagram drawn with TikZ.}
     \label{fig:diagram}
-\end{figure}
-
-\subsection{Figures continued on the next page}
-
-A figure with too many parts for one page can continue on the next one, keeping its number (\cref{fig:continued}).
-
-\begin{figure}[tbp]
-    \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{Images/graph.jpg}
-        \caption{First part.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{Images/graph.jpg}
-        \caption{Second part.}
-    \end{subfigure}
-    \caption{A figure continued on the next page.}
-    \label{fig:continued}
-\end{figure}
-\begin{figure}[tbp]\ContinuedFloat
-    \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{Images/graph.jpg}
-        \caption{Third part.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{Images/graph.jpg}
-        \caption{Fourth part.}
-    \end{subfigure}
-    \caption[]{A figure continued on the next page (continued).}
 \end{figure}
 
 \subsection{Repeated figures}

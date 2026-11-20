@@ -19,7 +19,7 @@ A long thesis gets slow because every chapter, figure and plot is processed on e
 
 1. **Compile only the chapter you are working on.** In `main.tex`, uncomment `\includeonly{...}` and list the chapter(s), for example `\includeonly{Chapters/03Method}`. Page numbers and references to the other chapters are kept from the last full compile. Comment it out again for a full compile. (Chapters must be added with `\include{...}`, not `\input{...}`, for this to work.)
 2. **Use the `draft` option.** Images are replaced by labelled boxes, overfull lines get a black bar in the margin, and every page says *DRAFT* with the date. Remove it for the final version. Overleaf's *Recompile → Fast [draft]* does the image part as well.
-3. **Keep heavy plots out of the document.** A TikZ/pgfplots plot with a lot of data is redrawn on every compile. Either make it in a separate small `standalone` document, compile that once and include the resulting PDF with `\includegraphics`, or make the plot in Python (matplotlib) and save it as PDF. Small diagrams and simple plots are fine inline.
+3. **Keep heavy plots out of the document.** Make plots in Python (matplotlib) or similar and include them as PDF. A TikZ drawing is redrawn on every compile, so keep TikZ for small diagrams.
 4. **Keep images light.** Use vector PDF for plots and diagrams. For photos and renders, use JPG (or PNG for screenshots) at no more than about 300 dpi at the size they are printed: a figure 100 mm wide needs about 1200 pixels, not 6000.
 5. **Load only what you use.** Optional packages are listed, commented out, at the bottom of `_options/packages.tex`.
 
@@ -31,7 +31,7 @@ The PDF is produced as **PDF/A-2b**, the archival standard: fonts are embedded, 
 
 - **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A-2b.
 - **Checking:** the template passes the standard PDF/A-2b checks, but have the final PDF validated once with [veraPDF](https://verapdf.org) (free) or Adobe Acrobat's preflight.
-- **Accessible (tagged) PDF**, the higher PDF/UA and PDF/A "a" levels, is not possible yet: the `memoir` class, `caption`/`subcaption` and `pgfplots` are not yet compatible with LaTeX's tagging code.
+- **Accessible (tagged) PDF**, the higher PDF/UA and PDF/A "a" levels, is not possible yet: the `memoir` class, the `caption` package and the `newtxmath` maths font are not yet compatible with LaTeX's tagging code, and several other packages have not been tested with it.
 
 ## Class options
 

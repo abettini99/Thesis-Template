@@ -12,14 +12,11 @@
 
 %% Figures and tables
 \usepackage{float}              % https://ctan.org/pkg/float %% [H] placement, if you really need it
-\usepackage{subcaption}         % https://ctan.org/pkg/subcaption %% subfigure and subtable environments
 \usepackage{array}              % https://ctan.org/pkg/array %% extra column types for tables
 \usepackage{booktabs}           % https://ctan.org/pkg/booktabs %% \toprule, \midrule, \bottomrule
 \usepackage{xltabular}          % https://ctan.org/pkg/xltabular %% tabularx (wrapping columns) + longtable (across pages)
 \usepackage{pdflscape}          % https://ctan.org/pkg/pdflscape %% landscape pages, shown rotated in PDF viewers
-\usepackage{pgfplots}           % https://ctan.org/pkg/pgfplots %% plots drawn by LaTeX itself, in the document's fonts
-\pgfplotsset{compat=1.18}
-\usetikzlibrary{positioning,arrows.meta}
+\usetikzlibrary{positioning,arrows.meta} % TikZ itself is loaded by the class (thumb tabs)
 
 %% Text and code
 \usepackage{ragged2e}           % https://ctan.org/pkg/ragged2e %% \RaggedRight and FlushLeft that still hyphenate
@@ -61,6 +58,7 @@
 %% Optional packages: uncomment when needed (load them above cleveref if they define new
 %% numbered things, otherwise anywhere above is fine).
 %% =====================================================================
+% \usepackage{subcaption}       % https://ctan.org/pkg/subcaption %% sub-figures with their own captions, (a), (b), ...
 % \usepackage{pdfpages}         % https://ctan.org/pkg/pdfpages %% include PDF pages, e.g. a published paper: \includepdf[pages=-]{paper.pdf}
 % \usepackage{multirow}         % https://ctan.org/pkg/multirow %% table cells spanning several rows
 % \usepackage{colortbl}         % https://ctan.org/pkg/colortbl %% coloured table rows, columns and cells
