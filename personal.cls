@@ -35,7 +35,7 @@
 \newif\ifprintversion
 \if@print \printversiontrue \fi
 
-\RequirePackage[l2tabu, orthodox]{nag} % https://ctan.org/pkg/nag %% In case I commit a cardinal sin of loading depreciated modules, or some dumb stuff that can be picked up (i.e use \centering instead of \begin{center}[...]\end{center})
+% \RequirePackage[l2tabu, orthodox]{nag} % https://ctan.org/pkg/nag %% warns about outdated LaTeX commands; uncomment to check your writing
 
 %% Page layout. The book page size is set by the a5 / royal / tudelft option (default a5);
 %% only the paper it sits on differs between modes:
@@ -114,12 +114,10 @@
 \if@american
     \RequirePackage[dutch,american]{babel}               % https://ctan.org/pkg/babel %% manages culturally-determined typographical (and other) rules for a wide range of languages 
     \RequirePackage[style=american]{csquotes}       % https://ctan.org/pkg/csquotes %% provides advanced facilities for inline and display quotations, check their documentation to find out how to quote properly        
-    \RequirePackage[USenglish,style=iso]{datetime2} % https://www.ctan.org/pkg/datetime2 %% This package provides commands for formatting dates, times and time zones and redefines \today to use the same formatting style. By default uses ISO formatting described in ISO 8601 and DIN 5008.
 \fi
 \if@british
     \RequirePackage[dutch,british]{babel} % dutch for the Samenvatting; the last language is the main one
     \RequirePackage[style=british]{csquotes} 
-    \RequirePackage[UKenglish,style=iso]{datetime2}
 \fi
 
 \RequirePackage{microtype}
@@ -134,6 +132,13 @@
 
 %%% MATH FONT
 \input{_options/fontMath}
+%% LuaLaTeX: give the Type 1 maths fonts a Unicode map, so maths can be copied and searched
+%% (and PDF/A "u" levels are possible). XeLaTeX does this by itself.
+\ifdefined\directlua
+    \pdfvariable gentounicode = 1
+    \protected\def\pdfglyphtounicode{\pdfextension glyphtounicode}
+    \input{glyphtounicode}
+\fi
 
 %%% NOMENCLATURE: glossaries-extra, loaded after hyperref in _options/packages.tex
 

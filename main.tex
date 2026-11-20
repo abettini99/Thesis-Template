@@ -1,9 +1,10 @@
-%% PDF/A-2b: archival PDF for long-term storage (e.g. the TU Delft repository). Fonts are embedded, colours use the
-%% sRGB profile, and the file carries standard XMP metadata. \DocumentMetadata must stay the first command in this file.
+%% PDF/A-2u: archival PDF for long-term storage (e.g. the TU Delft repository). Fonts are embedded, colours
+%% use the sRGB profile, all text (maths included) maps to Unicode, and the file carries XMP metadata.
+%% \DocumentMetadata must stay the first command in this file.
 %% (Tagged, accessible PDF (PDF/UA, PDF/A "a" levels) is not yet possible: the memoir class, the caption
 %% package and newtxmath are not compatible with LaTeX's tagging code yet.)
 \DocumentMetadata{
-    pdfstandard = A-2b,
+    pdfstandard = A-2u,
     lang        = en-GB,
 }
 \documentclass[print,thumb,showtrims]{personal}

@@ -27,10 +27,11 @@ A long thesis gets slow because every chapter, figure and plot is processed on e
 
 ## Archival PDF (PDF/A)
 
-The PDF is produced as **PDF/A-2b**, the archival standard: fonts are embedded, colours are defined against the sRGB colour profile, and the file carries standard metadata, so it will display the same in decades. This is set by `\DocumentMetadata{...}` in the first lines of `main.tex`, which must stay the very first thing in the file. The same PDF works for the printer and for the TU Delft repository.
+The PDF is produced as **PDF/A-2u**, the archival standard: fonts are embedded, colours are defined against the sRGB colour profile, every character (maths included) maps to Unicode so text can be searched and copied reliably, and the file carries standard metadata. It will display the same in decades. This is set by `\DocumentMetadata{...}` in the first lines of `main.tex`, which must stay the first command in the file. The same PDF works for the printer and for the TU Delft repository.
 
-- **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A-2b.
-- **Checking:** the template passes the standard PDF/A-2b checks, but have the final PDF validated once with [veraPDF](https://verapdf.org) (free) or Adobe Acrobat's preflight.
+- **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A.
+- **Checking:** the template passes the standard PDF/A-2u checks with both engines, but have the final PDF validated once with [veraPDF](https://verapdf.org) (free) or Adobe Acrobat's preflight.
+- **PDF/A-4** (the newest version, based on PDF 2.0) also compiles: use `pdfstandard = A-4, pdfversion = 2.0`. It is not more archival than 2u for this document, and older tools support it less well, so 2u is the safer choice.
 - **Accessible (tagged) PDF**, the higher PDF/UA and PDF/A "a" levels, is not possible yet: the `memoir` class, the `caption` package and the `newtxmath` maths font are not yet compatible with LaTeX's tagging code, and several other packages have not been tested with it.
 
 ## Class options

@@ -11,14 +11,7 @@
 ]
 % \RequirePackage{newpxtext} %% previous main text (Palatino clone)
 
-%% Very nice alternative to Futura Medium, which is not free. Found under Google Fonts
-\newfontfamily{\didactgothic}{DidactGothic}[
-    Extension = {.ttf},
-    UprightFont = {*-Regular},
-    Path = {./Fonts/DidactGothic/}
-]
-
-%% Quite close to Didact Gothic, with bold support. Ideally would like Didact Gothic but bold. Found under Google Fonts
+%% Heading font: Open Sans (Google Fonts, SIL Open Font License), light for titles and bold for section headings.
 \newfontfamily{\opensans}{OpenSans}[
     Extension = {.ttf},
     UprightFont = {*-Light},
@@ -26,14 +19,6 @@
     Path = {./Fonts/OpenSans/}
 ]
 
-%% Tahoma is not free, but Wine Tahoma is licensed under GNU Lesser General Public License (see Wikipedia link for Tahoma)
-\newfontfamily{\winetahoma}{WineTahoma}[
-    Extension = {.ttf},
-    UprightFont = {*-Regular},
-    BoldFont = {*-Bold},
-    Path = {./Fonts/WineTahoma/}
-]
-
 %% Heading font: used for chapter/section titles, running heads, page numbers and nomenclature headers.
-%% To change the heading font everywhere, change this one line (e.g. \winetahoma or \didactgothic).
+%% To change the heading font everywhere, define another family above and change this one line.
 \newcommand{\headingfont}{\opensans}
