@@ -1,0 +1,51 @@
+% thanks to https://tex.stackexchange.com/questions/38446/memoir-headings#38449 and % https://alvinalexander.com/blog/post/latex/get-chapter-name-section-name-inheader-of-page-in-latex-document/
+% \nouppercaseheads
+% --------------------
+\makepagestyle{mainmatter}
+\makeevenhead{mainmatter}{\opensans\lthumb\thepage}{\opensans\MakeUppercase{\leftmark}}{}
+\makeoddhead{mainmatter}{}{\opensans\MakeUppercase{\thesection\hspace{1em}\rightmark}}{\opensans\thepage\rthumb}
+\makeevenfoot{mainmatter}{}{}{}
+\makeoddfoot{mainmatter}{}{}{}
+\makeheadrule{mainmatter}{\textwidth}{\normalrulethickness}
+% \makepsmarks{mainmatter}{%
+%   \createmark{chapter}{left}{nonumber}{}{}}
+
+\makepagestyle{appendix}
+\makeevenhead{appendix}{\opensans\thepage}{\opensans\MakeUppercase{Appendix \thesection~--~\leftmark}}{}
+\makeoddhead{appendix}{}{\opensans\MakeUppercase{Appendix \thesection~--~\leftmark}}{\opensans\thepage}
+\makeevenfoot{appendix}{}{}{}
+\makeoddfoot{appendix}{}{}{}
+\makeheadrule{appendix}{\textwidth}{\normalrulethickness}
+% \makepsmarks{mystyle}{%
+%   \createmark{chapter}{left}{nonumber}{}{}}
+
+\makepagestyle{frontmatter}
+\makeevenhead{frontmatter}{}{}{}
+\makeoddhead{frontmatter}{}{}{}
+\makeevenfoot{frontmatter}{}{\opensans\thepage}{}
+\makeoddfoot{frontmatter}{}{\opensans\thepage}{}
+% \makepsmarks{mystyle}{%
+%   \createmark{chapter}{left}{nonumber}{}{}}
+
+% N.B. The chapter style is aliased to the plain style (Section 7.2 of memoir manual)
+%\makeevenfoot{chapter}{}{\opensans\thepage}{}
+%\makeoddfoot{chapter}{}{\opensans\thepage}{}
+\makeevenfoot{plain}{}{\opensans\thepage}{}
+\makeoddfoot{plain}{}{\opensans\thepage}{}
+
+
+\makepagestyle{intro-biblio}
+\makeevenhead{intro-biblio}{\opensans\lthumb\thepage}{\opensans\MakeUppercase{\leftmark}}{}
+\makeoddhead{intro-biblio}{}{\opensans\MakeUppercase{\leftmark}}{\opensans\thepage\rthumb}
+\makeevenfoot{intro-biblio}{}{}{}
+\makeoddfoot{intro-biblio}{}{}{}
+\makeheadrule{intro-biblio}{\textwidth}{\normalrulethickness}
+% \makepsmarks{mystyle}{%
+%   \createmark{chapter}{left}{nonumber}{}{}}
+
+\renewcommand{\chaptermark}[1]{%
+\markboth{#1}{}} 
+\renewcommand{\sectionmark}[1]{%
+\markright{#1}}
+%\renewcommand{\subsectionmark}[1]{%
+%\markright{#1}}

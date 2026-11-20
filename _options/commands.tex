@@ -1,0 +1,104 @@
+\newcommand{\NoLink}[1]{{\protect\NoHyper#1\protect\endNoHyper}} % Allows the use of \citeauthor without actually referencing back to the reference list, in case you want to just say the author's name. Example: \NoLink{\citeauthor{CoolKid2019}}
+\newcommand\invisiblechapter[1]{                % makes an invisible chapter!
+  \refstepcounter{chapter}%
+  \addcontentsline{toc}{chapter}{\protect\numberline{\thechapter}#1}%
+  \chaptermark{#1}}
+\newcommand\invisiblesection[1]{                % makes an invisible section!
+  \refstepcounter{section}%
+  \addcontentsline{toc}{section}{\protect\numberline{\thesection}#1}%
+  \sectionmark{#1}}
+\newcommand\invisiblesubsection[1]{%            % makes an invisible subsection!
+  \refstepcounter{subsection}%
+  \addcontentsline{toc}{subsection}{\protect\numberline{\thesubsection}#1}%
+  \subsectionmark{#1}}
+
+\newcommand\diff[2][]{\mathrm{d}^{#1}{#2}}      % creates a nth-order ordinary differential variable
+\newcommand\pdiff[2][]{\partial^{#1}{#2}}       % creates a nth-order partial differential variable
+\newcommand\sdiff[2][]{\mathrm{D}^{#1}{#2}}     % creates a nth-order substantial differential variable
+\newcommand\deriv[3][]{                         % creates a nth-order ordinary derivative
+\frac{\diff[#1]{#2}}{\diff{#3}^{#1}}
+}
+\newcommand\pderiv[3][]{                        % creates a nth-order partial derivative
+\frac{\pdiff[#1]{#2}}{\pdiff{#3}^{#1}}
+}
+\newcommand\sderiv[3][]{                        % creates a nth-order substantial derivative
+\frac{\sdiff[#1]{#2}}{\sdiff{#3}^{#1}}
+}
+\newcommand\cderiv[3][]{\diff[#1]{}_{#3}{#2}}   % creates a compact form nth-order ordinary derivative
+\newcommand\cpderiv[3][]{\pdiff[#1]{}_{#3}{#2}} % creates a compact form nth-order partial derivative
+\newcommand\csderiv[3][]{\sdiff[#1]{}_{#3}{#2}} % creates a compact form nth-order substantial derivative
+
+\newcommand\uVec[2]{\hat{\Vec{#1}}_{#2}}        % creates a unit vector
+\newcommand\uVecT[2]{\overline{\Vec{#1}}_{#2}}  % creates a transformed unit vector
+\newcommand\transpose{^\textsf{T}}              % places in a transpose symbol
+
+%https://tex.stackexchange.com/questions/417310/double-bar-notation-for-second-order-tensors4
+\newcommand\barbelow[1]{\stackunder[1.6pt]{$#1$}% creates a bar below an object
+                        {\rule{0.9ex}{.1ex}}}   
+
+\newcommand{\grad}{ \barbelow{\nabla}}          % \grad now includes bar below.
+\newcommand{\curl}{ \barbelow{\nabla}\times}    % \curl now includes bar below.
+\newcommand\proj[2]{ \mathsf{proj}_{#1}^{#2}\,} % Projection operator
+\newcommand{\Res}{ \mathsf{Res}}                % Residual operator
+
+%% Create typical dimensionless numbers used in fluid + heat transfer problems
+\renewcommand{\Pr}{\mathrm{Pr}}                 % Prandtl number
+\renewcommand{\Re}{\mathrm{Re}}                 % Reynolds number
+\newcommand{\Fr}{\mathrm{Fr}}                   % Froude number
+\newcommand{\Eu}{\mathrm{Eu}}                   % Euler number
+\newcommand{\St}{\mathrm{St}}                   % Strouhal number
+\newcommand{\Gr}{\mathrm{Gr}}                   % Grashof number
+\newcommand{\Ma}{\mathrm{Ma}}                   % Mach number
+\newcommand{\Pe}{\mathrm{Pe}}                   % Péclet number
+\newcommand{\Tu}{\mathrm{Tu}}                   % Turbulence level
+
+%% With Eulervm, no \therefore defined
+% https://tex.stackexchange.com/questions/142551/how-to-put-therefore-and-implies-symbols
+\newcommand{\therefore}{\dot{.\hspace{.055in}.}\hspace{.2in}}
+
+%% standard /mapsto symbol, but reversed
+% https://tex.stackexchange.com/questions/26508/left-version-of-mapsto
+\newcommand{\mapsfrom}{\mathrel{\reflectbox{\ensuremath{\mapsto}}}}
+\newcommand{\longmapsfrom}{\mathrel{\reflectbox{\ensuremath{\longmapsto}}}}
+
+%% Using the same figure twice with no new number
+% https://tex.stackexchange.com/questions/200211/using-the-same-figure-twice-with-no-new-number
+\newcommand{\repeatcaption}[2]{%
+  \renewcommand{\thefigure}{\ref{#1}}%
+  \captionsetup{list=no}%
+  \caption{#2 (repeated from page \pageref{#1})}%
+  \addtocounter{figure}{-1}% So that next figure after the repeat gets the right number.
+}
+
+% Create delimiter environments (e.g floor(t) produces ⌊t⌋)
+% --------------------
+% https://tex.stackexchange.com/questions/118173/how-to-write-ceil-and-floor-in-latex
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}    % Use ceil*{...} to produce big brackets
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor} % Use floor*{...} to produce big brackets
+
+% Create new math operators
+% --------------------
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+% tensor - double dot product
+\newcommand{\cddot}{\mathbin{{\cdot}{\cdot}}}
+
+% Renew Commands:
+% --------------------
+\renewcommand{\vec}[1]{ \barbelow{\bm{#1}} }    % \vec to \bm combination
+\renewcommand{\div}{ \barbelow{\nabla}\cdot}    % \div now includes bar below.
+
+\renewcommand*{\tocheadstart}{\vspace*{0pt}}    % straight from the memoir manual, may need to change if you change
+\renewcommand*{\lofheadstart}{\vspace*{0pt}}    % titlespacing for chapters... investigate?
+\renewcommand*{\lotheadstart}{\vspace*{0pt}}    % pre-title spacing is now the same for toc, lof, lot and nomenclature
+
+% \itemize labels %% https://texblog.org/2008/10/16/lists-enumerate-itemize-description-and-how-to-change-them/
+\renewcommand{\labelitemi}{-}
+\renewcommand{\labelitemii}{-}
+\renewcommand{\labelitemiii}{-}
+\renewcommand{\labelitemiv}{-}
+
+% Robust Commands:
+% --------------------
+\DeclareRobustCommand{\VAN}[0]{Van} % Within text, authors with a van/Van prefix use Van within text, van outside text. 

@@ -1,0 +1,81 @@
+\newlength\descriptionwidth
+\newlength\dimensionswidth
+\newlength\unitswidth
+\newlength\definitionwidth
+\newlength\symbolwidth
+\if@print
+    \setlength\descriptionwidth{13em}
+    \setlength\dimensionswidth{8em}
+    \setlength\unitswidth{5em}
+    \setlength\definitionwidth{13em}
+    \setlength\symbolwidth{4.5em}
+\else
+    \setlength\descriptionwidth{19em}
+    \setlength\dimensionswidth{8em}
+    \setlength\unitswidth{5em}
+    \setlength\definitionwidth{13em}
+    \setlength\symbolwidth{6em}
+\fi
+
+\newcommand{\nomdescr}[1]{\parbox[t]{\descriptionwidth}{\RaggedRight #1}} % the cm box changes the size of the description box
+\newcommand{\DimensUnits}[2]{\hfill\makebox[\dimensionswidth]{#1\hfill}%
+\makebox[\unitswidth]{#2\hfill}\ignorespaces} % first number related to 'dimensions' box size, second number related to 'units' box size
+\newcommand{\DefinitionCol}[1]{\hfill\parbox[t]{\definitionwidth}{#1}\ignorespaces} % number related to 'definition' box size
+
+
+\newcommand{\nomsubtitle}[1]{\item[\opensans\LARGE #1]}
+\renewcommand\nomgroup[1]{%
+\itemsep0pt % just disable this line if you do not want spacing
+\vspace{10pt}
+\def\nomtemp{\csname nomstart#1\endcsname}\nomtemp}
+
+\newcommand{\nomstartA}{\nomsubtitle{Acronyms}%
+  \item[\opensans\Large Symbol]
+    {\opensans\Large Description}
+}
+
+\newcommand{\nomstartB}{\vspace{1em}\nomsubtitle{Dimensionless numbers}%
+  \item[\opensans\Large Symbol]
+    {\opensans\Large Description}
+    \DefinitionCol{\opensans\Large Definition}
+}
+
+\newcommand{\nomstartC}{\vspace{1em}\nomsubtitle{Latin symbols}%        % R for Roman
+  \item[\opensans\Large Symbol]%
+  {\opensans\Large Description}
+  \DimensUnits{\opensans\Large Dimensions}
+  {\opensans\Large Units}
+}
+  
+\newcommand{\nomstartD}{\vspace{1em}\nomsubtitle{Greek symbols}%
+  \item[\opensans\Large Symbol]%
+  {\opensans\Large Description}
+  \DimensUnits{\opensans\Large Dimensions}
+  {\opensans\Large Units}
+}
+
+\newcommand{\nomstartE}{\vspace{1em}\nomsubtitle{Superscripts}%
+  \item[\opensans\Large Symbol]
+  {\opensans\Large Description}
+}
+
+\newcommand{\nomstartF}{\vspace{1em}\nomsubtitle{Subscripts}%
+  \item[\opensans\Large Symbol]
+  {\opensans\Large Description}
+}
+
+\renewcommand*{\nompreamble}{
+\markboth{\nomname}{\nomname}
+%\begin{multicols*}{2}
+}
+\renewcommand{\nompostamble}{}%\end{multicols*}}
+
+\newcommand{\nomwithdim}[5]{\nomenclature[#1]{#2}%
+{\nomdescr{#3}\DimensUnits{#4}{#5}}}
+
+\newcommand{\nomtypeA}[3][]{\nomenclature[A#1]{#2}{#3}}
+\newcommand{\nomtypeD}[4][]{\nomenclature[B#1]{#2}{\nomdescr{#3}\DefinitionCol{#4}}}
+\newcommand{\nomtypeR}[5][]{\nomwithdim{C#1}{#2}{#3}{#4}{#5}}
+\newcommand{\nomtypeG}[5][]{\nomwithdim{D#1}{#2}{#3}{#4}{#5}}
+\newcommand{\nomtypeS}[3][]{\nomenclature[E#1]{#2}{#3}}
+\newcommand{\nomtypeU}[3][]{\nomenclature[F#1]{#2}{#3}}

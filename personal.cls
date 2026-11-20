@@ -1,124 +1,156 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% new-aiaa.cls, v1.2, 2018/01/10
-% Developed by Overleaf
-% 
-% This class file enables authors to prepare papers
-% for submission to AIAA Technical Journals and
-% Conferences.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
 \ProvidesClass{personal}[2020/05/24, v1.0]
 
 \RequirePackage{ifthen}
 
 \newif\if@american
 \newif\if@british
+\newif\if@print
+\newif\if@thumb
+\newif\if@showframe
 \DeclareOption{american}{\@americantrue}
 \DeclareOption{british}{\@britishtrue}
+\DeclareOption{print}{\@printtrue}
+\DeclareOption{thumb}{\if@print \@thumbtrue \fi}
+\DeclareOption{showtrims}{\if@print \PassOptionsToClass{\CurrentOption}{memoir} \fi} 
+\DeclareOption{showframe}{\@showframetrue}
 
 \ExecuteOptions{}
 \ProcessOptions\relax
 
 \RequirePackage[l2tabu, orthodox]{nag} % https://ctan.org/pkg/nag %% In case I commit a cardinal sin of loading depreciated modules, or some dumb stuff that can be picked up (i.e use \centering instead of \begin{center}[...]\end{center})
-\LoadClass[12pt]{memoir}
-\setlength\footparindent{\parindent}
-\setlength{\footmarkwidth}{0em}
-\setlength{\footmarksep}{0em}
-% \footmarkstyle{\makebox[\footparindent][l]{\textsuperscript{#1}}}
 
-% Online fix for all fontenc-inputenc interactions and use of inputenc, to be honest i have no clue what these do.
-\RequirePackage{iftex}
-\ifPDFTeX
-%   \RequirePackage[light]{kpfonts} %% Reenable newtx/newpx if kpfonts is disabled, amsmath included? but going to keep it in anyways
-   \RequirePackage[T1]{fontenc}
-   \RequirePackage[utf8]{inputenc} 
-%   \RequirePackage{lmodern}
+%% Load this in for book
+\if@print
+    \LoadClass[10pt]{memoir}[openright]
+    \setstocksize{252mm}{179mm}             %% This is the paper stocksize, where the thesis will be printed on.
+    \settrimmedsize{246mm}{173mm}{*}        %% This is the layout/trimmed/paper size for which you work on,
+                                            %% TUD PhD template is approximately half way between A4 and A5
+    \settrims{3mm}{3mm}                     %% This is how far from {top}{right} that layout is placed on
+    \settypeblocksize{192mm}{113mm}{*}      %% This is your workspace - where you write on.
+    \setbinding{7.0mm}           %% Binding margin is handled here
+                                 %% 3.00mm binding from TUD PhD template
+                                 %% 7.00mm binding might be better? based on what I have seen.
+                                 
+    %% foreedge_margin = (2/3)*(trimmedsize_width - binding_offset - typeblock_width)
+    %% topdown_margin  = (1/2)*(trimmedsize_height - typeblock_height)
+    \setlrmargins{*}{35.33mm}{*} %% fore-edge margin is handled here
+                                 %% Normally, your spine margin should be smaller, but the binding process is hot garbage based on what I have seen of previous theses.
+                                 %% spine margin automatically handled.
+                                 %% 35.33mm ~= 1.00in * 1.39
+    \setulmargins{27.00mm}{*}{*} %% top margin handled here, bottom margin automatically handled.
+                                 %% 27.00mm ~= 1.00in * 1.06
+    \setheadfoot{\onelineskip}{2\onelineskip}
+    \setheaderspaces{*}{2\onelineskip}{*}
+    \setmarginnotes{17pt}{51pt}{\onelineskip}
+    \checkandfixthelayout
+    \sloppybottom % see memoir manual
+%% Load this in for report
 \else
-   \ifXeTeX
-     \RequirePackage{fontspec}
-     %% Testing out stuff here
-    %  \setmainfont{TeX Gyre Pagella}
-    %  \RequirePackage[euler-digits,euler-hat-accent]{eulervm}
-   \else 
-     \RequirePackage{luatextra}
-   \fi
-   \defaultfontfeatures{Ligatures=TeX}
+    \LoadClass[12pt]{memoir}
+    \setstocksize{297mm}{210mm}             %% This is the paper stocksize, which is a4
+    \settrimmedsize{291mm}{204mm}{*}        %% This is the layout/trimmed/paper size for which you work on.
+    \settrims{3mm}{3mm}                     %% This is how far from {top}{right} that layout is placed on
+    \settypeblocksize{240.2mm}{153.2mm}{*}  %% This is your workspace - where you write on.
+    \setbinding{0.0mm}                      %% Binding margin is handled here
+    
+    %% foreedge_margin = (2/3)*(trimmedsize_width - binding_offset - typeblock_width)
+    %% topdown_margin  = (1/2)*(trimmedsize_height - typeblock_height)
+    \setlrmargins{*}{25.4mm}{*}  %% fore-edge margin is handled here
+                                 %% Normally, your spine margin should be smaller, but the binding process is hot garbage based on what I have seen of previous theses.
+                                 %% spine margin automatically handled.
+                                 %% 25.40mm = 1.00in * 1.00
+    \setulmargins{25.4mm}{*}{*}  %% top margin handled here, bottom margin automatically handled.
+                                 %% 25.40mm = 1.00in * 1.00
+    \setheadfoot{\onelineskip}{2\onelineskip}
+    \setheaderspaces{*}{2\onelineskip}{*}
+    \setmarginnotes{17pt}{51pt}{\onelineskip}
+    \checkandfixthelayout
 \fi
 
-\RequirePackage[letterpaper,margin=2.5cm]{geometry}
-\RequirePackage{enumitem}
-\setlist{labelindent=\parindent,leftmargin=*,nosep}
-\setlist[enumerate]{label={\arabic*)}}
+\if@showframe
+    \RequirePackage{showframe}
+\fi
 
-\RequirePackage{titletoc}
+%%% COLOR-RELATED
+\RequirePackage{xcolor}     % https://ctan.org/pkg/xcolor %% Provides easy driver-independent access to several kinds of color tints, shades, tones, and mixes of arbitrary colors.
+\input{_options/formatColor}
+
+%%% TIKZ-RELATED
+\RequirePackage{tikz}
+\input{_fixes/recto_verso_tikz_fix}
+\input{_options/thumb}
+
+% \setlength\footparindent{\parindent}
+% \setlength{\footmarkwidth}{0em}
+% \setlength{\footmarksep}{0em}
+% \footmarkstyle{\makebox[\footparindent][l]{\textsuperscript{#1}}}
+
+% % Online fix for all fontenc-inputenc interactions and use of inputenc, to be honest i have no clue what these do.
+% \RequirePackage{iftex}
+% \ifPDFTeX
+% %   \RequirePackage[light]{kpfonts} %% Reenable newtx/newpx if kpfonts is disabled, amsmath included? but going to keep it in anyways
+%    \RequirePackage[T1]{fontenc}
+%    \RequirePackage[utf8]{inputenc} 
+% %   \RequirePackage{lmodern}
+% \else
+%    \ifXeTeX
+%      \RequirePackage{fontspec}
+%      %% Testing out stuff here
+%     %  \setmainfont{TeX Gyre Pagella}
+%     %  \RequirePackage[euler-digits,euler-hat-accent]{eulervm}
+%    \else 
+%      \RequirePackage{luatextra}
+%    \fi
+%    \defaultfontfeatures{Ligatures=TeX}
+% \fi
+
+% \RequirePackage{enumitem}
+% \setlist{labelindent=\parindent,leftmargin=*,nosep}
+% \setlist[enumerate]{label={\arabic*)}}
+
+% \RequirePackage{titletoc}
 
 % Control over footnotes
 % \RequirePackage[flushmargin,hang,bottom]{footmisc} % bottom makes footnotes always go at the very bottom of the page. %% Removed as memoir has its own options
-\RequirePackage{fancyhdr} % Provides extensive control over footers and headers % https://tex.stackexchange.com/questions/129829/warning-command-makecol-has-changed read the following link to see why the load order is this way instead of the other way.
-\RequirePackage[hyphens]{url}
-\ifxetex
-    \RequirePackage[hyperfootnotes=false,xetex]{hyperref} % double reffing solution comes from: http://ctan.cs.uu.nl/macros/latex/contrib/footmisc/footmisc.pdf
-\else
-    \ifpdf
-        \RequirePackage[hyperfootnotes=false,pdftex]{hyperref}
-    \else
-        \RequirePackage[hyperfootnotes=false,hypertex]{hyperref}
-    \fi
-\fi
+% \RequirePackage{fancyhdr} % Provides extensive control over footers and headers % https://tex.stackexchange.com/questions/129829/warning-command-makecol-has-changed read the following link to see why the load order is this way instead of the other way.
+% \RequirePackage[hyphens]{url}
+% \ifxetex
+%     \RequirePackage[hyperfootnotes=false,xetex]{hyperref} % double reffing solution comes from: http://ctan.cs.uu.nl/macros/latex/contrib/footmisc/footmisc.pdf
+% \else
+%     \ifpdf
+%         \RequirePackage[hyperfootnotes=false,pdftex]{hyperref}
+%     \else
+%         \RequirePackage[hyperfootnotes=false,hypertex]{hyperref}
+%     \fi
+% \fi
 
-\RequirePackage[blocks]{authblk}
-\renewcommand{\Authfont}{\normalsize\upshape}
-\renewcommand{\Affilfont}{\normalsize\itshape}
-\setlength{\affilsep}{0pt}
+% \RequirePackage[blocks]{authblk}
+% \renewcommand{\Authfont}{\normalsize\upshape}
+% \renewcommand{\Affilfont}{\normalsize\itshape}
+% \setlength{\affilsep}{0pt}
 
-\renewcommand{\maketitle}{%
-  \begingroup
-  \renewcommand\and{\\[\baselineskip]}
-  \centering
-  {\LARGE\bfseries\@title\par}
-  \vskip2\baselineskip
-  \@author\par
-  \endgroup
-  \vskip\baselineskip
-  \setcounter{footnote}{0}
-}
+% \renewcommand{\maketitle}{%
+%   \begingroup
+%   \renewcommand\and{\\[\baselineskip]}
+%   \centering
+%   {\LARGE\bfseries\@title\par}
+%   \vskip2\baselineskip
+%   \@author\par
+%   \endgroup
+%   \vskip\baselineskip
+%   \setcounter{footnote}{0}
+% }
 
-\RequirePackage[explicit]{titlesec}
-\setcounter{secnumdepth}{3}
-\renewcommand{\thechapter}{\arabic{chapter}}
-\renewcommand{\thesection}{\thechapter.\arabic{section}}
-\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
-\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+\input{_options/formatText}
 
-\titleformat{\chapter}%[display] % [display] makes a new line
-    {}
-    {\fontsize{40}{40}\selectfont\thechapter}{20pt}{\fontfamily{qhv}\selectfont\bfseries\huge#1}[]
-\titlespacing{\chapter}{0pt}{-10pt}{1\baselineskip}
 
-\titleformat{\section}
-  {\Large\bfseries}%\centering}
-  {\Huge{\thesection}\space}{5pt}{\fontfamily{qhv}\selectfont#1}[]
-\titlespacing{\section}{0pt}{0.5\baselineskip}{0pt}
+% \RequirePackage{lettrine}
+% \setlength{\DefaultNindent}{0pt}
 
-\titleformat{\subsection}
-  {\large\bfseries}
-  {\thesubsection\space}{5pt}{\fontfamily{qhv}\selectfont#1}[]
-\titlespacing{\subsection}{0pt}{0.5\baselineskip}{0pt}
-
-\titleformat{\subsubsection}
-%   {\large\itshape\singlespacing}
-  {\large\bfseries}
-  {\thesubsubsection\space}{5pt}{\fontfamily{qhv}\selectfont#1}[]
-\titlespacing{\subsubsection}{0pt}{0.5\baselineskip}{0pt}
-
-\RequirePackage{lettrine}
-\setlength{\DefaultNindent}{0pt}
-
-\setlength{\abovedisplayskip}{\baselineskip}
-\setlength{\belowdisplayskip}{\baselineskip}
-\setlength{\abovedisplayshortskip}{\baselineskip}
-\setlength{\belowdisplayshortskip}{\baselineskip}
+% \setlength{\abovedisplayskip}{\baselineskip}
+% \setlength{\belowdisplayskip}{\baselineskip}
+% \setlength{\abovedisplayshortskip}{\baselineskip}
+% \setlength{\belowdisplayshortskip}{\baselineskip}
 
 % \RequirePackage[sort&compress,numbers]{natbib}
 % \bibliographystyle{apalike}
@@ -141,48 +173,32 @@
 \RequirePackage{blindtext}
 \RequirePackage{microtype}
 
-%%% TEXT FONTS
-% \RequirePackage{newtxtext}
-\RequirePackage{newpxtext}
-%\RequirePackage{libertine}
-
 %%% MATH PACKAGES INTERLUDE
-\RequirePackage{amsmath}    %% https://ctan.org/pkg/amsmath?lang=en %% essential math package, check their userguide for content
+\RequirePackage{amsmath,esint}    
+%% https://ctan.org/pkg/amsmath?lang=en %% essential math package, check their userguide for content 
+%% https://www.ctan.org/pkg/esint %% The esint package permits access to alternate integral symbols when you are using the Computer Modern fonts.
 \RequirePackage{mathtools}
 \RequirePackage{amsfonts}   %% https://ctan.org/pkg/amsfonts %% An extended set of fonts for use in mathematics
 
-%%% MATH FONTS
-% \RequirePackage{newtxmath}
-% \RequirePackage[vvarbb]{newpxmath}
-\RequirePackage{eulervm}    %% i do not like the euler-hat-accent option
-% \RequirePackage[frenchmath]{libertinust1math}
+%%% TEXT FONTS
+%% We use purely XeLaTeX now
+\input{_options/fontText}
 
-% Changing Figures, Tables, and Equations:
-% --------------------
-% Get the section number based on whether the next hierarchical section number "down" is 0 (credit to https://latex.org/forum/viewtopic.php?t=10134)
-\newcommand{\getCurrentSectionNumber}{%
-  \ifnum\c@section=0 %
-  \thechapter
-  \else
-  \ifnum\c@subsection=0 %
-  \thesection
-  \else
-  \ifnum\c@subsubsection=0 %
-  \thesubsection
-  \else
-  \thesubsubsection
-  \fi
-  \fi
-  \fi
-}
+%%% MATH FONT
+\input{_options/fontMath}
+
+%%% NOMENCLATURE
+\RequirePackage[intoc,english]{nomencl} % https://www.ctan.org/pkg/nomencl %% use this to make nomenclature!
+% incorporate https://tex.stackexchange.com/questions/112884/how-to-achieve-nomenclature-entries-like-symbol-description-dimension-and-uni
+\input{_options/formatNomenclature}
 
 \RequirePackage[tableposition=top, figurename=Figure]{caption}
 % \renewcommand{\thefigure}{\getCurrentSectionNumber--\arabic{figure}}
 % \renewcommand{\thetable}{\getCurrentSectionNumber--\arabic{table}}
 % \renewcommand{\theequation}{\getCurrentSectionNumber--\arabic{equation}}
-\renewcommand{\thefigure}{\arabic{figure}}
-\renewcommand{\thetable}{\arabic{table}}
-\renewcommand{\theequation}{\arabic{equation}}
+\renewcommand{\thefigure}{\thechapter.\arabic{figure}}
+\renewcommand{\thetable}{\thechapter.\arabic{table}}
+\renewcommand{\theequation}{\thechapter.\arabic{equation}}
 \captionsetup*{font={small}, labelfont={sc, bf}, labelsep=quad}
 \renewcommand{\arraystretch}{1.2}
 

@@ -1,44 +1,21 @@
-\documentclass[american]{personal}
+\documentclass[american,print,thumb,showtrims]{personal}
 % options:
 %   american, british -- load in modules with the appropriate language support
+%   print     -- print as a book
+%   thumb     -- print thumb index, only available for print
+%   showtrims -- show trim section, only available for print
+%   showframe -- show construction guide (page layout)
 
-%\usepackage[utf8]{inputenc} % already in the cls file
-\usepackage{graphicx}   % https://ctan.org/pkg/graphicx %% provides optional arguments to the \includegraphics command
-\usepackage{tikz}       % https://www.ctan.org/pkg/pgf %% TikZ manual found here, allows image drawing
-\usepackage{bm}         % https://ctan.org/pkg/bm %% more powerful package to provide bold symbol support (use \bm{} instead of \boldsymbol{})
-\usepackage[version=4]{mhchem} % https://ctan.org/pkg/mhchem?lang=en %% gives ability to implement chemical formulas via the \ce command
-\usepackage{siunitx}    % https://ctan.org/pkg/siunitx %% Provides SI unit control through the \SI{<value>}{<units>} command
-%\usepackage{longtable}  % https://ctan.org/pkg/longtable %% gives the longtable environment, which allows multiple pages!
-%\usepackage{tabularx}   % https://ctan.org/pkg/tabularx %% gives the tabularx environment, which allows multiple lines within a cell without super weird coding
-\usepackage{xltabular}  % https://ctan.org/pkg/xltabular %% Gives the functionality of both longtable + tabularx package together, check https://www.overleaf.com/latex/examples/a-longtable-plus-tabularx-example/rcrxtjbrvyft for an example of how it works.
-% \usepackage{hyperref} % if you want to add external links to words, check userguide for info % already in the cls file
-\usepackage{float}      % https://ctan.org/pkg/float %% Allows figure forcing spots ([H], etc.)
-\usepackage{multicol}   % https://ctan.org/pkg/multicol %% useful for multiple column pages. \multicols gives a balanced output between each column, whereas \multicols* gives unbalanced.
-\setlength{\columnsep}{1cm}
-\usepackage{appendix}   % https://ctan.org/pkg/appendix %% The appendix package provides various ways of formatting the titles of appendices. 
-%\usepackage{caption}    % https://ctan.org/pkg/caption %% allows extensive control of captions. Does not come with subcaption (see Chap 6 of manual), already in cls file
-\usepackage{subcaption} % https://ctan.org/pkg/subcaption %% provides subfigure/caption support i.e use: \begin{subfigure}{\textwidth}
-\usepackage{array}      % https://ctan.org/pkg/array %% gives more power to making tables! array provides many more utilities to making tables
-\usepackage{multirow}   % https://ctan.org/pkg/multirow %% centering of text over multiple rows for tables!
-\usepackage{mathtools}  % https://ctan.org/pkg/mathtools %% allows the use of \splitfrac{}{}, splitdfrac{}{}
-%\usepackage[skip]{parskip}   % https://ctan.org/pkg/parskip %% Changes from indentations to line skips between paragraphs % already included in the memoir class, use lines below instead
-\nonzeroparskip
-\setlength{\parindent}{0pt}
-% \usepackage{chngcntr}   % https://ctan.org/pkg/chngcntr %% Change the resetting of counters by using \counterwithin (which sets up a counter to be reset when another is incremented) and \counterwithout (which unsets such a relationship). %%% ALREADY IN MEMOIR CLASS
-\usepackage{wrapfig}    % https://ctan.org/pkg/wrapfig %% allows the use of 'wrapfigure' environments
-\usepackage{pdfpages}   % https://ctan.org/pkg/pdfpages %% This package simplifies the inclusion of external multi-page PDF documents in LaTeX documents. 
-\usepackage{xcolor}     % https://ctan.org/pkg/xcolor %% Provides easy driver-independent access to several kinds of color tints, shades, tones, and mixes of arbitrary colors.
-\usepackage{colortbl}   % https://www.ctan.org/pkg/colortbl %% The package allows rows and columns to be coloured, and even individual cells.
-\usepackage{booktabs}   % https://ctan.org/pkg/booktabs/ %% The package enhances the quality of tables in LaTeX
-\usepackage[intoc,english]{nomencl} % https://www.ctan.org/pkg/nomencl %% use this to make nomenclature!
-\usepackage{listings}   % https://www.ctan.org/pkg/listings %% Use this for code
-\usepackage{bigints}    % https://www.ctan.org/pkg/bigints %% \bigintssss, \bigintsss, \bigintss, \bigints, and \bigint
-\usepackage{cancel}     % https://www.ctan.org/pkg/cancel %% A package to draw diagonal lines (“cancelling” a term) and arrows with limits (cancelling a term “to a value”) through parts of maths formulae
-\usepackage{stackengine}% https://www.ctan.org/tex-archive/macros/latex/contrib/stackengine %% The stackengine package provides a versatile way to vertically stack objects in a variety of customizable ways.
-%\usepackage{arydshln}   % https://ctan.org/pkg/arydshln %% The package is to draw dash-lines in array/tabular environments. Horizontal lines are drawn by \hdashline and \cdashline while vertical ones can be specified as a part of the preamble using ‘:’. The shape of dash-lines may be controlled through style parameters or optional arguments. %% CONFLICT WITH BOOKTABS
-\usepackage{pifont}     % https://www.ctan.org/pkg/pifont %% The package provides commands for Pi fonts (Dingbats, Symbol, etc.); all commands assume you know the character number within the font of the symbol within the font. 
-\usepackage{ragged2e}   % https://www.ctan.org/pkg/ragged2e %% The package defines new commands \Centering, \RaggedLeft, and \RaggedRight and new environments Center, FlushLeft, and FlushRight, which set ragged text and are easily configurable to allow hyphenation (the corresponding commands in LaTeX, all of whose names are lower-case, prevent hyphenation altogether)
-\usepackage{bookmark}   % https://ctan.org/pkg/bookmark?lang=en %% This package implements a new bookmark (outline) organization for package hyperref. Bookmark properties such as style and color can now be set. Other action types are available (URI, GoToR, Named). The bookmarks are generated in the first compile run. Package hyperref uses two runs. 
+% packages
+\input{_options/packages}
+% package fixes
+\input{_fixes/packageFixes}
+% code settings
+\input{_options/formatCode}
+% page styles
+\input{_options/formatPagestyles}
+% new commands
+\input{_options/commands}
 
 %% Enable the following to display watermarks
 % --------------------
@@ -47,244 +24,112 @@
 % \SetWatermarkText{DRAFT}
 % --------------------
 
-%--
+%% Use the following packages to provide lipsum paragraphs or visualize linenumbers.
+\usepackage{lipsum} % disable when not needed
+% \usepackage{lineno}
+% \linenumbers
 
-% Package fixes:
-% --------------------
-\makeatletter % fix provided by https://tex.stackexchange.com/questions/522920/xltabular-breaking-booktabs
-\def\@BTrule[#1]{%
-  \ifx\longtable\undefined
-    \let\@BTswitch\@BTnormal
-  \else\ifx\hline\LT@hline
-    \nobreak
-    \let\@BTswitch\@BLTrule
-  \else
-     \let\@BTswitch\@BTnormal
-  \fi\fi
-  \global\@thisrulewidth=#1\relax
-  \ifnum\@thisruleclass=\tw@\vskip\@aboverulesep\else
-  \ifnum\@lastruleclass=\z@\vskip\@aboverulesep\else
-  \ifnum\@lastruleclass=\@ne\vskip\doublerulesep\fi\fi\fi
-  \@BTswitch}
-\makeatother 
-
-% Code Settings
-% --------------------
-\definecolor{dkgreen}{rgb}{0,0.6,0}
-\definecolor{gray}{rgb}{0.5,0.5,0.5}
-\definecolor{mauve}{rgb}{0.58,0,0.82}
-% https://tex.stackexchange.com/questions/24528/having-problems-with-listings-and-utf-8-can-it-be-fixed
-\lstset{
-    frame=tb,
-    language=Python,
-    aboveskip=3mm,
-    belowskip=3mm,
-    showstringspaces=false,
-    columns=flexible,
-    basicstyle={\small\ttfamily},
-    numbers=left,
-    numbersep=5pt,
-    numberstyle=\tiny\color{gray},
-    keywordstyle=\color{blue},
-    commentstyle=\color{dkgreen},
-    stringstyle=\color{mauve},
-    breaklines=true,
-    breakatwhitespace=false,
-    tabsize=3,
-    inputencoding=utf8,
-    extendedchars=true,
-    literate={á}{{\'a}}1 {ã}{{\~a}}1 {é}{{\'e}}1 {ü}{{\"u}}1,
-}
-
-% Page style -- thanks to https://tex.stackexchange.com/questions/38446/memoir-headings#38449 and % https://alvinalexander.com/blog/post/latex/get-chapter-name-section-name-inheader-of-page-in-latex-document/
-% \nouppercaseheads
-% --------------------
-\makepagestyle{mystyle}
-\makeevenhead{mystyle}{\thepage}{}{\itshape\MakeUppercase{\leftmark}}
-\makeoddhead{mystyle}{\itshape\MakeUppercase{\thesection~\rightmark}}{}{\thepage}
-\makeevenfoot{mystyle}{}{}{}
-\makeoddfoot{mystyle}{}{}{}
-% \makepsmarks{mystyle}{%
-%   \createmark{chapter}{left}{nonumber}{}{}}
-
-\makepagestyle{appendix}
-\makeevenhead{appendix}{\thepage}{}{\itshape\MakeUppercase{Appendix \thesection~--~\leftmark}}
-\makeoddhead{appendix}{\itshape\MakeUppercase{ Appendix \thesection~--~\leftmark}}{}{\thepage}
-\makeevenfoot{appendix}{}{}{}
-\makeoddfoot{appendix}{}{}{}
-% \makepsmarks{mystyle}{%
-%   \createmark{chapter}{left}{nonumber}{}{}}
-
-\makepagestyle{nomenclature}
-\makeevenhead{nomenclature}{\thepage}{}{\itshape\MakeUppercase{\leftmark}}
-\makeoddhead{nomenclature}{\itshape\MakeUppercase{\rightmark}}{}{\thepage}
-\makeevenfoot{nomenclature}{}{}{}
-\makeoddfoot{nomenclature}{}{}{}
-% \makepsmarks{mystyle}{%
-%   \createmark{chapter}{left}{nonumber}{}{}}
-
-\renewcommand{\chaptermark}[1]{%
-\markboth{#1}{}} 
-\renewcommand{\sectionmark}[1]{%
-\markright{#1}}
-%\renewcommand{\subsectionmark}[1]{%
-%\markright{#1}}
-
-% New Commands:
-% --------------------
-% Table commands to add vertical spacing whenever you want in a table
-\newcommand\Tstrut{\rule{0pt}{2.6ex}}         % = `top' strut, adds spacing ABOVE the line it is placed at. Should be placed before the \\
-\newcommand\Bstrut{\rule[-2.6ex]{0pt}{0pt}}   % = `bottom' strut, adds spacing BELOW the line it is placed at. Should be placed before the \\
-\newcommand{\NoLink}[1]{{\protect\NoHyper#1\protect\endNoHyper}} % Allows the use of \citeauthor without actually referencing back to the reference list, in case you want to just say the author's name. Example: \NoLink{\citeauthor{CoolKid2019}}
-\newcommand\invisiblechapter[1]{                % makes an invisible chapter!
-  \refstepcounter{chapter}%
-  \addcontentsline{toc}{chapter}{\protect\numberline{\thechapter}#1}%
-  \chaptermark{#1}}
-\newcommand\invisiblesection[1]{                % makes an invisible section!
-  \refstepcounter{section}%
-  \addcontentsline{toc}{section}{\protect\numberline{\thesection}#1}%
-  \sectionmark{#1}}
-\newcommand\invisiblesubsection[1]{%            % makes an invisible subsection!
-  \refstepcounter{subsection}%
-  \addcontentsline{toc}{subsection}{\protect\numberline{\thesubsection}#1}%
-  \subsectionmark{#1}}
-
-\newcommand\diff[2][]{\mathrm{d}^{#1}{#2}}      % creates a nth-order ordinary differential variable
-\newcommand\pdiff[2][]{\partial^{#1}{#2}}       % creates a nth-order partial differential variable
-\newcommand\sdiff[2][]{\mathrm{D}^{#1}{#2}}     % creates a nth-order substantial differential variable
-\newcommand\deriv[3][]{                         % creates a nth-order ordinary derivative
-\frac{\diff[#1]{#2}}{\diff{#3}^{#1}}
-}
-\newcommand\pderiv[3][]{                        % creates a nth-order partial derivative
-\frac{\pdiff[#1]{#2}}{\pdiff{#3}^{#1}}
-}
-\newcommand\sderiv[3][]{                        % creates a nth-order substantial derivative
-\frac{\sdiff[#1]{#2}}{\sdiff{#3}^{#1}}
-}
-\newcommand\cderiv[3][]{\diff[#1]{}_{#3}{#2}}   % creates a compact form nth-order ordinary derivative
-\newcommand\cpderiv[3][]{\pdiff[#1]{}_{#3}{#2}} % creates a compact form nth-order partial derivative
-\newcommand\csderiv[3][]{\sdiff[#1]{}_{#3}{#2}} % creates a compact form nth-order substantial derivative
-
-\newcommand\uVec[2]{\hat{\Vec{#1}}_{#2}}        % creates a unit vector
-\newcommand\uVecT[2]{\overline{\Vec{#1}}_{#2}}  % creates a transformed unit vector
-\newcommand\transpose{^\textsf{T}}              % places in a transpose symbol
-
-%https://tex.stackexchange.com/questions/417310/double-bar-notation-for-second-order-tensors4
-\newcommand\barbelow[1]{\stackunder[1.6pt]{$#1$}% creates a bar below an object
-                        {\rule{0.9ex}{.1ex}}}   
-
-\newcommand{\grad}{ \barbelow{\nabla}}          % \grad now includes bar below.
-\newcommand{\curl}{ \barbelow{\nabla}\times}    % \curl now includes bar below.
-
-%% Create typical dimensionless numbers used in fluid + heat transfer problems
-\renewcommand{\Pr}{\mathrm{Pr}}                 % Prandtl number
-\renewcommand{\Re}{\mathrm{Re}}                 % Reynolds number
-\newcommand{\Fr}{\mathrm{Fr}}                   % Froude number
-\newcommand{\Eu}{\mathrm{Eu}}                   % Euler number
-\newcommand{\St}{\mathrm{St}}                   % Strouhal number
-\newcommand{\Gr}{\mathrm{Gr}}                   % Grashof number
-\newcommand{\Ma}{\mathrm{Ma}}                   % Mach number
-\newcommand{\Tu}{\mathrm{Tu}}                   % Turbulence level
-
-%% With Eulervm, no \therefore defined
-% https://tex.stackexchange.com/questions/142551/how-to-put-therefore-and-implies-symbols
-\newcommand{\therefore}{\dot{.\hspace{.055in}.}\hspace{.2in}}
-
-%% standard /mapsto symbol, but reversed
-% https://tex.stackexchange.com/questions/26508/left-version-of-mapsto
-\newcommand{\mapsfrom}{\mathrel{\reflectbox{\ensuremath{\mapsto}}}}
-\newcommand{\longmapsfrom}{\mathrel{\reflectbox{\ensuremath{\longmapsto}}}}
-
-%% Using the same figure twice with no new number
-% https://tex.stackexchange.com/questions/200211/using-the-same-figure-twice-with-no-new-number
-\newcommand{\repeatcaption}[2]{%
-  \renewcommand{\thefigure}{\ref{#1}}%
-  \captionsetup{list=no}%
-  \caption{#2 (repeated from page \pageref{#1})}%
-  \addtocounter{figure}{-1}% So that next figure after the repeat gets the right number.
-}
-
-% Create delimiter environments (e.g floor(t) produces ⌊t⌋)
-% --------------------
-% https://tex.stackexchange.com/questions/118173/how-to-write-ceil-and-floor-in-latex
-\DeclarePairedDelimiter\ceil{\lceil}{\rceil}    % Use ceil*{...} to produce big brackets
-\DeclarePairedDelimiter\floor{\lfloor}{\rfloor} % Use floor*{...} to produce big brackets
-
-% Renew Commands:
-% --------------------
-\renewcommand{\vec}[1]{ \barbelow{\bm{#1}} }    % \vec to \bm combination
-\renewcommand{\div}{ \barbelow{\nabla}\cdot}    % \div now includes bar below.
-\renewcommand{\printtoctitle}[1]{\fontfamily{qhv}\selectfont\bfseries\huge#1}
-\renewcommand{\printloftitle}[1]{\fontfamily{qhv}\selectfont\bfseries\huge#1}
-\renewcommand{\printlottitle}[1]{\fontfamily{qhv}\selectfont\bfseries\huge#1}
-
-% Robust Commands:
-% --------------------
-\DeclareRobustCommand{\VAN}[0]{Van} % Within text, authors with a van/Van prefix use Van within text, van outside text. 
 
 % Useful Links:
 % https://www.sciencedirect.com/science/article/pii/B9780080982854000042 - How to write a literature review
 % http://web.mit.edu/rsi/www/pdfs/advmath.pdf - LaTeX Math Tools
 % https://en.wikibooks.org/wiki/LaTeX/Advanced_Mathematics - More LaTeX Math Tools
 
-\openany % clears a single page instead of double for chapters % https://stackoverflow.com/questions/491904/how-do-i-remove-blank-pages-coming-between-two-chapters-in-appendix
-\raggedbottom % makes text stop getting additional whitespace trying to stretch text vertically
+\AtBeginDocument{\colorlet{tudelft-black}{.}}
 \begin{document}
 % \sisetup{   detect-family,
 %             detect-weight,
 %             math-rm = \mathrm }
 
+% Force recalculation of the current page node whenever the overlay option is used.
+% If your page is centered on your stock paper it is only necessary to calculate
+% the current page rectangle once.
+% https://texample.net/tikz/examples/modifying-current-page-node/
+\pgfkeys{/tikz/overlay/.add code={}{\setpagenode}}
+
 \pagenumbering{gobble}
-\input{titlepage.tex}
-
+% \input{_intentionalBlank.tex}
+\input{_titlepage.tex}
 \newpage
-\pagenumbering{roman}
-\input{Chapters/00Abstract.tex}
-\input{Chapters/00Preface.tex}
 
-\newpage
-\pagestyle{plain}
-\setcounter{tocdepth}{3}
-\tableofcontents*
-\newpage
-\listoffigures
-\newpage
-\listoftables
-\pagestyle{mystyle}
-% \newpage %% new page included due to the nomenclature package
+\begin{Spacing}{1.15} % Set up spacing for report
 
-% Basically, reset counters every time you step into a new part of the report. Useful for when you have many many sections and you need to navigate quickly. Check the cls file for the numbering system.
-% \counterwithin*{equation}{section}
-% \counterwithin*{equation}{subsection}
-% \counterwithin*{equation}{subsubsection}
-% \counterwithin*{figure}{section}
-% \counterwithin*{figure}{subsection}
-% \counterwithin*{figure}{subsubsection}
-% \counterwithin*{table}{section}
-% \counterwithin*{table}{subsection}
-% \counterwithin*{table}{subsubsection}
+    %% =========== %%
+    %% FRONTMATTER %%
+    %% =========== %%
+    \pagenumbering{roman}
+    \pagestyle{frontmatter}
+    \chapterstyle{frontmatter}
+    \aliaspagestyle{chapter}{plain}
 
-% Basically, creates new chapter numbering within a new part using the chngcntr package, this stops LaTeX from destroying the document outline when exporting, which is what happens when you \setcounter{chapter}{0} when the previous part had higher numbering.
-\counterwithin*{chapter}{part}
+    \input{Chapters/00Summary.tex}
+    \input{Chapters/00Preface.tex}
 
-% \input{Chapters/00Abstract.tex}
+    \cleardoublepage
+    \setcounter{tocdepth}{1} % How deep the contents will actually go: 1 will only go into sections, 2 into subsection, 3 into subsubsections
+    \tableofcontents*
+    \cleardoublepage
+    \listoffigures
+    \cleardoublepage
+    \listoftables
+    \cleardoublepage
+    % \newpage %% new page included due to the nomenclature package
+    
+    % Basically, reset counters every time you step into a new part of the report. Useful for when you have many many sections and you need to navigate quickly. Check the cls file for the numbering system.
+    % \counterwithin*{equation}{section}
+    % \counterwithin*{equation}{subsection}
+    % \counterwithin*{equation}{subsubsection}
+    % \counterwithin*{figure}{section}
+    % \counterwithin*{figure}{subsection}
+    % \counterwithin*{figure}{subsubsection}
+    % \counterwithin*{table}{section}
+    % \counterwithin*{table}{subsection}
+    % \counterwithin*{table}{subsubsection}
+    
+    % Basically, creates new chapter numbering within a new part using the chngcntr package, this stops LaTeX from destroying the document outline when exporting, which is what happens when you \setcounter{chapter}{0} when the previous part had higher numbering.
+    \counterwithin*{chapter}{part}
+    
+    % \input{Chapters/00Abstract.tex}
+    
+    \input{Chapters/00Nomenclature.tex}
+    
+    %% ========== %%
+    %% MAINMATTER %%
+    %% ========== %%
+    \pagenumbering{arabic}
+    \chapterstyle{mainmatter}
+    \aliaspagestyle{chapter}{empty}
+    
+    \input{Chapters/01Introduction.tex} % actual pagestyle set in here
 
-\pagestyle{nomenclature}
-\input{Chapters/00Nomenclature.tex}
-\pagestyle{mystyle}
-\pagenumbering{arabic}
+    \input{Chapters/02Examples.tex} % actual pagestyle set in here
 
-\input{Chapters/01Introduction.tex}
+    \chapterstyle{bibliography}
+    \aliaspagestyle{chapter}{plain}
+    \DeclareRobustCommand{\VAN}[0]{van} % Change from Van to van
+    % \printbibliography[title={References}, heading=bibintoc]
+    \renewcommand{\bibname}{References}
+    %\begin{multicols}{2}[\printbibheading]
+    \setlength\bibitemsep{0.6\baselineskip} %% half of Spacing (so if 1.2 spacing -> 0.6\baselineskip)
+    \printbibliography%[heading=none]
+    \pagestyle{intro-biblio}
+    %\end{multicols}
+    \DeclareRobustCommand{\VAN}[0]{Van} % Change from van to Van for appendix purposes
 
-\DeclareRobustCommand{\VAN}[0]{van} % Change from Van to van
-% \printbibliography[title={Works Cited}, heading=bibintoc]
-\renewcommand{\bibname}{Works Cited}
-%\begin{multicols}{2}[\printbibheading]
-\printbibliography%[heading=none]
-%\end{multicols}
-\DeclareRobustCommand{\VAN}[0]{Van} % Change from van to Van for appendix purposes
+    %% ======== %%
+    %% APPENDIX %%
+    %% ======== %%
+    \bookmarksetup{startatroot} % https://tex.stackexchange.com/questions/131959/pdf-bookmarks-for-references-and-index-appear-as-contained-in-the-appendix-wron/131966
+    \chapterstyle{appendix}
+    \aliaspagestyle{chapter}{empty}
+    \appendix
 
-\bookmarksetup{startatroot} % https://tex.stackexchange.com/questions/131959/pdf-bookmarks-for-references-and-index-appear-as-contained-in-the-appendix-wron/131966
-\input{Chapters/A_Appendix.tex}
+    \clearpage
+    \input{Chapters/A_Appendix.tex}
+
+
+    
+    \clearpage
+\end{Spacing}
 
 \end{document}

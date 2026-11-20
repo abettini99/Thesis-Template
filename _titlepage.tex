@@ -1,0 +1,48 @@
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\thispagestyle{empty}
+\HRule
+\begin{center}
+    \vspace{2mm}
+    \begin{Spacing}{2.0}
+        {\didactgothic\Huge\textbf{\LaTeX\,\,Template}}
+    \end{Spacing}
+    % \vspace{1mm}
+    {\didactgothic\Large\textbf{Subtitle}} \\
+    \vspace{5mm}
+\end{center}
+\vspace*{-0.8em}
+\HRule
+
+\begin{center}
+    {\didactgothic\Large{Andrea Bettini}} \\[1em]
+    \normalsize{Department of Flow Physics and Technology} \\[2mm] \footnotesize{\textit{Technische Universiteit Delft}}
+\end{center}
+
+\vspace{0pt plus 1filll} % third order infinite glue since [bottom]footmisc package uses a \vfill essentially, which is second order infinite glue % https://tex.stackexchange.com/questions/312707/making-vfill-work-with-footmisc-package
+
+\begin{center}
+\begingroup
+\renewcommand*{\arraystretch}{1.3}
+\begin{tabular}{lll}
+    Employee number:    & XXXXXX \\
+    Project duration:   & \multicolumn{2}{l}{September 1, 2023 -- September 1, 2027} \\
+    Committee members:  & Prof.\ dr.\ ir.\ S.\ Hickel,  & Promotor \\
+                        & Dr.\ S.\ Hulshoff,            & Daily Supervisor \\
+                        & Dr.\ R.\ P.\ Dwight,          & Additional Member \\
+                        & Dr.\ M.\ Pini,                & External Member
+\end{tabular}
+\endgroup
+\end{center}
+
+\bigskip
+\bigskip
+\bigskip
+%% Insert the TU Delft logo at the bottom of the page
+\begin{tikzpicture}[remember picture, overlay]
+    \node[above=10mm] at (current page.south) {%
+        \includegraphics{Images/_title_images/logo_black.pdf}
+    };
+\end{tikzpicture}
+
+%% Add in a whitepage, used such that the titlepage is independent of any text on the next page when printed double-sided
+\clearpage\thispagestyle{empty}\null\newpage

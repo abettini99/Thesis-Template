@@ -1,0 +1,25 @@
+\RequirePackage{fontspec}
+\RequirePackage{newpxtext} %% main text
+
+%% Very nice alternative to Futura Medium, which is not free. Found under Google Fonts
+\newfontfamily{\didactgothic}{DidactGothic}[
+    Extension = {.ttf},
+    UprightFont = {*-Regular},
+    Path = {./Fonts/DidactGothic/}
+]
+
+%% Quite close to Didact Gothic, with bold support. Ideally would like Didact Gothic but bold. Found under Google Fonts
+\newfontfamily{\opensans}{OpenSans}[
+    Extension = {.ttf},
+    UprightFont = {*-Light},
+    BoldFont = {*-Bold},
+    Path = {./Fonts/OpenSans/}
+]
+
+%% Tahoma is not free, but Wine Tahoma is licensed under GNU Lesser General Public License (see Wikipedia link for Tahoma)
+\newfontfamily{\winetahoma}{WineTahoma}[
+    Extension = {.ttf},
+    UprightFont = {*-Regular},
+    BoldFont = {*-Bold},
+    Path = {./Fonts/WineTahoma/}
+]

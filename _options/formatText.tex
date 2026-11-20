@@ -1,0 +1,154 @@
+
+% \RequirePackage[explicit]{titlesec}
+\setcounter{secnumdepth}{3}
+\renewcommand{\thechapter}{\arabic{chapter}}
+\renewcommand{\thesection}{\thechapter.\arabic{section}.}
+\renewcommand{\thesubsection}{\thesection\arabic{subsection}.}
+\renewcommand{\thesubsubsection}{\thesubsection\arabic{subsubsection}.}
+
+\def\blfootnote{\xdef\@thefnmark{}\@footnotetext}
+
+\if@print
+
+    %% Chapter formatting
+    \openright % Makes sure that chapter is on recto page (clearing the verso page)
+    \makechapterstyle{mainmatter}{%
+        % \renewcommand{\chapterheadstart}{}
+        \renewcommand{\chapternamenum}{\space}
+        % \renewcommand{\printchapternum}{}
+        % \renewcommand{\afterchapternum}{}
+        \renewcommand{\chapnamefont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\chapnumfont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\printchaptername}{%
+            \raggedleft \chapnamefont \@chapapp}
+        \renewcommand{\printchaptertitle}[1]{%
+            \raggedleft \chaptitlefont ##1}
+        % \renewcommand{\afterchaptertitle}{%
+        %     \vskip\onelineskip}
+        \setlength{\beforechapskip}{50pt}
+        \setlength{\midchapskip}{20pt}
+        \setlength{\afterchapskip}{60pt}
+
+        \renewcommand{\prechapterprecis}{%
+            \vspace*{\prechapterprecisshift}%
+            \precisfont\begin{Spacing}{1.10}} %% NOTE: Spacing in here mismatches with maintext! On purpose!
+        \renewcommand{\postchapterprecis}{\end{Spacing}\clearpage}
+        \renewcommand*{\precisfont}{}
+    }
+    
+    \makechapterstyle{frontmatter}{%
+        % \renewcommand{\chapterheadstart}{}
+        \renewcommand{\chapternamenum}{\space}
+        % \renewcommand{\printchapternum}{}
+        % \renewcommand{\afterchapternum}{}
+        \renewcommand{\chapnamefont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\chapnumfont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\printchaptername}{%
+            \raggedleft \chapnamefont \@chapapp}
+        \renewcommand{\printchaptertitle}[1]{%
+            \raggedleft \chaptitlefont ##1}
+        % \renewcommand{\afterchaptertitle}{%
+        %     \vskip\onelineskip}
+        \setlength{\beforechapskip}{0pt}
+        \setlength{\midchapskip}{20pt}
+        \setlength{\afterchapskip}{20pt}
+    }
+
+    \makechapterstyle{bibliography}{%
+        % \renewcommand{\chapterheadstart}{}
+        \renewcommand{\chapternamenum}{\space}
+        % \renewcommand{\printchapternum}{}
+        % \renewcommand{\afterchapternum}{}
+        \renewcommand{\chapnamefont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\chapnumfont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\printchaptername}{%
+            \raggedleft \chapnamefont \@chapapp}
+        \renewcommand{\printchaptertitle}[1]{%
+            \raggedleft \chaptitlefont ##1}
+        % \renewcommand{\afterchaptertitle}{%
+        %     \vskip\onelineskip}
+        \setlength{\beforechapskip}{0pt}
+        \setlength{\midchapskip}{20pt}
+        \setlength{\afterchapskip}{20pt}
+    }
+    
+    %% Section formatting
+    \setbeforesecskip{1\onelineskip}
+    \setsecindent{0em}
+    \setsecheadstyle{\bfseries\opensans}
+    \setaftersecskip{0.1\onelineskip}
+
+    %% Subsection formatting
+    \setbeforesubsecskip{1\onelineskip}
+    \setsubsecindent{0em}
+    \setsubsecheadstyle{\bfseries\opensans}
+    \setaftersubsecskip{0.1\onelineskip}
+
+    %% Subsubsection formatting
+    \setbeforesubsubsecskip{1\onelineskip}
+    \setsubsubsecindent{0em}
+    \setsubsubsecheadstyle{\bfseries\opensans}
+    \setaftersubsubsecskip{0.1\onelineskip}
+
+    %% paragraph formatting
+    \setbeforeparaskip{1\onelineskip}
+    \setparaindent{0em}
+    \setparaheadstyle{\bfseries\opensans}
+    \setafterparaskip{-1.5em} % +values give vertical spacing, -values give horizontal spacing
+    
+    %% subparagraph formatting
+    \setbeforesubparaskip{1\onelineskip}
+    \setsubparaindent{1.5em}
+    \setsubparaheadstyle{\bfseries\opensans}
+    \setaftersubparaskip{-1.5em} % +values give vertical spacing, -values give horizontal spacing
+    
+    %% Epigraph formatting
+    \epigraphtextposition{flushright}
+    \setlength{\epigraphwidth}{0.6\linewidth}
+    \setlength{\epigraphrule}{0pt}
+    \setlength{\beforeepigraphskip}{1\baselineskip}
+    \setlength{\afterepigraphskip}{1\baselineskip}
+
+    %% ToC, LoF, LoT formatting
+    \renewcommand{\tocheadstart}{\chapterheadstart}
+    \renewcommand{\lofheadstart}{\chapterheadstart}
+    \renewcommand{\lotheadstart}{\chapterheadstart}
+    \renewcommand{\printtoctitle}[1]{\hfill\fontsize{36}{36}\opensans Contents}
+    \renewcommand{\printloftitle}[1]{\hfill\fontsize{36}{36}\opensans List of Figures}
+    \renewcommand{\printlottitle}[1]{\hfill\fontsize{36}{36}\opensans List of Tables}
+    \renewcommand{\aftertoctitle}{\afterchaptertitle}
+    \renewcommand{\afterloftitle}{\afterchaptertitle\insertchapterspace} % for some reason the spacing between the title and first entry of ToC and LoF/LoT is not the same.
+    \renewcommand{\afterlottitle}{\afterchaptertitle\insertchapterspace}
+    
+\else
+
+    %% Chapter formatting
+    \openany % clears a single page instead of double for chapters % 
+    
+\fi
+
+
+
+% \titleformat{\chapter}%[display] % [display] makes a new line
+%     {}
+%     {\opensans\fontsize{40}{40}\selectfont\thechapter}{20pt}{\opensans\huge#1}[]
+% \titlespacing{\chapter}{0pt}{-10pt}{1\baselineskip}
+
+% \titleformat{\section}
+%   {\Large\bfseries}%\centering}
+%   {\opensans\Huge{\thesection}\space}{5pt}{\opensans#1}[]
+% \titlespacing{\section}{0pt}{0.5\baselineskip}{0pt}
+
+% \titleformat{\subsection}
+%   {\large\bfseries}
+%   {\opensans\thesubsection\space}{5pt}{\opensans#1}[]
+% \titlespacing{\subsection}{0pt}{0.5\baselineskip}{0pt}
+
+% \titleformat{\subsubsection}
+% %   {\large\itshape\singlespacing}
+%   {\large\bfseries}
+%   {\opensans\thesubsubsection\space}{5pt}{\opensans#1}[]
+% \titlespacing{\subsubsection}{0pt}{0.5\baselineskip}{0pt}
