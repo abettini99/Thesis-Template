@@ -2,8 +2,8 @@
 % \nouppercaseheads
 % --------------------
 \makepagestyle{mainmatter}
-\makeevenhead{mainmatter}{\opensans\lthumb\thepage}{\opensans\MakeUppercase{\leftmark}}{}
-\makeoddhead{mainmatter}{}{\opensans\MakeUppercase{\thesection\hspace{1em}\rightmark}}{\opensans\thepage\rthumb}
+\makeevenhead{mainmatter}{\headingfont\lthumb\thepage}{\headingfont\MakeUppercase{\leftmark}}{}
+\makeoddhead{mainmatter}{}{\headingfont\MakeUppercase{\thesection\hspace{1em}\rightmark}}{\headingfont\thepage\rthumb}
 \makeevenfoot{mainmatter}{}{}{}
 \makeoddfoot{mainmatter}{}{}{}
 \makeheadrule{mainmatter}{\textwidth}{\normalrulethickness}
@@ -11,8 +11,8 @@
 %   \createmark{chapter}{left}{nonumber}{}{}}
 
 \makepagestyle{appendix}
-\makeevenhead{appendix}{\opensans\thepage}{\opensans\MakeUppercase{Appendix \thesection~--~\leftmark}}{}
-\makeoddhead{appendix}{}{\opensans\MakeUppercase{Appendix \thesection~--~\leftmark}}{\opensans\thepage}
+\makeevenhead{appendix}{\headingfont\thepage}{\headingfont\MakeUppercase{Appendix \thesection~--~\leftmark}}{}
+\makeoddhead{appendix}{}{\headingfont\MakeUppercase{Appendix \thesection~--~\leftmark}}{\headingfont\thepage}
 \makeevenfoot{appendix}{}{}{}
 \makeoddfoot{appendix}{}{}{}
 \makeheadrule{appendix}{\textwidth}{\normalrulethickness}
@@ -22,21 +22,21 @@
 \makepagestyle{frontmatter}
 \makeevenhead{frontmatter}{}{}{}
 \makeoddhead{frontmatter}{}{}{}
-\makeevenfoot{frontmatter}{}{\opensans\thepage}{}
-\makeoddfoot{frontmatter}{}{\opensans\thepage}{}
+\makeevenfoot{frontmatter}{}{\headingfont\thepage}{}
+\makeoddfoot{frontmatter}{}{\headingfont\thepage}{}
 % \makepsmarks{mystyle}{%
 %   \createmark{chapter}{left}{nonumber}{}{}}
 
 % N.B. The chapter style is aliased to the plain style (Section 7.2 of memoir manual)
-%\makeevenfoot{chapter}{}{\opensans\thepage}{}
-%\makeoddfoot{chapter}{}{\opensans\thepage}{}
-\makeevenfoot{plain}{}{\opensans\thepage}{}
-\makeoddfoot{plain}{}{\opensans\thepage}{}
+%\makeevenfoot{chapter}{}{\headingfont\thepage}{}
+%\makeoddfoot{chapter}{}{\headingfont\thepage}{}
+\makeevenfoot{plain}{}{\headingfont\thepage}{}
+\makeoddfoot{plain}{}{\headingfont\thepage}{}
 
 
 \makepagestyle{intro-biblio}
-\makeevenhead{intro-biblio}{\opensans\lthumb\thepage}{\opensans\MakeUppercase{\leftmark}}{}
-\makeoddhead{intro-biblio}{}{\opensans\MakeUppercase{\leftmark}}{\opensans\thepage\rthumb}
+\makeevenhead{intro-biblio}{\headingfont\lthumb\thepage}{\headingfont\MakeUppercase{\leftmark}}{}
+\makeoddhead{intro-biblio}{}{\headingfont\MakeUppercase{\leftmark}}{\headingfont\thepage\rthumb}
 \makeevenfoot{intro-biblio}{}{}{}
 \makeoddfoot{intro-biblio}{}{}{}
 \makeheadrule{intro-biblio}{\textwidth}{\normalrulethickness}

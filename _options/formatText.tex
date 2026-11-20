@@ -17,9 +17,9 @@
         \renewcommand{\chapternamenum}{\space}
         % \renewcommand{\printchapternum}{}
         % \renewcommand{\afterchapternum}{}
-        \renewcommand{\chapnamefont}{\fontsize{36}{36}\opensans}
-        \renewcommand{\chapnumfont}{\fontsize{36}{36}\opensans}
-        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\chapnamefont}{\fontsize{36}{36}\headingfont}
+        \renewcommand{\chapnumfont}{\fontsize{36}{36}\headingfont}
+        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\headingfont}
         \renewcommand{\printchaptername}{%
             \raggedleft \chapnamefont \@chapapp}
         \renewcommand{\printchaptertitle}[1]{%
@@ -42,9 +42,9 @@
         \renewcommand{\chapternamenum}{\space}
         % \renewcommand{\printchapternum}{}
         % \renewcommand{\afterchapternum}{}
-        \renewcommand{\chapnamefont}{\fontsize{36}{36}\opensans}
-        \renewcommand{\chapnumfont}{\fontsize{36}{36}\opensans}
-        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\chapnamefont}{\fontsize{36}{36}\headingfont}
+        \renewcommand{\chapnumfont}{\fontsize{36}{36}\headingfont}
+        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\headingfont}
         \renewcommand{\printchaptername}{%
             \raggedleft \chapnamefont \@chapapp}
         \renewcommand{\printchaptertitle}[1]{%
@@ -61,9 +61,9 @@
         \renewcommand{\chapternamenum}{\space}
         % \renewcommand{\printchapternum}{}
         % \renewcommand{\afterchapternum}{}
-        \renewcommand{\chapnamefont}{\fontsize{36}{36}\opensans}
-        \renewcommand{\chapnumfont}{\fontsize{36}{36}\opensans}
-        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\opensans}
+        \renewcommand{\chapnamefont}{\fontsize{36}{36}\headingfont}
+        \renewcommand{\chapnumfont}{\fontsize{36}{36}\headingfont}
+        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\headingfont}
         \renewcommand{\printchaptername}{%
             \raggedleft \chapnamefont \@chapapp}
         \renewcommand{\printchaptertitle}[1]{%
@@ -78,31 +78,31 @@
     %% Section formatting
     \setbeforesecskip{1\onelineskip}
     \setsecindent{0em}
-    \setsecheadstyle{\bfseries\opensans}
+    \setsecheadstyle{\bfseries\headingfont}
     \setaftersecskip{0.1\onelineskip}
 
     %% Subsection formatting
     \setbeforesubsecskip{1\onelineskip}
     \setsubsecindent{0em}
-    \setsubsecheadstyle{\bfseries\opensans}
+    \setsubsecheadstyle{\bfseries\headingfont}
     \setaftersubsecskip{0.1\onelineskip}
 
     %% Subsubsection formatting
     \setbeforesubsubsecskip{1\onelineskip}
     \setsubsubsecindent{0em}
-    \setsubsubsecheadstyle{\bfseries\opensans}
+    \setsubsubsecheadstyle{\bfseries\headingfont}
     \setaftersubsubsecskip{0.1\onelineskip}
 
     %% paragraph formatting
     \setbeforeparaskip{1\onelineskip}
     \setparaindent{0em}
-    \setparaheadstyle{\bfseries\opensans}
+    \setparaheadstyle{\bfseries\headingfont}
     \setafterparaskip{-1.5em} % +values give vertical spacing, -values give horizontal spacing
     
     %% subparagraph formatting
     \setbeforesubparaskip{1\onelineskip}
     \setsubparaindent{1.5em}
-    \setsubparaheadstyle{\bfseries\opensans}
+    \setsubparaheadstyle{\bfseries\headingfont}
     \setaftersubparaskip{-1.5em} % +values give vertical spacing, -values give horizontal spacing
     
     %% Epigraph formatting
@@ -116,9 +116,9 @@
     \renewcommand{\tocheadstart}{\chapterheadstart}
     \renewcommand{\lofheadstart}{\chapterheadstart}
     \renewcommand{\lotheadstart}{\chapterheadstart}
-    \renewcommand{\printtoctitle}[1]{\hfill\fontsize{36}{36}\opensans Contents}
-    \renewcommand{\printloftitle}[1]{\hfill\fontsize{36}{36}\opensans List of Figures}
-    \renewcommand{\printlottitle}[1]{\hfill\fontsize{36}{36}\opensans List of Tables}
+    \renewcommand{\printtoctitle}[1]{\hfill\fontsize{36}{36}\headingfont Contents}
+    \renewcommand{\printloftitle}[1]{\hfill\fontsize{36}{36}\headingfont List of Figures}
+    \renewcommand{\printlottitle}[1]{\hfill\fontsize{36}{36}\headingfont List of Tables}
     \renewcommand{\aftertoctitle}{\afterchaptertitle}
     \renewcommand{\afterloftitle}{\afterchaptertitle\insertchapterspace} % for some reason the spacing between the title and first entry of ToC and LoF/LoT is not the same.
     \renewcommand{\afterlottitle}{\afterchaptertitle\insertchapterspace}
@@ -134,21 +134,21 @@
 
 % \titleformat{\chapter}%[display] % [display] makes a new line
 %     {}
-%     {\opensans\fontsize{40}{40}\selectfont\thechapter}{20pt}{\opensans\huge#1}[]
+%     {\headingfont\fontsize{40}{40}\selectfont\thechapter}{20pt}{\headingfont\huge#1}[]
 % \titlespacing{\chapter}{0pt}{-10pt}{1\baselineskip}
 
 % \titleformat{\section}
 %   {\Large\bfseries}%\centering}
-%   {\opensans\Huge{\thesection}\space}{5pt}{\opensans#1}[]
+%   {\headingfont\Huge{\thesection}\space}{5pt}{\headingfont#1}[]
 % \titlespacing{\section}{0pt}{0.5\baselineskip}{0pt}
 
 % \titleformat{\subsection}
 %   {\large\bfseries}
-%   {\opensans\thesubsection\space}{5pt}{\opensans#1}[]
+%   {\headingfont\thesubsection\space}{5pt}{\headingfont#1}[]
 % \titlespacing{\subsection}{0pt}{0.5\baselineskip}{0pt}
 
 % \titleformat{\subsubsection}
 % %   {\large\itshape\singlespacing}
 %   {\large\bfseries}
-%   {\opensans\thesubsubsection\space}{5pt}{\opensans#1}[]
+%   {\headingfont\thesubsubsection\space}{5pt}{\headingfont#1}[]
 % \titlespacing{\subsubsection}{0pt}{0.5\baselineskip}{0pt}

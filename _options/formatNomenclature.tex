@@ -23,45 +23,45 @@
 \newcommand{\DefinitionCol}[1]{\hfill\parbox[t]{\definitionwidth}{#1}\ignorespaces} % number related to 'definition' box size
 
 
-\newcommand{\nomsubtitle}[1]{\item[\opensans\LARGE #1]}
+\newcommand{\nomsubtitle}[1]{\item[\headingfont\LARGE #1]}
 \renewcommand\nomgroup[1]{%
 \itemsep0pt % just disable this line if you do not want spacing
 \vspace{10pt}
 \def\nomtemp{\csname nomstart#1\endcsname}\nomtemp}
 
 \newcommand{\nomstartA}{\nomsubtitle{Acronyms}%
-  \item[\opensans\Large Symbol]
-    {\opensans\Large Description}
+  \item[\headingfont\Large Symbol]
+    {\headingfont\Large Description}
 }
 
 \newcommand{\nomstartB}{\vspace{1em}\nomsubtitle{Dimensionless numbers}%
-  \item[\opensans\Large Symbol]
-    {\opensans\Large Description}
-    \DefinitionCol{\opensans\Large Definition}
+  \item[\headingfont\Large Symbol]
+    {\headingfont\Large Description}
+    \DefinitionCol{\headingfont\Large Definition}
 }
 
 \newcommand{\nomstartC}{\vspace{1em}\nomsubtitle{Latin symbols}%        % R for Roman
-  \item[\opensans\Large Symbol]%
-  {\opensans\Large Description}
-  \DimensUnits{\opensans\Large Dimensions}
-  {\opensans\Large Units}
+  \item[\headingfont\Large Symbol]%
+  {\headingfont\Large Description}
+  \DimensUnits{\headingfont\Large Dimensions}
+  {\headingfont\Large Units}
 }
   
 \newcommand{\nomstartD}{\vspace{1em}\nomsubtitle{Greek symbols}%
-  \item[\opensans\Large Symbol]%
-  {\opensans\Large Description}
-  \DimensUnits{\opensans\Large Dimensions}
-  {\opensans\Large Units}
+  \item[\headingfont\Large Symbol]%
+  {\headingfont\Large Description}
+  \DimensUnits{\headingfont\Large Dimensions}
+  {\headingfont\Large Units}
 }
 
 \newcommand{\nomstartE}{\vspace{1em}\nomsubtitle{Superscripts}%
-  \item[\opensans\Large Symbol]
-  {\opensans\Large Description}
+  \item[\headingfont\Large Symbol]
+  {\headingfont\Large Description}
 }
 
 \newcommand{\nomstartF}{\vspace{1em}\nomsubtitle{Subscripts}%
-  \item[\opensans\Large Symbol]
-  {\opensans\Large Description}
+  \item[\headingfont\Large Symbol]
+  {\headingfont\Large Description}
 }
 
 \renewcommand*{\nompreamble}{
