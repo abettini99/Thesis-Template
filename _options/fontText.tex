@@ -11,15 +11,18 @@
 ]
 % \RequirePackage{newpxtext} %% previous main text (Palatino clone)
 
-%% Heading font: Open Sans (Google Fonts, SIL Open Font License), light for titles and bold for section headings.
-\newfontfamily{\opensans}{OpenSans}[
-    Extension = {.ttf},
+%% Heading font: Source Sans Pro (Adobe, SIL Open Font License), included in TeX Live, so no font
+%% files are needed in the project. Light for titles, semibold for section headings.
+\newfontfamily{\sourcesans}{SourceSansPro}[
+    Extension   = {.otf},
     UprightFont = {*-Light},
-    BoldFont = {*-Bold},
-    Path = {./Fonts/OpenSans/},
-    Ligatures = TeX     % -- and --- become en and em dashes, as in the body text
+    BoldFont    = {*-Semibold},
+    Ligatures   = TeX     % -- and --- become en and em dashes, as in the body text
 ]
+
+%% Also the document's sans-serif font (\sffamily, \textsf), so nothing falls back to Latin Modern Sans.
+\setsansfont{SourceSansPro}[Extension={.otf}, UprightFont={*-Regular}, BoldFont={*-Semibold}, ItalicFont={*-RegularIt}, BoldItalicFont={*-SemiboldIt}, Ligatures=TeX]
 
 %% Heading font: used for chapter/section titles, running heads, page numbers and nomenclature headers.
 %% To change the heading font everywhere, define another family above and change this one line.
-\newcommand{\headingfont}{\opensans}
+\newcommand{\headingfont}{\sourcesans}

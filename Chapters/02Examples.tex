@@ -36,7 +36,7 @@ A description list:
 
 \subsection{Acronyms and symbols}
 
-Acronyms and symbols are defined once, in \texttt{\_nomenclature.tex}, and appear in the nomenclature automatically. An acronym is written out the first time it is used: the \gls{bem} method is fast. After that, only the short form appears: \gls{bem} is used throughout. Symbols work in text and in maths alike: the dynamic pressure is $\frac{1}{2} \gls{rho} \gls{Uinf}^2$, with \gls{rho} the air density.
+Acronyms and symbols are defined once and then appear in the nomenclature automatically; their definitions are in the file \texttt{\_nomenclature.tex}. An acronym is written out the first time it is used: the \gls{bem} method is fast. After that, only the short form appears: \gls{bem} is used throughout. Symbols work in text and in maths alike: the dynamic pressure is $\frac{1}{2} \gls{rho} \gls{Uinf}^2$, with \gls{rho} the air density.
 
 \subsection{Quotations}
 
@@ -166,7 +166,7 @@ Simple diagrams can be drawn with TikZ, in the same fonts and colours as the tex
     \centering
     \begin{tikzpicture}[
         node distance=5mm,
-        box/.style={draw, thick, rounded corners=2pt, align=center, text width=22mm, minimum height=10mm, font=\small},
+        box/.style={draw, thick, rounded corners=2pt, align=center, text width=19mm, minimum height=10mm, font=\small},
         arrow/.style={-{Stealth[length=2mm]}, thick},
     ]
         \node[box]                         (pre)  {Pre-\\processing};

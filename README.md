@@ -42,7 +42,7 @@ Set in the first line of `main.tex`, for example:
 
 | Option | Effect |
 |---|---|
-| `a5` *(default)*, `royal`, `tudelft` | Book page size: 148 × 210 mm, 156 × 234 mm or 170 × 240 mm. Text block, margins and chapter-title size follow automatically. |
+| `dover`, `a5` *(default)*, `royal`, `tudelft` | Book page size: 137 × 213 mm (the classic Dover paperback, 5⅜ × 8⅜ in), 148 × 210 mm, 156 × 234 mm or 170 × 240 mm. Text block, margins and chapter-title size follow automatically. Check that your printer offers the size. |
 | `print` | Book version: the page plus 2 mm bleed on every side, chapters start on right-hand pages. Without it you get the report version: the same page centred on A4, no blank pages. |
 | `thumb` | Chapter thumb tabs on the page edge (print version only). Appendices continue below the last chapter; the spacing adapts so all tabs fit on the page (it uses the chapter count from the previous compile, so compile twice after adding chapters). |
 | `showtrims` | Crop marks showing where the page is trimmed (print) or where the book page sits on A4 (report). |
@@ -104,6 +104,7 @@ It sets Times (or STIX, a Times-like font included with matplotlib), 8–9 pt te
 
 | Page size | Full text width | Half width (two side by side) |
 |---|---|---|
+| `dover` | 92 mm (3.62 in) | 44 mm (1.73 in) |
 | `a5` | 100 mm (3.94 in) | 48 mm (1.89 in) |
 | `royal` | 105 mm (4.13 in) | 50 mm (1.98 in) |
 | `tudelft` | 113 mm (4.45 in) | 54 mm (2.13 in) |

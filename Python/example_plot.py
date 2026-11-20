@@ -10,8 +10,9 @@ import numpy as np
 HERE = Path(__file__).parent
 plt.style.use(HERE / "thesis.mplstyle")
 
-# Text widths of the book (mm): A5 100, Royal 105, TU Delft 170x240 113.
-TEXT_WIDTH_MM = 100
+# Text widths of the book (mm): Dover 92, A5 100, Royal 105, TU Delft 170x240 113.
+# This example uses the narrowest, so it fits every page size.
+TEXT_WIDTH_MM = 92
 MM = 1 / 25.4
 
 alpha = np.linspace(-4, 20, 200)

@@ -20,10 +20,12 @@
 \DeclareOption{draft}{\@drafttrue \PassOptionsToPackage{draft}{graphicx} \PassOptionsToClass{draft}{memoir}}
 
 %% Book page size. Choose one; a5 is the default.
+%%   dover   : 137 x 213 mm  (5 3/8 x 8 3/8 in, the classic Dover paperback)
 %%   a5      : 148 x 210 mm  (handbook / paperback size)
 %%   royal   : 156 x 234 mm  (typical academic book)
 %%   tudelft : 170 x 240 mm  (TU Delft dissertation template, most common thesis size in NL)
 \newcommand*{\thesis@pagesize}{a5}
+\DeclareOption{dover}{\renewcommand*{\thesis@pagesize}{dover}}
 \DeclareOption{a5}{\renewcommand*{\thesis@pagesize}{a5}}
 \DeclareOption{royal}{\renewcommand*{\thesis@pagesize}{royal}}
 \DeclareOption{tudelft}{\renewcommand*{\thesis@pagesize}{tudelft}}
@@ -75,18 +77,23 @@
     \setlength{\thesis@pagewidth}{156mm}   \setlength{\thesis@pageheight}{234mm}
     \setlength{\thesis@textwidth}{105mm}   \setlength{\thesis@textheight}{180mm}
     \setlength{\thesis@foremargin}{29.3mm} \setlength{\thesis@topmargin}{25mm}
+}{\ifthenelse{\equal{\thesis@pagesize}{dover}}{%
+    \setlength{\thesis@pagewidth}{137mm}   \setlength{\thesis@pageheight}{213mm}
+    \setlength{\thesis@textwidth}{92mm}    \setlength{\thesis@textheight}{168mm}
+    \setlength{\thesis@foremargin}{25.3mm} \setlength{\thesis@topmargin}{20mm}
 }{% a5 (default)
     \setlength{\thesis@pagewidth}{148mm}   \setlength{\thesis@pageheight}{210mm}
     \setlength{\thesis@textwidth}{100mm}   \setlength{\thesis@textheight}{165mm}
     \setlength{\thesis@foremargin}{27.3mm} \setlength{\thesis@topmargin}{20mm}
-}}
+}}}
 %% Chapter title size scales with the page, so long titles such as "Acknowledgements" still fit on one line.
 \newcommand*{\chaptertitlesize}{30pt}
 \ifthenelse{\equal{\thesis@pagesize}{tudelft}}{\renewcommand*{\chaptertitlesize}{36pt}}{}
 \ifthenelse{\equal{\thesis@pagesize}{royal}}{\renewcommand*{\chaptertitlesize}{33pt}}{}
+\ifthenelse{\equal{\thesis@pagesize}{dover}}{\renewcommand*{\chaptertitlesize}{28pt}}{}
 
 %% Fore-edge margins follow foreedge = (2/3)*(page width - binding - text width);
-%% text widths give roughly 57-60 characters per line at 10pt in every size.
+%% text widths give roughly 53-60 characters per line at 10pt in every size.
 
 \if@print
     \setstocksize{\dimexpr\thesis@pageheight+2\thesis@bleed\relax}{\dimexpr\thesis@pagewidth+2\thesis@bleed\relax}
@@ -115,6 +122,9 @@
 \widowpenalty=10000         % last line of a paragraph alone at the top of a page
 \displaywidowpenalty=10000  % last line before a displayed equation alone at the top of a page
 \brokenpenalty=5000         % avoid a page break right after a hyphenated line
+%% On narrow pages, allow a little extra word spacing in a line rather than letting it stick out
+%% into the margin (e.g. a long file name or URL that cannot be hyphenated).
+\setlength{\emergencystretch}{1.5em}
 
 \if@showframe
     \RequirePackage{showframe}
