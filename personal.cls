@@ -14,39 +14,63 @@
 \DeclareOption{showtrims}{\PassOptionsToClass{\CurrentOption}{memoir}} %% in report mode this marks the book page on the A4 sheet 
 \DeclareOption{showframe}{\@showframetrue}
 
+%% Book page size. Choose one; a5 is the default.
+%%   a5      : 148 x 210 mm  (handbook / paperback size)
+%%   royal   : 156 x 234 mm  (typical academic book)
+%%   tudelft : 170 x 240 mm  (TU Delft dissertation template, most common thesis size in NL)
+\newcommand*{\thesis@pagesize}{a5}
+\DeclareOption{a5}{\renewcommand*{\thesis@pagesize}{a5}}
+\DeclareOption{royal}{\renewcommand*{\thesis@pagesize}{royal}}
+\DeclareOption{tudelft}{\renewcommand*{\thesis@pagesize}{tudelft}}
+
 \ExecuteOptions{}
 \ProcessOptions\relax
 
 \RequirePackage[l2tabu, orthodox]{nag} % https://ctan.org/pkg/nag %% In case I commit a cardinal sin of loading depreciated modules, or some dumb stuff that can be picked up (i.e use \centering instead of \begin{center}[...]\end{center})
 
-%% Page layout. The book page (170 x 240 mm, TU Delft dissertation format) is the same in both modes;
-%% only the paper it sits on differs:
-%%   print  : the book page plus 2mm bleed on every side (174 x 244 mm), for the printer.
+%% Page layout. The book page size is set by the a5 / royal / tudelft option (default a5);
+%% only the paper it sits on differs between modes:
+%%   print  : the book page plus 2mm bleed on every side, for the printer.
 %%   report : the book page centred on an A4 sheet, for reading on screen or printing at home.
 \LoadClass[10pt]{memoir}
+
+\newlength{\thesis@pagewidth}   \newlength{\thesis@pageheight}  %% trimmed (final) book page
+\newlength{\thesis@textwidth}   \newlength{\thesis@textheight}  %% type block (where you write)
+\newlength{\thesis@foremargin}  \newlength{\thesis@topmargin}   %% outer and top margins
+\newlength{\thesis@bleed}       \setlength{\thesis@bleed}{2mm}  %% TU Delft uses 2mm bleed
+
+\ifthenelse{\equal{\thesis@pagesize}{tudelft}}{%
+    \setlength{\thesis@pagewidth}{170mm}   \setlength{\thesis@pageheight}{240mm}
+    \setlength{\thesis@textwidth}{113mm}   \setlength{\thesis@textheight}{192mm}
+    \setlength{\thesis@foremargin}{33.4mm} \setlength{\thesis@topmargin}{23.9mm}
+}{\ifthenelse{\equal{\thesis@pagesize}{royal}}{%
+    \setlength{\thesis@pagewidth}{156mm}   \setlength{\thesis@pageheight}{234mm}
+    \setlength{\thesis@textwidth}{105mm}   \setlength{\thesis@textheight}{180mm}
+    \setlength{\thesis@foremargin}{29.3mm} \setlength{\thesis@topmargin}{25mm}
+}{% a5 (default)
+    \setlength{\thesis@pagewidth}{148mm}   \setlength{\thesis@pageheight}{210mm}
+    \setlength{\thesis@textwidth}{100mm}   \setlength{\thesis@textheight}{165mm}
+    \setlength{\thesis@foremargin}{27.3mm} \setlength{\thesis@topmargin}{20mm}
+}}
+%% Fore-edge margins follow foreedge = (2/3)*(page width - binding - text width);
+%% text widths give roughly 57-60 characters per line at 10pt in every size.
+
 \if@print
-    \setstocksize{244mm}{174mm}             %% Paper stock size = trimmed size + 2mm bleed on every side (matches TU Delft dissertation template).
+    \setstocksize{\dimexpr\thesis@pageheight+2\thesis@bleed\relax}{\dimexpr\thesis@pagewidth+2\thesis@bleed\relax}
+    \settrimmedsize{\thesis@pageheight}{\thesis@pagewidth}{*}
+    \settrims{\thesis@bleed}{\thesis@bleed}             %% Bleed: how far from {top}{right} the page sits on the stock
 \else
-    \setstocksize{297mm}{210mm}             %% Paper stock size = A4.
+    \setstocksize{297mm}{210mm}                         %% A4
+    \settrimmedsize{\thesis@pageheight}{\thesis@pagewidth}{*}
+    \settrims{\dimexpr(297mm-\thesis@pageheight)/2\relax}{\dimexpr(210mm-\thesis@pagewidth)/2\relax} %% centre the book page on A4
 \fi
-\settrimmedsize{240mm}{170mm}{*}            %% This is the layout/trimmed/paper size for which you work on,
-                                            %% 170 x 240 mm: final book size of the TU Delft dissertation template
-\if@print
-    \settrims{2mm}{2mm}                     %% Bleed: how far from {top}{right} that layout is placed on the stock (TU Delft uses 2mm)
-\else
-    \settrims{28.5mm}{20mm}                 %% Centres the book page on A4: (297-240)/2 = 28.5mm, (210-170)/2 = 20mm
-\fi
-\settypeblocksize{192mm}{113mm}{*}          %% This is your workspace - where you write on.
+\settypeblocksize{\thesis@textheight}{\thesis@textwidth}{*}
 \setbinding{7.0mm}           %% Binding margin is handled here
                              %% 3.00mm binding from TUD PhD template
                              %% 7.00mm binding might be better? based on what I have seen.
-
-%% foreedge_margin = (2/3)*(trimmedsize_width - binding_offset - typeblock_width)
-%% topdown_margin  = (1/2)*(trimmedsize_height - typeblock_height)
-\setlrmargins{*}{33.40mm}{*} %% fore-edge margin is handled here (scaled from 35.33mm for the 170mm page)
+\setlrmargins{*}{\thesis@foremargin}{*} %% fore-edge margin; spine margin automatically handled.
                              %% Normally, your spine margin should be smaller, but the binding process is hot garbage based on what I have seen of previous theses.
-                             %% spine margin automatically handled.
-\setulmargins{23.90mm}{*}{*} %% top margin handled here, bottom margin automatically handled (scaled from 27.00mm for the 240mm page).
+\setulmargins{\thesis@topmargin}{*}{*}  %% top margin; bottom margin automatically handled.
 \setheadfoot{\onelineskip}{2\onelineskip}
 \setheaderspaces{*}{2\onelineskip}{*}
 \setmarginnotes{17pt}{51pt}{\onelineskip}
