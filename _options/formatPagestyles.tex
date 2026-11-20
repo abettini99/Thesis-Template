@@ -1,14 +1,15 @@
-% thanks to https://tex.stackexchange.com/questions/38446/memoir-headings#38449 and % https://alvinalexander.com/blog/post/latex/get-chapter-name-section-name-inheader-of-page-in-latex-document/
-% \nouppercaseheads
-% --------------------
+%% Page styles (memoir). Running heads in the heading font, uppercase.
+%%   mainmatter     : chapter title on left pages, section on right pages, thumb tabs
+%%   chapteronly    : chapter title on both pages (chapters without sections, the references)
+%%   appendix       : "Appendix A - title" on both pages, thumb tabs
+%%   chapteropening : chapter opening pages: only the thumb tab
+%%   frontmatter    : page number centred at the bottom
 \makepagestyle{mainmatter}
 \makeevenhead{mainmatter}{\headingfont\lthumb\thepage}{\headingfont\MakeUppercase{\leftmark}}{}
 \makeoddhead{mainmatter}{}{\headingfont\MakeUppercase{\rightmark}}{\headingfont\thepage\rthumb}
 \makeevenfoot{mainmatter}{}{}{}
 \makeoddfoot{mainmatter}{}{}{}
 \makeheadrule{mainmatter}{\textwidth}{\normalrulethickness}
-% \makepsmarks{mainmatter}{%
-%   \createmark{chapter}{left}{nonumber}{}{}}
 
 \makepagestyle{appendix}
 \makeevenhead{appendix}{\headingfont\lthumb\thepage}{\headingfont\MakeUppercase{Appendix \thechapter~\textendash~\leftmark}}{}
@@ -16,8 +17,6 @@
 \makeevenfoot{appendix}{}{}{}
 \makeoddfoot{appendix}{}{}{}
 \makeheadrule{appendix}{\textwidth}{\normalrulethickness}
-% \makepsmarks{mystyle}{%
-%   \createmark{chapter}{left}{nonumber}{}{}}
 
 %% Chapter opening pages: no running head, but the thumb tab (the page a reader is looking for).
 \makepagestyle{chapteropening}
@@ -31,24 +30,17 @@
 \makeoddhead{frontmatter}{}{}{}
 \makeevenfoot{frontmatter}{}{\headingfont\thepage}{}
 \makeoddfoot{frontmatter}{}{\headingfont\thepage}{}
-% \makepsmarks{mystyle}{%
-%   \createmark{chapter}{left}{nonumber}{}{}}
 
-% N.B. The chapter style is aliased to the plain style (Section 7.2 of memoir manual)
-%\makeevenfoot{chapter}{}{\headingfont\thepage}{}
-%\makeoddfoot{chapter}{}{\headingfont\thepage}{}
+%% plain: used for chapter opening pages in the front and back matter (page number at the bottom)
 \makeevenfoot{plain}{}{\headingfont\thepage}{}
 \makeoddfoot{plain}{}{\headingfont\thepage}{}
 
-
-\makepagestyle{intro-biblio}
-\makeevenhead{intro-biblio}{\headingfont\lthumb\thepage}{\headingfont\MakeUppercase{\leftmark}}{}
-\makeoddhead{intro-biblio}{}{\headingfont\MakeUppercase{\leftmark}}{\headingfont\thepage\rthumb}
-\makeevenfoot{intro-biblio}{}{}{}
-\makeoddfoot{intro-biblio}{}{}{}
-\makeheadrule{intro-biblio}{\textwidth}{\normalrulethickness}
-% \makepsmarks{mystyle}{%
-%   \createmark{chapter}{left}{nonumber}{}{}}
+\makepagestyle{chapteronly}
+\makeevenhead{chapteronly}{\headingfont\lthumb\thepage}{\headingfont\MakeUppercase{\leftmark}}{}
+\makeoddhead{chapteronly}{}{\headingfont\MakeUppercase{\leftmark}}{\headingfont\thepage\rthumb}
+\makeevenfoot{chapteronly}{}{}{}
+\makeoddfoot{chapteronly}{}{}{}
+\makeheadrule{chapteronly}{\textwidth}{\normalrulethickness}
 
 \renewcommand{\chaptermark}[1]{%
 \markboth{#1}{}} 
@@ -56,5 +48,3 @@
 %% the title of one section with the number of another.
 \renewcommand{\sectionmark}[1]{%
 \markright{\thesection.\hspace{1em}#1}}
-%\renewcommand{\subsectionmark}[1]{%
-%\markright{#1}}

@@ -21,10 +21,7 @@
         \openany % report: chapters start on the next page, no blank pages
     \fi
     \makechapterstyle{mainmatter}{%
-        % \renewcommand{\chapterheadstart}{}
         \renewcommand{\chapternamenum}{\space}
-        % \renewcommand{\printchapternum}{}
-        % \renewcommand{\afterchapternum}{}
         \renewcommand{\chapnamefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
         \renewcommand{\chapnumfont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
         \renewcommand{\chaptitlefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
@@ -32,8 +29,6 @@
             \raggedleft \chapnamefont \@chapapp}
         \renewcommand{\printchaptertitle}[1]{%
             \raggedleft \chaptitlefont ##1}
-        % \renewcommand{\afterchaptertitle}{%
-        %     \vskip\onelineskip}
         \setlength{\beforechapskip}{50pt}
         \setlength{\midchapskip}{20pt}
         \setlength{\afterchapskip}{60pt}
@@ -46,10 +41,7 @@
     }
     
     \makechapterstyle{frontmatter}{%
-        % \renewcommand{\chapterheadstart}{}
         \renewcommand{\chapternamenum}{\space}
-        % \renewcommand{\printchapternum}{}
-        % \renewcommand{\afterchapternum}{}
         \renewcommand{\chapnamefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
         \renewcommand{\chapnumfont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
         \renewcommand{\chaptitlefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
@@ -57,18 +49,13 @@
             \raggedleft \chapnamefont \@chapapp}
         \renewcommand{\printchaptertitle}[1]{%
             \raggedleft \chaptitlefont ##1}
-        % \renewcommand{\afterchaptertitle}{%
-        %     \vskip\onelineskip}
         \setlength{\beforechapskip}{0pt}
         \setlength{\midchapskip}{20pt}
         \setlength{\afterchapskip}{20pt}
     }
 
     \makechapterstyle{bibliography}{%
-        % \renewcommand{\chapterheadstart}{}
         \renewcommand{\chapternamenum}{\space}
-        % \renewcommand{\printchapternum}{}
-        % \renewcommand{\afterchapternum}{}
         \renewcommand{\chapnamefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
         \renewcommand{\chapnumfont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
         \renewcommand{\chaptitlefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
@@ -76,8 +63,6 @@
             \raggedleft \chapnamefont \@chapapp}
         \renewcommand{\printchaptertitle}[1]{%
             \raggedleft \chaptitlefont ##1}
-        % \renewcommand{\afterchaptertitle}{%
-        %     \vskip\onelineskip}
         \setlength{\beforechapskip}{0pt}
         \setlength{\midchapskip}{20pt}
         \setlength{\afterchapskip}{20pt}

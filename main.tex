@@ -22,7 +22,7 @@
 
 % packages
 \input{_options/packages}
-% package fixes
+% fix for booktabs rules in tables that break across pages (xltabular)
 \input{_fixes/packageFixes}
 % code settings
 \input{_options/formatCode}
@@ -44,30 +44,14 @@
 % \linenumbers
 
 
-% Useful Links:
-% https://www.sciencedirect.com/science/article/pii/B9780080982854000042 - How to write a literature review
-% http://web.mit.edu/rsi/www/pdfs/advmath.pdf - LaTeX Math Tools
-% https://en.wikibooks.org/wiki/LaTeX/Advanced_Mathematics - More LaTeX Math Tools
-
 %% Compile only some chapters (much faster while writing a long thesis). Page numbers, and
 %% references to the chapters left out, are kept from the last full compile.
 %% Uncomment and list the chapters you are working on; comment out again for a full compile.
 % \includeonly{Chapters/02Examples}
 
-\AtBeginDocument{\colorlet{tudelft-black}{.}}
 \begin{document}
-% \sisetup{   detect-family,
-%             detect-weight,
-%             math-rm = \mathrm }
-
-% Force recalculation of the current page node whenever the overlay option is used.
-% If your page is centered on your stock paper it is only necessary to calculate
-% the current page rectangle once.
-% https://texample.net/tikz/examples/modifying-current-page-node/
-\pgfkeys{/tikz/overlay/.add code={}{\setpagenode}}
 
 \pagenumbering{gobble}
-% \input{_intentionalBlank.tex}
 \input{_titlepage.tex}
 
 \begin{Spacing}{\thesisspacing} % line spacing of the main text (set per page size in personal.cls)
@@ -91,23 +75,11 @@
     \cleardoublepage
     \listoftables
     \cleardoublepage
-    
-    % Basically, reset counters every time you step into a new part of the report. Useful for when you have many many sections and you need to navigate quickly. Check the cls file for the numbering system.
-    % \counterwithin*{equation}{section}
-    % \counterwithin*{equation}{subsection}
-    % \counterwithin*{equation}{subsubsection}
-    % \counterwithin*{figure}{section}
-    % \counterwithin*{figure}{subsection}
-    % \counterwithin*{figure}{subsubsection}
-    % \counterwithin*{table}{section}
-    % \counterwithin*{table}{subsection}
-    % \counterwithin*{table}{subsubsection}
-    
-    % Basically, creates new chapter numbering within a new part using the chngcntr package, this stops LaTeX from destroying the document outline when exporting, which is what happens when you \setcounter{chapter}{0} when the previous part had higher numbering.
+
+    %% If you divide the thesis into \part{}s: restart chapter numbering in every part without
+    %% breaking the PDF bookmarks.
     \counterwithin*{chapter}{part}
-    
-    % \input{Chapters/00Abstract.tex}
-    
+
     \input{Chapters/00Nomenclature.tex}
     
     %% ========== %%
@@ -126,16 +98,12 @@
         \thumbsoff % no thumb tab on the reference pages
         \chapterstyle{bibliography}
         \aliaspagestyle{chapter}{plain}
-        \DeclareRobustCommand{\VAN}[0]{van} % Change from Van to van
-        % \printbibliography[title={References}, heading=bibintoc]
+        \DeclareRobustCommand{\VAN}[0]{van} % "van" prefixes lowercase in the reference list (see commands.tex)
         \renewcommand{\bibname}{References}
-        %\begin{multicols}{2}[\printbibheading]
-        \setlength\bibitemsep{0.5\baselineskip} %% space between references
-        \printbibliography%[heading=none]
-        \pagestyle{intro-biblio}
-        %\end{multicols}
+        \printbibliography
+        \pagestyle{chapteronly}
     \fi
-    \DeclareRobustCommand{\VAN}[0]{Van} % Change from van to Van for appendix purposes
+    \DeclareRobustCommand{\VAN}[0]{Van} % and capitalised again in the text
 
     %% ======== %%
     %% APPENDIX %%
@@ -161,8 +129,6 @@
     \include{Chapters/Z_CurriculumVitae}
     \include{Chapters/Z_ListOfPublications}
 
-
-    
     \clearpage
 \end{Spacing}
 

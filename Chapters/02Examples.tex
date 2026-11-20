@@ -96,6 +96,24 @@ Piecewise definitions, matrices and operators:
 \end{gather}
 Dimensionless numbers are upright: $\Re$, $\Ma$, $\Pr$, $\St$ and $\Fr$.
 
+\subsection{Long equations}
+
+On a narrow page, an equation that would fit on A4 often does not. Break it at an operator, and say where it continues. A single long expression is set with \texttt{multline}: the first line starts at the left, the last line ends at the right.
+\begin{multline}
+    \rho \left( \pderiv{u}{t} + u \pderiv{u}{x} + v \pderiv{u}{y} + w \pderiv{u}{z} \right) \\
+    = -\pderiv{p}{x} + \mu \left( \pderiv[2]{u}{x} + \pderiv[2]{u}{y} + \pderiv[2]{u}{z} \right) + \rho g_x
+    \label{eq:x-momentum}
+\end{multline}
+When the continuation should line up with an equals sign, \texttt{split} inside an equation gives one number for the whole:
+\begin{equation}
+    \begin{split}
+        E &= \frac{1}{2} \rho \left( u^2 + v^2 + w^2 \right) + \rho e \\
+          &\quad + \rho g z + \frac{1}{2} k \left( x - x_0 \right)^2 .
+    \end{split}
+    \label{eq:energy}
+\end{equation}
+Break before an operator ($+$, $-$, $=$), not after it, so the new line shows at once that it continues the previous one.
+
 %% =====================================================================
 \section{Units and numbers}\label{sec:units}
 %% =====================================================================

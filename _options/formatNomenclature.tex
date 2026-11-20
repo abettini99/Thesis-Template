@@ -41,7 +41,7 @@
         \newabbreviation[type=acronyms, category=acronym, sort={#1}]{#2}{#3}{#4}%
     \fi}
 %% \nomdimless[sort]{label}{symbol}{description}{definition}       (symbol and definition: maths)
-\newcommand{\nomdimless}[5][]{\thesis@nomentry{dimless}{#1}{#2}{#3}{#4}{definition={\ensuremath{#5}}}}
+\newcommand{\nomdimless}[5][]{\thesis@nomentry{dimless}{#1}{#2}{#3}{#4}{definition={\thesis@definition{#5}}}}
 %% \nomlatin[sort]{label}{symbol}{description}{dimensions}{units}   (symbol and dimensions: maths)
 \newcommand{\nomlatin}[6][]{\thesis@nomentry{latin}{#1}{#2}{#3}{#4}{dimensions={\thesis@dims{#5}}, units={#6}}}
 %% \nomgreek[sort]{label}{symbol}{description}{dimensions}{units}
@@ -58,6 +58,9 @@
     \else
         \newglossaryentry{#3}{type=#1, sort={#2}, name={\ensuremath{#4}}, description={#5}, #6}%
     \fi}
+%% Definitions are set in full-size (display-style) maths, with room above and below so fractions
+%% do not touch the next row.
+\newcommand{\thesis@definition}[1]{\ensuremath{\displaystyle #1}\rule[-2.6ex]{0pt}{5.4ex}}
 %% Dimensions are given in maths ("\Lunit\Tunit^{-1}"); "--" gives an en dash for dimensionless quantities.
 \newcommand{\thesis@dims}[1]{%
     \def\thesis@arg{#1}\def\thesis@dash{--}%
@@ -72,13 +75,15 @@
 %% ---------------------------------------------------------------------
 %% Layout of the lists: same columns as before.
 %% ---------------------------------------------------------------------
-\newlength\symbolwidth      \setlength\symbolwidth{4.5em}
-\newlength\dimensionswidth  \setlength\dimensionswidth{6em}
+%% Narrow symbol, dimensions and units columns and 4 pt column gaps leave the description as much
+%% room as possible, also on the narrow Dover page.
+\newlength\symbolwidth      \setlength\symbolwidth{4em}
+\newlength\dimensionswidth  \setlength\dimensionswidth{4.75em}
 \newlength\unitswidth       \setlength\unitswidth{5.5em}
 \newlength\descriptionwidth
 \newlength\definitionwidth
 
-\newcommand{\nomheader}[1]{{\headingfont\large #1}}
+\newcommand{\nomheader}[1]{{\headingfont\mbox{#1}}} % \mbox: no hyphenation in narrow columns
 \newcommand{\nomtitle}[1]{\par\bigskip\noindent{\headingfont\LARGE #1}\par\nopagebreak\smallskip}
 
 %% The lists get their titles from \printnom, so the glossary's own heading is switched off.
@@ -86,6 +91,7 @@
 
 %% Common settings for the styles below.
 \newcommand{\thesis@nomtablesetup}{%
+    \setlength\tabcolsep{4pt}%
     \setlength\LTleft{0pt}\setlength\LTright{0pt}\setlength\LTpre{0pt}\setlength\LTpost{0pt}%
     \renewcommand*{\glossaryheader}{}%
     \renewcommand*{\glsgroupheading}[1]{}%

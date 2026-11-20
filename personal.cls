@@ -1,4 +1,4 @@
-\ProvidesClass{personal}[2020/05/24, v1.0]
+\ProvidesClass{personal}[2026/11/21 v2.0 TU Delft dissertation class, based on memoir]
 
 \RequirePackage{ifthen}
 
@@ -12,7 +12,7 @@
 \DeclareOption{british}{\@britishtrue\@americanfalse}
 \DeclareOption{print}{\@printtrue}
 \DeclareOption{thumb}{\if@print \@thumbtrue \fi}
-\DeclareOption{showtrims}{\PassOptionsToClass{\CurrentOption}{memoir}} %% in report mode this marks the book page on the A4 sheet 
+\DeclareOption{showtrims}{\PassOptionsToClass{\CurrentOption}{memoir}} %% in report mode this marks the book page on the A4 sheet
 \DeclareOption{showframe}{\@showframetrue}
 %% draft: fast compiles while writing. Images become labelled boxes, overfull lines are marked
 %% with a black bar in the margin, and every page says DRAFT so it is never mistaken for the final version.
@@ -58,7 +58,7 @@
 
 % \RequirePackage[l2tabu, orthodox]{nag} % https://ctan.org/pkg/nag %% warns about outdated LaTeX commands; uncomment to check your writing
 
-%% Page layout. The book page size is set by the a5 / royal / tudelft option (default a5);
+%% Page layout. The book page size is set by the dover / a5 / royal / tudelft option (default dover);
 %% only the paper it sits on differs between modes:
 %%   print  : the book page plus 2mm bleed on every side, for the printer.
 %%   report : the book page centred on an A4 sheet, for reading on screen or printing at home.
@@ -113,15 +113,13 @@
     \settrims{\dimexpr(297mm-\thesis@pageheight)/2\relax}{\dimexpr(210mm-\thesis@pagewidth)/2\relax} %% centre the book page on A4
 \fi
 \settypeblocksize{\thesis@textheight}{\thesis@textwidth}{*}
-\setbinding{7.0mm}           %% Binding margin is handled here
-                             %% 3.00mm binding from TUD PhD template
-                             %% 7.00mm binding might be better? based on what I have seen.
-\setlrmargins{*}{\thesis@foremargin}{*} %% fore-edge margin; spine margin automatically handled.
-                             %% Normally, your spine margin should be smaller, but the binding process is hot garbage based on what I have seen of previous theses.
+\setbinding{7.0mm}                      %% allowance for the binding (glue and the curve into the spine); the TU Delft
+                                        %% template uses 3 mm. Increase for very thick books (500+ pages).
+\setlrmargins{*}{\thesis@foremargin}{*} %% fore-edge margin; the spine margin follows (text width and binding).
 \setulmargins{\thesis@topmargin}{*}{*}  %% top margin; bottom margin automatically handled.
 \setheadfoot{\onelineskip}{2\onelineskip}
 \setheaderspaces{*}{2\onelineskip}{*}
-\setmarginnotes{17pt}{51pt}{\onelineskip}
+\setmarginnotes{2.5mm}{\dimexpr\thesis@foremargin-4.5mm\relax}{\onelineskip} %% margin (todo) notes fill the outer margin
 \checkandfixthelayout
 \sloppybottom % see memoir manual
 %% No widows or orphans: never leave a single line of a paragraph alone at the top or bottom of a
@@ -144,23 +142,26 @@
 \fi
 
 %%% COLOR-RELATED
-\RequirePackage{xcolor}     % https://ctan.org/pkg/xcolor %% Provides easy driver-independent access to several kinds of color tints, shades, tones, and mixes of arbitrary colors.
+\RequirePackage{xcolor}     % https://ctan.org/pkg/xcolor
 \input{_options/formatColor}
 
 %%% TIKZ-RELATED
 \RequirePackage{tikz}
 \input{_fixes/recto_verso_tikz_fix}
+%% Recalculate TikZ's "current page" whenever an overlay is drawn (thumb tabs), because the book page
+%% sits inside a larger sheet (bleed, or A4 in the report version).
+\AtBeginDocument{\pgfkeys{/tikz/overlay/.add code={}{\setpagenode}}}
 \input{_options/thumb}
 
 \input{_options/formatText}
 
 \if@american
-    \RequirePackage[dutch,american]{babel}               % https://ctan.org/pkg/babel %% manages culturally-determined typographical (and other) rules for a wide range of languages 
-    \RequirePackage[style=american]{csquotes}       % https://ctan.org/pkg/csquotes %% provides advanced facilities for inline and display quotations, check their documentation to find out how to quote properly        
+    \RequirePackage[dutch,american]{babel}  % dutch for the Samenvatting; the last language is the main one
+    \RequirePackage[style=american]{csquotes}
 \fi
 \if@british
     \RequirePackage[dutch,british]{babel} % dutch for the Samenvatting; the last language is the main one
-    \RequirePackage[style=british]{csquotes} 
+    \RequirePackage[style=british]{csquotes}
 \fi
 
 \RequirePackage{microtype}
@@ -170,7 +171,7 @@
 \RequirePackage{mathtools}
 
 %%% TEXT FONTS
-%% Compile with XeLaTeX (or LuaLaTeX); fonts are loaded through fontspec.
+%% Compile with LuaLaTeX (XeLaTeX also works); fonts are loaded through fontspec.
 \input{_options/fontText}
 
 %%% MATH FONT

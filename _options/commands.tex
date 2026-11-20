@@ -48,8 +48,7 @@
 \newcommand{\Pe}{\mathrm{Pe}}                   % Péclet number
 \newcommand{\Tu}{\mathrm{Tu}}                   % Turbulence level
 
-%% With Eulervm, no \therefore defined. newtxmath provides \therefore, so this is only defined if missing.
-% https://tex.stackexchange.com/questions/142551/how-to-put-therefore-and-implies-symbols
+%% \therefore (newtxmath provides it; defined here only if missing)
 \providecommand{\therefore}{\dot{.\hspace{.055in}.}\hspace{.2in}}
 
 %% standard /mapsto symbol, but reversed
@@ -80,8 +79,6 @@
 % tensor - double dot product
 \newcommand{\cddot}{\mathbin{{\cdot}{\cdot}}}
 
-% Renew Commands:
-% --------------------
 %% Vectors and tensors are written like other symbols, in plain italics, as is usual in
 %% mathematics and numerical analysis. Change these two lines to switch notation everywhere:
 %% bold: {\bm{#1}}, arrow: {\vv{#1}} (package esvect), underline: {\underline{#1}}.
@@ -89,16 +86,17 @@
 \newcommand{\tensor}[1]{#1}                     % tensor:  \tensor{\tau}
 \renewcommand{\div}{\nabla\cdot}               % divergence
 
-\renewcommand*{\tocheadstart}{\vspace*{0pt}}    % straight from the memoir manual, may need to change if you change
-\renewcommand*{\lofheadstart}{\vspace*{0pt}}    % titlespacing for chapters... investigate?
-\renewcommand*{\lotheadstart}{\vspace*{0pt}}    % pre-title spacing is now the same for toc, lof, lot and nomenclature
+%% Same space above the titles of the contents, list of figures and list of tables
+\renewcommand*{\tocheadstart}{\vspace*{0pt}}
+\renewcommand*{\lofheadstart}{\vspace*{0pt}}
+\renewcommand*{\lotheadstart}{\vspace*{0pt}}
 
-% \itemize labels %% https://texblog.org/2008/10/16/lists-enumerate-itemize-description-and-how-to-change-them/
+%% Dashes as list bullets
 \renewcommand{\labelitemi}{-}
 \renewcommand{\labelitemii}{-}
 \renewcommand{\labelitemiii}{-}
 \renewcommand{\labelitemiv}{-}
 
-% Robust Commands:
-% --------------------
-\DeclareRobustCommand{\VAN}[0]{Van} % Within text, authors with a van/Van prefix use Van within text, van outside text. 
+%% Dutch name prefixes: write {\VAN} in references.bib (e.g. author = {T. \VAN~Pelt}). It prints "Van"
+%% in the text (\citet) and "van" in the reference list (switched in main.tex).
+\DeclareRobustCommand{\VAN}[0]{Van}
