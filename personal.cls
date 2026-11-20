@@ -7,8 +7,9 @@
 \newif\if@print
 \newif\if@thumb
 \newif\if@showframe
-\DeclareOption{american}{\@americantrue}
-\DeclareOption{british}{\@britishtrue}
+%% Language: british (default) or american. Choosing one switches the other off.
+\DeclareOption{american}{\@americantrue\@britishfalse}
+\DeclareOption{british}{\@britishtrue\@americanfalse}
 \DeclareOption{print}{\@printtrue}
 \DeclareOption{thumb}{\if@print \@thumbtrue \fi}
 \DeclareOption{showtrims}{\PassOptionsToClass{\CurrentOption}{memoir}} %% in report mode this marks the book page on the A4 sheet 
@@ -23,7 +24,7 @@
 \DeclareOption{royal}{\renewcommand*{\thesis@pagesize}{royal}}
 \DeclareOption{tudelft}{\renewcommand*{\thesis@pagesize}{tudelft}}
 
-\ExecuteOptions{}
+\ExecuteOptions{british} %% default language: British English
 \ProcessOptions\relax
 
 \RequirePackage[l2tabu, orthodox]{nag} % https://ctan.org/pkg/nag %% In case I commit a cardinal sin of loading depreciated modules, or some dumb stuff that can be picked up (i.e use \centering instead of \begin{center}[...]\end{center})
@@ -174,7 +175,7 @@
     \RequirePackage[USenglish,style=iso]{datetime2} % https://www.ctan.org/pkg/datetime2 %% This package provides commands for formatting dates, times and time zones and redefines \today to use the same formatting style. By default uses ISO formatting described in ISO 8601 and DIN 5008.
 \fi
 \if@british
-    \RequirePackage[UKenglish]{babel}
+    \RequirePackage[british]{babel}
     \RequirePackage[style=british]{csquotes} 
     \RequirePackage[UKenglish,style=iso]{datetime2}
 \fi
@@ -216,5 +217,4 @@
 \addbibresource{references.bib}
 
 % TO DO:
-% - Make the american, british thing a mandatory option
 % - Reorganize this mess
