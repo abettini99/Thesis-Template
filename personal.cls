@@ -87,11 +87,12 @@
     \setlength{\thesis@foremargin}{27.3mm} \setlength{\thesis@topmargin}{20mm}
 }}}
 %% Type size and line spacing. Dover: 9.5 pt type (all fonts scaled to 95 %, maths included) on
-%% 12.4 pt leading, like the Dover paperbacks; this also keeps about 57 characters per line on the
-%% narrower page. Other sizes: 10 pt type on 13.2 pt leading.
+%% 11.4 pt leading, 42 lines per page, like the Dover paperbacks: the classic 10/12 proportion
+%% scaled to 95 %. This also keeps about 57 characters per line on the narrower page.
+%% Other sizes: 10 pt type on 13.2 pt leading.
 \newcommand*{\thesis@fontscale}{1}
 \newcommand*{\thesisspacing}{1.1}
-\ifthenelse{\equal{\thesis@pagesize}{dover}}{\renewcommand*{\thesis@fontscale}{0.95}\renewcommand*{\thesisspacing}{1.03}}{}
+\ifthenelse{\equal{\thesis@pagesize}{dover}}{\renewcommand*{\thesis@fontscale}{0.95}\renewcommand*{\thesisspacing}{0.95}}{}
 
 %% Chapter title size scales with the page, so long titles such as "Acknowledgements" still fit on one line.
 \newcommand*{\chaptertitlesize}{30pt}

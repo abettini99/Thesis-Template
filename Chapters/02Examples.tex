@@ -57,7 +57,7 @@ Citations use numbered references~\cite{Allen2002}, several at once~\cite{Sinnig
 \section{Mathematics}\label{sec:maths}
 %% =====================================================================
 
-Inline maths such as $\Re = \rho U L / \mu$ uses the same Times letters as the text. Vectors and tensors are bold: the velocity $\vec{u}$ and the stress tensor $\tensor{\tau}$. For an incompressible flow, mass and momentum conservation read
+Inline maths such as $\Re = \rho U L / \mu$ uses the same Times letters as the text. Vectors and tensors are written like other symbols, as in the velocity $\vec{u}$ and the stress tensor $\tensor{\tau}$; writing them with \verb|\vec| and \verb|\tensor| keeps the option to make them bold later with a single change. For an incompressible flow, mass and momentum conservation read
 \begin{align}
     \div \vec{u} &= 0, \label{eq:continuity} \\
     \sderiv{\vec{u}}{t} &= -\frac{1}{\rho} \grad p + \nu \nabla^2 \vec{u}, \label{eq:navier-stokes}

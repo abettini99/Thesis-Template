@@ -28,8 +28,8 @@
 \newcommand\cpderiv[3][]{\pdiff[#1]{}_{#3}{#2}} % creates a compact form nth-order partial derivative
 \newcommand\csderiv[3][]{\sdiff[#1]{}_{#3}{#2}} % creates a compact form nth-order substantial derivative
 
-\newcommand\uVec[2]{\hat{\bm{#1}}_{#2}}         % creates a unit vector
-\newcommand\uVecT[2]{\overline{\bm{#1}}_{#2}}   % creates a transformed unit vector
+\newcommand\uVec[2]{\hat{\vec{#1}}_{#2}}        % creates a unit vector
+\newcommand\uVecT[2]{\overline{\vec{#1}}_{#2}}  % creates a transformed unit vector
 \newcommand\transpose{^\textsf{T}}              % places in a transpose symbol
 
 \newcommand{\grad}{\nabla}                     % gradient
@@ -82,10 +82,11 @@
 
 % Renew Commands:
 % --------------------
-%% Vectors and tensors are bold (upright letters stay upright, italic stay italic).
-%% Change these two lines to switch notation everywhere, e.g. arrows or underlines.
-\renewcommand{\vec}[1]{\bm{#1}}                 % vector:  \vec{u}
-\newcommand{\tensor}[1]{\bm{#1}}                % tensor:  \tensor{\tau}
+%% Vectors and tensors are written like other symbols, in plain italics, as is usual in
+%% mathematics and numerical analysis. Change these two lines to switch notation everywhere:
+%% bold: {\bm{#1}}, arrow: {\vv{#1}} (package esvect), underline: {\underline{#1}}.
+\renewcommand{\vec}[1]{#1}                      % vector:  \vec{u}
+\newcommand{\tensor}[1]{#1}                     % tensor:  \tensor{\tau}
 \renewcommand{\div}{\nabla\cdot}               % divergence
 
 \renewcommand*{\tocheadstart}{\vspace*{0pt}}    % straight from the memoir manual, may need to change if you change
