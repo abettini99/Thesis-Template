@@ -3,7 +3,7 @@
 % --------------------
 \makepagestyle{mainmatter}
 \makeevenhead{mainmatter}{\headingfont\lthumb\thepage}{\headingfont\MakeUppercase{\leftmark}}{}
-\makeoddhead{mainmatter}{}{\headingfont\MakeUppercase{\thesection\hspace{1em}\rightmark}}{\headingfont\thepage\rthumb}
+\makeoddhead{mainmatter}{}{\headingfont\MakeUppercase{\rightmark}}{\headingfont\thepage\rthumb}
 \makeevenfoot{mainmatter}{}{}{}
 \makeoddfoot{mainmatter}{}{}{}
 \makeheadrule{mainmatter}{\textwidth}{\normalrulethickness}
@@ -11,8 +11,8 @@
 %   \createmark{chapter}{left}{nonumber}{}{}}
 
 \makepagestyle{appendix}
-\makeevenhead{appendix}{\headingfont\thepage}{\headingfont\MakeUppercase{Appendix \thesection~--~\leftmark}}{}
-\makeoddhead{appendix}{}{\headingfont\MakeUppercase{Appendix \thesection~--~\leftmark}}{\headingfont\thepage}
+\makeevenhead{appendix}{\headingfont\thepage}{\headingfont\MakeUppercase{Appendix \thechapter~\textendash~\leftmark}}{}
+\makeoddhead{appendix}{}{\headingfont\MakeUppercase{Appendix \thechapter~\textendash~\leftmark}}{\headingfont\thepage}
 \makeevenfoot{appendix}{}{}{}
 \makeoddfoot{appendix}{}{}{}
 \makeheadrule{appendix}{\textwidth}{\normalrulethickness}
@@ -45,7 +45,9 @@
 
 \renewcommand{\chaptermark}[1]{%
 \markboth{#1}{}} 
+%% The section number is stored together with its title, so the running head never pairs
+%% the title of one section with the number of another.
 \renewcommand{\sectionmark}[1]{%
-\markright{#1}}
+\markright{\thesection.\hspace{1em}#1}}
 %\renewcommand{\subsectionmark}[1]{%
 %\markright{#1}}

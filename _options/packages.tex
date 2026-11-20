@@ -24,6 +24,9 @@
 \usepackage{stackengine}% https://www.ctan.org/tex-archive/macros/latex/contrib/stackengine %% The stackengine package provides a versatile way to vertically stack objects in a variety of customizable ways.
 \usepackage{pifont}     % https://www.ctan.org/pkg/pifont %% The package provides commands for Pi fonts (Dingbats, Symbol, etc.); all commands assume you know the character number within the font of the symbol within the font. 
 \usepackage{ragged2e}   % https://www.ctan.org/pkg/ragged2e %% The package defines new commands \Centering, \RaggedLeft, and \RaggedRight and new environments Center, FlushLeft, and FlushRight, which set ragged text and are easily configurable to allow hyphenation (the corresponding commands in LaTeX, all of whose names are lower-case, prevent hyphenation altogether)
+\usepackage{pgfplots}   % https://ctan.org/pkg/pgfplots %% plots drawn by LaTeX itself, in the document's fonts
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{positioning,arrows.meta}
 \usepackage{bookmark}   % https://ctan.org/pkg/bookmark?lang=en %% This package implements a new bookmark (outline) organization for package hyperref. Bookmark properties such as style and color can now be set. Other action types are available (URI, GoToR, Named). The bookmarks are generated in the first compile run. Package hyperref uses two runs. 
 %% Hyperlinks: invisible in the print version (they would only show up as coloured text on paper),
 %% subtle TU Delft dark blue in the report/screen version. PDF metadata comes from _thesisinfo.tex.
@@ -44,3 +47,5 @@
 
 %% cleveref must be loaded last (after hyperref). Use \cref{fig:x} -> "Figure 2.1", \Cref at the start of a sentence.
 \usepackage[capitalise,noabbrev,nameinlink]{cleveref}
+\crefname{page}{page}{pages} % "on page 12", not "on Page 12"
+\crefname{listing}{Listing}{Listings}

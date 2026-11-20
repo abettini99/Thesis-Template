@@ -1,9 +1,14 @@
 
 \setcounter{secnumdepth}{2} % number chapters, sections and subsections; subsubsections and below are unnumbered
 \renewcommand{\thechapter}{\arabic{chapter}}
-\renewcommand{\thesection}{\thechapter.\arabic{section}.}
-\renewcommand{\thesubsection}{\thesection\arabic{subsection}.}
-\renewcommand{\thesubsubsection}{\thesubsection\arabic{subsubsection}.}
+%% Section numbers: Dutch/German convention with a trailing dot ("2.1.") in headings, the contents
+%% and running heads, but not in cross-references, so \cref gives "Section 2.1" rather than "Section 2.1.".
+\renewcommand{\thesection}{\thechapter.\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+\setsecnumformat{\csname the#1\endcsname.\quad}
+\renewcommand{\cftsectionaftersnum}{.}
+\renewcommand{\cftsubsectionaftersnum}{.}
 
 \def\blfootnote{\xdef\@thefnmark{}\@footnotetext}
 

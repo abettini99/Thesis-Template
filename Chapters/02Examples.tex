@@ -1,251 +1,364 @@
-\chapter{Examples} \pagestyle{mainmatter}
+\chapter{Examples}\label{ch:examples} \pagestyle{mainmatter}
 \chapterprecishere{}
 \chapterprecistoc{}
 
-\lipsum[1]
+This chapter shows the elements a thesis typically needs, typeset with this template. It doubles as a test page: after changing the layout, page size or fonts, check that everything here still looks right.
 
-\section{Section}
-\lipsum[1]
+%% =====================================================================
+\section{Text}\label{sec:text}
+%% =====================================================================
 
-\subsection{Subsection}
-\lipsum[1]
+Body text is set in Times with indented paragraphs. Use \emph{emphasis} sparingly, \textbf{bold} even more so, and \textsc{small capitals} for the occasional acronym that should not shout. Quotation marks follow British style: \enquote{single quotes outside, with \enquote{double quotes} inside}. Numbers and units stay together on one line, as in a span of \qty{1.397}{\metre}, and references never start a line on their own, as in \cref{fig:single}.%
+\footnote{Footnotes are numbered per chapter and set in a smaller size at the bottom of the page.}
 
-\subsubsection{Subsubsection}
-\lipsum[1]
+\subsection{Lists}
 
-\paragraph{Paragraph}
-\lipsum[1]
+An unordered list:
+\begin{itemize}
+    \item the first item;
+    \item the second item, which is long enough to show how a list item wraps onto a second line;
+    \item the third item.
+\end{itemize}
+An ordered list:
+\begin{enumerate}
+    \item pre-processing,
+    \item simulation,
+    \item post-processing.
+\end{enumerate}
+A description list:
+\begin{description}
+    \item[Promotor] the professor who supervises the doctorate;
+    \item[Copromotor] a second supervisor, often the daily supervisor.
+\end{description}
 
-\subparagraph{Subparagraph}
-\lipsum[1]
+\subsection{Quotations}
 
-\raisebox{0pt}[\height][0pt]{\color{white} SEPARATOR TEXT - REMOVE WHEN DONE} \vspace{-2\baselineskip}
+Longer quotations are set apart from the text:
+\begin{quote}
+    \lipsum[1][1-3]
+\end{quote}
 
+%% =====================================================================
+\section{Cross-references and citations}\label{sec:references}
+%% =====================================================================
 
+Cross-references name the thing they point to: \cref{sec:text} discusses text, \cref{eq:navier-stokes} is the momentum equation, \cref{fig:subfigures} has two parts, of which \cref{subfig:left} is the left one, \cref{tab:geometry} lists the model geometry and \cref{app:derivation} contains a derivation. Several references at once are combined: \cref{eq:continuity,eq:navier-stokes}. \Cref{fig:plot} is on \cpageref{fig:plot}.
 
-\section{Bibliography}
+Citations use numbered references~\cite{Allen2002}, several at once~\cite{Sinnige2020,Bettini2021,Eitelberg2020}, or name the authors, as in \citet{Herrez2016}, who published in \citeyear{Herrez2016}. A page or table can be added to a citation~\cite[Tab.~4]{Bettini2021}.
 
-When there exists an author with last name prefix of 'van', use the \textbackslash VAN command, and follow it up with a \textasciitilde (see reference for example)
+%% =====================================================================
+\section{Mathematics}\label{sec:maths}
+%% =====================================================================
 
-\citet*{Allen2002}
+Inline maths such as $\Re = \rho U L / \mu$ uses the same Times letters as the text. Vectors are bold and underlined, $\vec{u}$, and second-order tensors carry two bars, $\barbelow{\barbelow{\bm{\tau}}}$. For an incompressible flow, mass and momentum conservation read
+\begin{align}
+    \div \vec{u} &= 0, \label{eq:continuity} \\
+    \sderiv{\vec{u}}{t} &= -\frac{1}{\rho} \grad p + \nu \nabla^2 \vec{u}, \label{eq:navier-stokes}
+\end{align}
+where the material derivative is
+\begin{equation}
+    \sderiv{\vec{u}}{t} = \pderiv{\vec{u}}{t} + \left( \vec{u} \cdot \grad \right) \vec{u}.
+\end{equation}
 
-\citet*{Bettini2021}
+A derivation over several lines numbers only its result:
+\begin{align}
+    \oint_{\Gamma} \vec{u} \cdot \diff{\vec{l}}
+        &= \iint_{S} \left( \curl \vec{u} \right) \cdot \vec{n} \, \diff{S} \notag \\
+        &= \iint_{S} \vec{\omega} \cdot \vec{n} \, \diff{S}. \label{eq:circulation}
+\end{align}
 
-\citet*{Eitelberg2020}
+Derivatives of any order, and their compact forms:
+\begin{equation*}
+    \deriv{y}{x}, \quad \deriv[2]{y}{x}, \quad \pderiv[2]{\phi}{x}, \quad \cpderiv{\phi}{x}, \quad \vec{A}\transpose \vec{B}, \quad \barbelow{\barbelow{\bm{\sigma}}} \cddot \barbelow{\barbelow{\bm{\varepsilon}}}.
+\end{equation*}
 
-\citet*{Sinnige2020}
+Piecewise definitions, matrices and operators:
+\begin{gather}
+    C_L(\alpha) =
+    \begin{cases}
+        2\pi\alpha,             & |\alpha| < \alpha_\text{stall}, \\
+        C_{L,\text{max}},       & \text{otherwise},
+    \end{cases}
+    \qquad
+    \barbelow{\barbelow{\bm{R}}} =
+    \begin{bmatrix}
+        \cos\theta & -\sin\theta \\
+        \sin\theta & \cos\theta
+    \end{bmatrix}, \\
+    \hat{\vec{x}} = \argmin_{\vec{x}} \, \lVert \barbelow{\barbelow{\bm{A}}} \vec{x} - \vec{b} \rVert_2^2 .
+\end{gather}
+Dimensionless numbers are upright: $\Re$, $\Ma$, $\Pr$, $\St$ and $\Fr$.
 
-\citet*{Herrez2016}
+%% =====================================================================
+\section{Units, numbers and chemistry}\label{sec:units}
+%% =====================================================================
 
-\section{Tables}
+Quantities are written with \texttt{siunitx}, so spacing and formatting are always consistent: a density of \qty{1.225}{\kilo\gram\per\cubic\metre}, a velocity range of \qtyrange{10}{40}{\metre\per\second}, an angle of \ang{4.5}, a large number such as \num{6.02214076e23} or \num{1234567.891}, and a product of dimensions \qtyproduct{1.342 x 0.140}{\metre}. Units on their own are written as \unit{\newton\metre\per\second}. Chemical formulae and reactions use \texttt{mhchem}: \ce{CO2}, \ce{H2O}, and \ce{2H2 + O2 -> 2H2O}.
 
-\subsection{tabularx}
+%% =====================================================================
+\section{Figures}\label{sec:figures}
+%% =====================================================================
 
-\begingroup
-\renewcommand\tabularxcolumn[1]{m{#1}} % https://latex.org/forum/viewtopic.php?t=32433
+Figures float to the top or bottom of a page, or onto a page of their own, so they never leave half-empty pages behind. Refer to every figure in the text, as here for \cref{fig:single}.
 
-\noindent\begin{minipage}[t]{0.48\textwidth}
-\begin{table}[H]
+\begin{figure}[tbp]
     \centering
-    \caption{Fuselage geometry \cite[Tab.~4]{Bettini2021}}
-    \label{tab:fuselage_geom}
-    {\footnotesize
-    \begin{tabularx}{\textwidth}[t]{X|rl} \toprule
-        \multicolumn{1}{c|}{\textbf{Parameter}} &
-        \multicolumn{2}{c}{\textbf{Value}}                  \\ \midrule
-        Length          & 1.342     & \si{\meter}           \\
-        Diameter        & 0.140     & \si{\meter}           \\
-        Volume          & 0.0160632 & \si{\meter\cubed}     \\
-        Volume of aft support strut (estimate)  & 0.0004491    & \si{\meter\cubed}  \\
-        Volume of wing support struts (estimate for both struts together)                                & 0.0035296   & \si{\meter\cubed} \\ \bottomrule
-    \end{tabularx}
-    }
+    \includegraphics[width=0.75\textwidth]{Images/graph.jpg}
+    \caption{A single figure. Captions are set in a smaller size than the text; keep the first sentence short, as it also appears in the list of figures.}
+    \label{fig:single}
+\end{figure}
+
+\subsection{Sub-figures}
+
+Figures with several parts are labelled (a), (b) and so on, as in \cref{fig:subfigures}.
+
+\begin{figure}[tbp]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Images/graph.jpg}
+        \caption{Left part.}
+        \label{subfig:left}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Images/graph.jpg}
+        \caption{Right part, with a caption long enough to wrap.}
+        \label{subfig:right}
+    \end{subfigure}
+    \caption{A figure with two sub-figures.}
+    \label{fig:subfigures}
+\end{figure}
+
+\subsection{Plots}
+
+Plots drawn with \texttt{pgfplots} use the fonts of the document, so labels match the text exactly and stay sharp at any zoom level (\cref{fig:plot}).
+
+\begin{figure}[tbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=\linewidth, height=0.62\linewidth,
+            xlabel={Angle of attack $\alpha$ (\unit{\degree})},
+            ylabel={Lift coefficient $C_L$},
+            xmin=-4, xmax=20, ymin=-0.5, ymax=1.6,
+            grid=major, grid style={gray!25},
+            legend pos=south east, legend cell align=left,
+            tick label style={font=\small}, label style={font=\small}, legend style={font=\small},
+        ]
+            \addplot[domain=-4:20, samples=50, thick, dashed, black] {2*pi*x*pi/180};
+            \addlegendentry{Thin-aerofoil theory}
+            \addplot[domain=-4:20, samples=100, thick, tudelft-dark-blue] {1.35*tanh(2*pi*x*pi/180/1.35) - 0.0018*max(x-12,0)^2};
+            \addlegendentry{Measurement (illustrative)}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{A plot drawn with \texttt{pgfplots}.}
+    \label{fig:plot}
+\end{figure}
+
+\subsection{Diagrams}
+
+Diagrams drawn with TikZ use the same fonts and colours (\cref{fig:diagram}).
+
+\begin{figure}[tbp]
+    \centering
+    \begin{tikzpicture}[
+        node distance=5mm,
+        box/.style={draw, thick, rounded corners=2pt, align=center, text width=22mm, minimum height=10mm, font=\small},
+        arrow/.style={-{Stealth[length=2mm]}, thick},
+    ]
+        \node[box]                         (pre)  {Pre-\\processing};
+        \node[box, right=of pre]           (sim)  {Simulation};
+        \node[box, right=of sim]           (post) {Post-\\processing};
+        \draw[arrow] (pre) -- (sim);
+        \draw[arrow] (sim) -- (post);
+        \draw[arrow] (post.south) -- ++(0,-5mm) -| node[pos=0.25, below, font=\small] {refine} (pre.south);
+    \end{tikzpicture}
+    \caption{A diagram drawn with TikZ.}
+    \label{fig:diagram}
+\end{figure}
+
+\subsection{Figures continued on the next page}
+
+A figure with too many parts for one page can continue on the next one, keeping its number (\cref{fig:continued}).
+
+\begin{figure}[tbp]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{Images/graph.jpg}
+        \caption{First part.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{Images/graph.jpg}
+        \caption{Second part.}
+    \end{subfigure}
+    \caption{A figure continued on the next page.}
+    \label{fig:continued}
+\end{figure}
+\begin{figure}[tbp]\ContinuedFloat
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{Images/graph.jpg}
+        \caption{Third part.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{Images/graph.jpg}
+        \caption{Fourth part.}
+    \end{subfigure}
+    \caption[]{A figure continued on the next page (continued).}
+\end{figure}
+
+\subsection{Repeated figures}
+
+A figure shown earlier can be repeated later, keeping its original number and pointing back to where it first appeared.
+
+\begin{figure}[tbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Images/graph.jpg}
+    \repeatcaption{fig:single}{A single figure}
+\end{figure}
+
+%% =====================================================================
+\section{Tables}\label{sec:tables}
+%% =====================================================================
+
+Tables use horizontal rules only, with numbers aligned on the decimal point (\cref{tab:geometry}). Their captions go above the table.
+
+\begin{table}[tbp]
+    \centering
+    \caption{Wind-tunnel model geometry~\cite[Tab.~5]{Bettini2021}.}
+    \label{tab:geometry}
+    \begin{tabular}{@{}l S[table-format=1.4] l@{}}
+        \toprule
+        Parameter              & {Value}  & Unit                  \\
+        \midrule
+        Fuselage length        & 1.342    & \unit{\metre}         \\
+        Fuselage diameter      & 0.140    & \unit{\metre}         \\
+        Wing span              & 1.397    & \unit{\metre}         \\
+        Wing area              & 0.2172   & \unit{\metre\squared} \\
+        Mean aerodynamic chord & 0.165    & \unit{\metre}         \\
+        Aspect ratio           & 8.98     &                       \\
+        Taper ratio            & 0.40     &                       \\
+        Dihedral angle         & 4        & \unit{\degree}        \\
+        \bottomrule
+    \end{tabular}
 \end{table}
-\end{minipage}
-\hfill
-\begin{minipage}[t]{0.48\textwidth}
-\begin{table}[H]
-    \centering
-    \caption{Propeller geometry \cite[Tab.~8]{Bettini2021}}
-    \label{tab:prop_geom}
-    {\footnotesize
-    \begin{tabularx}{\textwidth}[t]{X|rl} \toprule
-        \multicolumn{1}{c|}{\textbf{Parameter}}         &
-        \multicolumn{2}{c}{\textbf{Value}}                              \\ \midrule
-        Number of blades            & 6                 &               \\
-        Diameter                    & 0.2032            & \si{\meter}   \\
-        Pitch angle at $r/R = 0.7$  & 45                & deg           \\
-        Rotation direction (from rear)  & CW    & 2x \\
-                                        & CCW   & 1x \\ \bottomrule 
-    \end{tabularx}
-    }
-\end{table}
-\end{minipage}
 
-\begin{table}[H]
-\caption{Wing geometry \cite[Tab.~5]{Bettini2021}}
-\label{tab:wing_geom}
-    \begin{subtable}[t]{0.48\textwidth}
+\subsection{Tables with wrapping text}
+
+When a column holds sentences rather than numbers, it can take up the remaining width and wrap (\cref{tab:wrapping}).
+
+\begin{table}[tbp]
     \centering
-    {\footnotesize
-    \begin{tabularx}{\textwidth}[t]{X|rl} \toprule
-        \multicolumn{1}{c|}{\textbf{Parameter}}         &
-        \multicolumn{2}{c}{\textbf{Value}}                          \\ \midrule
-        Span                    & 1.397     & \si{\meter}           \\
-        Area                    & 0.2172    & \si{\meter\squared}   \\
-        Mean aerodynamic chord  & 0.165     & \si{\meter}           \\
-        Aspect ratio            & 8.98      &                       \\
-        Taper ratio             & 0.40      &                       \\
-        Sweep angle at $0.25c$  & 0         & deg                   \\
-        Incidence angle         & 0         & deg                   \\
-        Dihedral angle          & 4         & deg                   \\
-        Twist                   & 2         & deg                   \\ \bottomrule
+    \caption{A table with a column of wrapping text.}
+    \label{tab:wrapping}
+    \begin{tabularx}{\textwidth}{@{}l X@{}}
+        \toprule
+        Phase       & Description \\
+        \midrule
+        Literature  & Review of propeller--wing interaction, with emphasis on wing-tip mounted propellers and their effect on induced drag. \\
+        Experiments & Wind-tunnel tests of a full-span model with three propellers, including pressure and balance measurements. \\
+        Simulations & Validation of a lower-order method against the experimental data. \\
+        \bottomrule
     \end{tabularx}
-    }
-    \end{subtable}
-    \hfill
-    \begin{subtable}[t]{0.48\textwidth}
-    \centering
-    {\footnotesize
-    \begin{tabularx}{\textwidth}[t]{X|rl} \toprule
-        \multicolumn{1}{c|}{\textbf{Parameter}}         &
-        \multicolumn{2}{c}{\textbf{Value}}                                                  \\ \midrule
-        Airfoil (constant over span)        & DU 96-150                 &                   \\
-        Aileron span                        & 0.197                     & \si{\meter}       \\
-        Aileron spanwise position           & 0.71 < y/(b/2) < 0.99     &                   \\
-        Aileron chord                       & 0.029                     & \si{\meter}       \\ 
-        Flap span (per side)                & 0.369                     & \si{\meter}       \\
-        Flap chord                          & 0.060                     & \si{\meter}       \\
-        Wing $0.25c$ from fuselage nose     & 0.680                     & \si{\meter}       \\
-        Volume                              & 0.0030229                 & \si{\meter\cubed} \\ \bottomrule
-    \end{tabularx}
-    }
-    \end{subtable}
 \end{table}
 
-\endgroup
+\subsection{Tables across several pages}
 
+Long tables break across pages and repeat their header on each page (\cref{tab:long}).
 
-\section{Graphs}
+{\small
+\begin{xltabular}{\textwidth}{@{}l X S[table-format=1.1] S[table-format=1.2]@{}}
+    \caption{A long table that continues across pages.}\label{tab:long} \\
+    \toprule
+    Case & Description & {$\Re$ ($10^{6}$)} & {$\Ma$} \\
+    \midrule
+    \endfirsthead
+    \caption[]{A long table that continues across pages (continued).} \\
+    \toprule
+    Case & Description & {$\Re$ ($10^{6}$)} & {$\Ma$} \\
+    \midrule
+    \endhead
+    \midrule
+    \multicolumn{4}{r@{}}{\textit{Continued on the next page}} \\
+    \endfoot
+    \bottomrule
+    \endlastfoot
+    A01 & Clean wing, low speed & 0.5 & 0.10 \\
+    A02 & Clean wing, cruise & 1.2 & 0.30 \\
+    A03 & Clean wing, high speed & 1.8 & 0.45 \\
+    B01 & Flap deployed, take-off & 0.6 & 0.12 \\
+    B02 & Flap deployed, landing & 0.5 & 0.10 \\
+    B03 & Flap and aileron deflected & 0.6 & 0.12 \\
+    C01 & Propeller on, windmilling & 0.8 & 0.15 \\
+    C02 & Propeller on, cruise thrust & 1.2 & 0.30 \\
+    C03 & Propeller on, climb thrust & 1.0 & 0.22 \\
+    C04 & Propeller on, maximum thrust & 1.0 & 0.22 \\
+    D01 & Wing-tip propeller, inboard-up & 1.2 & 0.30 \\
+    D02 & Wing-tip propeller, outboard-up & 1.2 & 0.30 \\
+    D03 & Co-rotating propellers & 1.2 & 0.30 \\
+    D04 & Counter-rotating propellers & 1.2 & 0.30 \\
+    E01 & Sideslip, 5 degrees & 1.2 & 0.30 \\
+    E02 & Sideslip, 10 degrees & 1.2 & 0.30 \\
+    E03 & Yawed propeller axis & 1.2 & 0.30 \\
+    F01 & Ground effect, high & 0.6 & 0.12 \\
+    F02 & Ground effect, low & 0.6 & 0.12 \\
+    G01 & Gust encounter, sine & 1.2 & 0.30 \\
+    G02 & Gust encounter, one-minus-cosine & 1.2 & 0.30 \\
+    G03 & Gust encounter, random & 1.2 & 0.30 \\
+    H01 & Repeat of A02 & 1.2 & 0.30 \\
+    H02 & Repeat of C02 & 1.2 & 0.30 \\
+    H03 & Repeat of D04 & 1.2 & 0.30 \\
+    I01 & Boundary layer tripped & 1.2 & 0.30 \\
+    I02 & Free transition & 1.2 & 0.30 \\
+    J01 & Icing, light & 1.2 & 0.30 \\
+    J02 & Icing, moderate & 1.2 & 0.30 \\
+    J03 & Icing, severe & 1.2 & 0.30 \\
+\end{xltabular}
+}
 
-\subsection{subfigures}
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=1.0\textwidth]{Images/graph.jpg}
-        \caption{graph 1}
-        \label{subfig:graph1}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=1.0\textwidth]{Images/graph.jpg}
-        \caption{graph 2}
-        \label{subfig:graph2}
-    \end{subfigure}
-    \bigskip
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=1.0\textwidth]{Images/graph.jpg}
-        \caption{graph 3 help help help help help help help help help help help help help}
-        \label{subfig:graph3}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=1.0\textwidth]{Images/graph.jpg}
-        \caption{graph 4}
-        \label{subfig:graph4}
-    \end{subfigure}
-    \caption{graphs (subfigures)}
-    \label{fig:graph_subfigures}
-\end{figure}
+%% =====================================================================
+\section{Code}\label{sec:code}
+%% =====================================================================
 
-\subsection{Continued float}
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=1.0\textwidth]{Images/graph.jpg}
-        \caption{graph 5}
-        \label{subfig:graph5}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=1.0\textwidth]{Images/graph.jpg}
-        \caption{graph 6}
-        \label{subfig:graph6}
-    \end{subfigure}
-\end{figure}%
-\begin{figure}[H]\ContinuedFloat
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=1.0\textwidth]{Images/graph.jpg}
-        \caption{graph 7}
-        \label{subfig:graph7}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=1.0\textwidth]{Images/graph.jpg}
-        \caption{graph 8}
-        \label{subfig:graph8}
-    \end{subfigure}
-    \caption{graphs (continued float)}
-    \label{fig:graph_contfloat}
-\end{figure}
+Short pieces of code appear inline, such as \lstinline{np.linspace(0, 1, 11)}, and longer ones as listings (\cref{lst:example}).
 
-\subsubsection{Aligned graphs}
+\begin{lstlisting}[caption={Computing the lift coefficient from thin-aerofoil theory.}, label={lst:example}]
+import numpy as np
 
-\begin{figure}[H]
-\begin{tabular}{@{}p{\dimexpr0.5\textwidth-\tabcolsep\relax}p{\dimexpr0.5\textwidth-\tabcolsep\relax}@{}}
-    \raisebox{-\height}{\includegraphics[width=1.0\linewidth]{Images/graph.jpg}}&
-    \raisebox{-\height}{\includegraphics[width=1.0\linewidth]{Images/graph.jpg}}\\
-    \caption{graph}\label{fig:graph9}&
-    \caption{graph graph graph graph graph graph graph graph graph graph graph graph graph graph graph graph}\label{fig:graph10}
-\end{tabular}
-\end{figure}
+def lift_coefficient(alpha_deg):
+    # Thin-aerofoil theory: C_L = 2 pi alpha
+    alpha = np.radians(alpha_deg)
+    return 2 * np.pi * alpha
 
-\subsubsection{Aligned repeated graphs}
-\begin{figure}[H]
-\begin{tabular}{@{}p{\dimexpr0.5\textwidth-\tabcolsep\relax}p{\dimexpr0.5\textwidth-\tabcolsep\relax}@{}}
-    \raisebox{-\height}{\includegraphics[width=1.0\linewidth]{Images/graph.jpg}}&
-    \raisebox{-\height}{\includegraphics[width=1.0\linewidth]{Images/graph.jpg}}\\
-    \repeatcaption{fig:graph9}{graph}&
-    \repeatcaption{fig:graph10}{graph graph graph graph graph graph graph graph graph graph graph graph graph graph graph graph }
-\end{tabular}
-\end{figure}
+for alpha in range(0, 12, 2):
+    print(f"alpha = {alpha:2d} deg, C_L = {lift_coefficient(alpha):.3f}")
+\end{lstlisting}
 
+%% =====================================================================
 \begin{landscape}
-\section{Landscape environment}
+\section{Landscape pages}\label{sec:landscape}
+%% =====================================================================
 
-The landscape environment basically rotates your text 90 degrees counterclockwise, while also rotating the Overleaf environment so you can actually see what you are writing. You can insert a sequence of really long equations in here:
+Material that is too wide for the page, such as this table, can be set on a landscape page (\cref{tab:landscape}). In the PDF, the page is shown rotated so it can be read without turning the screen.
 
-\begin{alignat*}{3}
-    a &\,\,=\,\,&& \pderiv[]{a}{x} \pderiv[]{x}{y} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} + \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \pderiv[]{y}{z} \\[3mm]
-    b &\,\,=\,\,&& a \exp{\big\{a + b + c + d + e + f + g + h + i\big\}}
-\end{alignat*}
-
-Alternatively, you can also insert a table that may be really wide like this:
-
-\noindent\begin{tabularx}{\linewidth}{r|X}
-    \bfseries first column & \bfseries a really really really really really really really really really long column \\ \hline
-    1            & 2    \\ \hline
-    1            & 2    \\ \hline
-    1            & 2    \\ \hline
-    1            & 2    \\ \hline
-    1            & 2 
-\end{tabularx}
-
-\clearpage
-
-You can also see here that this will rotate the text of the opposing page (recto if previous page was verso, and verso if previous page was recto) in the same orientation so you only need to rotate the book once to read the text/graphs/tables/equations: you do not need to flip the book/report.
-
-\clearpage
-
-and this is what it looks like when the last landscape scenario ensures (either a verso-recto pair, or a recto-verso pair)
+\begin{table}[htbp]
+    \centering
+    \caption{A wide table on a landscape page.}
+    \label{tab:landscape}
+    \begin{tabular}{@{}l *{9}{S[table-format=1.3]}@{}}
+        \toprule
+        & \multicolumn{9}{c}{Angle of attack (\unit{\degree})} \\
+        \cmidrule(l){2-10}
+        Configuration & {0} & {2} & {4} & {6} & {8} & {10} & {12} & {14} & {16} \\
+        \midrule
+        Clean wing             & 0.012 & 0.221 & 0.430 & 0.637 & 0.842 & 1.043 & 1.201 & 1.283 & 1.250 \\
+        Propeller, inboard-up  & 0.018 & 0.236 & 0.452 & 0.665 & 0.874 & 1.078 & 1.240 & 1.322 & 1.296 \\
+        Propeller, outboard-up & 0.009 & 0.214 & 0.418 & 0.620 & 0.821 & 1.019 & 1.174 & 1.257 & 1.221 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 \end{landscape}
-
-\section{tmp}

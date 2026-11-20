@@ -1,5 +1,42 @@
-\chapter{TODO} \label{app:litStudy} \pagestyle{appendix}
+\chapter{Derivation of the vorticity equation}\label{app:derivation} \pagestyle{appendix}
 \chapterprecishere{}
 \chapterprecistoc{}
 
-TODO
+Appendices are lettered, and their sections, equations, figures and tables are numbered with that letter. This example appendix derives the vorticity equation from \cref{eq:navier-stokes} in \cref{ch:examples}.
+
+\section{Taking the curl of the momentum equation}\label{app:sec:curl}
+
+Using the vector identity
+\begin{equation}
+    \left( \vec{u} \cdot \grad \right) \vec{u} = \grad \left( \tfrac{1}{2} \, \vec{u} \cdot \vec{u} \right) - \vec{u} \times \vec{\omega},
+    \label{eq:identity}
+\end{equation}
+with the vorticity $\vec{\omega} = \curl \vec{u}$, and taking the curl of the momentum equation, the pressure term vanishes because the curl of a gradient is zero. What remains is
+\begin{equation}
+    \pderiv{\vec{\omega}}{t} - \curl \left( \vec{u} \times \vec{\omega} \right) = \nu \nabla^2 \vec{\omega}.
+    \label{eq:vorticity-intermediate}
+\end{equation}
+
+\section{Simplifying for incompressible flow}\label{app:sec:simplify}
+
+For an incompressible flow, $\div \vec{u} = 0$, and $\div \vec{\omega} = 0$ always holds. Expanding the second term of \cref{eq:vorticity-intermediate} then gives the vorticity equation,
+\begin{equation}
+    \sderiv{\vec{\omega}}{t} = \left( \vec{\omega} \cdot \grad \right) \vec{u} + \nu \nabla^2 \vec{\omega},
+    \label{eq:vorticity}
+\end{equation}
+in which the first term on the right-hand side describes vortex stretching and tilting, and the second the diffusion of vorticity by viscosity. \Cref{tab:appendix} summarises the terms.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Terms of the vorticity equation.}
+    \label{tab:appendix}
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        Term                                        & Physical meaning                 \\
+        \midrule
+        $\sderiv{\vec{\omega}}{t}$                  & rate of change following the flow \\
+        $\left( \vec{\omega} \cdot \grad \right) \vec{u}$ & stretching and tilting          \\
+        $\nu \nabla^2 \vec{\omega}$                 & viscous diffusion                \\
+        \bottomrule
+    \end{tabular}
+\end{table}

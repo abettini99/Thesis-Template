@@ -103,12 +103,12 @@
 \input{_options/formatText}
 
 \if@american
-    \RequirePackage[american]{babel}               % https://ctan.org/pkg/babel %% manages culturally-determined typographical (and other) rules for a wide range of languages 
+    \RequirePackage[dutch,american]{babel}               % https://ctan.org/pkg/babel %% manages culturally-determined typographical (and other) rules for a wide range of languages 
     \RequirePackage[style=american]{csquotes}       % https://ctan.org/pkg/csquotes %% provides advanced facilities for inline and display quotations, check their documentation to find out how to quote properly        
     \RequirePackage[USenglish,style=iso]{datetime2} % https://www.ctan.org/pkg/datetime2 %% This package provides commands for formatting dates, times and time zones and redefines \today to use the same formatting style. By default uses ISO formatting described in ISO 8601 and DIN 5008.
 \fi
 \if@british
-    \RequirePackage[british]{babel}
+    \RequirePackage[dutch,british]{babel} % dutch for the Samenvatting; the last language is the main one
     \RequirePackage[style=british]{csquotes} 
     \RequirePackage[UKenglish,style=iso]{datetime2}
 \fi
