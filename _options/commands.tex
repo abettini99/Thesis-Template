@@ -52,14 +52,14 @@
 \newcommand{\Pe}{\mathrm{Pe}}                   % Péclet number
 \newcommand{\Tu}{\mathrm{Tu}}                   % Turbulence level
 
-%% With Eulervm, no \therefore defined
+%% With Eulervm, no \therefore defined. newtxmath provides \therefore, so this is only defined if missing.
 % https://tex.stackexchange.com/questions/142551/how-to-put-therefore-and-implies-symbols
-\newcommand{\therefore}{\dot{.\hspace{.055in}.}\hspace{.2in}}
+\providecommand{\therefore}{\dot{.\hspace{.055in}.}\hspace{.2in}}
 
 %% standard /mapsto symbol, but reversed
 % https://tex.stackexchange.com/questions/26508/left-version-of-mapsto
-\newcommand{\mapsfrom}{\mathrel{\reflectbox{\ensuremath{\mapsto}}}}
-\newcommand{\longmapsfrom}{\mathrel{\reflectbox{\ensuremath{\longmapsto}}}}
+\providecommand{\mapsfrom}{\mathrel{\reflectbox{\ensuremath{\mapsto}}}}
+\providecommand{\longmapsfrom}{\mathrel{\reflectbox{\ensuremath{\longmapsto}}}}
 
 %% Using the same figure twice with no new number
 % https://tex.stackexchange.com/questions/200211/using-the-same-figure-twice-with-no-new-number

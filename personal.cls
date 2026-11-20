@@ -174,11 +174,11 @@
 \RequirePackage{microtype}
 
 %%% MATH PACKAGES INTERLUDE
-\RequirePackage{amsmath,esint}    
+\RequirePackage{amsmath} % esint removed: newtxmath provides its own Times-style integrals (\oiint etc.)    
 %% https://ctan.org/pkg/amsmath?lang=en %% essential math package, check their userguide for content 
 %% https://www.ctan.org/pkg/esint %% The esint package permits access to alternate integral symbols when you are using the Computer Modern fonts.
 \RequirePackage{mathtools}
-\RequirePackage{amsfonts}   %% https://ctan.org/pkg/amsfonts %% An extended set of fonts for use in mathematics
+% \RequirePackage{amsfonts}   %% not needed: newtxmath provides these symbols. https://ctan.org/pkg/amsfonts %% An extended set of fonts for use in mathematics
 
 %%% TEXT FONTS
 %% We use purely XeLaTeX now

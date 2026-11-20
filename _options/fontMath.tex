@@ -1,37 +1,48 @@
 % https://tex.stackexchange.com/questions/59702/suggest-a-nice-font-family-for-my-basic-latex-template-text-and-math
-% \RequirePackage{newtxmath}
 % \RequirePackage[vvarbb]{newpxmath}
-\RequirePackage{eulervm}    %% i do not like the euler-hat-accent option
-% \RequirePackage[frenchmath]{libertinust1math}
 
-\DeclareSymbolFont{romanletters}{\encodingdefault}{\rmdefault}{m}{n}
-\SetSymbolFont{romanletters}{bold}{\encodingdefault}{\rmdefault}{bx}{n}
-\DeclareSymbolFontAlphabet{\mathrm}{romanletters}
+%% Math: newtxmath, the Times-style math font that matches the TeX Gyre Termes body text.
+%% Variables are italic, as is standard for Times-based documents.
+%% newtxmath takes digits, \mathrm, \mathbf, \mathit and operator names (sin, log, ...) from the current
+%% roman font. Under fontspec that font has no math encoding, so it would fall back to Computer Modern.
+%% Temporarily point it at newtx's own Times while loading, then restore the fontspec main font.
+\let\thesis@rmdefault\rmdefault
+\renewcommand{\rmdefault}{ntxtlf}
+\RequirePackage{newtxmath}
+\let\rmdefault\thesis@rmdefault
 
-\DeclareMathSymbol{A}{\mathalpha}{romanletters}{`A}
-\DeclareMathSymbol{B}{\mathalpha}{romanletters}{`B}
-\DeclareMathSymbol{C}{\mathalpha}{romanletters}{`C}
-\DeclareMathSymbol{D}{\mathalpha}{romanletters}{`D}
-\DeclareMathSymbol{E}{\mathalpha}{romanletters}{`E}
-\DeclareMathSymbol{F}{\mathalpha}{romanletters}{`F}
-\DeclareMathSymbol{G}{\mathalpha}{romanletters}{`G}
-\DeclareMathSymbol{H}{\mathalpha}{romanletters}{`H}
-\DeclareMathSymbol{I}{\mathalpha}{romanletters}{`I}
-\DeclareMathSymbol{J}{\mathalpha}{romanletters}{`J}
-\DeclareMathSymbol{K}{\mathalpha}{romanletters}{`K}
-\DeclareMathSymbol{L}{\mathalpha}{romanletters}{`L}
-\DeclareMathSymbol{M}{\mathalpha}{romanletters}{`M}
-\DeclareMathSymbol{N}{\mathalpha}{romanletters}{`N}
-\DeclareMathSymbol{O}{\mathalpha}{romanletters}{`O}
-\DeclareMathSymbol{P}{\mathalpha}{romanletters}{`P}
-\DeclareMathSymbol{Q}{\mathalpha}{romanletters}{`Q}
-\DeclareMathSymbol{R}{\mathalpha}{romanletters}{`R}
-\DeclareMathSymbol{S}{\mathalpha}{romanletters}{`S}
-\DeclareMathSymbol{T}{\mathalpha}{romanletters}{`T}
-\DeclareMathSymbol{U}{\mathalpha}{romanletters}{`U}
-\DeclareMathSymbol{V}{\mathalpha}{romanletters}{`V}
-\DeclareMathSymbol{W}{\mathalpha}{romanletters}{`W}
-\DeclareMathSymbol{X}{\mathalpha}{romanletters}{`X}
-\DeclareMathSymbol{Y}{\mathalpha}{romanletters}{`Y}
-\DeclareMathSymbol{Z}{\mathalpha}{romanletters}{`Z}
+%% Previous setup: Euler math with upright Roman capitals. Kept for reference; uncomment (and remove newtxmath) to go back.
+% \RequirePackage{eulervm}    %% i do not like the euler-hat-accent option
+% % \RequirePackage[frenchmath]{libertinust1math}
+
+% \DeclareSymbolFont{romanletters}{\encodingdefault}{\rmdefault}{m}{n}
+% \SetSymbolFont{romanletters}{bold}{\encodingdefault}{\rmdefault}{bx}{n}
+% \DeclareSymbolFontAlphabet{\mathrm}{romanletters}
+
+% \DeclareMathSymbol{A}{\mathalpha}{romanletters}{`A}
+% \DeclareMathSymbol{B}{\mathalpha}{romanletters}{`B}
+% \DeclareMathSymbol{C}{\mathalpha}{romanletters}{`C}
+% \DeclareMathSymbol{D}{\mathalpha}{romanletters}{`D}
+% \DeclareMathSymbol{E}{\mathalpha}{romanletters}{`E}
+% \DeclareMathSymbol{F}{\mathalpha}{romanletters}{`F}
+% \DeclareMathSymbol{G}{\mathalpha}{romanletters}{`G}
+% \DeclareMathSymbol{H}{\mathalpha}{romanletters}{`H}
+% \DeclareMathSymbol{I}{\mathalpha}{romanletters}{`I}
+% \DeclareMathSymbol{J}{\mathalpha}{romanletters}{`J}
+% \DeclareMathSymbol{K}{\mathalpha}{romanletters}{`K}
+% \DeclareMathSymbol{L}{\mathalpha}{romanletters}{`L}
+% \DeclareMathSymbol{M}{\mathalpha}{romanletters}{`M}
+% \DeclareMathSymbol{N}{\mathalpha}{romanletters}{`N}
+% \DeclareMathSymbol{O}{\mathalpha}{romanletters}{`O}
+% \DeclareMathSymbol{P}{\mathalpha}{romanletters}{`P}
+% \DeclareMathSymbol{Q}{\mathalpha}{romanletters}{`Q}
+% \DeclareMathSymbol{R}{\mathalpha}{romanletters}{`R}
+% \DeclareMathSymbol{S}{\mathalpha}{romanletters}{`S}
+% \DeclareMathSymbol{T}{\mathalpha}{romanletters}{`T}
+% \DeclareMathSymbol{U}{\mathalpha}{romanletters}{`U}
+% \DeclareMathSymbol{V}{\mathalpha}{romanletters}{`V}
+% \DeclareMathSymbol{W}{\mathalpha}{romanletters}{`W}
+% \DeclareMathSymbol{X}{\mathalpha}{romanletters}{`X}
+% \DeclareMathSymbol{Y}{\mathalpha}{romanletters}{`Y}
+% \DeclareMathSymbol{Z}{\mathalpha}{romanletters}{`Z}
 
