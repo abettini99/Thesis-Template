@@ -27,6 +27,10 @@
 \ExecuteOptions{british} %% default language: British English
 \ProcessOptions\relax
 
+%% Public switch so files outside the class can check for print mode (\ifprintversion ... \else ... \fi)
+\newif\ifprintversion
+\if@print \printversiontrue \fi
+
 \RequirePackage[l2tabu, orthodox]{nag} % https://ctan.org/pkg/nag %% In case I commit a cardinal sin of loading depreciated modules, or some dumb stuff that can be picked up (i.e use \centering instead of \begin{center}[...]\end{center})
 
 %% Page layout. The book page size is set by the a5 / royal / tudelft option (default a5);
@@ -53,6 +57,11 @@
     \setlength{\thesis@textwidth}{100mm}   \setlength{\thesis@textheight}{165mm}
     \setlength{\thesis@foremargin}{27.3mm} \setlength{\thesis@topmargin}{20mm}
 }}
+%% Chapter title size scales with the page, so long titles such as "Acknowledgements" still fit on one line.
+\newcommand*{\chaptertitlesize}{30pt}
+\ifthenelse{\equal{\thesis@pagesize}{tudelft}}{\renewcommand*{\chaptertitlesize}{36pt}}{}
+\ifthenelse{\equal{\thesis@pagesize}{royal}}{\renewcommand*{\chaptertitlesize}{33pt}}{}
+
 %% Fore-edge margins follow foreedge = (2/3)*(page width - binding - text width);
 %% text widths give roughly 57-60 characters per line at 10pt in every size.
 
@@ -91,84 +100,8 @@
 \input{_fixes/recto_verso_tikz_fix}
 \input{_options/thumb}
 
-% \setlength\footparindent{\parindent}
-% \setlength{\footmarkwidth}{0em}
-% \setlength{\footmarksep}{0em}
-% \footmarkstyle{\makebox[\footparindent][l]{\textsuperscript{#1}}}
-
-% % Online fix for all fontenc-inputenc interactions and use of inputenc, to be honest i have no clue what these do.
-% \RequirePackage{iftex}
-% \ifPDFTeX
-% %   \RequirePackage[light]{kpfonts} %% Reenable newtx/newpx if kpfonts is disabled, amsmath included? but going to keep it in anyways
-%    \RequirePackage[T1]{fontenc}
-%    \RequirePackage[utf8]{inputenc} 
-% %   \RequirePackage{lmodern}
-% \else
-%    \ifXeTeX
-%      \RequirePackage{fontspec}
-%      %% Testing out stuff here
-%     %  \setmainfont{TeX Gyre Pagella}
-%     %  \RequirePackage[euler-digits,euler-hat-accent]{eulervm}
-%    \else 
-%      \RequirePackage{luatextra}
-%    \fi
-%    \defaultfontfeatures{Ligatures=TeX}
-% \fi
-
-% \RequirePackage{enumitem}
-% \setlist{labelindent=\parindent,leftmargin=*,nosep}
-% \setlist[enumerate]{label={\arabic*)}}
-
-% \RequirePackage{titletoc}
-
-% Control over footnotes
-% \RequirePackage[flushmargin,hang,bottom]{footmisc} % bottom makes footnotes always go at the very bottom of the page. %% Removed as memoir has its own options
-% \RequirePackage{fancyhdr} % Provides extensive control over footers and headers % https://tex.stackexchange.com/questions/129829/warning-command-makecol-has-changed read the following link to see why the load order is this way instead of the other way.
-% \RequirePackage[hyphens]{url}
-% \ifxetex
-%     \RequirePackage[hyperfootnotes=false,xetex]{hyperref} % double reffing solution comes from: http://ctan.cs.uu.nl/macros/latex/contrib/footmisc/footmisc.pdf
-% \else
-%     \ifpdf
-%         \RequirePackage[hyperfootnotes=false,pdftex]{hyperref}
-%     \else
-%         \RequirePackage[hyperfootnotes=false,hypertex]{hyperref}
-%     \fi
-% \fi
-
-% \RequirePackage[blocks]{authblk}
-% \renewcommand{\Authfont}{\normalsize\upshape}
-% \renewcommand{\Affilfont}{\normalsize\itshape}
-% \setlength{\affilsep}{0pt}
-
-% \renewcommand{\maketitle}{%
-%   \begingroup
-%   \renewcommand\and{\\[\baselineskip]}
-%   \centering
-%   {\LARGE\bfseries\@title\par}
-%   \vskip2\baselineskip
-%   \@author\par
-%   \endgroup
-%   \vskip\baselineskip
-%   \setcounter{footnote}{0}
-% }
-
 \input{_options/formatText}
 
-
-% \RequirePackage{lettrine}
-% \setlength{\DefaultNindent}{0pt}
-
-% \setlength{\abovedisplayskip}{\baselineskip}
-% \setlength{\belowdisplayskip}{\baselineskip}
-% \setlength{\abovedisplayshortskip}{\baselineskip}
-% \setlength{\belowdisplayshortskip}{\baselineskip}
-
-% \RequirePackage[sort&compress,numbers]{natbib}
-% \bibliographystyle{apalike}
-% \bibliographystyle{personal}
-% \renewcommand{\bibfont}{\small}
-
-% \RequirePackage{minted}     % https://ctan.org/pkg/minted %% Use this for code.
 \if@american
     \RequirePackage[american]{babel}               % https://ctan.org/pkg/babel %% manages culturally-determined typographical (and other) rules for a wide range of languages 
     \RequirePackage[style=american]{csquotes}       % https://ctan.org/pkg/csquotes %% provides advanced facilities for inline and display quotations, check their documentation to find out how to quote properly        
@@ -180,19 +113,14 @@
     \RequirePackage[UKenglish,style=iso]{datetime2}
 \fi
 
-%% https://tex.stackexchange.com/questions/59702/suggest-a-nice-font-family-for-my-basic-latex-template-text-and-math        %%%%%% font suggestions!
-\RequirePackage{blindtext}
 \RequirePackage{microtype}
 
 %%% MATH PACKAGES INTERLUDE
-\RequirePackage{amsmath} % esint removed: newtxmath provides its own Times-style integrals (\oiint etc.)    
-%% https://ctan.org/pkg/amsmath?lang=en %% essential math package, check their userguide for content 
-%% https://www.ctan.org/pkg/esint %% The esint package permits access to alternate integral symbols when you are using the Computer Modern fonts.
+\RequirePackage{amsmath}   %% https://ctan.org/pkg/amsmath %% essential math package (integrals such as \oiint come from newtxmath)
 \RequirePackage{mathtools}
-% \RequirePackage{amsfonts}   %% not needed: newtxmath provides these symbols. https://ctan.org/pkg/amsfonts %% An extended set of fonts for use in mathematics
 
 %%% TEXT FONTS
-%% We use purely XeLaTeX now
+%% Compile with XeLaTeX (or LuaLaTeX); fonts are loaded through fontspec.
 \input{_options/fontText}
 
 %%% MATH FONT
@@ -204,9 +132,6 @@
 \input{_options/formatNomenclature}
 
 \RequirePackage[tableposition=top, figurename=Figure]{caption}
-% \renewcommand{\thefigure}{\getCurrentSectionNumber--\arabic{figure}}
-% \renewcommand{\thetable}{\getCurrentSectionNumber--\arabic{table}}
-% \renewcommand{\theequation}{\getCurrentSectionNumber--\arabic{equation}}
 \renewcommand{\thefigure}{\thechapter.\arabic{figure}}
 \renewcommand{\thetable}{\thechapter.\arabic{table}}
 \renewcommand{\theequation}{\thechapter.\arabic{equation}}
@@ -216,5 +141,3 @@
 \RequirePackage[backend=biber,natbib=true,style=numeric,sorting=none]{biblatex} % natbib has some cool commands like \citet, \citep which i really like.
 \addbibresource{references.bib}
 
-% TO DO:
-% - Reorganize this mess

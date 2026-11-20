@@ -1,6 +1,5 @@
 
-% \RequirePackage[explicit]{titlesec}
-\setcounter{secnumdepth}{3}
+\setcounter{secnumdepth}{2} % number chapters, sections and subsections; subsubsections and below are unnumbered
 \renewcommand{\thechapter}{\arabic{chapter}}
 \renewcommand{\thesection}{\thechapter.\arabic{section}.}
 \renewcommand{\thesubsection}{\thesection\arabic{subsection}.}
@@ -21,9 +20,9 @@
         \renewcommand{\chapternamenum}{\space}
         % \renewcommand{\printchapternum}{}
         % \renewcommand{\afterchapternum}{}
-        \renewcommand{\chapnamefont}{\fontsize{36}{36}\headingfont}
-        \renewcommand{\chapnumfont}{\fontsize{36}{36}\headingfont}
-        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\headingfont}
+        \renewcommand{\chapnamefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
+        \renewcommand{\chapnumfont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
+        \renewcommand{\chaptitlefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
         \renewcommand{\printchaptername}{%
             \raggedleft \chapnamefont \@chapapp}
         \renewcommand{\printchaptertitle}[1]{%
@@ -46,9 +45,9 @@
         \renewcommand{\chapternamenum}{\space}
         % \renewcommand{\printchapternum}{}
         % \renewcommand{\afterchapternum}{}
-        \renewcommand{\chapnamefont}{\fontsize{36}{36}\headingfont}
-        \renewcommand{\chapnumfont}{\fontsize{36}{36}\headingfont}
-        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\headingfont}
+        \renewcommand{\chapnamefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
+        \renewcommand{\chapnumfont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
+        \renewcommand{\chaptitlefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
         \renewcommand{\printchaptername}{%
             \raggedleft \chapnamefont \@chapapp}
         \renewcommand{\printchaptertitle}[1]{%
@@ -65,9 +64,9 @@
         \renewcommand{\chapternamenum}{\space}
         % \renewcommand{\printchapternum}{}
         % \renewcommand{\afterchapternum}{}
-        \renewcommand{\chapnamefont}{\fontsize{36}{36}\headingfont}
-        \renewcommand{\chapnumfont}{\fontsize{36}{36}\headingfont}
-        \renewcommand{\chaptitlefont}{\fontsize{36}{36}\headingfont}
+        \renewcommand{\chapnamefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
+        \renewcommand{\chapnumfont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
+        \renewcommand{\chaptitlefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
         \renewcommand{\printchaptername}{%
             \raggedleft \chapnamefont \@chapapp}
         \renewcommand{\printchaptertitle}[1]{%
@@ -120,33 +119,10 @@
     \renewcommand{\tocheadstart}{\chapterheadstart}
     \renewcommand{\lofheadstart}{\chapterheadstart}
     \renewcommand{\lotheadstart}{\chapterheadstart}
-    \renewcommand{\printtoctitle}[1]{\hfill\fontsize{36}{36}\headingfont Contents}
-    \renewcommand{\printloftitle}[1]{\hfill\fontsize{36}{36}\headingfont List of Figures}
-    \renewcommand{\printlottitle}[1]{\hfill\fontsize{36}{36}\headingfont List of Tables}
+    \renewcommand{\printtoctitle}[1]{\hfill\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont Contents}
+    \renewcommand{\printloftitle}[1]{\hfill\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont List of Figures}
+    \renewcommand{\printlottitle}[1]{\hfill\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont List of Tables}
     \renewcommand{\aftertoctitle}{\afterchaptertitle}
     \renewcommand{\afterloftitle}{\afterchaptertitle\insertchapterspace} % for some reason the spacing between the title and first entry of ToC and LoF/LoT is not the same.
     \renewcommand{\afterlottitle}{\afterchaptertitle\insertchapterspace}
     
-
-
-
-% \titleformat{\chapter}%[display] % [display] makes a new line
-%     {}
-%     {\headingfont\fontsize{40}{40}\selectfont\thechapter}{20pt}{\headingfont\huge#1}[]
-% \titlespacing{\chapter}{0pt}{-10pt}{1\baselineskip}
-
-% \titleformat{\section}
-%   {\Large\bfseries}%\centering}
-%   {\headingfont\Huge{\thesection}\space}{5pt}{\headingfont#1}[]
-% \titlespacing{\section}{0pt}{0.5\baselineskip}{0pt}
-
-% \titleformat{\subsection}
-%   {\large\bfseries}
-%   {\headingfont\thesubsection\space}{5pt}{\headingfont#1}[]
-% \titlespacing{\subsection}{0pt}{0.5\baselineskip}{0pt}
-
-% \titleformat{\subsubsection}
-% %   {\large\itshape\singlespacing}
-%   {\large\bfseries}
-%   {\headingfont\thesubsubsection\space}{5pt}{\headingfont#1}[]
-% \titlespacing{\subsubsection}{0pt}{0.5\baselineskip}{0pt}

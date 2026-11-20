@@ -17,6 +17,8 @@
 \input{_options/formatPagestyles}
 % new commands
 \input{_options/commands}
+% thesis information: title, author, committee, defence date, colophon (fill this in!)
+\input{_thesisinfo}
 
 %% Enable the following to display watermarks
 % --------------------
@@ -25,8 +27,10 @@
 % \SetWatermarkText{DRAFT}
 % --------------------
 
-%% Use the following packages to provide lipsum paragraphs or visualize linenumbers.
-\usepackage{lipsum} % disable when not needed
+%% Placeholder text used by the example chapters. Remove once the examples are gone.
+\usepackage{lipsum}
+\usepackage{blindtext}
+%% Use the following to visualise line numbers.
 % \usepackage{lineno}
 % \linenumbers
 
@@ -51,7 +55,6 @@
 \pagenumbering{gobble}
 % \input{_intentionalBlank.tex}
 \input{_titlepage.tex}
-\newpage
 
 \begin{Spacing}{1.15} % Set up spacing for report
 
@@ -127,6 +130,18 @@
 
     \clearpage
     \input{Chapters/A_Appendix.tex}
+
+    %% =========== %%
+    %% BACK MATTER %%
+    %% =========== %%
+    \bookmarksetup{startatroot}
+    \cleardoublepage
+    \chapterstyle{frontmatter}
+    \aliaspagestyle{chapter}{plain}
+    \pagestyle{frontmatter}
+    \input{Chapters/Z_Acknowledgements.tex}
+    \input{Chapters/Z_CurriculumVitae.tex}
+    \input{Chapters/Z_ListOfPublications.tex}
 
 
     

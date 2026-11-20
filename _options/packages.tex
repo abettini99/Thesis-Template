@@ -1,41 +1,43 @@
-
-%\usepackage[utf8]{inputenc} % already in the cls file
-% \usepackage{graphicx}   % https://ctan.org/pkg/graphicx %% provides optional arguments to the \includegraphics command
-% \usepackage{tikz}       % https://www.ctan.org/pkg/pgf %% TikZ manual found here, allows image drawing
 \usepackage{bm}         % https://ctan.org/pkg/bm %% more powerful package to provide bold symbol support (use \bm{} instead of \boldsymbol{})
 \usepackage[version=4]{mhchem} % https://ctan.org/pkg/mhchem?lang=en %% gives ability to implement chemical formulas via the \ce command
 \usepackage{siunitx}    % https://ctan.org/pkg/siunitx %% Provides SI unit control through the \SI{<value>}{<units>} command
-%\usepackage{longtable}  % https://ctan.org/pkg/longtable %% gives the longtable environment, which allows multiple pages!
-%\usepackage{tabularx}   % https://ctan.org/pkg/tabularx %% gives the tabularx environment, which allows multiple lines within a cell without super weird coding
 \usepackage{xltabular}  % https://ctan.org/pkg/xltabular %% Gives the functionality of both longtable + tabularx package together, check https://www.overleaf.com/latex/examples/a-longtable-plus-tabularx-example/rcrxtjbrvyft for an example of how it works.
-% \usepackage{hyperref} % if you want to add external links to words, check userguide for info % already in the cls file
 \usepackage{float}      % https://ctan.org/pkg/float %% Allows figure forcing spots ([H], etc.)
 \usepackage{multicol}   % https://ctan.org/pkg/multicol %% useful for multiple column pages. \multicols gives a balanced output between each column, whereas \multicols* gives unbalanced.
 \setlength{\columnsep}{1cm}
-\usepackage{appendix}   % https://ctan.org/pkg/appendix %% The appendix package provides various ways of formatting the titles of appendices. 
-%\usepackage{caption}    % https://ctan.org/pkg/caption %% allows extensive control of captions. Does not come with subcaption (see Chap 6 of manual), already in cls file
 \usepackage{subcaption} % https://ctan.org/pkg/subcaption %% provides subfigure/caption support i.e use: \begin{subfigure}{\textwidth}
 \usepackage{array}      % https://ctan.org/pkg/array %% gives more power to making tables! array provides many more utilities to making tables
 \usepackage{multirow}   % https://ctan.org/pkg/multirow %% centering of text over multiple rows for tables!
-\usepackage{mathtools}  % https://ctan.org/pkg/mathtools %% allows the use of \splitfrac{}{}, splitdfrac{}{}
-%\usepackage[skip]{parskip}   % https://ctan.org/pkg/parskip %% Changes from indentations to line skips between paragraphs % already included in the memoir class, use lines below instead
+%% Paragraphs: no indent, space between paragraphs (memoir).
 \nonzeroparskip
 \setlength{\parindent}{0pt}
-% \usepackage{chngcntr}   % https://ctan.org/pkg/chngcntr %% Change the resetting of counters by using \counterwithin (which sets up a counter to be reset when another is incremented) and \counterwithout (which unsets such a relationship). %%% ALREADY IN MEMOIR CLASS
 % \usepackage{wrapfig}    % https://ctan.org/pkg/wrapfig %% allows the use of 'wrapfigure' environments
 \usepackage{pdfpages}   % https://ctan.org/pkg/pdfpages %% This package simplifies the inclusion of external multi-page PDF documents in LaTeX documents. 
-% \usepackage{xcolor}     % https://ctan.org/pkg/xcolor %% Provides easy driver-independent access to several kinds of color tints, shades, tones, and mixes of arbitrary colors.
 \usepackage{colortbl}   % https://www.ctan.org/pkg/colortbl %% The package allows rows and columns to be coloured, and even individual cells.
 \usepackage{booktabs}   % https://ctan.org/pkg/booktabs/ %% The package enhances the quality of tables in LaTeX
-% \usepackage{arydshln}   % https://www.ctan.org/pkg/arydshln %% The package is to draw dash-lines in array/tabular environments.
 \usepackage{listings}   % https://www.ctan.org/pkg/listings %% Use this for code
 \usepackage{bigints}    % https://www.ctan.org/pkg/bigints %% \bigintssss, \bigintsss, \bigintss, \bigints, and \bigint
 \usepackage{cancel}     % https://www.ctan.org/pkg/cancel %% A package to draw diagonal lines (“cancelling” a term) and arrows with limits (cancelling a term “to a value”) through parts of maths formulae
 \usepackage{stackengine}% https://www.ctan.org/tex-archive/macros/latex/contrib/stackengine %% The stackengine package provides a versatile way to vertically stack objects in a variety of customizable ways.
-%\usepackage{arydshln}   % https://ctan.org/pkg/arydshln %% The package is to draw dash-lines in array/tabular environments. Horizontal lines are drawn by \hdashline and \cdashline while vertical ones can be specified as a part of the preamble using ‘:’. The shape of dash-lines may be controlled through style parameters or optional arguments. %% CONFLICT WITH BOOKTABS
 \usepackage{pifont}     % https://www.ctan.org/pkg/pifont %% The package provides commands for Pi fonts (Dingbats, Symbol, etc.); all commands assume you know the character number within the font of the symbol within the font. 
 \usepackage{ragged2e}   % https://www.ctan.org/pkg/ragged2e %% The package defines new commands \Centering, \RaggedLeft, and \RaggedRight and new environments Center, FlushLeft, and FlushRight, which set ragged text and are easily configurable to allow hyphenation (the corresponding commands in LaTeX, all of whose names are lower-case, prevent hyphenation altogether)
 \usepackage{bookmark}   % https://ctan.org/pkg/bookmark?lang=en %% This package implements a new bookmark (outline) organization for package hyperref. Bookmark properties such as style and color can now be set. Other action types are available (URI, GoToR, Named). The bookmarks are generated in the first compile run. Package hyperref uses two runs. 
+%% Hyperlinks: invisible in the print version (they would only show up as coloured text on paper),
+%% subtle TU Delft dark blue in the report/screen version. PDF metadata comes from _thesisinfo.tex.
+\ifprintversion
+    \hypersetup{hidelinks}
+\else
+    \hypersetup{colorlinks=true, linkcolor=tudelft-dark-blue, citecolor=tudelft-dark-blue, urlcolor=tudelft-dark-blue}
+\fi
+\hypersetup{pdfdisplaydoctitle=true, bookmarksnumbered=true}
+\AtBeginDocument{\hypersetup{
+    pdftitle    = {\thesispdftitle},
+    pdfauthor   = {\thesisauthorfirstnames\ \thesisauthorlastname},
+    pdfsubject  = {Doctoral dissertation, Delft University of Technology},
+    pdfkeywords = {\thesiskeywords},
+}}
 \usepackage{nicematrix} %https://ctan.org/pkg/nicematrix %% This package is based on the package array. It creates PGF/TikZ nodes under the cells of the array and uses these nodes to provide functionalities to construct tabulars, arrays and matrices. 
-\usepackage{notoccite}  % https://www.ctan.org/pkg/notoccite %% If you have \cite commands in \section-like commands, or in \caption, the citation will also appear in the table of contents, or list of whatever. If you are also using an unsrt-like bibliography style, these citations will come at the very start of the bibliography, which is confusing. This package suppresses the effect.
 \usepackage{pdflscape}  % https://www.ctan.org/pkg/pdflscape %% The package adds PDF support to the landscape environment of package lscape, by setting the PDF /Rotate page attribute. Pages with this attribute will be displayed in landscape orientation by conforming PDF viewers.
+
+%% cleveref must be loaded last (after hyperref). Use \cref{fig:x} -> "Figure 2.1", \Cref at the start of a sentence.
+\usepackage[capitalise,noabbrev,nameinlink]{cleveref}
