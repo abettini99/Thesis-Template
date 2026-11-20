@@ -22,10 +22,10 @@
 %% Load this in for book
 \if@print
     \LoadClass[10pt]{memoir}[openright]
-    \setstocksize{252mm}{179mm}             %% This is the paper stocksize, where the thesis will be printed on.
-    \settrimmedsize{246mm}{173mm}{*}        %% This is the layout/trimmed/paper size for which you work on,
-                                            %% TUD PhD template is approximately half way between A4 and A5
-    \settrims{3mm}{3mm}                     %% This is how far from {top}{right} that layout is placed on
+    \setstocksize{244mm}{174mm}             %% Paper stock size = trimmed size + 2mm bleed on every side (matches TU Delft dissertation template).
+    \settrimmedsize{240mm}{170mm}{*}        %% This is the layout/trimmed/paper size for which you work on,
+                                            %% 170 x 240 mm: final book size of the TU Delft dissertation template
+    \settrims{2mm}{2mm}                     %% Bleed: how far from {top}{right} that layout is placed on the stock (TU Delft uses 2mm)
     \settypeblocksize{192mm}{113mm}{*}      %% This is your workspace - where you write on.
     \setbinding{7.0mm}           %% Binding margin is handled here
                                  %% 3.00mm binding from TUD PhD template
@@ -33,11 +33,11 @@
                                  
     %% foreedge_margin = (2/3)*(trimmedsize_width - binding_offset - typeblock_width)
     %% topdown_margin  = (1/2)*(trimmedsize_height - typeblock_height)
-    \setlrmargins{*}{35.33mm}{*} %% fore-edge margin is handled here
+    \setlrmargins{*}{33.40mm}{*} %% fore-edge margin is handled here (scaled from 35.33mm for the 170mm page)
                                  %% Normally, your spine margin should be smaller, but the binding process is hot garbage based on what I have seen of previous theses.
                                  %% spine margin automatically handled.
                                  %% 35.33mm ~= 1.00in * 1.39
-    \setulmargins{27.00mm}{*}{*} %% top margin handled here, bottom margin automatically handled.
+    \setulmargins{23.90mm}{*}{*} %% top margin handled here, bottom margin automatically handled (scaled from 27.00mm for the 240mm page).
                                  %% 27.00mm ~= 1.00in * 1.06
     \setheadfoot{\onelineskip}{2\onelineskip}
     \setheaderspaces{*}{2\onelineskip}{*}
@@ -49,7 +49,7 @@
     \LoadClass[12pt]{memoir}
     \setstocksize{297mm}{210mm}             %% This is the paper stocksize, which is a4
     \settrimmedsize{291mm}{204mm}{*}        %% This is the layout/trimmed/paper size for which you work on.
-    \settrims{3mm}{3mm}                     %% This is how far from {top}{right} that layout is placed on
+    \settrims{2mm}{2mm}                     %% Bleed: how far from {top}{right} that layout is placed on the stock (TU Delft uses 2mm)
     \settypeblocksize{240.2mm}{153.2mm}{*}  %% This is your workspace - where you write on.
     \setbinding{0.0mm}                      %% Binding margin is handled here
     
