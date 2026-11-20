@@ -7,6 +7,18 @@ A LaTeX template for a TU Delft PhD dissertation, built on the `memoir` class. I
 - Compile with **XeLaTeX** (LuaLaTeX should also work). In Overleaf: *Menu → Settings → Compiler → XeLaTeX*.
 - The bibliography uses **biblatex + biber** and the nomenclature uses **makeindex**. Overleaf runs both automatically. Locally, `latexmk -xelatex main.tex` does the same.
 
+## Faster compiling
+
+A long thesis gets slow because every chapter, figure and plot is processed on every compile. While writing:
+
+1. **Compile only the chapter you are working on.** In `main.tex`, uncomment `\includeonly{...}` and list the chapter(s), for example `\includeonly{Chapters/03Method}`. Page numbers and references to the other chapters are kept from the last full compile. Comment it out again for a full compile. (Chapters must be added with `\include{...}`, not `\input{...}`, for this to work.)
+2. **Use the `draft` option.** Images are replaced by labelled boxes, overfull lines get a black bar in the margin, and every page says *DRAFT* with the date. Remove it for the final version. Overleaf's *Recompile → Fast [draft]* does the image part as well.
+3. **Keep heavy plots out of the document.** A TikZ/pgfplots plot with a lot of data is redrawn on every compile. Either make it in a separate small `standalone` document, compile that once and include the resulting PDF with `\includegraphics`, or make the plot in Python (matplotlib) and save it as PDF. Small diagrams and simple plots are fine inline.
+4. **Keep images light.** Use vector PDF for plots and diagrams. For photos and renders, use JPG (or PNG for screenshots) at no more than about 300 dpi at the size they are printed: a figure 100 mm wide needs about 1200 pixels, not 6000.
+5. **Load only what you use.** Optional packages are listed, commented out, at the bottom of `_options/packages.tex`.
+
+(Automatic caching of TikZ pictures with the `memoize` package was tested and left out: it clashes with biblatex and depends on Perl modules that are not available everywhere.)
+
 ## Class options
 
 Set in the first line of `main.tex`, for example:
@@ -23,12 +35,13 @@ Set in the first line of `main.tex`, for example:
 | `showtrims` | Crop marks showing where the page is trimmed (print) or where the book page sits on A4 (report). |
 | `british` *(default)*, `american` | Language: hyphenation, quotation marks and dates. |
 | `showframe` | Shows the page layout frames, for checking the layout. |
+| `draft` | Fast compiles while writing: images as boxes, overfull lines marked, *DRAFT* and the date on every page. |
 
 ## Where things are
 
 | File | Contents |
 |---|---|
-| `main.tex` | Document structure: which chapters are included, in which order. |
+| `main.tex` | Document structure: which chapters are included, in which order, and `\includeonly` for compiling single chapters. |
 | `_thesisinfo.tex` | **Fill this in:** title, author, defence date, Rector Magnificus, doctoral committee, keywords, printer, ISBN. Used on the title pages, CV and in the PDF metadata. |
 | `_titlepage.tex` | Title page, official TU Delft dissertation page, committee and colophon page. |
 | `Chapters/` | Front matter (`00…`), chapters (`01…`, `02…`), appendices (`A_…`) and back matter (`Z_…`). |
@@ -56,7 +69,7 @@ Set in the first line of `main.tex`, for example:
   | `\nomtypeS{symbol}{description}` | Superscripts | |
   | `\nomtypeU{symbol}{description}` | Subscripts | |
 
-- **A chapter based on a published paper:** see `Chapters/01Introduction.tex` for the chapter opener with an epigraph, a short abstract and a "parts of this chapter have been published in…" note. To include the published PDF itself, use `\includepdf[pages=-]{paper.pdf}` (pdfpages).
+- **A chapter based on a published paper:** see `Chapters/01Introduction.tex` for the chapter opener with an epigraph, a short abstract and a "parts of this chapter have been published in…" note. To include the published PDF itself, uncomment `pdfpages` in `_options/packages.tex` and use `\includepdf[pages=-]{paper.pdf}`.
 
 ## Overleaf ↔ GitHub
 

@@ -14,6 +14,10 @@
 \DeclareOption{thumb}{\if@print \@thumbtrue \fi}
 \DeclareOption{showtrims}{\PassOptionsToClass{\CurrentOption}{memoir}} %% in report mode this marks the book page on the A4 sheet 
 \DeclareOption{showframe}{\@showframetrue}
+%% draft: fast compiles while writing. Images become labelled boxes, overfull lines are marked
+%% with a black bar in the margin, and every page says DRAFT so it is never mistaken for the final version.
+\newif\if@draft
+\DeclareOption{draft}{\@drafttrue \PassOptionsToPackage{draft}{graphicx} \PassOptionsToClass{draft}{memoir}}
 
 %% Book page size. Choose one; a5 is the default.
 %%   a5      : 148 x 210 mm  (handbook / paperback size)
@@ -89,6 +93,11 @@
 
 \if@showframe
     \RequirePackage{showframe}
+\fi
+
+\if@draft
+    \RequirePackage[firstpageonly=false]{draftwatermark}
+    \DraftwatermarkOptions{text={DRAFT \textendash\ \today}, fontsize=8pt, angle=0, pos={0.5\paperwidth, 4mm}, color=black!60}
 \fi
 
 %%% COLOR-RELATED

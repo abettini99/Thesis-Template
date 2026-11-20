@@ -1,33 +1,39 @@
-\usepackage{bm}         % https://ctan.org/pkg/bm %% more powerful package to provide bold symbol support (use \bm{} instead of \boldsymbol{})
-\usepackage[version=4]{mhchem} % https://ctan.org/pkg/mhchem?lang=en %% gives ability to implement chemical formulas via the \ce command
-\usepackage{siunitx}    % https://ctan.org/pkg/siunitx %% Provides SI unit control through the \SI{<value>}{<units>} command
-\usepackage{xltabular}  % https://ctan.org/pkg/xltabular %% Gives the functionality of both longtable + tabularx package together, check https://www.overleaf.com/latex/examples/a-longtable-plus-tabularx-example/rcrxtjbrvyft for an example of how it works.
-\usepackage{float}      % https://ctan.org/pkg/float %% Allows figure forcing spots ([H], etc.)
-\usepackage{multicol}   % https://ctan.org/pkg/multicol %% useful for multiple column pages. \multicols gives a balanced output between each column, whereas \multicols* gives unbalanced.
-\setlength{\columnsep}{1cm}
-\usepackage{subcaption} % https://ctan.org/pkg/subcaption %% provides subfigure/caption support i.e use: \begin{subfigure}{\textwidth}
-\usepackage{array}      % https://ctan.org/pkg/array %% gives more power to making tables! array provides many more utilities to making tables
-\usepackage{multirow}   % https://ctan.org/pkg/multirow %% centering of text over multiple rows for tables!
+%% =====================================================================
+%% Packages loaded by main.tex (the class loads the core ones).
+%% Every package costs compile time, so only what the template uses is loaded.
+%% More are listed at the bottom: uncomment them when you need them.
+%% =====================================================================
+
+%% Maths, units and chemistry
+\usepackage{bm}                 % https://ctan.org/pkg/bm %% bold symbols: \bm{} instead of \boldsymbol{}
+\usepackage{siunitx}            % https://ctan.org/pkg/siunitx %% quantities and units: \qty{}{}, \num{}, \unit{}
+\usepackage[version=4]{mhchem}  % https://ctan.org/pkg/mhchem %% chemical formulae: \ce{}
+\usepackage{stackengine}        % https://ctan.org/pkg/stackengine %% used by \barbelow (vector/tensor bars)
+
+%% Figures and tables
+\usepackage{float}              % https://ctan.org/pkg/float %% [H] placement, if you really need it
+\usepackage{subcaption}         % https://ctan.org/pkg/subcaption %% subfigure and subtable environments
+\usepackage{array}              % https://ctan.org/pkg/array %% extra column types for tables
+\usepackage{booktabs}           % https://ctan.org/pkg/booktabs %% \toprule, \midrule, \bottomrule
+\usepackage{xltabular}          % https://ctan.org/pkg/xltabular %% tabularx (wrapping columns) + longtable (across pages)
+\usepackage{pdflscape}          % https://ctan.org/pkg/pdflscape %% landscape pages, shown rotated in PDF viewers
+\usepackage{pgfplots}           % https://ctan.org/pkg/pgfplots %% plots drawn by LaTeX itself, in the document's fonts
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{positioning,arrows.meta}
+
+%% Text and code
+\usepackage{ragged2e}           % https://ctan.org/pkg/ragged2e %% \RaggedRight and FlushLeft that still hyphenate
+\usepackage{listings}           % https://ctan.org/pkg/listings %% code listings (style in formatCode.tex)
+
 %% Paragraphs: book style, first line indented and no blank space between paragraphs.
 %% (The first paragraph after a heading is not indented, as usual.)
 \setlength{\parindent}{1.5em}
 \setlength{\parskip}{0pt}
 %% Tables are set in \small, matching the captions.
 \AddToHook{env/table/begin}{\small}
-% \usepackage{wrapfig}    % https://ctan.org/pkg/wrapfig %% allows the use of 'wrapfigure' environments
-\usepackage{pdfpages}   % https://ctan.org/pkg/pdfpages %% This package simplifies the inclusion of external multi-page PDF documents in LaTeX documents. 
-\usepackage{colortbl}   % https://www.ctan.org/pkg/colortbl %% The package allows rows and columns to be coloured, and even individual cells.
-\usepackage{booktabs}   % https://ctan.org/pkg/booktabs/ %% The package enhances the quality of tables in LaTeX
-\usepackage{listings}   % https://www.ctan.org/pkg/listings %% Use this for code
-\usepackage{bigints}    % https://www.ctan.org/pkg/bigints %% \bigintssss, \bigintsss, \bigintss, \bigints, and \bigint
-\usepackage{cancel}     % https://www.ctan.org/pkg/cancel %% A package to draw diagonal lines (“cancelling” a term) and arrows with limits (cancelling a term “to a value”) through parts of maths formulae
-\usepackage{stackengine}% https://www.ctan.org/tex-archive/macros/latex/contrib/stackengine %% The stackengine package provides a versatile way to vertically stack objects in a variety of customizable ways.
-\usepackage{pifont}     % https://www.ctan.org/pkg/pifont %% The package provides commands for Pi fonts (Dingbats, Symbol, etc.); all commands assume you know the character number within the font of the symbol within the font. 
-\usepackage{ragged2e}   % https://www.ctan.org/pkg/ragged2e %% The package defines new commands \Centering, \RaggedLeft, and \RaggedRight and new environments Center, FlushLeft, and FlushRight, which set ragged text and are easily configurable to allow hyphenation (the corresponding commands in LaTeX, all of whose names are lower-case, prevent hyphenation altogether)
-\usepackage{pgfplots}   % https://ctan.org/pkg/pgfplots %% plots drawn by LaTeX itself, in the document's fonts
-\pgfplotsset{compat=1.18}
-\usetikzlibrary{positioning,arrows.meta}
-\usepackage{bookmark}   % https://ctan.org/pkg/bookmark?lang=en %% This package implements a new bookmark (outline) organization for package hyperref. Bookmark properties such as style and color can now be set. Other action types are available (URI, GoToR, Named). The bookmarks are generated in the first compile run. Package hyperref uses two runs. 
+
+%% Hyperlinks and PDF bookmarks
+\usepackage{bookmark}           % https://ctan.org/pkg/bookmark %% PDF bookmarks (loads hyperref)
 %% Hyperlinks: invisible in the print version (they would only show up as coloured text on paper),
 %% subtle TU Delft dark blue in the report/screen version. PDF metadata comes from _thesisinfo.tex.
 \ifprintversion
@@ -42,10 +48,23 @@
     pdfsubject  = {Doctoral dissertation, Delft University of Technology},
     pdfkeywords = {\thesiskeywords},
 }}
-\usepackage{nicematrix} %https://ctan.org/pkg/nicematrix %% This package is based on the package array. It creates PGF/TikZ nodes under the cells of the array and uses these nodes to provide functionalities to construct tabulars, arrays and matrices. 
-\usepackage{pdflscape}  % https://www.ctan.org/pkg/pdflscape %% The package adds PDF support to the landscape environment of package lscape, by setting the PDF /Rotate page attribute. Pages with this attribute will be displayed in landscape orientation by conforming PDF viewers.
 
 %% cleveref must be loaded last (after hyperref). Use \cref{fig:x} -> "Figure 2.1", \Cref at the start of a sentence.
 \usepackage[capitalise,noabbrev,nameinlink]{cleveref}
 \crefname{page}{page}{pages} % "on page 12", not "on Page 12"
 \crefname{listing}{Listing}{Listings}
+
+%% =====================================================================
+%% Optional packages: uncomment when needed (load them above cleveref if they define new
+%% numbered things, otherwise anywhere above is fine).
+%% =====================================================================
+% \usepackage{pdfpages}         % https://ctan.org/pkg/pdfpages %% include PDF pages, e.g. a published paper: \includepdf[pages=-]{paper.pdf}
+% \usepackage{multirow}         % https://ctan.org/pkg/multirow %% table cells spanning several rows
+% \usepackage{colortbl}         % https://ctan.org/pkg/colortbl %% coloured table rows, columns and cells
+% \usepackage{nicematrix}       % https://ctan.org/pkg/nicematrix %% advanced matrices and tables with TikZ nodes
+% \usepackage{multicol}         % https://ctan.org/pkg/multicol %% multiple columns on a page
+% \setlength{\columnsep}{1cm}
+% \usepackage{wrapfig}          % https://ctan.org/pkg/wrapfig %% figures with text flowing around them
+% \usepackage{cancel}           % https://ctan.org/pkg/cancel %% strike through terms in equations
+% \usepackage{bigints}          % https://ctan.org/pkg/bigints %% taller integral signs
+% \usepackage{pifont}           % https://ctan.org/pkg/pifont %% dingbat symbols (ticks, crosses, ...)

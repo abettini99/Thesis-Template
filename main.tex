@@ -4,8 +4,9 @@
 %   a5 (default), royal, tudelft -- book page size: 148x210, 156x234 or 170x240 mm
 %   print     -- print as a book
 %   thumb     -- print thumb index, only available for print
-%   showtrims -- show trim section, only available for print
+%   showtrims -- crop marks: where the page is trimmed (print) or where it sits on A4 (report)
 %   showframe -- show construction guide (page layout)
+%   draft     -- fast compile while writing: images as boxes, overfull lines marked, DRAFT on every page
 
 % packages
 \input{_options/packages}
@@ -20,12 +21,6 @@
 % thesis information: title, author, committee, defence date, colophon (fill this in!)
 \input{_thesisinfo}
 
-%% Enable the following to display watermarks
-% --------------------
-% \usepackage{draftwatermark}   % https://www.ctan.org/pkg/draftwatermark %% Create watermarks for your file
-% \SetWatermarkLightness{0.8}
-% \SetWatermarkText{DRAFT}
-% --------------------
 
 %% Placeholder text used by the example chapters. Remove once the examples are gone.
 \usepackage{lipsum}
@@ -39,6 +34,11 @@
 % https://www.sciencedirect.com/science/article/pii/B9780080982854000042 - How to write a literature review
 % http://web.mit.edu/rsi/www/pdfs/advmath.pdf - LaTeX Math Tools
 % https://en.wikibooks.org/wiki/LaTeX/Advanced_Mathematics - More LaTeX Math Tools
+
+%% Compile only some chapters (much faster while writing a long thesis). Page numbers, and
+%% references to the chapters left out, are kept from the last full compile.
+%% Uncomment and list the chapters you are working on; comment out again for a full compile.
+% \includeonly{Chapters/02Examples}
 
 \AtBeginDocument{\colorlet{tudelft-black}{.}}
 \begin{document}
@@ -66,8 +66,8 @@
     \chapterstyle{frontmatter}
     \aliaspagestyle{chapter}{plain}
 
-    \input{Chapters/00Summary.tex}
-    \input{Chapters/00Preface.tex}
+    \include{Chapters/00Summary}
+    \include{Chapters/00Preface}
 
     \cleardoublepage
     \setcounter{tocdepth}{1} % How deep the contents will actually go: 1 will only go into sections, 2 into subsection, 3 into subsubsections
@@ -104,9 +104,9 @@
     \chapterstyle{mainmatter}
     \aliaspagestyle{chapter}{empty}
     
-    \input{Chapters/01Introduction.tex} % actual pagestyle set in here
+    \include{Chapters/01Introduction} % actual pagestyle set in here
 
-    \input{Chapters/02Examples.tex} % actual pagestyle set in here
+    \include{Chapters/02Examples} % actual pagestyle set in here
 
     \chapterstyle{bibliography}
     \aliaspagestyle{chapter}{plain}
@@ -129,7 +129,7 @@
     \appendix
 
     \clearpage
-    \input{Chapters/A_Appendix.tex}
+    \include{Chapters/A_Appendix}
 
     %% =========== %%
     %% BACK MATTER %%
@@ -139,9 +139,9 @@
     \chapterstyle{frontmatter}
     \aliaspagestyle{chapter}{plain}
     \pagestyle{frontmatter}
-    \input{Chapters/Z_Acknowledgements.tex}
-    \input{Chapters/Z_CurriculumVitae.tex}
-    \input{Chapters/Z_ListOfPublications.tex}
+    \include{Chapters/Z_Acknowledgements}
+    \include{Chapters/Z_CurriculumVitae}
+    \include{Chapters/Z_ListOfPublications}
 
 
     
