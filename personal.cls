@@ -31,6 +31,12 @@
 \ExecuteOptions{british} %% default language: British English
 \ProcessOptions\relax
 
+%% This template is set up for LuaLaTeX (better justification, PDF/A-2u maths). XeLaTeX still works.
+\ifdefined\directlua\else
+    \ClassWarningNoLine{personal}{This template is meant to be compiled with LuaLaTeX.\MessageBreak
+        In Overleaf: Menu > Settings > Compiler > LuaLaTeX}
+\fi
+
 %% Public switch so files outside the class can check for print mode (\ifprintversion ... \else ... \fi)
 \newif\ifprintversion
 \if@print \printversiontrue \fi

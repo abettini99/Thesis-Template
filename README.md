@@ -4,14 +4,12 @@ A LaTeX template for a TU Delft PhD dissertation, built on the `memoir` class. I
 
 ## Compiling
 
-The template compiles with **LuaLaTeX** or **XeLaTeX**. In Overleaf: *Menu → Settings → Compiler*.
+Compile with **LuaLaTeX**. In Overleaf: *Menu → Settings → Compiler → LuaLaTeX*. Locally, `latexmk main.tex` does everything (the included `latexmkrc` selects LuaLaTeX).
 
-| | LuaLaTeX *(recommended for the final version)* | XeLaTeX |
-|---|---|---|
-| Justification | Better: `microtype` can also stretch letters very slightly, which halves the number of hyphenated lines and gives evener word spacing | Good |
-| Speed | About 1.4× slower | Faster, handy while writing |
-
-The bibliography uses **biblatex + biber**, which Overleaf runs automatically. Locally, `latexmk -lualatex main.tex` (or `-xelatex`) does everything. The nomenclature needs no extra tool.
+- LuaLaTeX lets `microtype` stretch letters very slightly, which halves the number of hyphenated lines and gives evener word spacing.
+- The bibliography uses **biblatex + biber**, which Overleaf runs automatically. The nomenclature needs no extra tool.
+- The first compile on a new machine (or a new Overleaf project) takes longer while LuaLaTeX builds its font cache.
+- XeLaTeX also works (it is somewhat faster), but the class prints a warning as a reminder.
 
 ## Faster compiling
 
