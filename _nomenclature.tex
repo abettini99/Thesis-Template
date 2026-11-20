@@ -1,0 +1,87 @@
+%% =====================================================================
+%% NOMENCLATURE: define acronyms and symbols here (this file is loaded in the preamble).
+%% Use them in the text with \gls{label}: acronyms are written out in full the first time,
+%% symbols are printed as defined. The lists are printed in Chapters/00Nomenclature.tex.
+%%
+%%   \nomacronym[sort]{label}{SHORT}{long form}
+%%   \nomdimless[sort]{label}{symbol}{description}{definition}
+%%   \nomlatin[sort]{label}{symbol}{description}{dimensions}{units}
+%%   \nomgreek[sort]{label}{symbol}{description}{dimensions}{units}
+%%   \nomsuper[sort]{label}{symbol}{description}
+%%   \nomsub[sort]{label}{symbol}{description}
+%%
+%% Symbols, dimensions and definitions are written as maths, without $...$.
+%% Write -- for a dimensionless quantity. Labels must be unique across all lists.
+%% Latin symbols are sorted by their sort key (the label if none is given); Greek symbols,
+%% superscripts and subscripts appear in the order they are defined here.
+%% =====================================================================
+
+%% Acronyms
+\nomacronym{bem}{BEM}{blade element momentum theory}
+\nomacronym{roi}{ROI}{reality of interest}
+\nomacronym{rpm}{RPM}{revolutions per minute}
+\nomacronym{tui}{TUI}{text user interface}
+
+%% Dimensionless numbers
+\nomdimless{Re}{\Re}{Reynolds number}{\frac{U L}{\nu}}
+\nomdimless{Ma}{\Ma}{Mach number}{\frac{U}{a}}
+
+%% Latin symbols
+\nomlatin[A]{area}{A}{Surface area}{\Lunit^2}{\unit{\metre\squared}}
+\nomlatin[a1]{a}{a}{Axial induction factor}{--}{--}
+\nomlatin[a2]{aprime}{a'}{Azimuthal induction factor}{--}{--}
+\nomlatin[c]{chord}{c}{Chord length}{\Lunit}{\unit{\metre}}
+\nomlatin[Cd]{Cd}{C_d}{Sectional drag coefficient}{--}{--}
+\nomlatin[Cl]{Cl}{C_l}{Sectional lift coefficient}{--}{--}
+\nomlatin[Cp]{Cp}{C_p}{Power coefficient}{--}{--}
+\nomlatin[CT]{CT}{C_T}{Thrust coefficient}{--}{--}
+\nomlatin[Cv]{Cv}{C_v}{Specific heat at constant volume}{\Lunit^2\Qunit^{-1}\Tunit^{-2}}{\unit{\joule\per\kilogram\per\kelvin}}
+\nomlatin[D1]{diameter}{D}{Rotor diameter}{\Lunit}{\unit{\metre}}
+\nomlatin[D2]{drag}{D}{Drag}{\Munit\Lunit\Tunit^{-2}}{\unit{\newton}}
+\nomlatin[f]{f}{f}{Prandtl root/tip correction factor}{--}{--}
+\nomlatin[F]{force}{F}{Force}{\Munit\Lunit\Tunit^{-2}}{\unit{\newton}}
+\nomlatin[h1]{altitude}{h}{ISA altitude}{\Lunit}{\unit{\metre}}
+\nomlatin[h2]{enthalpy}{h}{Specific stagnation enthalpy}{\Lunit^2\Tunit^{-2}}{\unit{\joule\per\kilogram}}
+\nomlatin[L]{lift}{L}{Lift}{\Munit\Lunit\Tunit^{-2}}{\unit{\newton}}
+\nomlatin[n]{n}{n}{Rotational speed}{\Tunit^{-1}}{\unit{\per\second}}
+\nomlatin[Nb]{Nb}{N_b}{Number of blades}{--}{--}
+\nomlatin[Nr]{Nr}{N_r}{Number of annular elements}{--}{--}
+\nomlatin[Npsi]{Npsi}{N_\psi}{Number of azimuthal elements}{--}{--}
+\nomlatin[p]{p}{p}{Static pressure}{\Munit\Lunit^{-1}\Tunit^{-2}}{\unit{\pascal}}
+\nomlatin[P]{power}{P}{Power}{\Munit\Lunit^2\Tunit^{-3}}{\unit{\watt}}
+\nomlatin[Q]{torque}{Q}{Torque}{\Munit\Lunit^2\Tunit^{-2}}{\unit{\newton\metre}}
+\nomlatin[r]{r}{r}{Radial position}{\Lunit}{\unit{\metre}}
+\nomlatin[t]{t}{t}{Time}{\Tunit}{\unit{\second}}
+\nomlatin[T]{temperature}{T}{Static temperature}{\Qunit}{\unit{\kelvin}}
+\nomlatin[Uinf]{Uinf}{U_\infty}{Free-stream velocity}{\Lunit\Tunit^{-1}}{\unit{\metre\per\second}}
+\nomlatin[Va]{Va}{V_a}{Axial velocity}{\Lunit\Tunit^{-1}}{\unit{\metre\per\second}}
+\nomlatin[Vt]{Vt}{V_t}{Tangential velocity}{\Lunit\Tunit^{-1}}{\unit{\metre\per\second}}
+\nomlatin[W]{W}{W}{Total effective velocity}{\Lunit\Tunit^{-1}}{\unit{\metre\per\second}}
+
+%% Greek symbols (in Greek alphabetical order)
+\nomgreek{alpha}{\alpha}{Angle of attack}{--}{\unit{\degree}}
+\nomgreek{beta}{\beta}{Blade twist angle}{--}{\unit{\degree}}
+\nomgreek{gamma}{\gamma}{Yaw angle}{--}{\unit{\degree}}
+\nomgreek{Gamma}{\Gamma}{Circulation}{\Lunit^2\Tunit^{-1}}{\unit{\metre\squared\per\second}}
+\nomgreek{epsilon}{\epsilon}{Error}{--}{--}
+\nomgreek{theta}{\theta}{Collective pitch angle}{--}{\unit{\degree}}
+\nomgreek{lambda}{\lambda}{Tip speed ratio}{--}{--}
+\nomgreek{mu}{\mu}{Normalised radial position}{--}{--}
+\nomgreek{rho}{\rho}{Air density}{\Munit\Lunit^{-3}}{\unit{\kilogram\per\cubic\metre}}
+\nomgreek{sigmar}{\sigma_r}{Blade solidity}{--}{--}
+\nomgreek{phi}{\phi}{Inflow angle}{--}{\unit{\degree}}
+\nomgreek{chi}{\chi}{Wake skew angle}{--}{\unit{\degree}}
+\nomgreek{psi}{\psi}{Azimuthal angle}{--}{\unit{\degree}}
+\nomgreek{omega}{\omega}{Vorticity}{\Tunit^{-1}}{\unit{\per\second}}
+\nomgreek{Omega}{\Omega}{Rotational speed}{\Tunit^{-1}}{\unit{\radian\per\second}}
+
+%% Superscripts
+\nomsuper{sup-n}{n}{Time step}
+
+%% Subscripts
+\nomsub{sub-inf}{\infty}{Free stream}
+\nomsub{sub-disk}{\mathrm{disk}}{Rotor disk}
+\nomsub{sub-0}{0}{Disk averaged}
+\nomsub{sub-psibar}{\bar{\psi}}{Azimuthally averaged}
+\nomsub{sub-x}{x}{$x$-direction}
+\nomsub{sub-y}{y}{$y$-direction}

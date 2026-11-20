@@ -135,10 +135,7 @@
 %%% MATH FONT
 \input{_options/fontMath}
 
-%%% NOMENCLATURE
-\RequirePackage[intoc,english]{nomencl} % https://www.ctan.org/pkg/nomencl %% use this to make nomenclature!
-% incorporate https://tex.stackexchange.com/questions/112884/how-to-achieve-nomenclature-entries-like-symbol-description-dimension-and-uni
-\input{_options/formatNomenclature}
+%%% NOMENCLATURE: glossaries-extra, loaded after hyperref in _options/packages.tex
 
 \RequirePackage[tableposition=top, figurename=Figure]{caption}
 \renewcommand{\thefigure}{\thechapter.\arabic{figure}}

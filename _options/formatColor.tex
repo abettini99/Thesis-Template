@@ -1,23 +1,26 @@
-%% Define the TU Delft house style colors.
-\definecolor{tudelft-cyan}{cmyk}{1,0,0,0}
-\definecolor{tudelft-black}{cmyk}{0,0,0,1}
-\definecolor{tudelft-white}{cmyk}{0,0,0,0}
-\definecolor{tudelft-sea-green}{cmyk}{0.54,0,0.32,0}
-\definecolor{tudelft-green}{cmyk}{1,0.15,0.4,0}
-\definecolor{tudelft-dark-blue}{cmyk}{1,0.66,0,0.4}
-\definecolor{tudelft-purple}{cmyk}{0.98,1,0,0.35}
-\definecolor{tudelft-turquoise}{cmyk}{0.82,0,0.21,0.08}
-\definecolor{tudelft-sky-blue}{cmyk}{0.45,0,0.06,0.06}
-\definecolor{tudelft-lavendel}{cmyk}{0.45,0.2,0,0.07}
-\definecolor{tudelft-orange}{cmyk}{0.02,0.56,0.84,0}
-\definecolor{tudelft-warm-purple}{cmyk}{0.58,1,0,0.02}
-\definecolor{tudelft-fuchsia}{cmyk}{0.19,1,0,0.19}
-\definecolor{tudelft-bright-green}{cmyk}{0.36,0,1,0}
-\definecolor{tudelft-yellow}{cmyk}{0.02,0,0.54,0}
+%% TU Delft house style colours.
+%% All colours are RGB or grey, which matches the sRGB colour profile declared for PDF/A
+%% (see \DocumentMetadata in main.tex). Black, white and anthracite are pure grey, so black
+%% text and thumb tabs print with black ink only.
+%% Cyan uses the official RGB value from the TU Delft corporate design; the other colours are
+%% colour-managed conversions of the template's original CMYK values (shown in the comments).
+\definecolor{tudelft-cyan}{HTML}{00A6D6}         % CMYK 100/0/0/0 (official RGB)
+\definecolor{tudelft-black}{gray}{0}              % CMYK 0/0/0/100
+\definecolor{tudelft-white}{gray}{1}              % CMYK 0/0/0/0
+\definecolor{tudelft-sea-green}{HTML}{71C9BB}    % CMYK 54/0/32/0
+\definecolor{tudelft-green}{HTML}{0098A2}        % CMYK 100/15/40/0
+\definecolor{tudelft-dark-blue}{HTML}{003C77}    % CMYK 100/66/0/40
+\definecolor{tudelft-purple}{HTML}{22186A}       % CMYK 98/100/0/35
+\definecolor{tudelft-turquoise}{HTML}{00A9BE}    % CMYK 82/0/21/8
+\definecolor{tudelft-sky-blue}{HTML}{7AC7DD}     % CMYK 45/0/6/6
+\definecolor{tudelft-lavendel}{HTML}{80A7D1}     % CMYK 45/20/0/7
+\definecolor{tudelft-orange}{HTML}{F1893F}       % CMYK 2/56/84/0
+\definecolor{tudelft-warm-purple}{HTML}{82278D}  % CMYK 58/100/0/2
+\definecolor{tudelft-fuchsia}{HTML}{A80576}      % CMYK 19/100/0/19
+\definecolor{tudelft-bright-green}{HTML}{B0D235} % CMYK 36/0/100/0
+\definecolor{tudelft-yellow}{HTML}{FBF491}       % CMYK 2/0/54/0
 
-%% Use TU Delft cyan as the color for titles, unless the 'print' option is
-%% specified, in which case we use anthracite, a dark gray, which is also used
-%% for the thumb indices.
-\definecolor{anthracite}{cmyk}{0,0,0,0.8}
+%% Anthracite: a dark grey, an alternative colour for the thumb tabs.
+\definecolor{anthracite}{gray}{0.2}
 % \colorlet{thumb}{anthracite}
 \colorlet{thumb}{tudelft-black}

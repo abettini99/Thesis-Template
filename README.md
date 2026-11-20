@@ -4,8 +4,14 @@ A LaTeX template for a TU Delft PhD dissertation, built on the `memoir` class. I
 
 ## Compiling
 
-- Compile with **XeLaTeX** (LuaLaTeX should also work). In Overleaf: *Menu → Settings → Compiler → XeLaTeX*.
-- The bibliography uses **biblatex + biber** and the nomenclature uses **makeindex**. Overleaf runs both automatically. Locally, `latexmk -xelatex main.tex` does the same.
+The template compiles with **LuaLaTeX** or **XeLaTeX**. In Overleaf: *Menu → Settings → Compiler*.
+
+| | LuaLaTeX *(recommended for the final version)* | XeLaTeX |
+|---|---|---|
+| Justification | Better: `microtype` can also stretch letters very slightly, which halves the number of hyphenated lines and gives evener word spacing | Good |
+| Speed | About 1.4× slower | Faster, handy while writing |
+
+The bibliography uses **biblatex + biber**, which Overleaf runs automatically. Locally, `latexmk -lualatex main.tex` (or `-xelatex`) does everything. The nomenclature needs no extra tool.
 
 ## Faster compiling
 
@@ -18,6 +24,14 @@ A long thesis gets slow because every chapter, figure and plot is processed on e
 5. **Load only what you use.** Optional packages are listed, commented out, at the bottom of `_options/packages.tex`.
 
 (Automatic caching of TikZ pictures with the `memoize` package was tested and left out: it clashes with biblatex and depends on Perl modules that are not available everywhere.)
+
+## Archival PDF (PDF/A)
+
+The PDF is produced as **PDF/A-2b**, the archival standard: fonts are embedded, colours are defined against the sRGB colour profile, and the file carries standard metadata, so it will display the same in decades. This is set by `\DocumentMetadata{...}` in the first lines of `main.tex`, which must stay the very first thing in the file. The same PDF works for the printer and for the TU Delft repository.
+
+- **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A-2b.
+- **Checking:** the template passes the standard PDF/A-2b checks, but have the final PDF validated once with [veraPDF](https://verapdf.org) (free) or Adobe Acrobat's preflight.
+- **Accessible (tagged) PDF**, the higher PDF/UA and PDF/A "a" levels, is not possible yet: the `memoir` class, `caption`/`subcaption` and `pgfplots` are not yet compatible with LaTeX's tagging code.
 
 ## Class options
 
@@ -46,7 +60,8 @@ Set in the first line of `main.tex`, for example:
 | `_titlepage.tex` | Title page, official TU Delft dissertation page, committee and colophon page. |
 | `Chapters/` | Front matter (`00…`), chapters (`01…`, `02…`), appendices (`A_…`) and back matter (`Z_…`). |
 | `Chapters/02Examples.tex` | Demonstrations of everything the template supports. Delete it (and the `lipsum`/`blindtext` lines in `main.tex`) once you no longer need it. |
-| `Chapters/00Nomenclature.tex` | The list of symbols. |
+| `_nomenclature.tex` | **Fill this in:** acronyms and symbols for the nomenclature. |
+| `Chapters/00Nomenclature.tex` | Prints the nomenclature lists. |
 | `references.bib` | Bibliography database. |
 | `personal.cls` | The class: page layout, options, core packages. |
 | `_options/` | Fonts, heading styles, page styles, colours, extra packages, custom commands. |
@@ -58,16 +73,18 @@ Set in the first line of `main.tex`, for example:
 - **Units:** `\qty{1.225}{\kilo\gram\per\cubic\metre}`, `\num{6.02e23}`, `\unit{\metre\per\second}` (siunitx).
 - **Custom maths commands** (in `_options/commands.tex`): `\vec{u}` (bold, underlined vector), `\grad`, `\div`, `\curl`, `\deriv{y}{x}`, `\pderiv{y}{x}`, `\sderiv{y}{t}` (material derivative), `\transpose`, `\cddot`, and dimensionless numbers such as `\Re`, `\Ma`, `\Pr`.
 - **Figures and tables:** prefer `[tbp]` placement over `[H]`, so floats don't leave half-empty pages. Set full-width blocks that are *not* inside a figure or table environment with `\noindent` in front, so they don't pick up the paragraph indent.
-- **Nomenclature:** add symbols in `Chapters/00Nomenclature.tex`, one command per group:
+- **Acronyms and symbols:** define them once in `_nomenclature.tex` and use them with `\gls{label}`. An acronym is written out in full the first time ("blade element momentum theory (BEM)") and abbreviated afterwards; a symbol is printed as defined, in text or maths. In headings and captions, use `\glsfmtshort{label}` for acronyms. Everything defined appears in the nomenclature; delete `\glsaddall` in `Chapters/00Nomenclature.tex` to list only what the text actually uses.
 
-  | Command | Group | Arguments |
-  |---|---|---|
-  | `\nomtypeA{symbol}{description}` | Acronyms | |
-  | `\nomtypeD{symbol}{description}{definition}` | Dimensionless numbers | |
-  | `\nomtypeR{symbol}{description}{dimensions}{unit}` | Latin symbols | |
-  | `\nomtypeG{symbol}{description}{dimensions}{unit}` | Greek symbols | |
-  | `\nomtypeS{symbol}{description}` | Superscripts | |
-  | `\nomtypeU{symbol}{description}` | Subscripts | |
+  | Command | List |
+  |---|---|
+  | `\nomacronym{label}{SHORT}{long form}` | Acronyms |
+  | `\nomdimless{label}{symbol}{description}{definition}` | Dimensionless numbers |
+  | `\nomlatin[sort]{label}{symbol}{description}{dimensions}{units}` | Latin symbols |
+  | `\nomgreek{label}{symbol}{description}{dimensions}{units}` | Greek symbols |
+  | `\nomsuper{label}{symbol}{description}` | Superscripts |
+  | `\nomsub{label}{symbol}{description}` | Subscripts |
+
+  Symbols, dimensions and definitions are written as maths without `$...$` (dimensions with `\Lunit`, `\Munit`, `\Tunit`, `\Qunit`); write `--` for a dimensionless quantity. Latin symbols are sorted by the optional sort key (the label if none is given); Greek symbols and sub- and superscripts appear in the order they are defined.
 
 - **A chapter based on a published paper:** see `Chapters/01Introduction.tex` for the chapter opener with an epigraph, a short abstract and a "parts of this chapter have been published in…" note. To include the published PDF itself, uncomment `pdfpages` in `_options/packages.tex` and use `\includepdf[pages=-]{paper.pdf}`.
 

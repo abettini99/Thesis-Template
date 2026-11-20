@@ -1,3 +1,11 @@
+%% PDF/A-2b: archival PDF for long-term storage (e.g. the TU Delft repository). Fonts are embedded, colours use the
+%% sRGB profile, and the file carries standard XMP metadata. \DocumentMetadata must stay the first command in this file.
+%% (Tagged, accessible PDF (PDF/UA, PDF/A "a" levels) is not yet possible: the memoir class, caption/
+%% subcaption and pgfplots are not compatible with LaTeX's tagging code yet.)
+\DocumentMetadata{
+    pdfstandard = A-2b,
+    lang        = en-GB,
+}
 \documentclass[print,thumb,showtrims]{personal}
 % options:
 %   british (default), american -- language: hyphenation, quotation marks, dates
@@ -20,6 +28,8 @@
 \input{_options/commands}
 % thesis information: title, author, committee, defence date, colophon (fill this in!)
 \input{_thesisinfo}
+% acronyms and symbols for the nomenclature (fill this in!)
+\input{_nomenclature}
 
 
 %% Placeholder text used by the example chapters. Remove once the examples are gone.
@@ -77,7 +87,6 @@
     \cleardoublepage
     \listoftables
     \cleardoublepage
-    % \newpage %% new page included due to the nomenclature package
     
     % Basically, reset counters every time you step into a new part of the report. Useful for when you have many many sections and you need to navigate quickly. Check the cls file for the numbering system.
     % \counterwithin*{equation}{section}

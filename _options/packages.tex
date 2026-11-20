@@ -49,6 +49,9 @@
     pdfkeywords = {\thesiskeywords},
 }}
 
+%% Nomenclature (acronyms and symbols): glossaries-extra, must come after hyperref
+\input{_options/formatNomenclature}
+
 %% cleveref must be loaded last (after hyperref). Use \cref{fig:x} -> "Figure 2.1", \Cref at the start of a sentence.
 \usepackage[capitalise,noabbrev,nameinlink]{cleveref}
 \crefname{page}{page}{pages} % "on page 12", not "on Page 12"

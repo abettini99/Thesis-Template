@@ -1,75 +1,137 @@
+%% =====================================================================
+%% Nomenclature with glossaries-extra.
+%% Entries are defined in _nomenclature.tex (preamble) and printed in Chapters/00Nomenclature.tex.
+%% In the text:  \gls{bem}   -> "blade element momentum (BEM)" the first time, "BEM" after that
+%%               \gls{rho}   -> the symbol, in text or maths
+%% No external tool is needed: sorting is done by LaTeX itself (\makenoidxglossaries).
+%% =====================================================================
+\makeatletter
+\usepackage[nomain, nopostdot, nonumberlist, nogroupskip]{glossaries-extra}
+\makenoidxglossaries
+%% Store entry fields exactly as written (units such as \unit{\metre} only work when typeset).
+\glsnoexpandfields
+
+%% One list per kind of entry.
+\newglossary*{acronyms}{Acronyms}
+\newglossary*{dimless}{Dimensionless numbers}
+\newglossary*{latin}{Latin symbols}
+\newglossary*{greek}{Greek symbols}
+\newglossary*{super}{Superscripts}
+\newglossary*{sub}{Subscripts}
+
+%% Acronyms: long form with the short form in brackets on first use, short form afterwards.
+\setabbreviationstyle[acronym]{long-short}
+
+%% Extra columns for symbols.
+\glsaddstoragekey{dimensions}{}{\glsentrydimensions}
+\glsaddstoragekey{units}{}{\glsentryunits}
+\glsaddstoragekey{definition}{}{\glsentrydefinition}
+
+%% ---------------------------------------------------------------------
+%% Commands for defining entries (use them in _nomenclature.tex).
+%% The optional first argument is a sort key. By default, acronyms are sorted by their short
+%% form and Latin symbols and dimensionless numbers by their label; Greek symbols and sub- and
+%% superscripts keep the order in which you define them.
+%% ---------------------------------------------------------------------
+%% \nomacronym[sort]{label}{SHORT}{long form}
+\newcommand{\nomacronym}[4][]{%
+    \ifx\relax#1\relax
+        \newabbreviation[type=acronyms, category=acronym, sort={#3}]{#2}{#3}{#4}%
+    \else
+        \newabbreviation[type=acronyms, category=acronym, sort={#1}]{#2}{#3}{#4}%
+    \fi}
+%% \nomdimless[sort]{label}{symbol}{description}{definition}       (symbol and definition: maths)
+\newcommand{\nomdimless}[5][]{\thesis@nomentry{dimless}{#1}{#2}{#3}{#4}{definition={\ensuremath{#5}}}}
+%% \nomlatin[sort]{label}{symbol}{description}{dimensions}{units}   (symbol and dimensions: maths)
+\newcommand{\nomlatin}[6][]{\thesis@nomentry{latin}{#1}{#2}{#3}{#4}{dimensions={\thesis@dims{#5}}, units={#6}}}
+%% \nomgreek[sort]{label}{symbol}{description}{dimensions}{units}
+\newcommand{\nomgreek}[6][]{\thesis@nomentry{greek}{#1}{#2}{#3}{#4}{dimensions={\thesis@dims{#5}}, units={#6}}}
+%% \nomsuper[sort]{label}{symbol}{description}
+\newcommand{\nomsuper}[4][]{\thesis@nomentry{super}{#1}{#2}{#3}{#4}{}}
+%% \nomsub[sort]{label}{symbol}{description}
+\newcommand{\nomsub}[4][]{\thesis@nomentry{sub}{#1}{#2}{#3}{#4}{}}
+
+%% #1 type, #2 sort key (may be empty: then the label), #3 label, #4 symbol, #5 description, #6 extra keys
+\newcommand{\thesis@nomentry}[6]{%
+    \ifx\relax#2\relax
+        \newglossaryentry{#3}{type=#1, sort={#3}, name={\ensuremath{#4}}, description={#5}, #6}%
+    \else
+        \newglossaryentry{#3}{type=#1, sort={#2}, name={\ensuremath{#4}}, description={#5}, #6}%
+    \fi}
+%% Dimensions are given in maths ("\Lunit\Tunit^{-1}"); "--" gives an en dash for dimensionless quantities.
+\newcommand{\thesis@dims}[1]{%
+    \def\thesis@arg{#1}\def\thesis@dash{--}%
+    \ifx\thesis@arg\thesis@dash \textendash \else \ensuremath{#1}\fi}
+
+%% MLT dimensions (https://www.ldeo.columbia.edu/~martins/hydro/case_studies/units_dimensions.html)
+\newcommand{\Lunit}{\mathrm{L}}   % length
+\newcommand{\Munit}{\mathrm{M}}   % mass
+\newcommand{\Tunit}{\mathrm{T}}   % time
+\newcommand{\Qunit}{\mathrm{Q}}   % temperature
+
+%% ---------------------------------------------------------------------
+%% Layout of the lists: same columns as before.
+%% ---------------------------------------------------------------------
+\newlength\symbolwidth      \setlength\symbolwidth{4.5em}
+\newlength\dimensionswidth  \setlength\dimensionswidth{6em}
+\newlength\unitswidth       \setlength\unitswidth{5.5em}
 \newlength\descriptionwidth
-\newlength\dimensionswidth
-\newlength\unitswidth
 \newlength\definitionwidth
-\newlength\symbolwidth
-%% Column widths (book page, used in both print and report mode)
-\setlength\symbolwidth{4.5em}
-\setlength\dimensionswidth{7em}
-\setlength\unitswidth{4.5em}
-%% Description and definition columns take whatever width is left, so the nomenclature fits every page size.
-\setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-\dimensionswidth-\unitswidth-1em\relax}
-\setlength\definitionwidth{\dimexpr\dimensionswidth+\unitswidth\relax} % definition column replaces the dimensions + units columns
 
-\newcommand{\nomdescr}[1]{\parbox[t]{\descriptionwidth}{\RaggedRight #1}} % the cm box changes the size of the description box
-\newcommand{\DimensUnits}[2]{\hfill\makebox[\dimensionswidth]{#1\hfill}%
-\makebox[\unitswidth]{#2\hfill}\ignorespaces} % first number related to 'dimensions' box size, second number related to 'units' box size
-\newcommand{\DefinitionCol}[1]{\hfill\parbox[t]{\definitionwidth}{#1}\ignorespaces} % number related to 'definition' box size
+\newcommand{\nomheader}[1]{{\headingfont\large #1}}
+\newcommand{\nomtitle}[1]{\par\bigskip\noindent{\headingfont\LARGE #1}\par\nopagebreak\smallskip}
 
+%% The lists get their titles from \printnom, so the glossary's own heading is switched off.
+\renewcommand*{\glossarysection}[2][]{}
 
-\newcommand{\nomsubtitle}[1]{\item[\headingfont\LARGE #1]}
-\renewcommand\nomgroup[1]{%
-\itemsep0pt % just disable this line if you do not want spacing
-\vspace{10pt}
-\def\nomtemp{\csname nomstart#1\endcsname}\nomtemp}
+%% Common settings for the styles below.
+\newcommand{\thesis@nomtablesetup}{%
+    \setlength\LTleft{0pt}\setlength\LTright{0pt}\setlength\LTpre{0pt}\setlength\LTpost{0pt}%
+    \renewcommand*{\glossaryheader}{}%
+    \renewcommand*{\glsgroupheading}[1]{}%
+    \renewcommand*{\glsgroupskip}{}%
+    \renewcommand*{\subglossentry}[3]{\glossentry{##2}{##3}}}
 
-\newcommand{\nomstartA}{\nomsubtitle{Acronyms}%
-  \item[\headingfont\Large Symbol]
-    {\headingfont\Large Description}
-}
+%% Symbol | Description          (acronyms: description starts with a capital)
+\newglossarystyle{nom-plain}{%
+    \thesis@nomtablesetup
+    \renewenvironment{theglossary}{%
+        \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-2\tabcolsep\relax}%
+        \begin{longtable}{@{}p{\symbolwidth}p{\descriptionwidth}@{}}
+            \nomheader{Symbol} & \nomheader{Description} \\[2pt] \endhead}
+        {\end{longtable}}%
+    \renewcommand*{\glossentry}[2]{%
+        \glstarget{##1}{\glossentryname{##1}} & \RaggedRight\glossentrydesc{##1} \tabularnewline}}
+\newglossarystyle{nom-acronyms}{%
+    \setglossarystyle{nom-plain}%
+    \renewcommand*{\glossentry}[2]{%
+        \glstarget{##1}{\glossentryname{##1}} & \RaggedRight\Glsxtrlong{##1} \tabularnewline}}
 
-\newcommand{\nomstartB}{\vspace{1em}\nomsubtitle{Dimensionless numbers}%
-  \item[\headingfont\Large Symbol]
-    {\headingfont\Large Description}
-    \DefinitionCol{\headingfont\Large Definition}
-}
+%% Symbol | Description | Definition
+\newglossarystyle{nom-definition}{%
+    \thesis@nomtablesetup
+    \renewenvironment{theglossary}{%
+        \setlength\definitionwidth{\dimexpr\dimensionswidth+\unitswidth+2\tabcolsep\relax}%
+        \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-\definitionwidth-4\tabcolsep\relax}%
+        \begin{longtable}{@{}p{\symbolwidth}p{\descriptionwidth}p{\definitionwidth}@{}}
+            \nomheader{Symbol} & \nomheader{Description} & \nomheader{Definition} \\[2pt] \endhead}
+        {\end{longtable}}%
+    \renewcommand*{\glossentry}[2]{%
+        \glstarget{##1}{\glossentryname{##1}} & \RaggedRight\glossentrydesc{##1} & \glsentrydefinition{##1} \tabularnewline}}
 
-\newcommand{\nomstartC}{\vspace{1em}\nomsubtitle{Latin symbols}%        % R for Roman
-  \item[\headingfont\Large Symbol]%
-  {\headingfont\Large Description}
-  \DimensUnits{\headingfont\Large Dimensions}
-  {\headingfont\Large Units}
-}
-  
-\newcommand{\nomstartD}{\vspace{1em}\nomsubtitle{Greek symbols}%
-  \item[\headingfont\Large Symbol]%
-  {\headingfont\Large Description}
-  \DimensUnits{\headingfont\Large Dimensions}
-  {\headingfont\Large Units}
-}
+%% Symbol | Description | Dimensions | Units
+\newglossarystyle{nom-dimensions}{%
+    \thesis@nomtablesetup
+    \renewenvironment{theglossary}{%
+        \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-\dimensionswidth-\unitswidth-6\tabcolsep\relax}%
+        \begin{longtable}{@{}p{\symbolwidth}p{\descriptionwidth}p{\dimensionswidth}p{\unitswidth}@{}}
+            \nomheader{Symbol} & \nomheader{Description} & \nomheader{Dimensions} & \nomheader{Units} \\[2pt] \endhead}
+        {\end{longtable}}%
+    \renewcommand*{\glossentry}[2]{%
+        \glstarget{##1}{\glossentryname{##1}} & \RaggedRight\glossentrydesc{##1} & \glsentrydimensions{##1} & \glsentryunits{##1} \tabularnewline}}
 
-\newcommand{\nomstartE}{\vspace{1em}\nomsubtitle{Superscripts}%
-  \item[\headingfont\Large Symbol]
-  {\headingfont\Large Description}
-}
-
-\newcommand{\nomstartF}{\vspace{1em}\nomsubtitle{Subscripts}%
-  \item[\headingfont\Large Symbol]
-  {\headingfont\Large Description}
-}
-
-\renewcommand*{\nompreamble}{
-\markboth{\nomname}{\nomname}
-%\begin{multicols*}{2}
-}
-\renewcommand{\nompostamble}{}%\end{multicols*}}
-
-\newcommand{\nomwithdim}[5]{\nomenclature[#1]{#2}%
-{\nomdescr{#3}\DimensUnits{#4}{#5}}}
-
-\newcommand{\nomtypeA}[3][]{\nomenclature[A#1]{#2}{#3}}
-\newcommand{\nomtypeD}[4][]{\nomenclature[B#1]{#2}{\nomdescr{#3}\DefinitionCol{#4}}}
-\newcommand{\nomtypeR}[5][]{\nomwithdim{C#1}{#2}{#3}{#4}{#5}}
-\newcommand{\nomtypeG}[5][]{\nomwithdim{D#1}{#2}{#3}{#4}{#5}}
-\newcommand{\nomtypeS}[3][]{\nomenclature[E#1]{#2}{#3}}
-\newcommand{\nomtypeU}[3][]{\nomenclature[F#1]{#2}{#3}}
+%% \printnom{type}{title}{style}{sort}: prints one list with its title.
+\newcommand{\printnom}[4]{%
+    \nomtitle{#2}%
+    \printnoidxglossary[type=#1, style=#3, sort=#4]}
+\makeatother
