@@ -8,9 +8,12 @@
 \usepackage{subcaption} % https://ctan.org/pkg/subcaption %% provides subfigure/caption support i.e use: \begin{subfigure}{\textwidth}
 \usepackage{array}      % https://ctan.org/pkg/array %% gives more power to making tables! array provides many more utilities to making tables
 \usepackage{multirow}   % https://ctan.org/pkg/multirow %% centering of text over multiple rows for tables!
-%% Paragraphs: no indent, space between paragraphs (memoir).
-\nonzeroparskip
-\setlength{\parindent}{0pt}
+%% Paragraphs: book style, first line indented and no blank space between paragraphs.
+%% (The first paragraph after a heading is not indented, as usual.)
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{0pt}
+%% Tables are set in \small, matching the captions.
+\AddToHook{env/table/begin}{\small}
 % \usepackage{wrapfig}    % https://ctan.org/pkg/wrapfig %% allows the use of 'wrapfigure' environments
 \usepackage{pdfpages}   % https://ctan.org/pkg/pdfpages %% This package simplifies the inclusion of external multi-page PDF documents in LaTeX documents. 
 \usepackage{colortbl}   % https://www.ctan.org/pkg/colortbl %% The package allows rows and columns to be coloured, and even individual cells.

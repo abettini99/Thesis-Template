@@ -44,7 +44,7 @@ When there exists an author with last name prefix of 'van', use the \textbacksla
 \begingroup
 \renewcommand\tabularxcolumn[1]{m{#1}} % https://latex.org/forum/viewtopic.php?t=32433
 
-\begin{minipage}[t]{0.48\textwidth}
+\noindent\begin{minipage}[t]{0.48\textwidth}
 \begin{table}[H]
     \centering
     \caption{Fuselage geometry \cite[Tab.~4]{Bettini2021}}
@@ -230,7 +230,7 @@ The landscape environment basically rotates your text 90 degrees counterclockwis
 
 Alternatively, you can also insert a table that may be really wide like this:
 
-\begin{tabularx}{\linewidth}{r|X}
+\noindent\begin{tabularx}{\linewidth}{r|X}
     \bfseries first column & \bfseries a really really really really really really really really really long column \\ \hline
     1            & 2    \\ \hline
     1            & 2    \\ \hline
