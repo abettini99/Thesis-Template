@@ -69,12 +69,13 @@
 %% (the environments are defined after cleveref below, so it names shared-counter ones correctly)
 
 %% Algorithms (pseudocode): "Algorithm 2.1", numbered per chapter, as a float with its caption on top.
-%% Write the steps with \State, \If, \For, \While, \Return, ...: https://ctan.org/pkg/algpseudocodex
+%% Write the steps with \State, \If, \For, \While, \Repeat/\Until, \Return, \Comment: https://ctan.org/pkg/algorithmicx
 %% List of algorithms: \listofalgorithms in main.tex (commented out there).
 \usepackage[chapter]{algorithm}
-\usepackage[noEnd=false, indLines=true]{algpseudocodex}
+\usepackage{algpseudocode}
 \algrenewcommand\algorithmicrequire{\textbf{Input:}}
 \algrenewcommand\algorithmicensure{\textbf{Output:}}
+\algrenewcommand\algorithmiccomment[1]{\hfill\textcolor{black!60}{\(\triangleright\) \textit{#1}}}
 
 %% cleveref must be loaded last (after hyperref). Use \cref{fig:x} -> "Figure 2.1", \Cref at the start of a sentence.
 \usepackage[capitalise,noabbrev,nameinlink]{cleveref}
