@@ -81,6 +81,8 @@ The print editions are set for paper: links invisible (they still work in the PD
 | `personal.cls` | The class: page layout, options, core packages. |
 | `_options/` | Fonts, heading styles, page styles, colours, extra packages, custom commands. |
 | `Fonts/` | Optional: MathTime Professional 2 for the maths (see `Fonts/README.md`). Never put it in a public repository. |
+| `tools/` | `mtpro2_unicode.py` and its table: prepares MathTime Professional 2 for the template (see `Fonts/README.md`). |
+| `latexmkrc` | latexmk settings: LuaLaTeX, and the `Fonts/` folder on TeX's search paths. |
 | `propositions.tex` | The propositions (stellingen), a separate document. |
 | `cover.tex` | The book cover (back, spine, front) with the spine width calculated from the page count. |
 
@@ -157,9 +159,15 @@ Every symbol also goes in `_nomenclature.tex`, so the nomenclature doubles as a 
 
 ## Maths font: MathTime Professional 2 (optional)
 
-Maths is set in newtx, a Times-style maths font included with TeX Live and Overleaf. Put an OpenType version of MathTime Professional 2 in the `Fonts` folder, as `MTPro2Math.otf` (Complete) or `MTPro2MathLite.otf` (Lite), the names the converter gives them, and the template uses it instead, with no other changes: the Complete version is preferred if both are there, and Lite's missing alphabets are filled in: calligraphic letters and bold Latin letters (vectors) from newtx, bold Greek, blackboard bold and Fraktur from TeX Gyre Termes Math. The steps: download MTPro2 (Lite free from [PCTeX](https://www.pctex.com/mtpro2.html) or [CTAN](https://mirrors.ctan.org/fonts/mtp2lite.zip), Complete from PCTeX), convert it with [mtp2otf](https://ctan.org/tex-archive/fonts/utilities/mtp2otf), and add the result to `Fonts/` in your own thesis project. Details are in [`Fonts/README.md`](Fonts/README.md).
+Maths is set in newtx, a Times-style maths font included with TeX Live and Overleaf. If you own MathTime Professional 2 (Lite is free from [CTAN](https://mirrors.ctan.org/fonts/mtp2lite.zip), Complete is sold by [PCTeX](https://www.pctex.com/mtpro2.html)), the template uses it instead:
 
-**The MathTime licence does not allow sharing the font, converted or not:** never add it to a public repository (including this template); keep it in a private project only. Embedding it in the thesis PDF is allowed.
+1. Put the MathTime zip (`mtp2lite.zip` or `mtp2fonts.zip`) in the main folder, as it is or unpacked.
+2. Run `python3 tools/mtpro2_unicode.py`. It writes a copy of the fonts into `Fonts/` with Unicode glyph names, so the maths copies correctly and the PDF stays PDF/A.
+3. Compile with LuaLaTeX through latexmk (Overleaf does this); `latexmkrc` lets TeX find the fonts in `Fonts/`.
+
+All of the `mtpro2` package's macros then work (`\xl`…`\XXXL` operators, `\SQRT`, `\widearc`, `\bm`, `\hm`), with Complete preferred if both editions are there and Lite's missing alphabets filled in from newtx, the AMS fonts and Euler. An OpenType conversion made with [mtp2otf](https://ctan.org/tex-archive/fonts/utilities/mtp2otf) (`Fonts/MTPro2Math.otf` or `Fonts/MTPro2MathLite.otf`) also works, through `unicode-math`, but without those macros. Details are in [`Fonts/README.md`](Fonts/README.md).
+
+**The MathTime licence does not allow sharing the fonts, converted or not:** never add them to a public repository (including this template); keep them in a private project only. The `.gitignore` keeps the zips, the unpacked folders and the contents of `Fonts/` out of git. Embedding the fonts in the thesis PDF is allowed.
 
 ## Plots
 

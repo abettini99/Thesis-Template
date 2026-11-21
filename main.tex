@@ -15,9 +15,10 @@
 %   backreferences -- each reference lists the pages it is cited on
 %   chapterbib -- every chapter ends with its own reference list
 
-% Maths font: newtx (Times), or MathTime Professional 2 if its OpenType file is in the Fonts folder
-% (Fonts/MTPro2Math.otf for Complete, Fonts/MTPro2MathLite.otf for Lite). See Fonts/README.md for how to get it;
-% its licence forbids sharing it, so never put it in a public repository.
+% Maths font: newtx (Times), or MathTime Professional 2 if it is in the Fonts folder: put the MathTime zip
+% in this folder and run python3 tools/mtpro2_unicode.py (all mtpro2 macros, LuaLaTeX via latexmk), or add an
+% OpenType conversion (Fonts/MTPro2Math.otf or Fonts/MTPro2MathLite.otf). See Fonts/README.md; its licence
+% forbids sharing the fonts, so never put them in a public repository (.gitignore keeps them out of git).
 
 % The class reads _thesisinfo.tex (title, author, committee, defence date, colophon: fill it in!)
 % and sets up the layout, fonts, headings and archival PDF. Here: packages, your own commands,

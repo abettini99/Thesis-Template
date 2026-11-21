@@ -167,14 +167,30 @@
 %%% MATHS: mathtools (loads amsmath); the maths font is set in fontMath.tex
 \RequirePackage{mathtools}
 
-%%% MATHS FONT CHOICE: MathTime Professional 2 if its OpenType file is in the Fonts folder: Complete
-%% (Fonts/MTPro2Math.otf, as mtp2otf names it, or Fonts/MTPro2MathFull.otf), else Lite
-%% (Fonts/MTPro2MathLite.otf); see Fonts/README.md. Otherwise newtx.
-%% \ifthesismathtime ... \else ... \fi lets other files follow the choice; \thesismathtimefile is the file.
+%%% MATHS FONT CHOICE, first match wins (see Fonts/README.md):
+%% 1. MathTime Professional 2 as classic Type 1 fonts with all of mtpro2.sty's macros, as prepared by
+%%    tools/mtpro2_unicode.py (Fonts/mtpro2.sty + Fonts/mtpro2-glyphtounicode.tex; LuaLaTeX only).
+%%    Complete if the bold fonts are there, else Lite. \ifthesismtpclassic follows this choice.
+%% 2. MathTime Professional 2 as an OpenType file, through unicode-math: Complete (Fonts/MTPro2Math.otf,
+%%    as mtp2otf names it, or Fonts/MTPro2MathFull.otf), else Lite (Fonts/MTPro2MathLite.otf).
+%%    \ifthesismathtime follows this choice; \thesismathtimefile is the file.
+%% 3. newtx.
+\newif\ifthesismtpclassic
 \newif\ifthesismathtime
 \def\thesismathtimeedition{}
-\def\thesis@tmp#1#2{\ifthesismathtime\else\IfFileExists{Fonts/#1}{\thesismathtimetrue
-    \def\thesismathtimeedition{#2}\def\thesismathtimefile{#1}}{}\fi}
+\IfFileExists{Fonts/mtpro2-glyphtounicode.tex}{\IfFileExists{Fonts/mtpro2.sty}{%
+    \ifdefined\directlua
+        %% the fonts are found through the search path that latexmkrc adds (Overleaf runs latexmk)
+        \IfFileExists{mtpro2-glyphtounicode.tex}{\thesismtpclassictrue
+            \IfFileExists{Fonts/mt2bmit.pfb}{\def\thesismathtimeedition{Complete}}{\def\thesismathtimeedition{Lite}}}%
+          {\ClassWarningNoLine{personal}{MathTime fonts found in Fonts/, but TeX cannot see that folder.\MessageBreak
+            Compile with latexmk, which reads the template's latexmkrc (Overleaf does this).\MessageBreak
+            Using another maths font for now}}%
+    \else
+        \ClassInfo{personal}{The classic MathTime fonts in Fonts/ need LuaLaTeX; not used}%
+    \fi}{}}{}
+\def\thesis@tmp#1#2{\ifthesismtpclassic\else\ifthesismathtime\else\IfFileExists{Fonts/#1}{\thesismathtimetrue
+    \def\thesismathtimeedition{#2}\def\thesismathtimefile{#1}}{}\fi\fi}
 \thesis@tmp{MTPro2Math.otf}{Complete}
 \thesis@tmp{MTPro2MathFull.otf}{Complete}
 \thesis@tmp{MTPro2MathLite.otf}{Lite}
