@@ -37,7 +37,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends git python3-pil poppler-utils
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Render the page sizes
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
