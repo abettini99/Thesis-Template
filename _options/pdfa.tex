@@ -44,9 +44,21 @@
     \__thesis_drop_option:nn { @raw@opt@xcolor.sty } { hyperref }
   }
 \ExplSyntaxOff
-\catcode`\@=\thesisatcatcode
 %% PDF version 1.4 (allowed by PDF/A-2): hyperref's PDF/A mode, which pdfx switches on, expects it.
 %% XeLaTeX (not the default engine) can't set the creation date the way PDF/A wants; pdfx then
 %% warns instead of stopping.
 \ifdefined\XeTeXrevision \PassOptionsToPackage{noerr}{pdfx}\fi
+%% Newer pdfx reports "Setting all color commands to rgb" on every PDF/A compile. The template's colours
+%% are all RGB or grey already, so that message is only information: show it as such in the log.
+\let\thesis@PackageWarning\PackageWarning
+\def\PackageWarning#1#2{%
+    \in@{Setting all color commands}{#2}%
+    \ifin@ \PackageInfo{#1}{#2}\else \thesis@PackageWarning{#1}{#2}\fi}
+\let\thesis@PackageWarningNoLine\PackageWarningNoLine
+\def\PackageWarningNoLine#1#2{%
+    \in@{Setting all color commands}{#2}%
+    \ifin@ \PackageInfo{#1}{#2}\else \thesis@PackageWarningNoLine{#1}{#2}\fi}
 \RequirePackage[a-2u, pdf14]{pdfx}
+\let\PackageWarning\thesis@PackageWarning
+\let\PackageWarningNoLine\thesis@PackageWarningNoLine
+\catcode`\@=\thesisatcatcode
