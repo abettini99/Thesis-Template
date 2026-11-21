@@ -143,6 +143,11 @@
 \input{_options/pdfa}
 
 \if@draft
+    %% line numbers in the margin, so readers can point at a line ("p. 12, l. 31")
+    \RequirePackage{lineno}
+    \renewcommand{\linenumberfont}{\normalfont\fontsize{6}{7}\selectfont\sffamily\color{black!45}}
+    \setlength{\linenumbersep}{4mm}
+    \AtBeginDocument{\linenumbers}
     \RequirePackage[firstpageonly=false]{draftwatermark}
     \DraftwatermarkOptions{text={DRAFT \textendash\ \today}, fontsize=8pt, angle=0, pos={0.5\paperwidth, 4mm}, color=black!60}
 \fi
@@ -154,6 +159,18 @@
 %%% THUMB TABS (TikZ)
 \RequirePackage{tikz}
 \input{_options/thumb}
+
+%%% FIGURE LOG for tools/check_figures.py: every included graphic writes its natural and printed size
+%% (and page) to the log, and the log records the text width, caption size and font scale.
+\patchcmd{\Gin@setfile}{\leavevmode}{\thesis@logfigure{#3}\leavevmode}{}%
+    {\ClassInfo{personal}{Figure log unavailable (graphics changed)}}
+\AtBeginDocument{%
+    \begingroup\small\edef\thesis@tmp{\f@size}\expandafter\endgroup
+    \expandafter\def\expandafter\thesis@captionsize\expandafter{\thesis@tmp}%
+    \wlog{Thesis layout: textwidth \the\textwidth\space| captionsize \thesis@captionsize pt | fontscale \thesis@fontscale}}
+\def\thesis@logfigure#1{\edef\thesis@tmp{#1 | \the\Gin@nat@width\space x \the\Gin@nat@height\space
+    | \the\Gin@req@width\space x \the\Gin@req@height}\expandafter\thesis@logfigure@\expandafter{\thesis@tmp}}
+\def\thesis@logfigure@#1{\write\m@ne{Thesis figure: #1 | page \thepage}}
 
 \input{_options/formatText}
 \input{_options/formatPagestyles}
