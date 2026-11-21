@@ -1,0 +1,45 @@
+#!/bin/sh
+# Refuse commits that contain MathTime Professional 2 font files (licensed to you alone),
+# even ones forced past .gitignore with "git add -f". Turn it on once per clone:
+#     git config core.hooksPath tools/hooks
+# (Overleaf's own GitHub synchronisation does not run hooks.)
+
+blocked=""
+nl='
+'
+# 1. by name: font formats, the MathTime package files, zips and unpacked folders, Fonts/ contents
+names=$(git diff --cached --name-only --diff-filter=ACMR)
+IFS="$nl"
+for f in $names; do
+    lower=$(printf '%s' "$f" | tr 'A-Z' 'a-z')
+    base=${lower##*/}
+    case "$lower" in
+        fonts/readme.md) continue ;;
+        fonts/*|*mtp2fonts/*|*mtp2lite/*|*mtpro2/*) blocked="$blocked$nl  $f"; continue ;;
+    esac
+    case "$base" in
+        *.pfb|*.pfm|*.afm|*.tfm|*.vf|*.otf|*.ttf|mt2*|mtpro2.sty|mtpro2.map|mtpro2-glyphtounicode.tex|umt2*.fd|omslbm.fd|eula-mtpro2*|mtp2*.zip|mtpro2*.zip)
+            blocked="$blocked$nl  $f" ;;
+    esac
+done
+
+# 2. by content: binary files (renamed fonts, zips) that mention MathTime. PDFs are left alone:
+#    a thesis PDF with the fonts embedded is allowed by the licence.
+binaries=$(git diff --cached --numstat --diff-filter=ACMR | awk -F '\t' '$1 == "-" { print $3 }')
+for f in $binaries; do
+    case "$blocked" in *"  $f"*) continue ;; esac
+    case "$f" in *.pdf|*.PDF) continue ;; esac
+    if git cat-file -p ":$f" 2>/dev/null | head -c 1048576 | LC_ALL=C grep -a -q -i -E 'MathTime|MTPro2|mtp2(fonts|lite)|Publish or Perish|mt2mit|mt2syt'; then
+        blocked="$blocked$nl  $f (contains MathTime data)"
+    fi
+done
+unset IFS
+
+if [ -n "$blocked" ]; then
+    echo "Commit refused: MathTime Professional 2 files are licensed to you alone and must"
+    echo "not go into a repository (see Fonts/README.md). Unstage them with"
+    echo "    git restore --staged <file>"
+    echo "Files:$blocked"
+    exit 1
+fi
+exit 0

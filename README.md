@@ -29,7 +29,7 @@ The PDF is produced as **PDF/A-2u**, the archival standard: fonts are embedded, 
 
 - **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A.
 - **Engine:** compile with LuaLaTeX for PDF/A. XeLaTeX still produces the same-looking PDF, but `pdfx` cannot add the XMP metadata there, so that file is not PDF/A.
-- **Checking:** the template passes the standard PDF/A-2u checks with LuaLaTeX, but have the final PDF validated once with [veraPDF](https://verapdf.org) (free) or Adobe Acrobat's preflight.
+- **Checking:** the template passes the standard PDF/A-2u checks with LuaLaTeX. `python3 tools/check_pdf.py` checks your compiled PDF (see *Before sending it to the printer*); it runs [veraPDF](https://verapdf.org) (free) for a full validation when that is installed, otherwise have the final PDF validated once with veraPDF or Adobe Acrobat's preflight.
 - **Accessible (tagged) PDF**, the higher PDF/UA and PDF/A "a" levels, is not possible yet: the `memoir` class, the `caption` package and the `newtxmath` maths font are not yet compatible with LaTeX's tagging code, and several other packages have not been tested with it.
 
 ## Class options
@@ -81,14 +81,14 @@ The print editions are set for paper: links invisible (they still work in the PD
 | `personal.cls` | The class: page layout, options, core packages. |
 | `_options/` | Fonts, heading styles, page styles, colours, extra packages, custom commands. |
 | `Fonts/` | Optional: MathTime Professional 2 for the maths (see `Fonts/README.md`). Never put it in a public repository. |
-| `tools/` | `mtpro2_unicode.py` and its table: prepares MathTime Professional 2 for the template (see `Fonts/README.md`). |
+| `tools/` | `check_pdf.py` checks the compiled PDF before submission; `mtpro2_unicode.py` and its table prepare MathTime Professional 2 (see `Fonts/README.md`); `hooks/pre-commit` refuses commits with MathTime files. |
 | `latexmkrc` | latexmk settings: LuaLaTeX, and the `Fonts/` folder on TeX's search paths. |
 | `propositions.tex` | The propositions (stellingen), a separate document. |
 | `cover.tex` | The book cover (back, spine, front) with the spine width calculated from the page count. |
 
 ## Starting your thesis
 
-1. **Your own copy.** Make a new, private repository for the thesis from this template (on GitHub: *Use this template*, or duplicate the repository) and link it to a new Overleaf project. Keep the template repository as it is, so fixes can be copied over later.
+1. **Your own copy.** Make a new, private repository for the thesis from this template (on GitHub: *Use this template*, or duplicate the repository) and link it to a new Overleaf project. Keep the template repository as it is, so fixes can be copied over later. In your local clone, run `git config core.hooksPath tools/hooks` once: git then refuses any commit that contains MathTime font files (see *Maths font* below).
 2. **Details.** Fill in `_thesisinfo.tex`: title, names, committee, defence date, keywords, licence, ORCID, data availability. Check the class options at the top of `main.tex` (page size, edition, language).
 3. **Front and back matter.** Replace the placeholder text in `Chapters/00Summary.tex` (summary and samenvatting), `00Preface.tex`, `Z_Acknowledgements.tex`, `Z_CurriculumVitae.tex` and `Z_ListOfPublications.tex`.
 4. **Remove the examples.** In `main.tex`, delete the lines `\include{Chapters/02Examples}` and `\include{Chapters/03InfSup}` (keep the files for reference), the references they use from `references.bib`, and, once no chapter uses `\lipsum` any more, the `lipsum` line. Replace the example appendix `A_Appendix.tex` with your own or remove its `\include`.
@@ -210,14 +210,15 @@ Both are separate documents that use the fonts and the details in `_thesisinfo.t
 
 1. **Details:** check every line of `_thesisinfo.tex` again: names (all first names, as on your passport), title, defence date and time, Rector Magnificus, committee and order, ISBN, printer, cover designer.
 2. **Final build:** compile with the `final` option (removes all todo notes) and `print-preparation`, and without `draft` (with `showtrims` if the printer wants crop marks). For the repository, compile the same with `digital`: the same pages, at their final size. Search the PDF for "??" (broken references) and "[" followed by a citation key (missing references).
-3. **Overfull lines:** compile once with `draft`; a black bar in the margin marks every line that sticks out. Fix them by rewording or adding words to `_hyphenation.tex`.
-4. **Contents and bookmarks:** check the contents, the running heads (long titles get cut off or wrap) and the PDF bookmarks.
-5. **Figures:** every figure at its printed size, legible, and correct in greyscale where the printer charges for colour pages.
-6. **PDF/A:** the PDF should be PDF/A-2u with all fonts embedded (most printers check this; Adobe Acrobat's Preflight or veraPDF shows it).
-7. **Page count and blank pages:** chapters start on a right-hand page, so blank left-hand pages are expected. Note the total page count.
-8. **Cover:** set the page count and the paper thickness in `cover.tex` (or the spine width from the printer), the bleed the printer asks for, turn off the guides with `\coverguidesfalse`, and compare with the printer's cover template.
-9. **Propositions:** compile `propositions.tex` separately; check the promotors' names and that the promotors have approved them.
-10. **Proof copy:** ask the printer for a proof copy and check it on paper before the full run.
+3. **Check the PDF:** run `python3 tools/check_pdf.py` (it reads `main.pdf` and `main.log`; on Overleaf, download both first). It reports what printers and the repository reject: PDF/A problems, fonts not embedded (also inside figure files) or without Unicode, blurry raster images (below 300 ppi at their printed size), CMYK images, broken references and citations, missing characters and overfull boxes. Fix everything marked FAIL.
+4. **Overfull lines:** compile once with `draft`; a black bar in the margin marks every line that sticks out. Fix them by rewording or adding words to `_hyphenation.tex`.
+5. **Contents and bookmarks:** check the contents, the running heads (long titles get cut off or wrap) and the PDF bookmarks.
+6. **Figures:** every figure at its printed size, legible, and correct in greyscale where the printer charges for colour pages.
+7. **PDF/A:** the PDF should be PDF/A-2u with all fonts embedded (most printers check this; the check above, veraPDF or Adobe Acrobat's Preflight shows it).
+8. **Page count and blank pages:** chapters start on a right-hand page, so blank left-hand pages are expected. Note the total page count.
+9. **Cover:** set the page count and the paper thickness in `cover.tex` (or the spine width from the printer), the bleed the printer asks for, turn off the guides with `\coverguidesfalse`, and compare with the printer's cover template.
+10. **Propositions:** compile `propositions.tex` separately; check the promotors' names and that the promotors have approved them.
+11. **Proof copy:** ask the printer for a proof copy and check it on paper before the full run.
 
 ## After the committee's comments
 

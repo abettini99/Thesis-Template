@@ -17,7 +17,7 @@ Package options and macros are described in `mtpro2.pdf` in the MathTime downloa
 
 MathTime Professional 2 is licensed to you personally. The licence does not allow redistributing it, and that includes the converted files. So:
 
-- **Never** add the fonts to a public repository, including this template or a public copy of your thesis sources. The template's `.gitignore` keeps the MathTime zips and folders and everything in this folder except this README out of git.
+- **Never** add the fonts to a public repository, including this template or a public copy of your thesis sources. The template's `.gitignore` keeps the MathTime zips and folders and everything in this folder except this README out of git. For a second lock, run `git config core.hooksPath tools/hooks` once in your clone: git then refuses any commit containing MathTime files, even ones forced past `.gitignore` or renamed (a thesis PDF with the fonts embedded is still allowed).
 - **Overleaf's GitHub synchronisation may not follow `.gitignore`**: if your Overleaf project is linked to a repository, upload the fonts to Overleaf only if that repository is private.
 - Embedding the fonts in your thesis PDF is allowed: the licence lets you embed them in documents for transfer, display and printing, so the PDF can be shared and published as usual.
 - Check the licence ([Lite](https://ctan.org/tex-archive/fonts/mtp2lite), [Complete](https://www.pctex.com/mtpro2.html)) yourself, also before uploading the fonts to an online service such as Overleaf.
