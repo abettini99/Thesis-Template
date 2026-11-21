@@ -30,6 +30,18 @@
 %% Typewriter font (code listings, file names): Latin Modern Mono, scaled with the rest.
 \setmonofont{lmmono10-regular.otf}[ItalicFont=lmmono10-italic.otf, BoldFont=lmmonolt10-bold.otf, Scale=\thesis@fontscale]
 
+%% Running heads: Source Sans Regular capitals, letterspaced (capitals need extra space between them
+%% to read well), a size below the text. Page numbers in the same size, not spaced.
+\newfontfamily{\runningheadcaps}{\thesis@sourcesans}[
+    Extension   = {.otf},
+    UprightFont = {*-Regular},
+    LetterSpace = 8,
+    Ligatures   = TeX,
+    Scale       = \thesis@fontscale
+]
+\newcommand{\runningheadtext}[1]{{\small\runningheadcaps\MakeUppercase{#1}}}
+\newcommand{\runningheadfolio}{\small\sffamily}
+
 %% Heading font: used for chapter/section titles, running heads, page numbers and nomenclature headers.
 %% To change the heading font everywhere, define another family above and change this one line.
 \newcommand{\headingfont}{\sourcesans}

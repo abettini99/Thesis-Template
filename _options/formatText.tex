@@ -71,24 +71,31 @@
         \setlength{\afterchapskip}{20pt}
     }
     
-    %% Section formatting. A negative space before a heading (memoir convention) means the first
-    %% paragraph after it is not indented, as usual in books; the space itself is the same.
-    \setbeforesecskip{-1\onelineskip}
+    %% Heading levels differ by size and space, never by extra boldness:
+    %%   section        semibold, 1.15 x text size, 1.5 lines above, half a line below
+    %%   subsection     semibold, text size, 1 line above, a quarter line below
+    %%   subsubsection  semibold italic, text size, unnumbered, 1 line above, a quarter line below
+    %% A negative space before a heading (memoir convention) means the first paragraph after it is
+    %% not indented, as usual in books; the space itself is the same.
+    \newcommand{\thesis@secsize}{\fontsize{\dimexpr 1.15\dimexpr\f@size pt\relax\relax}{\dimexpr 1.38\dimexpr\f@size pt\relax\relax}\selectfont}
+
+    %% Section formatting
+    \setbeforesecskip{-1.5\onelineskip plus -0.5\onelineskip minus -0.2\onelineskip}
     \setsecindent{0em}
-    \setsecheadstyle{\bfseries\headingfont}
-    \setaftersecskip{0.1\onelineskip}
+    \setsecheadstyle{\thesis@secsize\bfseries\headingfont}
+    \setaftersecskip{0.5\onelineskip}
 
     %% Subsection formatting
-    \setbeforesubsecskip{-1\onelineskip}
+    \setbeforesubsecskip{-1\onelineskip plus -0.3\onelineskip minus -0.1\onelineskip}
     \setsubsecindent{0em}
     \setsubsecheadstyle{\bfseries\headingfont}
-    \setaftersubsecskip{0.1\onelineskip}
+    \setaftersubsecskip{0.25\onelineskip}
 
-    %% Subsubsection formatting
-    \setbeforesubsubsecskip{-1\onelineskip}
+    %% Subsubsection formatting (unnumbered)
+    \setbeforesubsubsecskip{-1\onelineskip plus -0.3\onelineskip minus -0.1\onelineskip}
     \setsubsubsecindent{0em}
-    \setsubsubsecheadstyle{\bfseries\headingfont}
-    \setaftersubsubsecskip{0.1\onelineskip}
+    \setsubsubsecheadstyle{\sffamily\bfseries\itshape}
+    \setaftersubsubsecskip{0.25\onelineskip}
 
     %% paragraph formatting
     \setbeforeparaskip{1\onelineskip}
