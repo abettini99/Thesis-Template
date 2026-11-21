@@ -1,3 +1,36 @@
+%% Maths font. MathTime Professional 2 when its OpenType file is in the Fonts folder (detected by the
+%% class; see Fonts/README.md), otherwise newtx, the Times-style maths that ships with TeX Live.
+\ifthesismathtime
+%% ---------------------------------------------------------------------------------------------
+%% MathTime Professional 2 (Full or Lite), through unicode-math. Lite has no bold italic, no bold
+%% upright Greek, no calligraphic, blackboard bold or Fraktur: those come from TeX Gyre Termes Math,
+%% the Times-style OpenType maths font in TeX Live.
+%% ---------------------------------------------------------------------------------------------
+%% unicode-math announces that it takes over a few symbols from mathtools (\overbracket, \coloneqq):
+%% intended here, so it goes to the log as information instead of a warning.
+\ExplSyntaxOn
+\msg_redirect_name:nnn { unicode-math } { mathtools-overbracket } { info }
+\msg_redirect_name:nnn { unicode-math } { mathtools-colon } { info }
+\ExplSyntaxOff
+\RequirePackage{unicode-math}
+\setmathfont{MTPro2Math\thesismathtimeedition.otf}[Path=Fonts/, Scale=\thesis@fontscale]
+\def\thesis@tmp{Lite}\ifx\thesismathtimeedition\thesis@tmp
+    \setmathfont{texgyretermes-math.otf}[range={bb,bbit,cal,bfcal,frak,bffrak,bfit,bfsfit,bfup/{greek,Greek}},
+        Scale=\thesis@fontscale]
+\fi
+%% \mathsf (matrices \mathsf{A}, operators \mathsf{Res}) in Source Sans, the document's sans-serif font.
+\setmathfontface\mathsf{\thesis@sourcesans}[Extension=.otf, UprightFont=*-Regular, BoldFont=*-Semibold,
+    Scale=\thesis@fontscale]
+%% unicode-math redefines these at the start of the document; restore the template's meaning.
+\AddToHook{begindocument/end}{%
+    \renewcommand{\div}{\nabla\cdot}%  divergence, not the division sign
+    \renewcommand{\Re}{\mathrm{Re}}%   Reynolds number, not the real part
+    \let\coloneqq\coloneq\let\eqqcolon\eqcolon}% := and =: as single glyphs
+\ClassInfo{personal}{Maths font: MathTime Professional 2 \thesismathtimeedition\space (Fonts/MTPro2Math\thesismathtimeedition.otf)}
+\else
+%% ---------------------------------------------------------------------------------------------
+%% newtx
+%% ---------------------------------------------------------------------------------------------
 %% Math: newtxmath, the Times-style math font that matches the TeX Gyre Termes body text.
 %% Variables are italic, as is standard for Times-based documents.
 %% newtxmath takes digits, \mathrm, \mathbf, \mathit and operator names (sin, log, ...) from the current
@@ -16,3 +49,4 @@
 %% substituted a default font (warning "Font shape OT1/SourceSans3/m/n undefined").
 \DeclareMathAlphabet{\mathsf}{TU}{\sfdefault}{m}{n}
 \SetMathAlphabet{\mathsf}{bold}{TU}{\sfdefault}{\bfdefault}{n}
+\fi

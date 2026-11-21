@@ -164,8 +164,16 @@
 
 \RequirePackage{microtype}
 
-%%% MATHS: mathtools (loads amsmath); integrals such as \oiint come from newtxmath
+%%% MATHS: mathtools (loads amsmath); the maths font is set in fontMath.tex
 \RequirePackage{mathtools}
+
+%%% MATHS FONT CHOICE: MathTime Professional 2 if its OpenType file is in the Fonts folder
+%% (Fonts/MTPro2MathFull.otf, else Fonts/MTPro2MathLite.otf; see Fonts/README.md), otherwise newtx.
+%% \ifthesismathtime ... \else ... \fi lets other files follow the choice.
+\newif\ifthesismathtime
+\def\thesismathtimeedition{}
+\IfFileExists{Fonts/MTPro2MathFull.otf}{\thesismathtimetrue\def\thesismathtimeedition{Full}}{%
+    \IfFileExists{Fonts/MTPro2MathLite.otf}{\thesismathtimetrue\def\thesismathtimeedition{Lite}}{}}
 
 %%% TEXT FONTS
 %% Compile with LuaLaTeX (XeLaTeX also works); fonts are loaded through fontspec.

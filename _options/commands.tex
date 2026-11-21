@@ -61,8 +61,10 @@
 %% Vectors and tensors in bold italics (Latin and Greek alike), so they stand apart from scalars,
 %% e.g. the test function v from the viscosity nu. Change these two lines to switch notation everywhere:
 %% plain italics: {#1}, arrow: {\vv{#1}} (package esvect), underline: {\underline{#1}}.
-\renewcommand{\vec}[1]{\bm{#1}}                 % vector:  \vec{u}
-\newcommand{\tensor}[1]{\bm{#1}}                % tensor:  \tensor{\tau}
+%% (Bold italic is \bm with newtx and \symbfit with MathTime, which goes through unicode-math.)
+\ifthesismathtime \newcommand{\thesisboldmath}{\symbfit}\else \newcommand{\thesisboldmath}{\bm}\fi
+\renewcommand{\vec}[1]{\thesisboldmath{#1}}     % vector:  \vec{u}
+\newcommand{\tensor}[1]{\thesisboldmath{#1}}    % tensor:  \tensor{\tau}
 
 %% Lists: dashes as bullets, no extra space between items (a list reads as part of the paragraph),
 %% and the item text at the paragraph indent, with the dash or number hanging in front of it.

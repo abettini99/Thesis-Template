@@ -1,4 +1,5 @@
-\RequirePackage[no-math]{fontspec} % no-math: leave math fonts to newtxmath (see fontMath.tex)
+%% With newtx maths, fontspec leaves the maths fonts alone (no-math); MathTime goes through unicode-math.
+\ifthesismathtime \RequirePackage{fontspec}\else \RequirePackage[no-math]{fontspec}\fi
 %% Main text: TeX Gyre Termes, a free Times New Roman clone that ships with TeX Live (works on Overleaf).
 %% Loaded by file name so it works with both XeLaTeX and LuaLaTeX.
 \setmainfont{texgyretermes}[

@@ -5,7 +5,9 @@
 %% =====================================================================
 
 %% Maths and units
-\usepackage{bm}                 % https://ctan.org/pkg/bm %% bold symbols: \bm{} instead of \boldsymbol{}
+\ifthesismathtime\else
+\usepackage{bm}                 % https://ctan.org/pkg/bm %% bold symbols with newtx (MathTime uses unicode-math's \symbfit)
+\fi
 \usepackage{siunitx}            % https://ctan.org/pkg/siunitx %% quantities and units: \qty{}{}, \num{}, \unit{}
 
 %% Figures and tables

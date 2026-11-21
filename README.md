@@ -80,6 +80,7 @@ The print editions are set for paper: links invisible (they still work in the PD
 | `references.bib` | Bibliography database. |
 | `personal.cls` | The class: page layout, options, core packages. |
 | `_options/` | Fonts, heading styles, page styles, colours, extra packages, custom commands. |
+| `Fonts/` | Optional: MathTime Professional 2 for the maths (see `Fonts/README.md`). Never put it in a public repository. |
 | `propositions.tex` | The propositions (stellingen), a separate document. |
 | `cover.tex` | The book cover (back, spine, front) with the spine width calculated from the page count. |
 
@@ -153,6 +154,12 @@ Decide the notation once and keep it for the whole thesis; it drifts when chapte
 | Units | upright, with a thin space: $10\,\mathrm{m\,s^{-1}}$ | `\qty{10}{\metre\per\second}` (siunitx) |
 
 Every symbol also goes in `_nomenclature.tex`, so the nomenclature doubles as a check that nothing is used for two things.
+
+## Maths font: MathTime Professional 2 (optional)
+
+Maths is set in newtx, a Times-style maths font included with TeX Live and Overleaf. Put an OpenType version of MathTime Professional 2 in the `Fonts` folder, as `MTPro2MathFull.otf` (Complete) or `MTPro2MathLite.otf` (Lite), and the template uses it instead, with no other changes: the Complete version is preferred if both are there, and Lite's missing alphabets (bold italic for vectors, bold Greek, calligraphic, blackboard bold, Fraktur) come from TeX Gyre Termes Math. The steps: download MTPro2 (Lite free from [PCTeX](https://www.pctex.com/mtpro2.html) or [CTAN](https://mirrors.ctan.org/fonts/mtp2lite.zip), Complete from PCTeX), convert it with [mtp2otf](https://ctan.org/tex-archive/fonts/utilities/mtp2otf), and add the result to `Fonts/` in your own thesis project. Details are in [`Fonts/README.md`](Fonts/README.md).
+
+**The MathTime licence does not allow sharing the font, converted or not:** never add it to a public repository (including this template); keep it in a private project only. Embedding it in the thesis PDF is allowed.
 
 ## Plots
 
