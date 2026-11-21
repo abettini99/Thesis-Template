@@ -99,7 +99,7 @@ The print editions are set for paper: links invisible (they still work in the PD
 
 ## Writing
 
-- **Cross-references:** use `\cref{...}` (gives "Figure 2.1", "Equation (2.3)", "Section 2.1") and `\Cref{...}` at the start of a sentence.
+- **Cross-references:** use `\cref{...}` (gives "Figure 2.1", "Equation (2.3)", "Section 2.1") and `\Cref{...}` at the start of a sentence. For one panel of a figure, `\panelref{fig:...}{a}` gives "Figure 2.2a" with the letter inside the link.
 - **Chapter titles:** they are set large and aligned right, which suits one or two short lines; keep chapter titles short (a few words) and move detail into the opening paragraph or abstract.
 - **Short titles:** a long chapter title crowds the page number in the running head; give it a short version, `\chapter[title in the contents][title in the running heads]{full title}` (and `\section[short]{full}` for long section titles).
 - **Captions:** give every figure, table and algorithm a short version without a full stop, `\caption[short]{Long caption.}`: only the short one appears in the list, so the lists read as even one-line entries, with no citations in them (a citation there would also take a reference number before the text cites it).
@@ -165,7 +165,7 @@ Maths is set in newtx, a Times-style maths font included with TeX Live and Overl
 2. Run `python3 tools/mtpro2_unicode.py`. It writes a copy of the fonts into `Fonts/` with Unicode glyph names, so the maths copies correctly and the PDF stays PDF/A.
 3. Compile with LuaLaTeX through latexmk (Overleaf does this); `latexmkrc` lets TeX find the fonts in `Fonts/`.
 
-All of the `mtpro2` package's macros then work (`\xl`…`\XXXL` operators, `\SQRT`, `\widearc`, `\bm`, `\hm`), with Complete preferred if both editions are there and Lite's missing alphabets filled in from newtx, the AMS fonts and Euler. An OpenType conversion made with [mtp2otf](https://ctan.org/tex-archive/fonts/utilities/mtp2otf) (`Fonts/MTPro2Math.otf` or `Fonts/MTPro2MathLite.otf`) also works, through `unicode-math`, but without those macros. Details are in [`Fonts/README.md`](Fonts/README.md).
+All of the `mtpro2` package's macros then work (`\xl`…`\XXXL` operators, `\SQRT`, `\widearc`, `\bm`, `\hm`), with Complete preferred if both editions are there and Lite's missing alphabets filled in from newtx, the AMS fonts and Euler. Details are in [`Fonts/README.md`](Fonts/README.md).
 
 **The MathTime licence does not allow sharing the fonts, converted or not:** never add them to a public repository (including this template); keep them in a private project only. The `.gitignore` keeps the zips, the unpacked folders and the contents of `Fonts/` out of git. Embedding the fonts in the thesis PDF is allowed.
 

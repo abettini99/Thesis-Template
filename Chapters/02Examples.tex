@@ -52,7 +52,7 @@ Below subsections, a heading in the italic of the text font marks a topic withou
 \section{Cross-references and citations}\label{sec:references}
 %% =====================================================================
 
-Cross-references name the thing they point to: \cref{sec:text} discusses text, \cref{eq:navier-stokes} is the momentum equation, \cref{fig:panels} has two panels, of which \cref{fig:panels}a is the left one, \cref{tab:geometry} lists the model geometry and \cref{app:derivation} contains a derivation. Several references at once are combined: \cref{eq:continuity,eq:navier-stokes}. \Cref{fig:diagram} is on \cpageref{fig:diagram}.
+Cross-references name the thing they point to: \cref{sec:text} discusses text, \cref{eq:navier-stokes} is the momentum equation, \cref{fig:panels} has two panels, of which \panelref{fig:panels}{a} is the left one, \cref{tab:geometry} lists the model geometry and \cref{app:derivation} contains a derivation. Several references at once are combined: \cref{eq:continuity,eq:navier-stokes}. \Cref{fig:diagram} is on \cpageref{fig:diagram}.
 
 Citations use numbered references~\cite{Allen2002}, several at once~\cite{Sinnige2020,Bettini2021,Eitelberg2020}, or name the authors, as in \citet{Herrez2016}, who published in \citeyear{Herrez2016}. A page or table can be added to a citation~\cite[Tab.~4]{Bettini2021}. Software and data sets are cited in the same way, with their DOI~\cite{BettiniCode2026,BettiniData2026}.
 
@@ -220,7 +220,7 @@ Give every image a short alternative text with the \texttt{alt} key: a sentence 
 
 \subsection{Figures with several panels}
 
-A figure with several panels is best made as one PDF, with the panel letters drawn in by the plotting tool. The caption then describes each panel, and the text refers to a panel as \cref{fig:panels}a.
+A figure with several panels is best made as one PDF, with the panel letters drawn in by the plotting tool. The caption then describes each panel, and the text refers to a panel with \verb|\panelref|, which keeps the letter inside the link: \panelref{fig:panels}{a}.
 
 \begin{figure}[tbp]
     \centering

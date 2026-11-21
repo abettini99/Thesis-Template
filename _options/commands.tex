@@ -97,3 +97,8 @@
     \@afterindentfalse\@afterheading % the text after the note starts unindented
 }
 \makeatother
+
+%% A panel of a figure as one link, letter included: \panelref{fig:x}{a} gives "Figure 2.2a"
+%% (\Panelref at the start of a sentence; several panels: \panelref{fig:x}{a,b}).
+\newcommand{\panelref}[2]{\hyperref[#1]{\cref*{#1}#2}}
+\newcommand{\Panelref}[2]{\hyperref[#1]{\Cref*{#1}#2}}
