@@ -114,6 +114,24 @@ When the continuation should line up with an equals sign, \texttt{split} inside 
 \end{equation}
 Break before an operator ($+$, $-$, $=$), not after it, so the new line shows at once that it continues the previous one.
 
+Example of a system of equations:
+
+\textit{Find $\vec{u}^h \in \mathcal{V}^h(\Omega)$ between $0<t\leq T$, given an initial condition $\vec{u}_0$, such that $\forall \vec{v} \in \mathcal{W}^h(\Omega)$, $\forall \vec{\sigma} \in \mathcal{W}^h(\partial\Omega_\mathcal{I})$, $\forall \vec{\zeta} \in \mathcal{W}^h(\partial\Omega_\mathcal{B})$:}
+\begin{equation*}
+    \BilinearForm{     \vec{v}}{\!\pderiv[]{\vec{u}^h}{t}}    {L^2(\Omega)} +
+    \BilinearForm{     \vec{v}}{\vec{u}^h \cdot\grad\vec{u}^h}{L^2(\Omega)} +
+    \BilinearForm{\grad\vec{v}}{\nu\grad\vec{u}^h}            {L^2(\Omega)} =
+    \BilinearForm{     \vec{v}}{\!\vec{f}}                    {L^2(\Omega)}
+\end{equation*}
+\begin{equation*}
+    \BilinearForm{\vec{\sigma}}{\vec{u}^h}                 {L^2(\partial\Omega_\mathcal{I})} =
+    \BilinearForm{\vec{\sigma}}{\vec{u}^{\mathrm{inflow}}} {L^2(\partial\Omega_\mathcal{I})}
+\end{equation*}
+\begin{equation*}
+    \BilinearForm{\vec{\zeta}}{\vec{u}^h}                  {L^2(\partial\Omega_\mathcal{B})} =
+    \BilinearForm{\vec{\zeta}}{\vec{u}^{\mathrm{wall}}}    {L^2(\partial\Omega_\mathcal{B})}
+\end{equation*} \\
+
 %% =====================================================================
 \section{Units and numbers}\label{sec:units}
 %% =====================================================================
