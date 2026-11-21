@@ -209,6 +209,19 @@ def check_log(log: Path, r: Report) -> None:
                [f"{pt} pt {where}" for pt, where in overfull])
     else:
         r.ok("no overfull boxes")
+    # PDF backend warnings ("warning  (pdf inclusion): found PDF version ..."): TeX wraps them, so rejoin
+    backend = []
+    for i, l in enumerate(lines):
+        if l.startswith("warning  ("):
+            msg = l + (lines[i + 1] if i + 1 < len(lines) and not lines[i + 1].startswith(("(", "<", "[")) else "")
+            backend.append(msg.replace("warning  ", "", 1))
+    inclusion = [b for b in backend if "PDF version" in b]
+    if inclusion:
+        r.warn("figures saved as a newer PDF version than this PDF (1.4): harmless, but to clear the warning "
+               "save them as PDF 1.4 (e.g. Inkscape: Save as PDF, version 1.4)", inclusion)
+    rest = [b for b in backend if b not in inclusion]
+    if rest:
+        r.warn("PDF backend warnings", rest)
     other = [w for w in warnings if "undefined" not in w and "Rerun" not in w]
     if other:
         r.warn("other warnings", other)

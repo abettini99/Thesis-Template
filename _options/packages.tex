@@ -96,6 +96,9 @@
     \def\@fs@mid{\kern3pt\hrule\kern3pt}\let\@fs@iftopcapt\iftrue}
 \makeatother
 \floatstyle{ruled}\restylefloat{algorithm}
+\makeatletter % every algorithm numbers its lines from 1: give the links unique names (no duplicates)
+\renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
+\makeatother
 \DeclareCaptionStyle{ruled}{font=small, labelfont={sc,bf}, labelsep=quad}
 \algrenewcommand\algorithmicrequire{\textbf{Input:}}
 \algrenewcommand\algorithmicensure{\textbf{Output:}}
