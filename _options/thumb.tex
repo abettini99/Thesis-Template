@@ -41,8 +41,25 @@
     \ifdim\thesis@thumbtab>0.8\thumbvspace \setlength\thesis@thumbtab{0.8\thumbvspace}\fi
 }
 
-%% TikZ library calc for the coordinates of the tabs.
+%% TikZ's "current page" is the whole sheet, but the book page sits inside a larger one (bleed, or A4
+%% in the report version). Redefine it as the book page whenever an overlay is drawn, on the correct
+%% side for left and right pages (after https://texample.net/tikz/examples/modifying-current-page-node/).
 \usetikzlibrary{calc}
+\newcommand\thesis@setpagenode{%
+    \expandafter\def\csname pgf@sh@ns@current page\endcsname{rectangle}%
+    \strictpagecheck\checkoddpage
+    \ifoddpage
+        \expandafter\def\csname pgf@sh@np@current page\endcsname{%
+            \def\southwest{\pgfpoint{\stockwidth-\paperwidth-\trimedge}{\stockheight-\trimtop-\paperheight}}%
+            \def\northeast{\pgfpoint{\stockwidth-\trimedge}{\stockheight-\trimtop}}}%
+    \else
+        \expandafter\def\csname pgf@sh@np@current page\endcsname{%
+            \def\southwest{\pgfpoint{\trimedge}{\stockheight-\trimtop-\paperheight}}%
+            \def\northeast{\pgfpoint{\trimedge+\paperwidth}{\stockheight-\trimtop}}}%
+    \fi
+    \expandafter\def\csname pgf@sh@nt@current page\endcsname{{1}{0}{0}{1}{0pt}{0pt}}%
+    \expandafter\def\csname pgf@sh@pi@current page\endcsname{pgfpageorigin}}
+\AtBeginDocument{\pgfkeys{/tikz/overlay/.add code={}{\thesis@setpagenode}}}
 
 %% Draws the tab. #1: west (left, even page) or east (right, odd page).
 \def\thesis@west{west}

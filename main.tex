@@ -11,27 +11,16 @@
 %   backreferences -- each reference lists the pages it is cited on
 %   chapterbib -- every chapter ends with its own reference list
 
-% thesis information (title, author, committee, defence date, colophon: fill in _thesisinfo.tex!) and the
-% archival PDF setup (_options/pdfa.tex) are loaded by the class.
-% packages
+% The class reads _thesisinfo.tex (title, author, committee, defence date, colophon: fill it in!)
+% and sets up the layout, fonts, headings and archival PDF. Here: packages, your own commands,
+% hyphenation and the nomenclature entries.
 \input{_options/packages}
-% fix for booktabs rules in tables that break across pages (xltabular)
-\input{_fixes/packageFixes}
-% code settings
-\input{_options/formatCode}
-% page styles
-\input{_options/formatPagestyles}
-% new commands
 \input{_options/commands}
-% hyphenation of technical terms and names (add to it as you write)
-\input{_hyphenation}
-% acronyms and symbols for the nomenclature (fill this in!)
-\input{_nomenclature}
-
+\input{_hyphenation}     % hyphenation of technical terms and names (add to it as you write)
+\input{_nomenclature}    % acronyms and symbols for the nomenclature (fill this in!)
 
 %% Placeholder text (\lipsum) used by the example chapters. Remove once the placeholders are gone.
 \usepackage{lipsum}
-\usepackage{blindtext}
 %% Use the following to visualise line numbers.
 % \usepackage{lineno}
 % \linenumbers
@@ -54,7 +43,6 @@
     %% =========== %%
     \pagenumbering{roman}
     \pagestyle{frontmatter}
-    \chapterstyle{frontmatter}
     \aliaspagestyle{chapter}{plain}
 
     \contentsstyle{frontmatter} % front matter: a compact block in the contents
@@ -73,17 +61,12 @@
     % \listofalgorithms % uncomment if the thesis has more than a few algorithms
     % \cleardoublepage
 
-    %% If you divide the thesis into \part{}s: restart chapter numbering in every part without
-    %% breaking the PDF bookmarks.
-    \counterwithin*{chapter}{part}
-
     \input{Chapters/00Nomenclature.tex}
-    
+
     %% ========== %%
     %% MAINMATTER %%
     %% ========== %%
     \pagenumbering{arabic}
-    \chapterstyle{mainmatter}
     \aliaspagestyle{chapter}{chapteropening}
     
     \contentsstyle{mainmatter}
@@ -98,7 +81,6 @@
     %% One reference list at the end of the book (not with the chapterbib option: then every chapter has its own)
     \ifchapterbib\else
         \thumbsoff % no thumb tab on the reference pages
-        \chapterstyle{bibliography}
         \aliaspagestyle{chapter}{plain}
         \DeclareRobustCommand{\VAN}[0]{van} % "van" prefixes lowercase in the reference list (see commands.tex)
         \renewcommand{\bibname}{References}
@@ -111,7 +93,6 @@
     %% APPENDIX %%
     %% ======== %%
     \bookmarksetup{startatroot} % https://tex.stackexchange.com/questions/131959/pdf-bookmarks-for-references-and-index-appear-as-contained-in-the-appendix-wron/131966
-    \chapterstyle{appendix}
     \aliaspagestyle{chapter}{chapteropening}
     \appendix
     \crefalias{chapter}{appendix}\crefalias{section}{subappendix} % \cref gives "Appendix A", "Section A.1"
@@ -125,7 +106,6 @@
     %% =========== %%
     \bookmarksetup{startatroot}
     \cleardoublepage
-    \chapterstyle{frontmatter}
     \aliaspagestyle{chapter}{plain}
     \pagestyle{frontmatter}
     \contentsstyle{frontmatter} % back matter: compact again

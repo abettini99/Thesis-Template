@@ -1,24 +1,20 @@
+%% Headings, chapter openings, contents. Read by the class.
 
-\setcounter{secnumdepth}{2} % number chapters, sections and subsections; subsubsections and below are unnumbered
-\renewcommand{\thechapter}{\arabic{chapter}}
-%% Section numbers: Dutch/German convention with a trailing dot ("2.1.") in headings, the contents
-%% and running heads, but not in cross-references, so \cref gives "Section 2.1" rather than "Section 2.1.".
-\renewcommand{\thesection}{\thechapter.\arabic{section}}
-\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
-\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+%% Numbering: chapters, sections and subsections (subsubsections are unnumbered). Section numbers
+%% follow the Dutch/German convention with a trailing dot ("2.1.") in headings, the contents and
+%% running heads, but not in cross-references, so \cref gives "Section 2.1" rather than "Section 2.1.".
+\setcounter{secnumdepth}{2}
 \setsecnumformat{\csname the#1\endcsname.\quad}
 \renewcommand{\cftsectionaftersnum}{.}
 \renewcommand{\cftsubsectionaftersnum}{.}
+
 %% Contents and lists: no dot leaders, every page number in the text font. Chapters in the heading
 %% font; the front and back matter (summary, preface, lists, acknowledgements, ...) as a compact
 %% block in regular weight. main.tex switches with \contentsstyle{frontmatter} and
 %% \contentsstyle{mainmatter}; they start a new page and write the switch at once, so it lands in the
 %% right place among the entries of \include'd chapters.
 \renewcommand*{\cftdotsep}{\cftnodots}
-\renewcommand*{\cftsectiondotsep}{\cftnodots}
-\renewcommand*{\cftsubsectiondotsep}{\cftnodots}
-\renewcommand*{\cftfiguredotsep}{\cftnodots}
-\renewcommand*{\cfttabledotsep}{\cftnodots}
+\renewcommand{\cftchapterfont}{\headingfont\bfseries}
 \renewcommand{\cftchapterpagefont}{\normalfont}
 \newcommand{\tocfrontmatter}{%
     \setlength{\cftbeforechapterskip}{0pt plus 1pt}%
@@ -29,129 +25,108 @@
     \renewcommand{\cftchapterfont}{\headingfont\bfseries}%
     \par\addvspace{0.5\onelineskip}}
 \newcommand{\contentsstyle}[1]{\clearpage\immediate\write\@auxout{\string\@writefile{toc}{\expandafter\string\csname toc#1\endcsname}}}
-\renewcommand{\cftchapterfont}{\headingfont\bfseries} % default, also without the switches
 
-\def\blfootnote{\xdef\@thefnmark{}\@footnotetext}
+%% Chapters start on a right-hand page in the book, on the next page in the report version.
+\if@print \openright \else \openany \fi
+%% Chapter openings. One style for every chapter-level heading (front matter, chapters, references,
+%% appendices, back matter), so all titles start at the same height on the page:
+%%   - a small label, "CHAPTER 3" / "APPENDIX A", in letterspaced capitals;
+%%   - the title in Source Sans Light at \chaptertitlesize, aligned right;
+%%   - unnumbered headings (Summary, Contents, References, ...) leave the label's space empty, so
+%%     their titles line up with the chapter titles.
+%% A chapter with an epigraph or abstract (\chapterprecishere{...}) gets an opening page of its own,
+%% and its text starts on the next page; with \chapterprecishere{} or without it, the text starts
+%% below the title.
+\newcommand{\thesis@chaptitlefont}{\fontsize{\chaptertitlesize}{1.15\dimexpr\chaptertitlesize\relax}\headingfont}
+\newcommand{\thesis@chaplabelfont}{\normalsize\runningheadcaps}
+\newcommand{\thesis@chapterstyle}{%
+    \setlength{\beforechapskip}{40pt}
+    \setlength{\midchapskip}{1\onelineskip}
+    \setlength{\afterchapskip}{3\onelineskip}
+    \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+    \renewcommand{\chapnamefont}{\thesis@chaplabelfont}
+    \renewcommand{\chapnumfont}{\thesis@chaplabelfont}
+    \renewcommand{\chaptitlefont}{\thesis@chaptitlefont}
+    \renewcommand{\printchaptername}{\thesis@chapterlabel{\MakeUppercase{\@chapapp}\space\thechapter}}
+    \renewcommand{\chapternamenum}{}
+    \renewcommand{\printchapternum}{}
+    \renewcommand{\afterchapternum}{\par\nobreak\vskip\midchapskip}
+    \renewcommand{\printchapternonum}{\thesis@chapterlabelspace}
+    \renewcommand{\printchaptertitle}[1]{\raggedleft\chaptitlefont ##1}
+    \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+    \renewcommand{\prechapterprecis}{%
+        \vspace*{\prechapterprecisshift}%
+        \precisfont\begin{Spacing}{1.10}} % the opening page has its own, looser line spacing
+    \renewcommand{\postchapterprecis}{\end{Spacing}\clearpage\@afterindentfalse\@afterheading}
+    \renewcommand*{\precisfont}{}
+}
+%% The label line is a box of fixed height, so it takes the same space with or without a label
+%% (chapters, unnumbered headings, contents and lists alike).
+\newcommand{\thesis@chapterlabel}[1]{\vbox to \onelineskip{\vss\hbox to \linewidth{\hfill\chapnamefont #1}}}
+\newcommand{\thesis@chapterlabelspace}{\thesis@chapterlabel{}\par\nobreak\vskip\midchapskip}
+%% \chapterprecishere{} (empty): no opening page, the text follows the title
+\let\thesis@chapterprecishere\chapterprecishere
+\renewcommand{\chapterprecishere}[1]{%
+    \if\relax\detokenize{#1}\relax\else\thesis@chapterprecishere{#1}\fi}
 
-%% Same heading styles for book (print) and report.
+\makechapterstyle{thesis}{\thesis@chapterstyle}
+\chapterstyle{thesis}
 
-    %% Chapter formatting
-    \if@print
-        \openright % Makes sure that chapter is on recto page (clearing the verso page)
-    \else
-        \openany % report: chapters start on the next page, no blank pages
-    \fi
-    %% Chapter openings. One style for every chapter-level heading (front matter, chapters, references,
-    %% appendices, back matter), so all titles start at the same height on the page:
-    %%   - a small label, "CHAPTER 3" / "APPENDIX A", in letterspaced capitals;
-    %%   - the title in Source Sans Light at \chaptertitlesize, aligned right;
-    %%   - unnumbered headings (Summary, Contents, References, ...) leave the label's space empty, so
-    %%     their titles line up with the chapter titles.
-    %% A chapter with an epigraph or abstract (\chapterprecishere{...}) gets an opening page of its own,
-    %% and its text starts on the next page; with \chapterprecishere{} or without it, the text starts
-    %% below the title.
-    \newcommand{\thesis@chaptitlefont}{\fontsize{\chaptertitlesize}{1.15\dimexpr\chaptertitlesize\relax}\headingfont}
-    \newcommand{\thesis@chaplabelfont}{\normalsize\runningheadcaps}
-    \newcommand{\thesis@chapterstyle}{%
-        \setlength{\beforechapskip}{40pt}
-        \setlength{\midchapskip}{1\onelineskip}
-        \setlength{\afterchapskip}{3\onelineskip}
-        \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
-        \renewcommand{\chapnamefont}{\thesis@chaplabelfont}
-        \renewcommand{\chapnumfont}{\thesis@chaplabelfont}
-        \renewcommand{\chaptitlefont}{\thesis@chaptitlefont}
-        \renewcommand{\printchaptername}{\thesis@chapterlabel{\MakeUppercase{\@chapapp}\space\thechapter}}
-        \renewcommand{\chapternamenum}{}
-        \renewcommand{\printchapternum}{}
-        \renewcommand{\afterchapternum}{\par\nobreak\vskip\midchapskip}
-        \renewcommand{\printchapternonum}{\thesis@chapterlabelspace}
-        \renewcommand{\printchaptertitle}[1]{\raggedleft\chaptitlefont ##1}
-        \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
-        \renewcommand{\prechapterprecis}{%
-            \vspace*{\prechapterprecisshift}%
-            \precisfont\begin{Spacing}{1.10}} % the opening page has its own, looser line spacing
-        \renewcommand{\postchapterprecis}{\end{Spacing}\clearpage\@afterindentfalse\@afterheading}
-        \renewcommand*{\precisfont}{}
-    }
-    %% The label line is a box of fixed height, so it takes the same space with or without a label
-    %% (chapters, unnumbered headings, contents and lists alike).
-    \newcommand{\thesis@chapterlabel}[1]{\vbox to \onelineskip{\vss\hbox to \linewidth{\hfill\chapnamefont #1}}}
-    \newcommand{\thesis@chapterlabelspace}{\thesis@chapterlabel{}\par\nobreak\vskip\midchapskip}
-    %% \chapterprecishere{} (empty): no opening page, the text follows the title
-    \let\thesis@chapterprecishere\chapterprecishere
-    \renewcommand{\chapterprecishere}[1]{%
-        \if\relax\detokenize{#1}\relax\else\thesis@chapterprecishere{#1}\fi}
+%% Heading levels differ by size and space, never by extra boldness:
+%%   section        semibold, 1.15 x text size, 1.5 lines above, half a line below
+%%   subsection     semibold, text size, 1 line above, a quarter line below
+%%   subsubsection  italic text font (not bold), text size, unnumbered, 1 line above, a quarter line below
+%% A negative space before a heading (memoir convention) means the first paragraph after it is
+%% not indented, as usual in books; the space itself is the same.
+\newcommand{\thesis@secsize}{\fontsize{\dimexpr 1.15\dimexpr\f@size pt\relax\relax}{\dimexpr 1.38\dimexpr\f@size pt\relax\relax}\selectfont}
 
-    \makechapterstyle{mainmatter}{\thesis@chapterstyle}
-    \makechapterstyle{frontmatter}{\thesis@chapterstyle}
-    \makechapterstyle{bibliography}{\thesis@chapterstyle}
-    \makechapterstyle{appendix}{\thesis@chapterstyle}
+%% Section formatting
+\setbeforesecskip{-1.5\onelineskip plus -0.5\onelineskip minus -0.2\onelineskip}
+\setsecindent{0em}
+\setsecheadstyle{\thesis@secsize\bfseries\headingfont}
+\setaftersecskip{0.5\onelineskip}
 
-    %% Heading levels differ by size and space, never by extra boldness:
-    %%   section        semibold, 1.15 x text size, 1.5 lines above, half a line below
-    %%   subsection     semibold, text size, 1 line above, a quarter line below
-    %%   subsubsection  italic text font (not bold), text size, unnumbered, 1 line above, a quarter line below
-    %% A negative space before a heading (memoir convention) means the first paragraph after it is
-    %% not indented, as usual in books; the space itself is the same.
-    \newcommand{\thesis@secsize}{\fontsize{\dimexpr 1.15\dimexpr\f@size pt\relax\relax}{\dimexpr 1.38\dimexpr\f@size pt\relax\relax}\selectfont}
+%% Subsection formatting
+\setbeforesubsecskip{-1\onelineskip plus -0.3\onelineskip minus -0.1\onelineskip}
+\setsubsecindent{0em}
+\setsubsecheadstyle{\bfseries\headingfont}
+\setaftersubsecskip{0.25\onelineskip}
 
-    %% Section formatting
-    \setbeforesecskip{-1.5\onelineskip plus -0.5\onelineskip minus -0.2\onelineskip}
-    \setsecindent{0em}
-    \setsecheadstyle{\thesis@secsize\bfseries\headingfont}
-    \setaftersecskip{0.5\onelineskip}
+%% Subsubsection formatting (unnumbered)
+\setbeforesubsubsecskip{-1\onelineskip plus -0.3\onelineskip minus -0.1\onelineskip}
+\setsubsubsecindent{0em}
+\setsubsubsecheadstyle{\itshape}
+\setaftersubsubsecskip{0.25\onelineskip}
 
-    %% Subsection formatting
-    \setbeforesubsecskip{-1\onelineskip plus -0.3\onelineskip minus -0.1\onelineskip}
-    \setsubsecindent{0em}
-    \setsubsecheadstyle{\bfseries\headingfont}
-    \setaftersubsecskip{0.25\onelineskip}
+%% paragraph formatting
+\setbeforeparaskip{1\onelineskip}
+\setparaindent{0em}
+\setparaheadstyle{\bfseries\headingfont}
+\setafterparaskip{-1.5em} % +values give vertical spacing, -values give horizontal spacing
 
-    %% Subsubsection formatting (unnumbered)
-    \setbeforesubsubsecskip{-1\onelineskip plus -0.3\onelineskip minus -0.1\onelineskip}
-    \setsubsubsecindent{0em}
-    \setsubsubsecheadstyle{\itshape}
-    \setaftersubsubsecskip{0.25\onelineskip}
+%% subparagraph formatting
+\setbeforesubparaskip{1\onelineskip}
+\setsubparaindent{1.5em}
+\setsubparaheadstyle{\bfseries\headingfont}
+\setaftersubparaskip{-1.5em} % +values give vertical spacing, -values give horizontal spacing
 
-    %% paragraph formatting
-    \setbeforeparaskip{1\onelineskip}
-    \setparaindent{0em}
-    \setparaheadstyle{\bfseries\headingfont}
-    \setafterparaskip{-1.5em} % +values give vertical spacing, -values give horizontal spacing
-    
-    %% subparagraph formatting
-    \setbeforesubparaskip{1\onelineskip}
-    \setsubparaindent{1.5em}
-    \setsubparaheadstyle{\bfseries\headingfont}
-    \setaftersubparaskip{-1.5em} % +values give vertical spacing, -values give horizontal spacing
-    
-    %% Epigraph formatting
-    \epigraphtextposition{flushright}
-    \setlength{\epigraphwidth}{0.6\linewidth}
-    \setlength{\epigraphrule}{0pt}
-    \setlength{\beforeepigraphskip}{1\baselineskip}
-    \setlength{\afterepigraphskip}{1\baselineskip}
+%% Epigraph formatting
+\epigraphtextposition{flushright}
+\setlength{\epigraphwidth}{0.6\linewidth}
+\setlength{\epigraphrule}{0pt}
+\setlength{\beforeepigraphskip}{1\baselineskip}
+\setlength{\afterepigraphskip}{1\baselineskip}
 
-    %% ToC, LoF, LoT formatting
-    %% Contents and lists: memoir already puts \printchapternonum (the empty label line) before the title
-    \renewcommand{\tocheadstart}{\chapterheadstart}
-    \renewcommand{\lofheadstart}{\chapterheadstart}
-    \renewcommand{\lotheadstart}{\chapterheadstart}
-    \renewcommand{\printtoctitle}[1]{\printchaptertitle{Contents}}
-    \renewcommand{\printloftitle}[1]{\printchaptertitle{List of Figures}}
-    \renewcommand{\printlottitle}[1]{\printchaptertitle{List of Tables}}
-    \renewcommand{\aftertoctitle}{\afterchaptertitle}
-    \renewcommand{\afterloftitle}{\afterchaptertitle\insertchapterspace}
-    \renewcommand{\afterlottitle}{\afterchaptertitle\insertchapterspace}
-    
+%% Contents and lists: titles like chapter titles (memoir already puts \printchapternonum (the empty label line) before the title
+\renewcommand{\tocheadstart}{\chapterheadstart}
+\renewcommand{\lofheadstart}{\chapterheadstart}
+\renewcommand{\lotheadstart}{\chapterheadstart}
+\renewcommand{\printtoctitle}{\printchaptertitle}
+\renewcommand{\printloftitle}{\printchaptertitle}
+\renewcommand{\printlottitle}{\printchaptertitle}
+\renewcommand{\aftertoctitle}{\afterchaptertitle}
+\renewcommand{\afterloftitle}{\afterchaptertitle\insertchapterspace}
+\renewcommand{\afterlottitle}{\afterchaptertitle\insertchapterspace}
 
 %% Chapter abstract: a short summary in italics on the chapter's opening page (inside \chapterprecishere).
-\newenvironment{chapterabstract}{%
-    \list{}{\leftmargin\rightmargin}%
-    \item%
-    \relax%
-    \rmfamily\itshape%
-}{%
-    \endlist%
-}
-
+\newenvironment{chapterabstract}{\par\setlength{\parindent}{0pt}\rmfamily\itshape}{\par}

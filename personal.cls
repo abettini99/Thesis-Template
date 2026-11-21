@@ -3,51 +3,39 @@
 %% it has to be set before anything writes to the PDF.
 \ifdefined\pdfvariable \pdfvariable majorversion=1 \pdfvariable minorversion=4 \pdfvariable objcompresslevel=0 \fi
 
-\RequirePackage{ifthen}
-
-\newif\if@american
-\newif\if@british
-\newif\if@print
-\newif\if@thumb
-\newif\if@showframe
-%% Language: british (default) or american. Choosing one switches the other off.
-\DeclareOption{american}{\@americantrue\@britishfalse}
-\DeclareOption{british}{\@britishtrue\@americanfalse}
-\DeclareOption{print}{\@printtrue}
-\DeclareOption{thumb}{\if@print \@thumbtrue \fi}
-\DeclareOption{showtrims}{\PassOptionsToClass{\CurrentOption}{memoir}} %% in report mode this marks the book page on the A4 sheet
-\DeclareOption{showframe}{\@showframetrue}
-%% draft: fast compiles while writing. Images become labelled boxes, overfull lines are marked
-%% with a black bar in the margin, and every page says DRAFT so it is never mistaken for the final version.
-\newif\if@draft
-\DeclareOption{draft}{\@drafttrue \PassOptionsToPackage{draft}{graphicx} \PassOptionsToClass{draft}{memoir}}
-
-%% Book page size. Choose one; dover is the default.
-%%   dover   : 137 x 213 mm  (5 3/8 x 8 3/8 in, the classic Dover paperback)
-%%   a5      : 148 x 210 mm  (handbook / paperback size)
-%%   royal   : 156 x 234 mm  (typical academic book)
-%%   tudelft : 170 x 240 mm  (TU Delft dissertation template, most common thesis size in NL)
+%% Options. Language: british (default) or american. Page size: dover (default), a5, royal or tudelft.
+\newcommand*{\thesis@language}{british}
+\DeclareOption{british}{\renewcommand*{\thesis@language}{british}}
+\DeclareOption{american}{\renewcommand*{\thesis@language}{american}}
 \newcommand*{\thesis@pagesize}{dover}
 \DeclareOption{dover}{\renewcommand*{\thesis@pagesize}{dover}}
 \DeclareOption{a5}{\renewcommand*{\thesis@pagesize}{a5}}
 \DeclareOption{royal}{\renewcommand*{\thesis@pagesize}{royal}}
 \DeclareOption{tudelft}{\renewcommand*{\thesis@pagesize}{tudelft}}
-
-%% Bibliography options
-%%   backreferences: each reference lists the pages it is cited on ("Cited on pages 12, 45.")
-%%   chapterbib : every chapter ends with its own reference list (for a thesis built from papers),
-%%                instead of one list at the end of the book
+\newif\if@print
+\DeclareOption{print}{\@printtrue}
+\newif\if@thumb
+\DeclareOption{thumb}{\@thumbtrue} % only drawn in the print version (see below)
+\DeclareOption{showtrims}{\PassOptionsToClass{\CurrentOption}{memoir}} % in report mode this marks the book page on the A4 sheet
+\newif\if@showframe
+\DeclareOption{showframe}{\@showframetrue}
+%% draft: fast compiles while writing. Images become labelled boxes, overfull lines are marked
+%% with a black bar in the margin, and every page says DRAFT so it is never mistaken for the final version.
+\newif\if@draft
+\DeclareOption{draft}{\@drafttrue \PassOptionsToPackage{draft}{graphicx} \PassOptionsToClass{draft}{memoir}}
+%% final: the version for the printer and the repository; hides all \todo notes.
+\DeclareOption{final}{\PassOptionsToPackage{disable}{todonotes}}
+%% backreferences: each reference lists the pages it is cited on. (Not called "backref": that name
+%% would also switch on hyperref's own back-references.)
 \newif\if@backref
-\DeclareOption{backreferences}{\@backreftrue} % (not "backref": that name would also switch on hyperref's own back-references)
+\DeclareOption{backreferences}{\@backreftrue}
+%% chapterbib: every chapter ends with its own reference list (a thesis built from papers).
 \newif\ifchapterbib
 \DeclareOption{chapterbib}{\chapterbibtrue}
-
-%% final: the version for the printer and the repository; hides all \todo notes.
-\newif\if@final
-\DeclareOption{final}{\@finaltrue \PassOptionsToPackage{disable}{todonotes}}
-
-\ExecuteOptions{british} %% default language: British English
 \ProcessOptions\relax
+\if@print\else \@thumbfalse \fi
+\def\thesis@tmp{american}
+\ifx\thesis@language\thesis@tmp \def\thesis@bcp{en-US}\else \def\thesis@bcp{en-GB}\fi % language in the PDF metadata
 
 %% This template is set up for LuaLaTeX (better justification, PDF/A-2u maths). XeLaTeX still works.
 \ifdefined\directlua\else
@@ -59,57 +47,32 @@
 \newif\ifprintversion
 \if@print \printversiontrue \fi
 
-% \RequirePackage[l2tabu, orthodox]{nag} % https://ctan.org/pkg/nag %% warns about outdated LaTeX commands; uncomment to check your writing
-
-%% Page layout. The book page size is set by the dover / a5 / royal / tudelft option (default dover);
-%% only the paper it sits on differs between modes:
-%%   print  : the book page plus 2mm bleed on every side, for the printer.
-%%   report : the book page centred on an A4 sheet, for reading on screen or printing at home.
-%% Type size: 10 pt (Dover scales it to 9.5 pt below); 11 pt for the wider TU Delft text block, which
-%% would otherwise have over 80 characters per line.
+%% Page sizes. Per size: trimmed page, type block, fore-edge and top margins, chapter-title size.
+%% The fore-edge margin is (2/3) x (page width - binding - text width); text widths give 70-77
+%% characters per line. Type: 10 pt on 13.2 pt leading; Dover 9.5 pt (all fonts, maths included,
+%% scaled to 95 %) on 12 pt; TU Delft 11 pt on 15 pt, as its wider lines would otherwise have over 80
+%% characters. The chapter-title size follows the page, so "Acknowledgements" still fits on a line.
+\newlength{\thesis@pagewidth}   \newlength{\thesis@pageheight}  % trimmed (final) book page
+\newlength{\thesis@textwidth}   \newlength{\thesis@textheight}  % type block (where you write)
+\newlength{\thesis@foremargin}  \newlength{\thesis@topmargin}   % outer and top margins
+\newcommand*{\thesis@size}[7]{%
+    \setlength{\thesis@pagewidth}{#1}\setlength{\thesis@pageheight}{#2}%
+    \setlength{\thesis@textwidth}{#3}\setlength{\thesis@textheight}{#4}%
+    \setlength{\thesis@foremargin}{#5}\setlength{\thesis@topmargin}{#6}%
+    \def\chaptertitlesize{#7}}
 \def\thesis@ptsize{10pt}
-\def\thesis@tmp{tudelft}\ifx\thesis@pagesize\thesis@tmp \def\thesis@ptsize{11pt}\fi
+\def\thesis@fontscale{1}
+\def\thesisspacing{1.1} % line spacing of the main text (\begin{Spacing} in main.tex)
+\@namedef{thesis@size@dover}  {\thesis@size{137mm}{213mm}{92mm} {168mm}{25.3mm}{20mm}  {28pt}\def\thesis@fontscale{0.95}\def\thesisspacing{1}}
+\@namedef{thesis@size@a5}     {\thesis@size{148mm}{210mm}{100mm}{165mm}{27.3mm}{20mm}  {30pt}}
+\@namedef{thesis@size@royal}  {\thesis@size{156mm}{234mm}{105mm}{180mm}{29.3mm}{25mm}  {33pt}}
+\@namedef{thesis@size@tudelft}{\thesis@size{170mm}{240mm}{113mm}{192mm}{33.4mm}{23.9mm}{36pt}\def\thesis@ptsize{11pt}}
+\@nameuse{thesis@size@\thesis@pagesize}
 \edef\thesis@tmp{\noexpand\LoadClass[\thesis@ptsize]{memoir}}\thesis@tmp
 
-\newlength{\thesis@pagewidth}   \newlength{\thesis@pageheight}  %% trimmed (final) book page
-\newlength{\thesis@textwidth}   \newlength{\thesis@textheight}  %% type block (where you write)
-\newlength{\thesis@foremargin}  \newlength{\thesis@topmargin}   %% outer and top margins
-\newlength{\thesis@bleed}       \setlength{\thesis@bleed}{2mm}  %% TU Delft uses 2mm bleed
-
-\ifthenelse{\equal{\thesis@pagesize}{tudelft}}{%
-    \setlength{\thesis@pagewidth}{170mm}   \setlength{\thesis@pageheight}{240mm}
-    \setlength{\thesis@textwidth}{113mm}   \setlength{\thesis@textheight}{192mm}
-    \setlength{\thesis@foremargin}{33.4mm} \setlength{\thesis@topmargin}{23.9mm}
-}{\ifthenelse{\equal{\thesis@pagesize}{royal}}{%
-    \setlength{\thesis@pagewidth}{156mm}   \setlength{\thesis@pageheight}{234mm}
-    \setlength{\thesis@textwidth}{105mm}   \setlength{\thesis@textheight}{180mm}
-    \setlength{\thesis@foremargin}{29.3mm} \setlength{\thesis@topmargin}{25mm}
-}{\ifthenelse{\equal{\thesis@pagesize}{dover}}{% (default)
-    \setlength{\thesis@pagewidth}{137mm}   \setlength{\thesis@pageheight}{213mm}
-    \setlength{\thesis@textwidth}{92mm}    \setlength{\thesis@textheight}{168mm}
-    \setlength{\thesis@foremargin}{25.3mm} \setlength{\thesis@topmargin}{20mm}
-}{% a5
-    \setlength{\thesis@pagewidth}{148mm}   \setlength{\thesis@pageheight}{210mm}
-    \setlength{\thesis@textwidth}{100mm}   \setlength{\thesis@textheight}{165mm}
-    \setlength{\thesis@foremargin}{27.3mm} \setlength{\thesis@topmargin}{20mm}
-}}}
-%% Type size and line spacing. Dover: 9.5 pt type (all fonts scaled to 95 %, maths included) on
-%% 12 pt leading, so the slightly smaller type still gets a full line of air, which displayed
-%% maths and inline fractions need. Other sizes: 10 pt type on 13.2 pt leading (11 pt on
-%% 15 pt for TU Delft).
-\newcommand*{\thesis@fontscale}{1}
-\newcommand*{\thesisspacing}{1.1}
-\ifthenelse{\equal{\thesis@pagesize}{dover}}{\renewcommand*{\thesis@fontscale}{0.95}\renewcommand*{\thesisspacing}{1}}{}
-
-%% Chapter title size scales with the page, so long titles such as "Acknowledgements" still fit on one line.
-\newcommand*{\chaptertitlesize}{30pt}
-\ifthenelse{\equal{\thesis@pagesize}{tudelft}}{\renewcommand*{\chaptertitlesize}{36pt}}{}
-\ifthenelse{\equal{\thesis@pagesize}{royal}}{\renewcommand*{\chaptertitlesize}{33pt}}{}
-\ifthenelse{\equal{\thesis@pagesize}{dover}}{\renewcommand*{\chaptertitlesize}{28pt}}{}
-
-%% Fore-edge margins follow foreedge = (2/3)*(page width - binding - text width);
-%% text widths give roughly 70-76 characters per line in every size (11 pt type for TU Delft).
-
+%% Paper: print = the book page plus 2 mm bleed on every side, for the printer;
+%%        report = the book page centred on an A4 sheet, for reading on screen or printing at home.
+\newlength{\thesis@bleed}       \setlength{\thesis@bleed}{2mm}  % TU Delft uses 2mm bleed
 \if@print
     \setstocksize{\dimexpr\thesis@pageheight+2\thesis@bleed\relax}{\dimexpr\thesis@pagewidth+2\thesis@bleed\relax}
     \settrimmedsize{\thesis@pageheight}{\thesis@pagewidth}{*}
@@ -162,31 +125,20 @@
 \RequirePackage{xcolor}     % https://ctan.org/pkg/xcolor
 \input{_options/formatColor}
 
-%%% TIKZ-RELATED
+%%% THUMB TABS (TikZ)
 \RequirePackage{tikz}
-\input{_fixes/recto_verso_tikz_fix}
-%% Recalculate TikZ's "current page" whenever an overlay is drawn (thumb tabs), because the book page
-%% sits inside a larger sheet (bleed, or A4 in the report version).
-\AtBeginDocument{\pgfkeys{/tikz/overlay/.add code={}{\setpagenode}}}
 \input{_options/thumb}
 
 \input{_options/formatText}
+\input{_options/formatPagestyles}
 
-\def\thesis@bcp{en-GB}  % document language for the PDF metadata
-\if@american
-    \def\thesis@bcp{en-US}
-    \RequirePackage[dutch,american]{babel}  % dutch for the Samenvatting; the last language is the main one
-    \RequirePackage[style=american]{csquotes}
-\fi
-\if@british
-    \RequirePackage[dutch,british]{babel} % dutch for the Samenvatting; the last language is the main one
-    \RequirePackage[style=british]{csquotes}
-\fi
+%% Language: British or American English, with Dutch for the Samenvatting.
+\RequirePackage[dutch, main=\thesis@language]{babel}
+\RequirePackage[style=\thesis@language]{csquotes}
 
 \RequirePackage{microtype}
 
-%%% MATH PACKAGES INTERLUDE
-\RequirePackage{amsmath}   %% https://ctan.org/pkg/amsmath %% essential math package (integrals such as \oiint come from newtxmath)
+%%% MATHS: mathtools (loads amsmath); integrals such as \oiint come from newtxmath
 \RequirePackage{mathtools}
 
 %%% TEXT FONTS
@@ -203,12 +155,8 @@
     \input{glyphtounicode}
 \fi
 
-%%% NOMENCLATURE: glossaries-extra, loaded after hyperref in _options/packages.tex
-
-\RequirePackage[tableposition=top, figurename=Figure]{caption}
-\renewcommand{\thefigure}{\thechapter.\arabic{figure}}
-\renewcommand{\thetable}{\thechapter.\arabic{table}}
-\renewcommand{\theequation}{\thechapter.\arabic{equation}}
+%%% CAPTIONS (figures, tables and equations are numbered per chapter by memoir: 2.1, 2.2, ...)
+\RequirePackage[tableposition=top]{caption}
 \captionsetup*{font={small}, labelfont={sc, bf}, labelsep=quad}
 \renewcommand{\arraystretch}{1.2}
 
@@ -225,7 +173,6 @@
     eprint      = false,
 ]{biblatex}
 \addbibresource{references.bib}
-%% A URL adds nothing when there is a DOI: hide it (and its access date).
 \setlength\bibitemsep{0.5\baselineskip} % space between references
 %% Set ragged right: references are full of long names, journal titles and DOIs, which in justified
 %% text leave wide gaps. DOIs and URLs in the text font, and allowed to break after any character.
@@ -235,17 +182,18 @@
 \setcounter{biburlnumpenalty}{100}
 \setcounter{biburlucpenalty}{100}
 \setcounter{biburllcpenalty}{100}
+%% A URL adds nothing when there is a DOI: hide it (and its access date).
 \AtEveryBibitem{\iffieldundef{doi}{}{\clearfield{url}\clearfield{urlyear}\clearfield{urlmonth}\clearfield{urlday}}}
 \if@backref
     \ExecuteBibliographyOptions{backref=true, backrefstyle=three}
-    \DefineBibliographyStrings{english}{backrefpage={cited on page}, backrefpages={cited on pages}}
     \DefineBibliographyStrings{british}{backrefpage={cited on page}, backrefpages={cited on pages}}
     \DefineBibliographyStrings{american}{backrefpage={cited on page}, backrefpages={cited on pages}}
 \fi
 \ifchapterbib
     %% Every \chapter starts a new reference section; its list is printed at the end of the chapter
-    %% file (\include). Chapters without citations print nothing.
+    %% file (\include). Chapters without citations print nothing (and don't warn about it).
     \ExecuteBibliographyOptions{refsection=chapter}
-    \AddToHook{include/end}{\printbibliography[heading=subbibintoc, title={References}]}
+    \AddToHook{include/end}{\begingroup\let\blx@warn@bibempty\relax
+        \printbibliography[heading=subbibintoc, title={References}]\endgroup}
 \fi
 

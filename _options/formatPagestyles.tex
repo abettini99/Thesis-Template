@@ -1,5 +1,5 @@
 %% Page styles (memoir). Running heads in letterspaced capitals, page numbers in the same size
-%% (\runningheadtext and \runningheadfolio in fontText.tex).
+%% (\runningheadtext and \runningheadfolio in fontText.tex). New page styles have empty heads and feet.
 %%   mainmatter     : chapter title on left pages, section on right pages, thumb tabs
 %%   chapteronly    : chapter title on both pages (chapters without sections, the references)
 %%   appendix       : "Appendix A - title" on both pages, thumb tabs
@@ -8,23 +8,17 @@
 \makepagestyle{mainmatter}
 \makeevenhead{mainmatter}{\runningheadfolio\lthumb\thepage}{\runningheadtext{\leftmark}}{}
 \makeoddhead{mainmatter}{}{\runningheadtext{\rightmark}}{\runningheadfolio\thepage\rthumb}
-\makeevenfoot{mainmatter}{}{}{}
-\makeoddfoot{mainmatter}{}{}{}
 \makeheadrule{mainmatter}{\textwidth}{0.3pt}
 
 \makepagestyle{appendix}
 \makeevenhead{appendix}{\runningheadfolio\lthumb\thepage}{\runningheadtext{Appendix \thechapter~\textendash~\leftmark}}{}
 \makeoddhead{appendix}{}{\runningheadtext{Appendix \thechapter~\textendash~\leftmark}}{\runningheadfolio\thepage\rthumb}
-\makeevenfoot{appendix}{}{}{}
-\makeoddfoot{appendix}{}{}{}
 \makeheadrule{appendix}{\textwidth}{0.3pt}
 
 %% Chapter opening pages: no running head, but the thumb tab (the page a reader is looking for).
 \makepagestyle{chapteropening}
 \makeevenhead{chapteropening}{\lthumb}{}{}
 \makeoddhead{chapteropening}{}{}{\rthumb}
-\makeevenfoot{chapteropening}{}{}{}
-\makeoddfoot{chapteropening}{}{}{}
 
 \makepagestyle{frontmatter}
 \makeevenhead{frontmatter}{}{}{}
@@ -39,13 +33,9 @@
 \makepagestyle{chapteronly}
 \makeevenhead{chapteronly}{\runningheadfolio\lthumb\thepage}{\runningheadtext{\leftmark}}{}
 \makeoddhead{chapteronly}{}{\runningheadtext{\leftmark}}{\runningheadfolio\thepage\rthumb}
-\makeevenfoot{chapteronly}{}{}{}
-\makeoddfoot{chapteronly}{}{}{}
 \makeheadrule{chapteronly}{\textwidth}{0.3pt}
 
-\renewcommand{\chaptermark}[1]{%
-\markboth{#1}{}} 
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 %% The section number is stored together with its title, so the running head never pairs
 %% the title of one section with the number of another.
-\renewcommand{\sectionmark}[1]{%
-\markright{\thesection.\enspace#1}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection.\enspace#1}}

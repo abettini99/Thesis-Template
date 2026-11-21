@@ -1,29 +1,11 @@
-\newcommand{\NoLink}[1]{{\protect\NoHyper#1\protect\endNoHyper}} % Allows the use of \citeauthor without actually referencing back to the reference list, in case you want to just say the author's name. Example: \NoLink{\citeauthor{CoolKid2019}}
-\newcommand\invisiblechapter[1]{                % makes an invisible chapter!
-  \refstepcounter{chapter}%
-  \addcontentsline{toc}{chapter}{\protect\numberline{\thechapter}#1}%
-  \chaptermark{#1}}
-\newcommand\invisiblesection[1]{                % makes an invisible section!
-  \refstepcounter{section}%
-  \addcontentsline{toc}{section}{\protect\numberline{\thesection}#1}%
-  \sectionmark{#1}}
-\newcommand\invisiblesubsection[1]{%            % makes an invisible subsection!
-  \refstepcounter{subsection}%
-  \addcontentsline{toc}{subsection}{\protect\numberline{\thesubsection}#1}%
-  \subsectionmark{#1}}
+%% Commands for writing: maths notation, lists, file names, chapter notes. Add your own here.
 
 \newcommand\diff[2][]{\mathrm{d}^{#1}{#2}}      % creates a nth-order ordinary differential variable
 \newcommand\pdiff[2][]{\partial^{#1}{#2}}       % creates a nth-order partial differential variable
 \newcommand\sdiff[2][]{\mathrm{D}^{#1}{#2}}     % creates a nth-order substantial differential variable
-\newcommand\deriv[3][]{                         % creates a nth-order ordinary derivative
-\frac{\diff[#1]{#2}}{\diff{#3}^{#1}}
-}
-\newcommand\pderiv[3][]{                        % creates a nth-order partial derivative
-\frac{\pdiff[#1]{#2}}{\pdiff{#3}^{#1}}
-}
-\newcommand\sderiv[3][]{                        % creates a nth-order substantial derivative
-\frac{\sdiff[#1]{#2}}{\sdiff{#3}^{#1}}
-}
+\newcommand\deriv[3][]{\frac{\diff[#1]{#2}}{\diff{#3}^{#1}}}     % nth-order ordinary derivative
+\newcommand\pderiv[3][]{\frac{\pdiff[#1]{#2}}{\pdiff{#3}^{#1}}}  % nth-order partial derivative
+\newcommand\sderiv[3][]{\frac{\sdiff[#1]{#2}}{\sdiff{#3}^{#1}}}  % nth-order material derivative
 %% Compact derivatives: \cpderiv{u}{t} gives \partial_t u, \cpderiv[2]{u}{x} gives \partial^2_x u (scripts stacked).
 %% The scripts attach straight to the d or \partial, so the subscript sits close to it.
 \newcommand\ThesisCompactDeriv[4]{#1\if\relax\detokenize{#2}\relax\else^{#2}\fi_{#4}{#3}}
@@ -31,16 +13,13 @@
 \newcommand\cpderiv[3][]{\ThesisCompactDeriv{\partial}{#1}{#2}{#3}}  % compact partial derivative: \partial_t u
 \newcommand\csderiv[3][]{\ThesisCompactDeriv{\mathrm{D}}{#1}{#2}{#3}} % compact material derivative: D_t u
 
-\newcommand\uVec[2]{\hat{\vec{#1}}_{#2}}        % creates a unit vector
-\newcommand\uVecT[2]{\overline{\vec{#1}}_{#2}}  % creates a transformed unit vector
 \newcommand\transpose{^\textsf{T}}              % places in a transpose symbol
 
 \newcommand{\grad}{\nabla}                     % gradient
+\renewcommand{\div}{\nabla\cdot}               % divergence
 \newcommand{\curl}{\nabla\times}               % curl
-\newcommand\proj[2]{ \mathsf{proj}_{#1}^{#2}\,} % Projection operator
-\newcommand{\Res}{ \mathsf{Res}}                % Residual operator
 
-%% Create typical dimensionless numbers used in fluid + heat transfer problems
+%% Dimensionless numbers of fluid mechanics and heat transfer
 \renewcommand{\Pr}{\mathrm{Pr}}                 % Prandtl number
 \renewcommand{\Re}{\mathrm{Re}}                 % Reynolds number
 \newcommand{\Fr}{\mathrm{Fr}}                   % Froude number
@@ -51,16 +30,7 @@
 \newcommand{\Pe}{\mathrm{Pe}}                   % Péclet number
 \newcommand{\Tu}{\mathrm{Tu}}                   % Turbulence level
 
-%% \therefore (newtxmath provides it; defined here only if missing)
-\providecommand{\therefore}{\dot{.\hspace{.055in}.}\hspace{.2in}}
-
-%% standard /mapsto symbol, but reversed
-% https://tex.stackexchange.com/questions/26508/left-version-of-mapsto
-\providecommand{\mapsfrom}{\mathrel{\reflectbox{\ensuremath{\mapsto}}}}
-\providecommand{\longmapsfrom}{\mathrel{\reflectbox{\ensuremath{\longmapsto}}}}
-
-%% Using the same figure twice with no new number
-% https://tex.stackexchange.com/questions/200211/using-the-same-figure-twice-with-no-new-number
+%% The same figure a second time, with its original number: \repeatcaption{fig:label}{caption}
 \newcommand{\repeatcaption}[2]{%
   \renewcommand{\thefigure}{\ref{#1}}%
   \captionsetup{list=no}%
@@ -68,18 +38,10 @@
   \addtocounter{figure}{-1}% So that next figure after the repeat gets the right number.
 }
 
-% Create delimiter environments (e.g floor(t) produces ⌊t⌋)
-% --------------------
-% https://tex.stackexchange.com/questions/118173/how-to-write-ceil-and-floor-in-latex
-\DeclarePairedDelimiter\ceil{\lceil}{\rceil}    % Use ceil*{...} to produce big brackets
-\DeclarePairedDelimiter\floor{\lfloor}{\rfloor} % Use floor*{...} to produce big brackets
-
-% Create new math operators
-% --------------------
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
-% tensor - double dot product
+%% double dot product of tensors
 \newcommand{\cddot}{\mathbin{{\cdot}{\cdot}}}
 
 % L2 inner product, with the domain (which defines the inner product) as subscript:
@@ -94,20 +56,14 @@
 %% plain italics: {#1}, arrow: {\vv{#1}} (package esvect), underline: {\underline{#1}}.
 \renewcommand{\vec}[1]{\bm{#1}}                 % vector:  \vec{u}
 \newcommand{\tensor}[1]{\bm{#1}}                % tensor:  \tensor{\tau}
-\renewcommand{\div}{\nabla\cdot}               % divergence
 
-%% Dashes as list bullets
-\renewcommand{\labelitemi}{\textendash}
-\renewcommand{\labelitemii}{\textendash}
-\renewcommand{\labelitemiii}{\textendash}
-\renewcommand{\labelitemiv}{\textendash}
-%% Lists: no extra space between items (a list reads as part of the paragraph), and the item text
-%% starts at the paragraph indent, with the dash or number hanging in front of it.
+%% Lists: dashes as bullets, no extra space between items (a list reads as part of the paragraph),
+%% and the item text at the paragraph indent, with the dash or number hanging in front of it.
 \tightlists
-\setlength{\leftmargini}{\parindent}
-\setlength{\leftmarginii}{\parindent}
-\setlength{\leftmarginiii}{\parindent}
-\setlength{\leftmarginiv}{\parindent}
+\renewcommand{\labelitemi}{\textendash}\setlength{\leftmargini}{\parindent}
+\renewcommand{\labelitemii}{\textendash}\setlength{\leftmarginii}{\parindent}
+\renewcommand{\labelitemiii}{\textendash}\setlength{\leftmarginiii}{\parindent}
+\renewcommand{\labelitemiv}{\textendash}\setlength{\leftmarginiv}{\parindent}
 
 %% Dutch name prefixes: write {\VAN} in references.bib (e.g. author = {T. \VAN~Pelt}). It prints "Van"
 %% in the text (\citet) and "van" in the reference list (switched in main.tex).

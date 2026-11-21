@@ -9,7 +9,6 @@
 \usepackage{siunitx}            % https://ctan.org/pkg/siunitx %% quantities and units: \qty{}{}, \num{}, \unit{}
 
 %% Figures and tables
-\usepackage{float}              % https://ctan.org/pkg/float %% [H] placement, if you really need it
 \usepackage{array}              % https://ctan.org/pkg/array %% extra column types for tables
 \usepackage{booktabs}           % https://ctan.org/pkg/booktabs %% \toprule, \midrule, \bottomrule
 \usepackage{xltabular}          % https://ctan.org/pkg/xltabular %% tabularx (wrapping columns) + longtable (across pages)
@@ -20,8 +19,8 @@
 \usetikzlibrary{positioning,arrows.meta} % TikZ itself is loaded by the class (thumb tabs)
 
 %% Text and code
-\usepackage{ragged2e}           % https://ctan.org/pkg/ragged2e %% \RaggedRight and FlushLeft that still hyphenate
-\usepackage{listings}           % https://ctan.org/pkg/listings %% code listings (style in formatCode.tex)
+\usepackage{listings}           % https://ctan.org/pkg/listings %% code listings
+\input{_options/formatCode}     % their style: colour on screen, black and white in print
 
 %% Todo notes while writing: \todo{...} in the margin, \todo[inline]{...} in the text,
 %% \missingfigure{...} as a placeholder figure. All of them disappear with the class option final.
@@ -100,6 +99,7 @@
 %% Optional packages: uncomment when needed (load them above cleveref if they define new
 %% numbered things, otherwise anywhere above is fine).
 %% =====================================================================
+% \usepackage{float}            % https://ctan.org/pkg/float %% [H] placement ("here, no matter what"); prefer [tbp]
 % \usepackage[version=4]{mhchem} % https://ctan.org/pkg/mhchem %% chemical formulae and reactions: \ce{CO2}
 % \usepackage{subcaption}       % https://ctan.org/pkg/subcaption %% sub-figures with their own captions, (a), (b), ...
 % \usepackage{pdfpages}         % https://ctan.org/pkg/pdfpages %% include PDF pages, e.g. a published paper: \includepdf[pages=-]{paper.pdf}
