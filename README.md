@@ -111,14 +111,16 @@ import matplotlib.pyplot as plt
 plt.style.use("Python/thesis.mplstyle")
 ```
 
-It sets Times (or STIX, a Times-like font included with matplotlib), text at about the caption size (7.5–8.5 pt for the Dover default; add 0.5 pt for the other page sizes), a default size of 92 mm wide, colour-blind-safe colours each with its own line style (so lines stay apart in greyscale), and PDF output with embedded TrueType fonts, as needed for PDF/A. Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
+It sets Times (or STIX, a Times-like font included with matplotlib), text at about the caption size (7.5–8.5 pt for the Dover default; add 0.5 pt for the other page sizes), a default size of 91.5 mm wide, colour-blind-safe colours each with its own line style (so lines stay apart in greyscale), and PDF output with embedded TrueType fonts, as needed for PDF/A. Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
 
 | Page size | Full text width | Half width (two side by side) |
 |---|---|---|
-| `dover` | 92 mm (3.62 in) | 44 mm (1.73 in) |
-| `a5` | 100 mm (3.94 in) | 48 mm (1.89 in) |
-| `royal` | 105 mm (4.13 in) | 50 mm (1.98 in) |
-| `tudelft` | 113 mm (4.45 in) | 54 mm (2.13 in) |
+| `dover` | 91.5 mm (3.60 in) | 44 mm (1.73 in) |
+| `a5` | 99.5 mm (3.92 in) | 48 mm (1.89 in) |
+| `royal` | 104.5 mm (4.11 in) | 50 mm (1.97 in) |
+| `tudelft` | 112.5 mm (4.43 in) | 54 mm (2.13 in) |
+
+The full widths are a little under the nominal 92/100/105/113 mm, because the class rounds the text width down to whole points (Dover: 261 pt = 91.7 mm); a figure made at the nominal width would stick out by a fraction of a millimetre.
 
 ## Propositions and cover
 
