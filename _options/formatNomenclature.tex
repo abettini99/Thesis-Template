@@ -85,14 +85,16 @@
 %% Narrow symbol, dimensions and units columns and 4 pt column gaps leave the description as much
 %% room as possible, also on the narrow Dover page.
 \newlength\symbolwidth      \setlength\symbolwidth{4em}
-\newlength\dimensionswidth  \setlength\dimensionswidth{4.75em}
+\newlength\dimensionswidth  \setlength\dimensionswidth{5em}
 \newlength\unitswidth       \setlength\unitswidth{5.5em}
 \newlength\descriptionwidth
 \newlength\definitionwidth
 
-\newcommand{\nomheader}[1]{{\headingfont\mbox{#1}}} % \mbox: no hyphenation in narrow columns
-\newcommand{\nomtitle}[1]{\par\bigskip\noindent{\headingfont\LARGE #1}\par\nopagebreak\smallskip}
+\newcommand{\nomheader}[1]{{\sffamily\mbox{#1}}} % Source Sans Regular; \mbox: no hyphenation in narrow columns
+%% List titles look like section headings: semibold, 1.15 x text size, the same space around them.
+\newcommand{\nomtitle}[1]{\par\addvspace{1.5\onelineskip}\noindent{\thesis@secsize\bfseries\headingfont #1}\par\nopagebreak\vspace{0.5\onelineskip}}
 
+%% A hairline under the column headers (0.3 pt, like the rule under the running heads).
 %% The lists get their titles from \printnom, so the glossary's own heading is switched off.
 \renewcommand*{\glossarysection}[2][]{}
 
@@ -111,7 +113,7 @@
     \renewenvironment{theglossary}{%
         \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-2\tabcolsep\relax}%
         \begin{longtable}{@{}p{\symbolwidth}p{\descriptionwidth}@{}}
-            \nomheader{Symbol} & \nomheader{Description} \\[2pt] \endhead}
+            \nomheader{Symbol} & \nomheader{Description} \\ \midrule[0.3pt] \endhead}
         {\end{longtable}}%
     \renewcommand*{\glossentry}[2]{%
         \glstarget{##1}{\glossentryname{##1}} & \RaggedRight\glossentrydesc{##1} \tabularnewline}}
@@ -127,7 +129,7 @@
         \setlength\definitionwidth{\dimexpr\dimensionswidth+\unitswidth+2\tabcolsep\relax}%
         \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-\definitionwidth-4\tabcolsep\relax}%
         \begin{longtable}{@{}p{\symbolwidth}p{\descriptionwidth}p{\definitionwidth}@{}}
-            \nomheader{Symbol} & \nomheader{Description} & \nomheader{Definition} \\[2pt] \endhead}
+            \nomheader{Symbol} & \nomheader{Description} & \nomheader{Definition} \\ \midrule[0.3pt] \endhead}
         {\end{longtable}}%
     \renewcommand*{\glossentry}[2]{%
         \glstarget{##1}{\glossentryname{##1}} & \RaggedRight\glossentrydesc{##1} & \glsentrydefinition{##1} \tabularnewline}}
@@ -138,7 +140,7 @@
     \renewenvironment{theglossary}{%
         \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-\dimensionswidth-\unitswidth-6\tabcolsep\relax}%
         \begin{longtable}{@{}p{\symbolwidth}p{\descriptionwidth}p{\dimensionswidth}p{\unitswidth}@{}}
-            \nomheader{Symbol} & \nomheader{Description} & \nomheader{Dimensions} & \nomheader{Units} \\[2pt] \endhead}
+            \nomheader{Symbol} & \nomheader{Description} & \nomheader{Dimensions} & \nomheader{Units} \\ \midrule[0.3pt] \endhead}
         {\end{longtable}}%
     \renewcommand*{\glossentry}[2]{%
         \glstarget{##1}{\glossentryname{##1}} & \RaggedRight\glossentrydesc{##1} & \glsentrydimensions{##1} & \glsentryunits{##1} \tabularnewline}}

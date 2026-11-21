@@ -173,7 +173,7 @@
     eprint      = false,
 ]{biblatex}
 \addbibresource{references.bib}
-\setlength\bibitemsep{0.5\baselineskip} % space between references
+\setlength\bibitemsep{0.25\baselineskip} % space between references
 %% Set ragged right: references are full of long names, journal titles and DOIs, which in justified
 %% text leave wide gaps. DOIs and URLs in the text font, and allowed to break after any character.
 \RequirePackage{ragged2e}
