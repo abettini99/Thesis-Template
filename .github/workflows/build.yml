@@ -37,7 +37,7 @@ jobs:
         run: latexmk -interaction=nonstopmode -halt-on-error main.tex
       - name: Keep the PDF and the log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: thesis
           path: |
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: thesis
       - name: Tools
@@ -75,7 +75,7 @@ jobs:
         run: verapdf --flavour 2u --format html main.pdf > verapdf-report.html || true
       - name: Keep the veraPDF report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: verapdf-report
           path: verapdf-report.html

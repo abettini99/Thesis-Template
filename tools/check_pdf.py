@@ -124,6 +124,17 @@ def check_fonts(pdf: Path, r: Report) -> None:
                sorted(set(nouni)))
     else:
         r.ok("all fonts map to Unicode")
+    try:
+        hits = missing_glyphs(pdf)
+    except ImportError:
+        print("        (missing glyphs not checked: pip install -r requirements.txt)")
+    else:
+        if hits:
+            r.fail("missing glyphs (.notdef): they print as nothing and PDF/A forbids them. In a figure from "
+                   "matplotlib 3.11+ this is usually a ligature (ff, fi, fl); tools/check_figures.py names the file",
+                   [f"page {p}: {', '.join(sorted(f))}" for p, f in sorted(hits.items())])
+        else:
+            r.ok("no missing glyphs")
     figures = sorted((ROOT / "Images").rglob("*.pdf")) if (ROOT / "Images").is_dir() else []
     bad = []
     for fig in figures:
@@ -138,6 +149,51 @@ def check_fonts(pdf: Path, r: Report) -> None:
         r.warn("figure files with problem fonts (fix them at the source and export again)", bad)
     elif figures:
         r.ok(f"fonts in the {len(figures)} figure PDFs in Images/ are embedded")
+
+
+def missing_glyphs(pdf: Path):
+    """Pages that show the .notdef (missing) glyph, which PDF/A forbids; needs pikepdf."""
+    import pikepdf
+    hits = {}
+    doc = pikepdf.open(pdf)
+
+    def scan(stream, res, page, depth=0):
+        if res is None or depth > 6:
+            return
+        fonts, cur = res.get("/Font", {}) or {}, None
+        for operands, op in pikepdf.parse_content_stream(stream):
+            op = str(op)
+            if op == "Tf":
+                cur = fonts.get(str(operands[0]))
+            elif op in ("Tj", "TJ", "'", '"') and cur is not None:
+                items = operands[0] if op == "TJ" else [operands[-1]]
+                data = b"".join(bytes(x) for x in items if isinstance(x, pikepdf.String))
+                bad = False
+                if cur.get("/Subtype") == "/Type0":
+                    bad = any(data[i:i + 2] == b"\0\0" for i in range(0, len(data) - 1, 2))
+                else:
+                    enc = cur.get("/Encoding")
+                    if isinstance(enc, pikepdf.Dictionary) and "/Differences" in enc:
+                        code, notdef = 0, set()
+                        for x in enc.Differences:
+                            if isinstance(x, int):
+                                code = int(x)
+                            else:
+                                if str(x) == "/.notdef":
+                                    notdef.add(code)
+                                code += 1
+                        bad = any(b in notdef for b in data)
+                if bad:
+                    name = str(cur.get("/BaseFont", "?")).lstrip("/").split("+")[-1]
+                    hits.setdefault(page, set()).add(name)
+            elif op == "Do":
+                xo = res.get("/XObject", {}).get(str(operands[0]))
+                if xo is not None and xo.get("/Subtype") == "/Form":
+                    scan(xo, xo.get("/Resources", res), page, depth + 1)
+
+    for i, page in enumerate(doc.pages):
+        scan(page, page.get("/Resources"), i + 1)
+    return hits
 
 
 # --- images ------------------------------------------------------------------

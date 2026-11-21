@@ -14,6 +14,7 @@ so the text in it keeps its size. Copy this file as a starting point for your ow
 """
 from pathlib import Path
 
+import matplotlib.text
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -30,6 +31,11 @@ MM = 1 / 25.4
 
 
 def save(fig, name):
+    # Matplotlib 3.11 and later join "ff", "fi", "fl" into ligatures, which its PDF output stores as a
+    # missing glyph: the PDF/A check then fails and the text cannot be copied. Switch them off.
+    for text in fig.findobj(matplotlib.text.Text):
+        if hasattr(text, "set_fontfeatures"):
+            text.set_fontfeatures(["-liga", "-clig"])
     fig.savefig(OUT / name)
     plt.close(fig)
     print(f"saved {OUT / name}")

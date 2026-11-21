@@ -83,15 +83,16 @@ def mul(a, b):
 
 
 def text_sizes(path: Path):
-    """Font sizes (in the figure's own points) of all text, and the font names, of page 1."""
+    """Font sizes (in the figure's own points) of all text, the font names, and the number of
+    missing glyphs (.notdef) of page 1."""
     pdf = pikepdf.open(path)
     page = pdf.pages[0]
-    sizes, fonts = [], set()
+    sizes, fonts, missing = [], set(), [0]
 
     def walk(stream, resources, ctm, depth=0):
         if depth > 8:
             return
-        stack, tm, tlm, size = [], [1, 0, 0, 1, 0, 0], [1, 0, 0, 1, 0, 0], 0
+        stack, tm, tlm, size, font = [], [1, 0, 0, 1, 0, 0], [1, 0, 0, 1, 0, 0], 0, None
         for operands, op in pikepdf.parse_content_stream(stream):
             op = str(op)
             if op == "q":
@@ -115,6 +116,10 @@ def text_sizes(path: Path):
             elif op in ("Tj", "TJ", "'", '"') and size:
                 m = mul(tm, ctm)
                 sizes.append(abs(size) * math.sqrt(abs(m[0] * m[3] - m[1] * m[2])))
+                if font is not None and font.get("/Subtype") == "/Type0":
+                    items = operands[0] if op == "TJ" else [operands[-1]]
+                    data = b"".join(bytes(x) for x in items if isinstance(x, pikepdf.String))
+                    missing[0] += sum(1 for i in range(0, len(data) - 1, 2) if data[i:i + 2] == b"\0\0")
             elif op == "Do" and resources is not None:
                 xo = resources.get("/XObject", {}).get(str(operands[0]))
                 if xo is not None and xo.get("/Subtype") == "/Form":
@@ -122,7 +127,7 @@ def text_sizes(path: Path):
                     walk(xo, xo.get("/Resources", resources), mul(m, ctm), depth + 1)
 
     walk(page, page.get("/Resources"), [1, 0, 0, 1, 0, 0])
-    return sizes, fonts
+    return sizes, fonts, missing[0]
 
 
 def raster_pixels(path: Path):
@@ -172,9 +177,9 @@ def main(argv=None) -> int:
                 notes_text = "text sizes not checked (pip install -r requirements.txt)"
             else:
                 try:
-                    sizes, fonts = text_sizes(path)
+                    sizes, fonts, nmissing = text_sizes(path)
                 except Exception as e:                  # an unusual PDF: report, keep going
-                    sizes, fonts = [], set()
+                    sizes, fonts, nmissing = [], set(), 0
                     notes.append(f"could not read the PDF ({e.__class__.__name__})")
                 printed = [s * scale for s in sizes]
                 if printed:
@@ -190,6 +195,10 @@ def main(argv=None) -> int:
                         notes.append(f"text up to {hi:.1f} pt, larger than the captions ({caption:.1f} pt)")
                 else:
                     notes_text = "no text (or text as outlines)"
+                if nmissing:
+                    notes.append(f"{nmissing} missing glyph(s) (.notdef): they print as nothing and fail the PDF/A "
+                                 "check. From matplotlib 3.11+ this is usually a ligature (ff, fi, fl): switch "
+                                 "them off as Python/example_figures.py does, and export again")
                 other = sorted(f for f in fonts if f and not TIMES.search(f))
                 if other:
                     notes.append(f"fonts other than Times: {', '.join(other)} (the template's style file uses Times)")
