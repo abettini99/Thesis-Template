@@ -101,6 +101,13 @@
 \renewcommand{\labelitemii}{\textendash}
 \renewcommand{\labelitemiii}{\textendash}
 \renewcommand{\labelitemiv}{\textendash}
+%% Lists: no extra space between items (a list reads as part of the paragraph), and the item text
+%% starts at the paragraph indent, with the dash or number hanging in front of it.
+\tightlists
+\setlength{\leftmargini}{\parindent}
+\setlength{\leftmarginii}{\parindent}
+\setlength{\leftmarginiii}{\parindent}
+\setlength{\leftmarginiv}{\parindent}
 
 %% Dutch name prefixes: write {\VAN} in references.bib (e.g. author = {T. \VAN~Pelt}). It prints "Van"
 %% in the text (\citet) and "van" in the reference list (switched in main.tex).

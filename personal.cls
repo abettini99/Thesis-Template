@@ -94,12 +94,12 @@
     \setlength{\thesis@foremargin}{27.3mm} \setlength{\thesis@topmargin}{20mm}
 }}}
 %% Type size and line spacing. Dover: 9.5 pt type (all fonts scaled to 95 %, maths included) on
-%% 11.4 pt leading, 42 lines per page, like the Dover paperbacks: the classic 10/12 proportion
-%% scaled to 95 %. This also keeps about 57 characters per line on the narrower page.
-%% Other sizes: 10 pt type on 13.2 pt leading.
+%% 12 pt leading, so the slightly smaller type still gets a full line of air, which displayed
+%% maths and inline fractions need. Other sizes: 10 pt type on 13.2 pt leading (11 pt on
+%% 15 pt for TU Delft).
 \newcommand*{\thesis@fontscale}{1}
 \newcommand*{\thesisspacing}{1.1}
-\ifthenelse{\equal{\thesis@pagesize}{dover}}{\renewcommand*{\thesis@fontscale}{0.95}\renewcommand*{\thesisspacing}{0.95}}{}
+\ifthenelse{\equal{\thesis@pagesize}{dover}}{\renewcommand*{\thesis@fontscale}{0.95}\renewcommand*{\thesisspacing}{1}}{}
 
 %% Chapter title size scales with the page, so long titles such as "Acknowledgements" still fit on one line.
 \newcommand*{\chaptertitlesize}{30pt}
@@ -227,6 +227,14 @@
 \addbibresource{references.bib}
 %% A URL adds nothing when there is a DOI: hide it (and its access date).
 \setlength\bibitemsep{0.5\baselineskip} % space between references
+%% Set ragged right: references are full of long names, journal titles and DOIs, which in justified
+%% text leave wide gaps. DOIs and URLs in the text font, and allowed to break after any character.
+\RequirePackage{ragged2e}
+\renewcommand*{\bibfont}{\RaggedRight}
+\AtBeginBibliography{\urlstyle{same}}
+\setcounter{biburlnumpenalty}{100}
+\setcounter{biburlucpenalty}{100}
+\setcounter{biburllcpenalty}{100}
 \AtEveryBibitem{\iffieldundef{doi}{}{\clearfield{url}\clearfield{urlyear}\clearfield{urlmonth}\clearfield{urlday}}}
 \if@backref
     \ExecuteBibliographyOptions{backref=true, backrefstyle=three}

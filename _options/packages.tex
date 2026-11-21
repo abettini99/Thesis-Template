@@ -13,6 +13,9 @@
 \usepackage{array}              % https://ctan.org/pkg/array %% extra column types for tables
 \usepackage{booktabs}           % https://ctan.org/pkg/booktabs %% \toprule, \midrule, \bottomrule
 \usepackage{xltabular}          % https://ctan.org/pkg/xltabular %% tabularx (wrapping columns) + longtable (across pages)
+%% Wrapping (X) columns are set ragged right without hyphenation: in a narrow column justified text
+%% leaves wide gaps, and a word broken over two lines of a table cell reads badly.
+\renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash}p{#1}}
 \usepackage{pdflscape}          % https://ctan.org/pkg/pdflscape %% landscape pages, shown rotated in PDF viewers
 \usetikzlibrary{positioning,arrows.meta} % TikZ itself is loaded by the class (thumb tabs)
 
