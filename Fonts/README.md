@@ -5,10 +5,10 @@ The template sets maths in **newtx**, a Times-style maths font that comes with T
 | File in this folder | Maths font |
 |---|---|
 | `MTPro2MathFull.otf` | MathTime Professional 2 Complete |
-| `MTPro2MathLite.otf` | MathTime Professional 2 Lite; bold italic (vectors, tensors), bold Greek, calligraphic, blackboard bold and Fraktur come from TeX Gyre Termes Math, as Lite does not have them |
+| `MTPro2MathLite.otf` | MathTime Professional 2 Lite. Lite has no bold italic, calligraphic, blackboard bold or Fraktur: calligraphic letters and bold Latin letters (vectors, tensors) come from newtx, as without MathTime; bold Greek, blackboard bold and Fraktur from TeX Gyre Termes Math |
 | neither | newtx |
 
-If both are present, the Complete version is used. The log says which one: search it for "Maths font".
+If both are present, the Complete version is used. (With XeLaTeX instead of LuaLaTeX, everything Lite lacks comes from TeX Gyre Termes Math, as XeLaTeX cannot mix in the newtx letters.) The log says which one: search it for "Maths font".
 
 ## Getting the font
 

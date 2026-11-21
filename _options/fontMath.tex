@@ -3,8 +3,10 @@
 \ifthesismathtime
 %% ---------------------------------------------------------------------------------------------
 %% MathTime Professional 2 (Full or Lite), through unicode-math. Lite has no bold italic, no bold
-%% upright Greek, no calligraphic, blackboard bold or Fraktur: those come from TeX Gyre Termes Math,
-%% the Times-style OpenType maths font in TeX Live.
+%% upright Greek, no calligraphic, blackboard bold or Fraktur. Its calligraphic letters and bold Latin
+%% letters (vectors, tensors) then come from newtx, as without MathTime; bold Greek, blackboard bold
+%% and Fraktur from TeX Gyre Termes Math, the Times-style OpenType maths font in TeX Live (unicode-math
+%% treats Greek letters as Unicode characters, which the classic newtx fonts cannot supply).
 %% ---------------------------------------------------------------------------------------------
 %% unicode-math announces that it takes over a few symbols from mathtools (\overbracket, \coloneqq):
 %% intended here, so it goes to the log as information instead of a warning.
@@ -15,8 +17,32 @@
 \RequirePackage{unicode-math}
 \setmathfont{MTPro2Math\thesismathtimeedition.otf}[Path=Fonts/, Scale=\thesis@fontscale]
 \def\thesis@tmp{Lite}\ifx\thesismathtimeedition\thesis@tmp
+\ifdefined\directlua
+    \setmathfont{texgyretermes-math.otf}[range={bb,bbit,bfcal,frak,bffrak,bfit,bfsfit,bfup/{greek,Greek}},
+        Scale=\thesis@fontscale]
+    %% newtx calligraphic and bold italic, as classic maths alphabets (Latin letters), scaled like the text
+    \edef\ntxmath@scaled{s*[\thesis@fontscale]}
+    \DeclareFontEncoding{LMS}{}{}\DeclareFontSubstitution{LMS}{ntxsy}{m}{n} % newtx's symbol encoding
+    \DeclareMathAlphabet{\thesis@ntxcal}{LMS}{ntxsy}{m}{n}
+    \DeclareMathAlphabet{\thesis@ntxbfit}{OML}{ntxmi}{b}{it}
+    \AddToHook{begindocument/end}{\let\mathcal\thesis@ntxcal}
+    %% bold: a single Latin letter from newtx, anything else (Greek, digits) through \symbfit
+    \ExplSyntaxOn
+    \cs_new_protected:Npn \thesisboldmath #1
+      {
+        \bool_lazy_and:nnTF { \tl_if_single_token_p:n {#1} } { \token_if_letter_p:N #1 }
+          { \thesis@ntxbfit {#1} } { \symbfit {#1} }
+      }
+    \ExplSyntaxOff
+\else
+    %% XeLaTeX cannot mix classic maths alphabets with unicode-math: everything Lite lacks comes from
+    %% TeX Gyre Termes Math (the template is meant for LuaLaTeX).
     \setmathfont{texgyretermes-math.otf}[range={bb,bbit,cal,bfcal,frak,bffrak,bfit,bfsfit,bfup/{greek,Greek}},
         Scale=\thesis@fontscale]
+    \newcommand{\thesisboldmath}{\symbfit}
+\fi
+\else
+    \newcommand{\thesisboldmath}{\symbfit}
 \fi
 %% \mathsf (matrices \mathsf{A}, operators \mathsf{Res}) in Source Sans, the document's sans-serif font.
 \setmathfontface\mathsf{\thesis@sourcesans}[Extension=.otf, UprightFont=*-Regular, BoldFont=*-Semibold,
@@ -31,6 +57,7 @@
 %% ---------------------------------------------------------------------------------------------
 %% newtx
 %% ---------------------------------------------------------------------------------------------
+\newcommand{\thesisboldmath}{\bm} % bold for \vec and \tensor (bm is loaded in packages.tex)
 %% Math: newtxmath, the Times-style math font that matches the TeX Gyre Termes body text.
 %% Variables are italic, as is standard for Times-based documents.
 %% newtxmath takes digits, \mathrm, \mathbf, \mathit and operator names (sin, log, ...) from the current
