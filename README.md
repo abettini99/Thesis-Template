@@ -167,6 +167,16 @@ Maths is set in newtx, a Times-style maths font included with TeX Live and Overl
 
 All of the `mtpro2` package's macros then work (`\xl`…`\XXXL` operators, `\SQRT`, `\widearc`, `\bm`, `\hm`), with Complete preferred if both editions are there and Lite's missing alphabets filled in from newtx, the AMS fonts and Euler. Details are in [`Fonts/README.md`](Fonts/README.md).
 
+How the three compare, symbol by symbol (regenerate locally with `.github/scripts/math_fonts.py`, which needs both MathTime editions):
+
+![The same equation in newtx, MathTime Lite and MathTime Complete](.github/readme/math-equation.png)
+
+<details><summary>Every symbol group in newtx, MathTime Lite and MathTime Complete</summary>
+
+![Symbols in newtx, MathTime Lite and MathTime Complete](.github/readme/math-symbols.png)
+
+</details>
+
 **The MathTime licence does not allow sharing the fonts, converted or not:** never add them to a public repository (including this template); keep them in a private project only. The `.gitignore` keeps the zips, the unpacked folders and the contents of `Fonts/` out of git. Embedding the fonts in the thesis PDF is allowed.
 
 ## Plots

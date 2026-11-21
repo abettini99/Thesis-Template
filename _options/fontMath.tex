@@ -27,7 +27,7 @@
     \newcommand{\thesisboldmath}{\bm} % real bold (bm is loaded in packages.tex)
 \else
     \RequirePackage{amssymb} % the AMS symbols Lite lacks (\varnothing, \nleq, ...), before mtpro2
-    \RequirePackage[lite, amsbb, eufrak, nofontinfo]{mtpro2}
+    \RequirePackage[lite, nofontinfo]{mtpro2} % \mathbb and \mathfrak stay amssymb's (AMS, Euler)
     \DeclareMathAlphabet{\mathscr}{U}{eus}{m}{n} % script: Euler (Lite has none)
     %% Lite has no bold maths: bold Latin letters (vectors, tensors) from newtx, scaled like the text
     \edef\ntxmath@scaled{s*[\thesis@fontscale]}

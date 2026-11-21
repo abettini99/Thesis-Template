@@ -235,7 +235,10 @@ def main(argv: list[str] | None = None) -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("source", nargs="?", type=Path, default=ROOT,
                     help="folder or zip with the MTPro2 files (default: the template's main folder)")
+    ap.add_argument("-o", "--output", type=Path, default=OUT,
+                    help="folder to write to (default: the template's Fonts folder)")
     args = ap.parse_args(argv)
+    out = args.output.resolve()
 
     table = json.loads(MAP_FILE.read_text())
     sources = find_sources(args.source.resolve())
@@ -249,8 +252,8 @@ def main(argv: list[str] | None = None) -> int:
         if other is not src:
             print(f"  (ignoring {other.label})")
 
-    OUT.mkdir(exist_ok=True)
-    for old in OUT.iterdir():                          # drop a previous run (other edition)
+    out.mkdir(parents=True, exist_ok=True)
+    for old in out.iterdir():                          # drop a previous run (other edition)
         if old.is_file() and old.suffix.lower() in GENERATED and old.name != "README.md":
             old.unlink()
 
@@ -259,21 +262,21 @@ def main(argv: list[str] | None = None) -> int:
         name, read = src.files[key]
         font = Path(name).stem.lower()
         data, mapped = convert_font(read(), font, table.get(font, {}), suffixed)
-        (OUT / name).write_bytes(data)
+        (out / name).write_bytes(data)
         total += mapped
 
     copied = 0
     for key, (name, read) in sorted(src.files.items()):
         suffix = Path(key).suffix
         if suffix in SUPPORT or key == "mtpro2.map" or key.startswith("eula"):
-            (OUT / name).write_bytes(read())
+            (out / name).write_bytes(read())
             copied += 1
-    (OUT / "mtpro2-glyphtounicode.tex").write_text(tounicode_tex(suffixed), encoding="ascii")
+    (out / "mtpro2-glyphtounicode.tex").write_text(tounicode_tex(suffixed), encoding="ascii")
 
     for need in ("mtpro2.sty", "mtpro2.map"):
         if need not in src.files:
             print(f"warning: {need} not found in {src.label}")
-    print(f"{len(src.pfbs)} fonts converted ({total} glyphs mapped), {copied} files copied -> Fonts/")
+    print(f"{len(src.pfbs)} fonts converted ({total} glyphs mapped), {copied} files copied -> {out}")
     print("Licence: keep these files private. Never commit or share them; the .gitignore blocks them.")
     return 0
 
