@@ -40,7 +40,10 @@
 \else
     \hypersetup{colorlinks=true, linkcolor=tudelft-dark-blue, citecolor=tudelft-dark-blue, urlcolor=tudelft-dark-blue}
 \fi
-\hypersetup{pdfdisplaydoctitle=true, bookmarksnumbered=true}
+\hypersetup{pdfdisplaydoctitle=true}
+%% Bookmarks: numbered ("2.1 Text"), and one level deeper than the contents (down to subsections),
+%% so the PDF can be navigated in more detail than the printed contents show.
+\bookmarksetup{numbered, depth=2}
 %% TeX Live 2026: with \DocumentMetadata the LaTeX kernel makes the footnote links and hyperref no
 %% longer defines the counter Hfootnote, which memoir's footnote code still steps. Define it if missing.
 \makeatletter\@ifundefined{c@Hfootnote}{\newcounter{Hfootnote}}{}\makeatother

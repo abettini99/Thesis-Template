@@ -9,6 +9,9 @@
 \setsecnumformat{\csname the#1\endcsname.\quad}
 \renewcommand{\cftsectionaftersnum}{.}
 \renewcommand{\cftsubsectionaftersnum}{.}
+%% Chapter lines in the contents in the heading font, as the chapter titles themselves
+\renewcommand{\cftchapterfont}{\headingfont\bfseries}
+\renewcommand{\cftchapterpagefont}{\headingfont\bfseries}
 
 \def\blfootnote{\xdef\@thefnmark{}\@footnotetext}
 

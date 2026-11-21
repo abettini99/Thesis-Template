@@ -24,9 +24,12 @@
 \newcommand\sderiv[3][]{                        % creates a nth-order substantial derivative
 \frac{\sdiff[#1]{#2}}{\sdiff{#3}^{#1}}
 }
-\newcommand\cderiv[3][]{\diff[#1]{}_{#3}{#2}}   % creates a compact form nth-order ordinary derivative
-\newcommand\cpderiv[3][]{\pdiff[#1]{}_{#3}{#2}} % creates a compact form nth-order partial derivative
-\newcommand\csderiv[3][]{\sdiff[#1]{}_{#3}{#2}} % creates a compact form nth-order substantial derivative
+%% Compact derivatives: \cpderiv{u}{t} gives \partial_t u, \cpderiv[2]{u}{x} gives \partial^2_x u (scripts stacked).
+%% The scripts attach straight to the d or \partial, so the subscript sits close to it.
+\newcommand\ThesisCompactDeriv[4]{#1\if\relax\detokenize{#2}\relax\else^{#2}\fi_{#4}{#3}}
+\newcommand\cderiv[3][]{\ThesisCompactDeriv{\mathrm{d}}{#1}{#2}{#3}}   % compact ordinary derivative: d_x y
+\newcommand\cpderiv[3][]{\ThesisCompactDeriv{\partial}{#1}{#2}{#3}}  % compact partial derivative: \partial_t u
+\newcommand\csderiv[3][]{\ThesisCompactDeriv{\mathrm{D}}{#1}{#2}{#3}} % compact material derivative: D_t u
 
 \newcommand\uVec[2]{\hat{\vec{#1}}_{#2}}        % creates a unit vector
 \newcommand\uVecT[2]{\overline{\vec{#1}}_{#2}}  % creates a transformed unit vector

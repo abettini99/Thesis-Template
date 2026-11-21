@@ -123,6 +123,19 @@ Both are separate documents that use the fonts and the details in `_thesisinfo.t
 - **`propositions.tex`** prints the propositions in the thesis page size, in English with an optional Dutch page (`\dutchversionfalse` for English only), ending with the approval sentence naming the promotors (`\thesispromotors` in `_thesisinfo.tex`). Check the Doctorate Regulations for how many propositions are required and what kind.
 - **`cover.tex`** lays out back, spine and front on one sheet with bleed. Set the page size, the number of pages of the final thesis PDF and the paper thickness at the top; it calculates the spine width (shown on the sheet and in the log), or takes the width the printer gives you. Text goes on the spine only when it is at least 6 mm wide. There are settings for the accent colour, a front image, the back cover text and an ISBN barcode. The red and blue guides show the trim, the spine folds and the safe area; turn them off with `\coverguidesfalse` before sending the file. Ask the printer for the paper thickness and the bleed they want, and check the result against their cover template if they have one.
 
+## Before sending it to the printer
+
+1. **Details:** check every line of `_thesisinfo.tex` again: names (all first names, as on your passport), title, defence date and time, Rector Magnificus, committee and order, ISBN, printer, cover designer.
+2. **Final build:** compile with the `final` option (removes all todo notes) and the `print` option, and without `draft` and `showtrims`. Search the PDF for "??" (broken references) and "[" followed by a citation key (missing references).
+3. **Overfull lines:** compile once with `draft`; a black bar in the margin marks every line that sticks out. Fix them by rewording or adding words to `_hyphenation.tex`.
+4. **Contents and bookmarks:** check the contents, the running heads (long titles get cut off or wrap) and the PDF bookmarks.
+5. **Figures:** every figure at its printed size, legible, and correct in greyscale where the printer charges for colour pages.
+6. **PDF/A:** the PDF should be PDF/A-2u with all fonts embedded (most printers check this; Adobe Acrobat's Preflight or veraPDF shows it).
+7. **Page count and blank pages:** chapters start on a right-hand page, so blank left-hand pages are expected. Note the total page count.
+8. **Cover:** set the page count and the paper thickness in `cover.tex` (or the spine width from the printer), the bleed the printer asks for, turn off the guides with `\coverguidesfalse`, and compare with the printer's cover template.
+9. **Propositions:** compile `propositions.tex` separately; check the promotors' names and that the promotors have approved them.
+10. **Proof copy:** ask the printer for a proof copy and check it on paper before the full run.
+
 ## Print costs
 
 Printers usually charge every page that contains any colour as a colour page. So the print version keeps everything that appears on many pages black and white: the thumb tabs are black, links are invisible and code listings use bold and grey instead of colours. Colour in your own figures is fine; it only affects the pages they are on.
