@@ -74,7 +74,7 @@
     %% Heading levels differ by size and space, never by extra boldness:
     %%   section        semibold, 1.15 x text size, 1.5 lines above, half a line below
     %%   subsection     semibold, text size, 1 line above, a quarter line below
-    %%   subsubsection  semibold italic, text size, unnumbered, 1 line above, a quarter line below
+    %%   subsubsection  italic text font (not bold), text size, unnumbered, 1 line above, a quarter line below
     %% A negative space before a heading (memoir convention) means the first paragraph after it is
     %% not indented, as usual in books; the space itself is the same.
     \newcommand{\thesis@secsize}{\fontsize{\dimexpr 1.15\dimexpr\f@size pt\relax\relax}{\dimexpr 1.38\dimexpr\f@size pt\relax\relax}\selectfont}
@@ -94,7 +94,7 @@
     %% Subsubsection formatting (unnumbered)
     \setbeforesubsubsecskip{-1\onelineskip plus -0.3\onelineskip minus -0.1\onelineskip}
     \setsubsubsecindent{0em}
-    \setsubsubsecheadstyle{\sffamily\bfseries\itshape}
+    \setsubsubsecheadstyle{\itshape}
     \setaftersubsubsecskip{0.25\onelineskip}
 
     %% paragraph formatting
