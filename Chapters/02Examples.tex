@@ -114,9 +114,9 @@ When the continuation should line up with an equals sign, \texttt{split} inside 
 \end{equation}
 Break before an operator ($+$, $-$, $=$), not after it, so the new line shows at once that it continues the previous one.
 
-A weak form, as in a finite element method, consists of many inner products. Write them compactly: $\inner{\cdot}{\cdot}_D$ for the $L^2$ inner product over a domain $D$, with the domain as subscript, and time derivatives as $\cpderiv{\vec{u}^h}{t}$ rather than a fraction. Give the parts of the boundary short names, so the subscripts stay one level deep. A \texttt{problem} environment sets the statement apart, as in \cref{prob:navier-stokes}; \texttt{subequations} numbers its equations (\ref{eq:fem-momentum})--(\ref{eq:fem-wall}) and lets the set be referred to as a whole, \cref{eq:fem}.
+A weak form, as in a finite element method, consists of many inner products. Write them compactly: $\inner{\cdot}{\cdot}_D$ for the $L^2$ inner product over a domain $D$, with the domain as subscript, and time derivatives as $\cpderiv{\vec{u}^h}{t}$ rather than a fraction. Give the parts of the boundary short names, so the subscripts stay one level deep. A \texttt{formulation} environment sets the statement apart, as in \cref{form:burgers}; \texttt{subequations} numbers its equations (\ref{eq:fem-momentum})--(\ref{eq:fem-wall}) and lets the set be referred to as a whole, \cref{eq:fem}.
 
-\begin{problem}[Weak form of the Navier--Stokes momentum equation]\label{prob:navier-stokes}
+\begin{formulation}[Weak form of the viscous Burgers equation]\label{form:burgers}
 Let the boundary consist of an inflow part and a wall, $\partial\Omega = \Gamma_\mathrm{in} \cup \Gamma_\mathrm{wall}$. Find $\vec{u}^h \in \mathcal{V}^h(\Omega)$ for $0 < t \leq T$, given an initial condition $\vec{u}_0$, such that for all $\vec{v} \in \mathcal{W}^h(\Omega)$, $\vec{\sigma} \in \mathcal{W}^h(\Gamma_\mathrm{in})$ and $\vec{\zeta} \in \mathcal{W}^h(\Gamma_\mathrm{wall})$:
 \begin{subequations}\label{eq:fem}
 \begin{gather}
@@ -130,7 +130,7 @@ Let the boundary consist of an inflow part and a wall, $\partial\Omega = \Gamma_
     = \inner[\big]{\vec{\zeta}}{\vec{u}_\mathrm{wall}}_{\Gamma_\mathrm{wall}} .    \label{eq:fem-wall}
 \end{gather}
 \end{subequations}
-\end{problem}
+\end{formulation}
 
 The command \verb|\inner| in \file{_options/commands.tex} writes the inner products. Displays give it a size, \verb|\inner[\big]|; in running text, leave out the size, $\inner{\vec{v}}{\vec{u}^h}_\Omega$, and use \verb|\inner*| for brackets that fit their contents. A coefficient such as $\nu$ goes inside the brackets; only a weight that defines the inner product itself, such as the radius $r$ in an axisymmetric problem, goes in the subscript, before the domain: $\inner{\vec{v}}{\vec{u}^h}_{r,\Omega}$.
 
