@@ -41,16 +41,14 @@
 %% ---------------------------------------------------------------------
 %% Commands for defining entries (use them in _nomenclature.tex).
 %% The optional first argument is a sort key. By default, acronyms are sorted by their short
-%% form and Latin symbols and dimensionless numbers by their label; Greek symbols and sub- and
+%% form and Latin symbols and dimensionless numbers by their label (case ignored, lower case first); Greek symbols and sub- and
 %% superscripts keep the order in which you define them.
 %% ---------------------------------------------------------------------
 %% \nomacronym[sort]{label}{SHORT}{long form}
 \newcommand{\nomacronym}[4][]{%
-    \ifx\relax#1\relax
-        \newabbreviation[type=acronyms, category=acronym, sort={#3}]{#2}{#3}{#4}%
-    \else
-        \newabbreviation[type=acronyms, category=acronym, sort={#1}]{#2}{#3}{#4}%
-    \fi}
+    \ifx\relax#1\relax \edef\thesis@sort{\thesis@sortkey{#3}}\else \edef\thesis@sort{\thesis@sortkey{#1}}\fi
+    \expandafter\thesis@nomacronym\expandafter{\thesis@sort}{#2}{#3}{#4}}
+\newcommand{\thesis@nomacronym}[4]{\newabbreviation[type=acronyms, category=acronym, sort={#1}]{#2}{#3}{#4}}
 %% \nomdimless[sort]{label}{symbol}{description}{definition}       (symbol and definition: maths)
 \newcommand{\nomdimless}[5][]{\thesis@nomentry{dimless}{#1}{#2}{#3}{#4}{definition={\thesis@definition{#5}}}}
 %% \nomlatin[sort]{label}{symbol}{description}{dimensions}{units}   (symbol and dimensions: maths)
@@ -64,11 +62,19 @@
 
 %% #1 type, #2 sort key (may be empty: then the label), #3 label, #4 symbol, #5 description, #6 extra keys
 \newcommand{\thesis@nomentry}[6]{%
-    \ifx\relax#2\relax
-        \newglossaryentry{#3}{type=#1, sort={#3}, name={\ensuremath{#4}}, description={#5}, #6}%
-    \else
-        \newglossaryentry{#3}{type=#1, sort={#2}, name={\ensuremath{#4}}, description={#5}, #6}%
-    \fi}
+    \ifx\relax#2\relax \edef\thesis@sort{\thesis@sortkey{#3}}\else \edef\thesis@sort{\thesis@sortkey{#2}}\fi
+    \expandafter\thesis@nomentry@\expandafter{\thesis@sort}{#1}{#3}{#4}{#5}{#6}}
+\newcommand{\thesis@nomentry@}[6]{%
+    \newglossaryentry{#3}{type=#2, sort={#1}, name={\ensuremath{#4}}, description={#5}, #6}}
+%% Sort keys ignore case, and a lower-case letter comes before the same capital (f before F, t before T),
+%% the order of a dictionary. The key is made explicit, "f" -> "f!0" and "F" -> "f!1", so the order does
+%% not depend on how the TeX installation breaks ties (TeX Live versions differ, Overleaf included).
+\ExplSyntaxOn
+\cs_new:Npn \thesis@sortkey #1
+  { \str_lowercase:n {#1} ! \str_map_function:nN {#1} \__thesis_caseflag:N }
+\cs_new:Npn \__thesis_caseflag:N #1
+  { \str_if_eq:eeTF {#1} { \str_lowercase:n {#1} } { 0 } { 1 } }
+\ExplSyntaxOff
 %% Definitions are set in full-size (display-style) maths, with room above and below so fractions
 %% do not touch the next row.
 \newcommand{\thesis@definition}[1]{\ensuremath{\displaystyle #1}\rule[-2.4ex]{0pt}{6.2ex}}
