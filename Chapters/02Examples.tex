@@ -51,7 +51,7 @@ Longer quotations are set apart from the text:
 
 Cross-references name the thing they point to: \cref{sec:text} discusses text, \cref{eq:navier-stokes} is the momentum equation, \cref{fig:panels} has two panels, of which \cref{fig:panels}a is the left one, \cref{tab:geometry} lists the model geometry and \cref{app:derivation} contains a derivation. Several references at once are combined: \cref{eq:continuity,eq:navier-stokes}. \Cref{fig:diagram} is on \cpageref{fig:diagram}.
 
-Citations use numbered references~\cite{Allen2002}, several at once~\cite{Sinnige2020,Bettini2021,Eitelberg2020}, or name the authors, as in \citet{Herrez2016}, who published in \citeyear{Herrez2016}. A page or table can be added to a citation~\cite[Tab.~4]{Bettini2021}.
+Citations use numbered references~\cite{Allen2002}, several at once~\cite{Sinnige2020,Bettini2021,Eitelberg2020}, or name the authors, as in \citet{Herrez2016}, who published in \citeyear{Herrez2016}. A page or table can be added to a citation~\cite[Tab.~4]{Bettini2021}. Software and data sets are cited in the same way, with their DOI~\cite{BettiniCode2026,BettiniData2026}.
 
 %% =====================================================================
 \section{Mathematics}\label{sec:maths}
@@ -145,6 +145,54 @@ so that \cref{eq:fem-momentum} becomes
     \inner[\big]{\vec{v}}{\cpderiv{\vec{u}^h}{t}}_\Omega + c(\vec{u}^h; \vec{v}, \vec{u}^h) + a(\vec{v}, \vec{u}^h) = \inner[\big]{\vec{v}}{\vec{f}}_\Omega .
 \end{equation*}
 The diffusive form $a$ is bilinear; the convective form $c$ is linear in $\vec{v}$ and $\vec{u}$ but depends on the velocity $\vec{w}$ as well, which is why it is written with a semicolon.
+
+\subsection{Definitions, lemmas and proofs}\label{sec:statements}
+
+Definitions, lemmas, theorems and corollaries share one counter, so \cref{def:energy-norm} is followed by \cref{lem:coercivity}; a remark is unnumbered. All are set upright, which reads better than the usual italics when a statement is mostly maths.
+
+\begin{definition}[Energy norm]\label{def:energy-norm}
+For $\nu > 0$, the energy norm of $\vec{v} \in \mathcal{W}^h(\Omega)$ is $\lVert \vec{v} \rVert_a \coloneqq a(\vec{v}, \vec{v})^{1/2}$.
+\end{definition}
+
+\begin{lemma}[Coercivity]\label{lem:coercivity}
+For constant $\nu > 0$, $a(\vec{v}, \vec{v}) = \nu \lVert \grad\vec{v} \rVert_\Omega^2 \geq 0$ for all $\vec{v} \in \mathcal{W}^h(\Omega)$.
+\end{lemma}
+
+\begin{proof}
+With $\nu$ constant, it can be taken out of the inner product:
+\begin{equation*}
+    a(\vec{v}, \vec{v}) = \inner[\big]{\grad\vec{v}}{\nu \grad\vec{v}}_\Omega = \nu \inner[\big]{\grad\vec{v}}{\grad\vec{v}}_\Omega = \nu \lVert \grad\vec{v} \rVert_\Omega^2 \geq 0 . \qedhere
+\end{equation*}
+\end{proof}
+
+\begin{remark}
+For $\vec{v} = \vec{0}$ on the boundary, $c(\vec{w}; \vec{v}, \vec{v}) = -\tfrac{1}{2} \inner{\grad\cdot\vec{w}}{\lvert\vec{v}\rvert^2}_\Omega$, which vanishes only if $\vec{w}$ is divergence free. The velocity of the Burgers equation is not divergence free, so stability analyses use the skew-symmetric form
+\begin{equation*}
+    \tilde{c}(\vec{w}; \vec{v}, \vec{u}) \coloneqq c(\vec{w}; \vec{v}, \vec{u}) + \tfrac{1}{2} \inner[\big]{\vec{v}}{(\grad\cdot\vec{w})\, \vec{u}}_\Omega ,
+\end{equation*}
+for which $\tilde{c}(\vec{w}; \vec{v}, \vec{v}) = 0$ whenever $\vec{v} = \vec{0}$ on the boundary.
+\end{remark}
+
+\subsection{Algorithms}\label{sec:algorithms}
+
+Algorithms are floats like figures, with the caption on top (\cref{alg:picard}). Number the lines and refer to them as well: the linear system is solved in line~\ref{alg:picard-solve}.
+
+\begin{algorithm}[tbp]
+    \caption{Picard iteration for one time step of \cref{form:burgers}.}
+    \label{alg:picard}
+    \begin{algorithmic}[1]
+        \Require solution $\vec{u}^n$, time step $\Delta t$, tolerance $\varepsilon$
+        \Ensure solution $\vec{u}^{n+1}$
+        \State $\vec{w} \gets \vec{u}^n$ \Comment{initial guess}
+        \Repeat
+            \State assemble $\mathsf{A}(\vec{w})$ and $\mathsf{b}$ from $c(\vec{w}; \cdot, \cdot)$ and $a$
+            \State solve $\mathsf{A}(\vec{w})\, \vec{u}^\ast = \mathsf{b}$ \label{alg:picard-solve}
+            \State $\delta \gets \lVert \vec{u}^\ast - \vec{w} \rVert_\Omega$
+            \State $\vec{w} \gets \vec{u}^\ast$
+        \Until{$\delta < \varepsilon$}
+        \State \Return $\vec{u}^{n+1} \gets \vec{w}$
+    \end{algorithmic}
+\end{algorithm}
 
 %% =====================================================================
 \section{Units and numbers}\label{sec:units}
@@ -264,6 +312,25 @@ Tables use horizontal rules only, with numbers aligned on the decimal point (\cr
         Aspect ratio           & 8.98     &                       \\
         Taper ratio            & 0.40     &                       \\
         Dihedral angle         & 4        & \unit{\degree}        \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+A convergence study is a table of errors against mesh size, with the observed order of convergence between successive meshes (\cref{tab:convergence}). Numbers in scientific notation stay readable when aligned on the decimal point, with the exponent in the same place on every row; give the order to two decimals.
+
+\begin{table}[tbp]
+    \centering
+    \caption{Errors of the Burgers solution~\cite{BettiniData2026} with linear elements on uniform meshes of $N \times N$ elements, with the observed orders of convergence. The expected orders are 2 in the $L^2$ norm and 1 in the $H^1$ seminorm.}
+    \label{tab:convergence}
+    \begin{tabular}{@{}S[table-format=3.0] S[table-format=1.2e-1] S[table-format=1.2] S[table-format=1.2e-1] S[table-format=1.2]@{}}
+        \toprule
+        {$N$} & {$\lVert \vec{e} \rVert_\Omega$} & {Order} & {$\lVert \grad\vec{e} \rVert_\Omega$} & {Order} \\
+        \midrule
+          8   & 3.41e-3 & {--} & 1.08e-1 & {--} \\
+         16   & 8.80e-4 & 1.96 & 5.46e-2 & 0.99 \\
+         32   & 2.23e-4 & 1.98 & 2.74e-2 & 0.99 \\
+         64   & 5.62e-5 & 1.99 & 1.37e-2 & 1.00 \\
+        128   & 1.41e-5 & 2.00 & 6.87e-3 & 1.00 \\
         \bottomrule
     \end{tabular}
 \end{table}

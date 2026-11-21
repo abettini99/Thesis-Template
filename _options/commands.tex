@@ -115,3 +115,12 @@
 %% \texttt can't be broken and sticks out into the margin on a narrow page). Type underscores as they are:
 %% \file{_nomenclature.tex}, \file{Python/thesis.mplstyle}
 \newcommand{\file}[1]{\nolinkurl{#1}}
+
+%% Chapter based on a paper: a small note at the start of the chapter text with the reference and the
+%% author contributions. \chapterbasedon{\cite{key}}{A.~Author: conceptualisation, ...; B.~Author: ...}
+\newcommand{\chapterbasedon}[2]{%
+    \par\begingroup\small\setlength{\parindent}{0pt}%
+    This chapter is based on #1.\par
+    \textit{Author contributions:} #2\par
+    \endgroup\bigskip
+}

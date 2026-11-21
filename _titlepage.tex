@@ -110,6 +110,11 @@
 
     \medskip
 \fi
+\ifx\thesisdataavailability\empty\else
+    \noindent \thesisdataavailability
+
+    \medskip
+\fi
 \noindent
 \begin{tabular}{@{}p{0.22\textwidth}@{}p{0.78\textwidth}@{}}
     \textit{Keywords:}   & \thesiskeywords \\[\smallskipamount]
@@ -119,6 +124,12 @@
 
 \bigskip
 \noindent Copyright \textcopyright\ \the\year\ by \thesisauthorinitials~\thesisauthorlastname
+\ifx\thesislicence\empty\else\par\noindent \thesislicence\fi
+\ifx\thesisorcid\empty\else
+
+\smallskip
+\noindent ORCID \href{https://orcid.org/\thesisorcid}{\thesisorcid}
+\fi
 
 \smallskip
 \noindent ISBN \thesisisbn

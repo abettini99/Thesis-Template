@@ -79,6 +79,10 @@ Set in the first line of `main.tex`, for example:
 - **Custom maths commands** (in `_options/commands.tex`): `\vec{u}` and `\tensor{\tau}` (bold italics by default; switch both to plain italics, arrows or underlines in one place), `\grad`, `\div`, `\curl`, `\deriv{y}{x}`, `\pderiv{y}{x}`, `\sderiv{y}{t}` (material derivative), `\transpose`, `\cddot`, `\inner{v}{u}_\Omega` for $(v,u)_\Omega$, the $L^2$ inner product in weak forms (`\inner[\big]{v}{u}_\Omega` for larger brackets in displays, `\inner*{...}` to fit the contents; write time derivatives inside it as `\cpderiv{u}{t}`, which gives $\partial_t u$), and dimensionless numbers such as `\Re`, `\Ma`, `\Pr`.
 - **File names:** `\file{_nomenclature.tex}` sets a file or package name in typewriter type and lets it break after `.`, `/` or `_`, so it doesn't stick out into the margin on a narrow page.
 - **Formulations:** `\begin{formulation}[optional title]\label{form:...} ... \end{formulation}` sets a weak form, optimisation problem or discrete scheme apart, in upright text with a bold label, "Formulation 2.1", numbered per chapter; refer to it with `\cref{form:...}`. The word is set in `_options/packages.tex`. Name parts of the boundary once ($\Gamma_\mathrm{in}$, $\Gamma_\mathrm{wall}$) rather than nesting subscripts ($\partial\Omega_\mathcal{I}$).
+- **Definitions, lemmas, theorems, proofs:** `definition`, `lemma`, `theorem` and `corollary` share one counter ("Definition 2.1", "Lemma 2.2"), `remark` is unnumbered and `proof` ends with a square (`\qedhere` puts it on the last line of a display). All upright; refer to them with `\cref`.
+- **Algorithms:** `\begin{algorithm}[tbp] \caption{...}\label{alg:...} \begin{algorithmic}[1] \State ... \end{algorithmic} \end{algorithm}` gives a numbered pseudocode float, "Algorithm 2.1" (algpseudocodex: `\State`, `\If`, `\For`, `\While`, `\Repeat`/`\Until`, `\Return`, `\Comment`). Refer to a line with `line~\ref{...}`. Uncomment `\listofalgorithms` in `main.tex` for a list of them.
+- **Convergence tables:** errors in scientific notation with siunitx `S[table-format=1.2e-1]` columns, so mantissas and exponents line up; the observed order to two decimals. See `tab:convergence` in the Examples chapter.
+- **Data, code and licence:** `_thesisinfo.tex` has the data and code availability statement, the licence (CC BY 4.0 by default) and your ORCID iD, printed on the colophon (and the ORCID in the CV). Cite data sets and software in the text as well, with `@dataset` and `@software` entries in `references.bib`.
 - **Todo notes:** `\todo{...}` puts a note in the margin, `\todo[inline]{...}` in the text, `\missingfigure{...}` a placeholder figure. The class option `final` removes them all.
 - **Alt text:** give every image a short description, `\includegraphics[width=..., alt={Lift coefficient against angle of attack, ...}]{...}`: what the figure shows, in a sentence or two. It is ignored in today's PDF, but it is what screen readers will read once the thesis can be produced as tagged (accessible) PDF, so writing it as you go saves revisiting every figure later.
 - **Long equations:** the Dover text is 92 mm wide, so long equations need breaking. Use `multline` for one long expression and `split` (inside `equation`) to align continuation lines on the `=`; break before an operator. See the Mathematics section of the Examples chapter. A black bar in the margin with the `draft` option shows any equation that is still too wide.
@@ -96,7 +100,7 @@ Set in the first line of `main.tex`, for example:
 
   Symbols, dimensions and definitions are written as maths without `$...$` (dimensions with `\Lunit`, `\Munit`, `\Tunit`, `\Qunit`); write `--` for a dimensionless quantity. Latin symbols are sorted by the optional sort key (the label if none is given); Greek symbols and sub- and superscripts appear in the order they are defined.
 
-- **A chapter based on a published paper:** see `Chapters/01Introduction.tex` for the chapter opener with an epigraph, a short abstract and a "parts of this chapter have been published in…" note. To include the published PDF itself, uncomment `pdfpages` in `_options/packages.tex` and use `\includepdf[pages=-]{paper.pdf}`.
+- **A chapter based on a published paper:** see `Chapters/01Introduction.tex` for the chapter opener with an epigraph and a short abstract, followed by `\chapterbasedon{\cite{key}}{contributions}`: a note at the start of the chapter with the reference and who did what, in the [CRediT roles](https://credit.niso.org) (conceptualisation, methodology, software, writing -- original draft, ...). Committees like to see this for co-authored papers. To include the published PDF itself, uncomment `pdfpages` in `_options/packages.tex` and use `\includepdf[pages=-]{paper.pdf}`.
 
 ## Plots
 
@@ -135,6 +139,14 @@ Both are separate documents that use the fonts and the details in `_thesisinfo.t
 8. **Cover:** set the page count and the paper thickness in `cover.tex` (or the spine width from the printer), the bleed the printer asks for, turn off the guides with `\coverguidesfalse`, and compare with the printer's cover template.
 9. **Propositions:** compile `propositions.tex` separately; check the promotors' names and that the promotors have approved them.
 10. **Proof copy:** ask the printer for a proof copy and check it on paper before the full run.
+
+## After the committee's comments
+
+The committee usually asks for corrections, and it helps to show them what changed.
+
+- **latexdiff** marks every change between two versions in one PDF: deleted text struck through in red, new text underlined in blue. Keep a copy of the version the committee read (a Git tag: `git tag committee-draft`), then run `latexdiff --flatten old/main.tex main.tex > diff.tex` and compile `diff.tex`. Locally it comes with TeX Live; on Overleaf, compile the diff locally or ask the committee to compare PDFs.
+- **Overleaf's history** (the clock icon) compares any two versions of a file, and labelled versions make the committee draft easy to find later.
+- For a short list of changes, a table in a letter (comment, response, page) is often clearer than a marked-up PDF.
 
 ## Print costs
 

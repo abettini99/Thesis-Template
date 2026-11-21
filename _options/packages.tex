@@ -57,19 +57,46 @@
 %% Nomenclature (acronyms and symbols): glossaries-extra, must come after hyperref
 \input{_options/formatNomenclature}
 
-%% Formulations (weak forms, optimisation problems, discrete schemes): numbered per chapter, upright text,
-%% bold label "Formulation 2.1"; refer to them with \cref{form:...}. To use another word, change "Formulation"
-%% here and in \crefname below. Uses amsthm, which must come before cleveref.
+%% Numbered statements, all in upright text with a bold label (amsthm, which must come before cleveref):
+%%   formulation  "Formulation 2.1"  weak forms, optimisation problems, discrete schemes   \cref{form:...}
+%%   definition, lemma, theorem, corollary  share one counter: "Definition 2.1", "Lemma 2.2", ...
+%%   remark       "Remark."          unnumbered side note, italic label
+%%   proof        "Proof."           ends with a square (\qedhere puts it on the last line of an equation)
+%% Theorems are often set in italics; upright reads better when the statement is full of maths.
+%% To rename one, change the word here and in its \crefname below.
 \let\openbox\relax  % also defined by newtxmath; let amsthm define it
 \usepackage{amsthm}
-\theoremstyle{definition}
-\newtheorem{formulation}{Formulation}[chapter]
+%% (the environments are defined after cleveref below, so it names shared-counter ones correctly)
+
+%% Algorithms (pseudocode): "Algorithm 2.1", numbered per chapter, as a float with its caption on top.
+%% Write the steps with \State, \If, \For, \While, \Return, ...: https://ctan.org/pkg/algpseudocodex
+%% List of algorithms: \listofalgorithms in main.tex (commented out there).
+\usepackage[chapter]{algorithm}
+\usepackage[noEnd=false, indLines=true]{algpseudocodex}
+\algrenewcommand\algorithmicrequire{\textbf{Input:}}
+\algrenewcommand\algorithmicensure{\textbf{Output:}}
 
 %% cleveref must be loaded last (after hyperref). Use \cref{fig:x} -> "Figure 2.1", \Cref at the start of a sentence.
 \usepackage[capitalise,noabbrev,nameinlink]{cleveref}
 \crefname{page}{page}{pages} % "on page 12", not "on Page 12"
 \crefname{listing}{Listing}{Listings}
 \crefname{formulation}{Formulation}{Formulations}
+\crefname{definition}{Definition}{Definitions}
+\crefname{lemma}{Lemma}{Lemmas}
+\crefname{theorem}{Theorem}{Theorems}
+\crefname{corollary}{Corollary}{Corollaries}
+\crefname{algorithm}{Algorithm}{Algorithms}
+%% Refer to an algorithm line with line~\ref{alg:...} (\cref would capitalise it mid-sentence).
+
+%% The numbered statements described above (after cleveref, which needs that for shared counters)
+\theoremstyle{definition}
+\newtheorem{formulation}{Formulation}[chapter]
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{corollary}[definition]{Corollary}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
 
 %% =====================================================================
 %% Optional packages: uncomment when needed (load them above cleveref if they define new
