@@ -114,22 +114,34 @@ When the continuation should line up with an equals sign, \texttt{split} inside 
 \end{equation}
 Break before an operator ($+$, $-$, $=$), not after it, so the new line shows at once that it continues the previous one.
 
-A weak form, as in a finite element method, consists of many inner products. Write them compactly: $(\cdot,\cdot)_D$ for the $L^2$ inner product over a domain $D$, with the subscript naming only the domain, and time derivatives as $\cpderiv{\vec{u}^h}{t}$ rather than a fraction. The problem statement goes in words; \texttt{subequations} numbers the equations (\ref{eq:fem-momentum})--(\ref{eq:fem-wall}) and lets the set be referred to as a whole, \cref{eq:fem}.
+A weak form, as in a finite element method, consists of many inner products. Write them compactly: $\inner{\cdot}{\cdot}_D$ for the $L^2$ inner product over a domain $D$, with the domain as subscript, and time derivatives as $\cpderiv{\vec{u}^h}{t}$ rather than a fraction. The problem statement goes in words; \texttt{subequations} numbers the equations (\ref{eq:fem-momentum})--(\ref{eq:fem-wall}) and lets the set be referred to as a whole, \cref{eq:fem}.
 
 \textit{Find $\vec{u}^h \in \mathcal{V}^h(\Omega)$ for $0 < t \leq T$, given an initial condition $\vec{u}_0$, such that for all $\vec{v} \in \mathcal{W}^h(\Omega)$, $\vec{\sigma} \in \mathcal{W}^h(\partial\Omega_\mathcal{I})$ and $\vec{\zeta} \in \mathcal{W}^h(\partial\Omega_\mathcal{B})$:}
 \begin{subequations}\label{eq:fem}
 \begin{gather}
-    \BilinearForm{\vec{v}}{\cpderiv{\vec{u}^h}{t}}{\Omega}
-    + \BilinearForm{\vec{v}}{\vec{u}^h \cdot \grad\vec{u}^h}{\Omega}
-    + \BilinearForm{\grad\vec{v}}{\nu \grad\vec{u}^h}{\Omega}
-    = \BilinearForm{\vec{v}}{\vec{f}}{\Omega} ,                                       \label{eq:fem-momentum} \\
-    \BilinearForm{\vec{\sigma}}{\vec{u}^h}{\partial\Omega_\mathcal{I}}
-    = \BilinearForm{\vec{\sigma}}{\vec{u}^\mathrm{inflow}}{\partial\Omega_\mathcal{I}} , \label{eq:fem-inflow} \\
-    \BilinearForm{\vec{\zeta}}{\vec{u}^h}{\partial\Omega_\mathcal{B}}
-    = \BilinearForm{\vec{\zeta}}{\vec{u}^\mathrm{wall}}{\partial\Omega_\mathcal{B}} .    \label{eq:fem-wall}
+    \inner[\big]{\vec{v}}{\cpderiv{\vec{u}^h}{t}}_{\Omega}
+    + \inner[\big]{\vec{v}}{\vec{u}^h \cdot \grad\vec{u}^h}_{\Omega}
+    + \inner[\big]{\grad\vec{v}}{\nu \grad\vec{u}^h}_{\Omega}
+    = \inner[\big]{\vec{v}}{\vec{f}}_{\Omega} ,                                       \label{eq:fem-momentum} \\
+    \inner[\big]{\vec{\sigma}}{\vec{u}^h}_{\partial\Omega_\mathcal{I}}
+    = \inner[\big]{\vec{\sigma}}{\vec{u}^\mathrm{inflow}}_{\partial\Omega_\mathcal{I}} , \label{eq:fem-inflow} \\
+    \inner[\big]{\vec{\zeta}}{\vec{u}^h}_{\partial\Omega_\mathcal{B}}
+    = \inner[\big]{\vec{\zeta}}{\vec{u}^\mathrm{wall}}_{\partial\Omega_\mathcal{B}} .    \label{eq:fem-wall}
 \end{gather}
 \end{subequations}
-The inner products are written with \verb|\BilinearForm|, defined in \file{_options/commands.tex}. A coefficient such as $\nu$ goes inside the brackets; only a weight that defines the space itself, such as the radius $r$ in an axisymmetric problem, goes in the subscript, before the domain: $\BilinearForm{\vec{v}}{\vec{u}^h}{r,\Omega}$.
+The inner products are written with \verb|\inner[\big]{a}{b}_\Omega|, defined in \file{_options/commands.tex}; in running text, leave out the size, $\inner{\vec{v}}{\vec{u}^h}_\Omega$, and use \verb|\inner*| for brackets that fit their contents. A coefficient such as $\nu$ goes inside the brackets; only a weight that defines the inner product itself, such as the radius $r$ in an axisymmetric problem, goes in the subscript, before the domain: $\inner{\vec{v}}{\vec{u}^h}_{r,\Omega}$.
+
+When the same terms come back in later chapters, name them once, keeping the test function first as in the inner products:
+\begin{equation*}
+    a(\vec{v}, \vec{u}) \coloneqq \inner[\big]{\grad\vec{v}}{\nu \grad\vec{u}}_\Omega ,
+    \qquad
+    c(\vec{w}; \vec{v}, \vec{u}) \coloneqq \inner[\big]{\vec{v}}{\vec{w} \cdot \grad\vec{u}}_\Omega ,
+\end{equation*}
+so that \cref{eq:fem-momentum} becomes
+\begin{equation*}
+    \inner[\big]{\vec{v}}{\cpderiv{\vec{u}^h}{t}}_\Omega + c(\vec{u}^h; \vec{v}, \vec{u}^h) + a(\vec{v}, \vec{u}^h) = \inner[\big]{\vec{v}}{\vec{f}}_\Omega .
+\end{equation*}
+The diffusive form $a$ is bilinear; the convective form $c$ is linear in $\vec{v}$ and $\vec{u}$ but depends on the velocity $\vec{w}$ as well, which is why it is written with a semicolon.
 
 %% =====================================================================
 \section{Units and numbers}\label{sec:units}

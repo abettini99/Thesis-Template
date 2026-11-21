@@ -79,10 +79,12 @@
 % tensor - double dot product
 \newcommand{\cddot}{\mathbin{{\cdot}{\cdot}}}
 
-% L2 inner product in weak forms, subscript = domain of integration: \BilinearForm{\vec{v}}{\vec{u}^h}{\Omega}
-% gives (v, u^h)_Omega. \bigl/\bigr brackets keep lines short; write time derivatives inside it as
-% \cpderiv{\vec{u}^h}{t} (gives \partial_t u^h), as a fraction would be taller than the brackets.
-\newcommand\BilinearForm[3]{\bigl(#1,\,#2\bigr)_{#3}}
+% L2 inner product, with the domain (which defines the inner product) as subscript:
+%   \inner{\vec{v}}{\vec{u}}_\Omega            (v, u)_Omega, brackets at normal size (running text)
+%   \inner[\big]{\vec{v}}{\vec{u}}_\Omega      larger brackets: \big, \Big, \bigg, \Bigg (displays)
+%   \inner*{\vec{v}}{\frac{a}{b}}_\Omega       brackets sized to the contents
+% Write time derivatives inside it as \cpderiv{\vec{u}}{t} (gives \partial_t u): shorter than a fraction.
+\DeclarePairedDelimiterX{\inner}[2]{(}{)}{#1, #2}
 
 %% Vectors and tensors are written like other symbols, in plain italics, as is usual in
 %% mathematics and numerical analysis. Change these two lines to switch notation everywhere:
