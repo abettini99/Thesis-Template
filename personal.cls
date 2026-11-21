@@ -164,7 +164,7 @@
 
 \RequirePackage{microtype}
 
-%%% MATHS: mathtools (loads amsmath); the maths font is STIX Two (fontMath.tex)
+%%% MATHS: mathtools (loads amsmath); integrals such as \oiint come from newtxmath
 \RequirePackage{mathtools}
 
 %%% TEXT FONTS

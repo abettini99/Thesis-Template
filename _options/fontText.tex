@@ -1,13 +1,12 @@
-\RequirePackage[no-math]{fontspec} % no-math: leave math fonts to stix2 (see fontMath.tex)
-%% Main text: STIX Two Text, a refined Times-style face designed for scientific publishing, with
-%% matching maths (STIX Two); it ships with TeX Live (works on Overleaf).
+\RequirePackage[no-math]{fontspec} % no-math: leave math fonts to newtxmath (see fontMath.tex)
+%% Main text: TeX Gyre Termes, a free Times New Roman clone that ships with TeX Live (works on Overleaf).
 %% Loaded by file name so it works with both XeLaTeX and LuaLaTeX.
-\setmainfont{STIXTwoText}[
+\setmainfont{texgyretermes}[
     Extension = {.otf},
-    UprightFont = {*-Regular},
-    BoldFont = {*-Bold},
-    ItalicFont = {*-Italic},
-    BoldItalicFont = {*-BoldItalic},
+    UprightFont = {*-regular},
+    BoldFont = {*-bold},
+    ItalicFont = {*-italic},
+    BoldItalicFont = {*-bolditalic},
     Ligatures = TeX,
     Scale = \thesis@fontscale   % 0.95 for the Dover size (9.5 pt), 1 otherwise
 ]

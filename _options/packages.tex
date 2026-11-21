@@ -76,6 +76,7 @@
 %%   proof        "Proof."           ends with a square (\qedhere puts it on the last line of an equation)
 %% Theorems are often set in italics; upright reads better when the statement is full of maths.
 %% To rename one, change the word here and in its \crefname below.
+\let\openbox\relax  % also defined by newtxmath; let amsthm define it
 \usepackage{amsthm}
 %% Proofs stretch like the other statements (amsthm gives them 6pt plus 6pt, so they took up most of the
 %% slack on a page that breaks early, leaving holes around them).
