@@ -54,10 +54,18 @@
 %% Nomenclature (acronyms and symbols): glossaries-extra, must come after hyperref
 \input{_options/formatNomenclature}
 
+%% Problem statements (weak forms, optimisation problems): numbered per chapter, upright text,
+%% bold label "Problem 2.1."; refer to them with \cref{prob:...}. Uses amsthm, which must come before cleveref.
+\let\openbox\relax  % also defined by newtxmath; let amsthm define it
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{problem}{Problem}[chapter]
+
 %% cleveref must be loaded last (after hyperref). Use \cref{fig:x} -> "Figure 2.1", \Cref at the start of a sentence.
 \usepackage[capitalise,noabbrev,nameinlink]{cleveref}
 \crefname{page}{page}{pages} % "on page 12", not "on Page 12"
 \crefname{listing}{Listing}{Listings}
+\crefname{problem}{Problem}{Problems}
 
 %% =====================================================================
 %% Optional packages: uncomment when needed (load them above cleveref if they define new

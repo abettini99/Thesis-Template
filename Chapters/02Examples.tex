@@ -57,7 +57,7 @@ Citations use numbered references~\cite{Allen2002}, several at once~\cite{Sinnig
 \section{Mathematics}\label{sec:maths}
 %% =====================================================================
 
-Inline maths such as $\Re = \rho U L / \mu$ uses the same Times letters as the text. Vectors and tensors are written like other symbols, as in the velocity $\vec{u}$ and the stress tensor $\tensor{\tau}$; writing them with \verb|\vec| and \verb|\tensor| keeps the option to make them bold later with a single change. For an incompressible flow, mass and momentum conservation read
+Inline maths such as $\Re = \rho U L / \mu$ uses the same Times letters as the text. Vectors and tensors are set in bold, as in the velocity $\vec{u}$ and the stress tensor $\tensor{\tau}$; writing them with \verb|\vec| and \verb|\tensor| lets you change that notation everywhere with a single change. For an incompressible flow, mass and momentum conservation read
 \begin{align}
     \div \vec{u} &= 0, \label{eq:continuity} \\
     \sderiv{\vec{u}}{t} &= -\frac{1}{\rho} \grad p + \nu \nabla^2 \vec{u}, \label{eq:navier-stokes}
@@ -114,22 +114,25 @@ When the continuation should line up with an equals sign, \texttt{split} inside 
 \end{equation}
 Break before an operator ($+$, $-$, $=$), not after it, so the new line shows at once that it continues the previous one.
 
-A weak form, as in a finite element method, consists of many inner products. Write them compactly: $\inner{\cdot}{\cdot}_D$ for the $L^2$ inner product over a domain $D$, with the domain as subscript, and time derivatives as $\cpderiv{\vec{u}^h}{t}$ rather than a fraction. The problem statement goes in words; \texttt{subequations} numbers the equations (\ref{eq:fem-momentum})--(\ref{eq:fem-wall}) and lets the set be referred to as a whole, \cref{eq:fem}.
+A weak form, as in a finite element method, consists of many inner products. Write them compactly: $\inner{\cdot}{\cdot}_D$ for the $L^2$ inner product over a domain $D$, with the domain as subscript, and time derivatives as $\cpderiv{\vec{u}^h}{t}$ rather than a fraction. Give the parts of the boundary short names, so the subscripts stay one level deep. A \texttt{problem} environment sets the statement apart, as in \cref{prob:navier-stokes}; \texttt{subequations} numbers its equations (\ref{eq:fem-momentum})--(\ref{eq:fem-wall}) and lets the set be referred to as a whole, \cref{eq:fem}.
 
-\textit{Find $\vec{u}^h \in \mathcal{V}^h(\Omega)$ for $0 < t \leq T$, given an initial condition $\vec{u}_0$, such that for all $\vec{v} \in \mathcal{W}^h(\Omega)$, $\vec{\sigma} \in \mathcal{W}^h(\partial\Omega_\mathcal{I})$ and $\vec{\zeta} \in \mathcal{W}^h(\partial\Omega_\mathcal{B})$:}
+\begin{problem}[Weak form of the Navier--Stokes momentum equation]\label{prob:navier-stokes}
+Let the boundary consist of an inflow part and a wall, $\partial\Omega = \Gamma_\mathrm{in} \cup \Gamma_\mathrm{wall}$. Find $\vec{u}^h \in \mathcal{V}^h(\Omega)$ for $0 < t \leq T$, given an initial condition $\vec{u}_0$, such that for all $\vec{v} \in \mathcal{W}^h(\Omega)$, $\vec{\sigma} \in \mathcal{W}^h(\Gamma_\mathrm{in})$ and $\vec{\zeta} \in \mathcal{W}^h(\Gamma_\mathrm{wall})$:
 \begin{subequations}\label{eq:fem}
 \begin{gather}
-    \inner[\big]{\vec{v}}{\cpderiv{\vec{u}^h}{t}}_{\Omega}
-    + \inner[\big]{\vec{v}}{\vec{u}^h \cdot \grad\vec{u}^h}_{\Omega}
-    + \inner[\big]{\grad\vec{v}}{\nu \grad\vec{u}^h}_{\Omega}
-    = \inner[\big]{\vec{v}}{\vec{f}}_{\Omega} ,                                       \label{eq:fem-momentum} \\
-    \inner[\big]{\vec{\sigma}}{\vec{u}^h}_{\partial\Omega_\mathcal{I}}
-    = \inner[\big]{\vec{\sigma}}{\vec{u}^\mathrm{inflow}}_{\partial\Omega_\mathcal{I}} , \label{eq:fem-inflow} \\
-    \inner[\big]{\vec{\zeta}}{\vec{u}^h}_{\partial\Omega_\mathcal{B}}
-    = \inner[\big]{\vec{\zeta}}{\vec{u}^\mathrm{wall}}_{\partial\Omega_\mathcal{B}} .    \label{eq:fem-wall}
+    \inner[\big]{\vec{v}}{\cpderiv{\vec{u}^h}{t}}_\Omega
+    + \inner[\big]{\vec{v}}{\vec{u}^h \cdot \grad\vec{u}^h}_\Omega
+    + \inner[\big]{\grad\vec{v}}{\nu \grad\vec{u}^h}_\Omega
+    = \inner[\big]{\vec{v}}{\vec{f}}_\Omega ,                                 \label{eq:fem-momentum} \\
+    \inner[\big]{\vec{\sigma}}{\vec{u}^h}_{\Gamma_\mathrm{in}}
+    = \inner[\big]{\vec{\sigma}}{\vec{u}_\mathrm{in}}_{\Gamma_\mathrm{in}} ,       \label{eq:fem-inflow} \\
+    \inner[\big]{\vec{\zeta}}{\vec{u}^h}_{\Gamma_\mathrm{wall}}
+    = \inner[\big]{\vec{\zeta}}{\vec{u}_\mathrm{wall}}_{\Gamma_\mathrm{wall}} .    \label{eq:fem-wall}
 \end{gather}
 \end{subequations}
-The inner products are written with \verb|\inner[\big]{a}{b}_\Omega|, defined in \file{_options/commands.tex}; in running text, leave out the size, $\inner{\vec{v}}{\vec{u}^h}_\Omega$, and use \verb|\inner*| for brackets that fit their contents. A coefficient such as $\nu$ goes inside the brackets; only a weight that defines the inner product itself, such as the radius $r$ in an axisymmetric problem, goes in the subscript, before the domain: $\inner{\vec{v}}{\vec{u}^h}_{r,\Omega}$.
+\end{problem}
+
+The command \verb|\inner| in \file{_options/commands.tex} writes the inner products. Displays give it a size, \verb|\inner[\big]|; in running text, leave out the size, $\inner{\vec{v}}{\vec{u}^h}_\Omega$, and use \verb|\inner*| for brackets that fit their contents. A coefficient such as $\nu$ goes inside the brackets; only a weight that defines the inner product itself, such as the radius $r$ in an axisymmetric problem, goes in the subscript, before the domain: $\inner{\vec{v}}{\vec{u}^h}_{r,\Omega}$.
 
 When the same terms come back in later chapters, name them once, keeping the test function first as in the inner products:
 \begin{equation*}

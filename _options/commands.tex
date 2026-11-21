@@ -86,11 +86,11 @@
 % Write time derivatives inside it as \cpderiv{\vec{u}}{t} (gives \partial_t u): shorter than a fraction.
 \DeclarePairedDelimiterX{\inner}[2]{(}{)}{#1, #2}
 
-%% Vectors and tensors are written like other symbols, in plain italics, as is usual in
-%% mathematics and numerical analysis. Change these two lines to switch notation everywhere:
-%% bold: {\bm{#1}}, arrow: {\vv{#1}} (package esvect), underline: {\underline{#1}}.
-\renewcommand{\vec}[1]{#1}                      % vector:  \vec{u}
-\newcommand{\tensor}[1]{#1}                     % tensor:  \tensor{\tau}
+%% Vectors and tensors in bold italics (Latin and Greek alike), so they stand apart from scalars,
+%% e.g. the test function v from the viscosity nu. Change these two lines to switch notation everywhere:
+%% plain italics: {#1}, arrow: {\vv{#1}} (package esvect), underline: {\underline{#1}}.
+\renewcommand{\vec}[1]{\bm{#1}}                 % vector:  \vec{u}
+\newcommand{\tensor}[1]{\bm{#1}}                % tensor:  \tensor{\tau}
 \renewcommand{\div}{\nabla\cdot}               % divergence
 
 %% Same space above the titles of the contents, list of figures and list of tables
