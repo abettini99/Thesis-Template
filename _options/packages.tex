@@ -43,7 +43,9 @@
 \else
     \hypersetup{colorlinks=true, linkcolor=tudelft-dark-blue, citecolor=tudelft-dark-blue, urlcolor=tudelft-dark-blue}
 \fi
-\hypersetup{pdfdisplaydoctitle=true}
+%% Show the title (not the file name) in the PDF viewer's title bar. pdfx already does this for the
+%% archival PDF; asking hyperref as well would write the setting into the PDF twice.
+\makeatletter\@ifpackageloaded{pdfx}{}{\hypersetup{pdfdisplaydoctitle=true}}\makeatother
 %% Bookmarks: numbered ("2.1 Text"), and one level deeper than the contents (down to subsections),
 %% so the PDF can be navigated in more detail than the printed contents show.
 \bookmarksetup{numbered, depth=2}
