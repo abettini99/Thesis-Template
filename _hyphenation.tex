@@ -1,0 +1,20 @@
+%% =====================================================================
+%% HYPHENATION
+%% Words TeX hyphenates wrongly, or not at all: technical terms, names, compounds. On a narrow page
+%% this matters, as an unbreakable long word pushes into the margin or leaves gaps in the line.
+%% Mark the allowed breaks with hyphens; a word without hyphens is never broken.
+%% Check: the draft option shows lines that stick out with a black bar in the margin.
+%% \babelhyphenation applies to all languages; \babelhyphenation[dutch]{...} to Dutch text only.
+%% =====================================================================
+\babelhyphenation{
+    dis-cret-iza-tion dis-cret-iza-tions dis-cret-ised dis-cret-ized
+    mi-met-ic
+    iso-geo-met-ric
+    an-iso-trop-ic
+    ad-vec-tion con-vec-tion
+    eigen-val-ue eigen-val-ues eigen-vec-tor eigen-vec-tors
+    hy-per-bol-ic
+    Gerrit-sma
+}
+%% Words that must never be broken (short names, codes):
+%% \babelhyphenation{OpenFOAM MATLAB}

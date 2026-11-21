@@ -62,6 +62,7 @@ Set in the first line of `main.tex`, for example:
 | `_titlepage.tex` | Title page, official TU Delft dissertation page, committee and colophon page. |
 | `Chapters/` | Front matter (`00…`), chapters (`01…`, `02…`), appendices (`A_…`) and back matter (`Z_…`). |
 | `Chapters/02Examples.tex` | Demonstrations of everything the template supports. Delete it (and the `lipsum`/`blindtext` lines in `main.tex`) once you no longer need it. |
+| `_hyphenation.tex` | Hyphenation of words TeX breaks wrongly or not at all (technical terms, names). Add to it as you write. |
 | `_nomenclature.tex` | **Fill this in:** acronyms and symbols for the nomenclature. |
 | `Chapters/00Nomenclature.tex` | Prints the nomenclature lists. |
 | `references.bib` | Bibliography database. |
