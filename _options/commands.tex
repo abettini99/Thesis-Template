@@ -79,6 +79,9 @@
 % tensor - double dot product
 \newcommand{\cddot}{\mathbin{{\cdot}{\cdot}}}
 
+% bilinear form (inner product) for weak forms: \BilinearForm{\vec{v}}{\vec{u}^h}{L^2(\Omega)}
+\newcommand\BilinearForm[3]{\Big(#1\,,\,#2\Big)_{#3}}
+
 %% Vectors and tensors are written like other symbols, in plain italics, as is usual in
 %% mathematics and numerical analysis. Change these two lines to switch notation everywhere:
 %% bold: {\bm{#1}}, arrow: {\vv{#1}} (package esvect), underline: {\underline{#1}}.

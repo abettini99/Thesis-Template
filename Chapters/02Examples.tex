@@ -114,6 +114,23 @@ When the continuation should line up with an equals sign, \texttt{split} inside 
 \end{equation}
 Break before an operator ($+$, $-$, $=$), not after it, so the new line shows at once that it continues the previous one.
 
+A weak form, as in a finite element method, has long terms with long subscripts. Write the problem statement in words, and set the equations in one \texttt{align} with the lines aligned on the left; \texttt{subequations} numbers them (\ref{eq:fem-momentum})--(\ref{eq:fem-wall}) and lets the set be referred to as a whole, \cref{eq:fem}.
+
+\textit{Find $\vec{u}^h \in \mathcal{V}^h(\Omega)$ for $0 < t \leq T$, given an initial condition $\vec{u}_0$, such that for all $\vec{v} \in \mathcal{W}^h(\Omega)$, $\vec{\sigma} \in \mathcal{W}^h(\partial\Omega_\mathcal{I})$ and $\vec{\zeta} \in \mathcal{W}^h(\partial\Omega_\mathcal{B})$:}
+\begin{subequations}\label{eq:fem}
+\begin{align}
+    &\BilinearForm{\vec{v}}{\!\pderiv{\vec{u}^h}{t}}{L^2(\Omega)}
+     + \BilinearForm{\vec{v}}{\vec{u}^h \cdot \grad\vec{u}^h}{L^2(\Omega)} \notag \\
+    &\qquad + \BilinearForm{\grad\vec{v}}{\nu \grad\vec{u}^h}{L^2(\Omega)}
+     = \BilinearForm{\vec{v}}{\!\vec{f}}{L^2(\Omega)} ,                                         \label{eq:fem-momentum} \\
+    &\BilinearForm{\vec{\sigma}}{\vec{u}^h}{L^2(\partial\Omega_\mathcal{I})}
+     = \BilinearForm{\vec{\sigma}}{\vec{u}^\mathrm{inflow}}{L^2(\partial\Omega_\mathcal{I})} ,   \label{eq:fem-inflow} \\
+    &\BilinearForm{\vec{\zeta}}{\vec{u}^h}{L^2(\partial\Omega_\mathcal{B})}
+     = \BilinearForm{\vec{\zeta}}{\vec{u}^\mathrm{wall}}{L^2(\partial\Omega_\mathcal{B})} .      \label{eq:fem-wall}
+\end{align}
+\end{subequations}
+The bilinear forms are written with the command \verb|\BilinearForm|, defined in \file{_options/commands.tex}; avoid it in running text, where the large brackets push the lines apart.
+
 %% =====================================================================
 \section{Units and numbers}\label{sec:units}
 %% =====================================================================
