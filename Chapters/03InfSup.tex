@@ -1,6 +1,4 @@
-%% \chapter[title in the contents][title in the running heads]{title}: a short running-head title keeps
-%% long titles from crowding the page number.
-\chapter[The inf-sup condition and spurious pressure modes][The inf-sup condition]{The inf-sup condition and spurious pressure modes}\label{ch:infsup} \pagestyle{mainmatter}
+\chapter{The inf-sup condition}\label{ch:infsup} \pagestyle{mainmatter}
 \chapterprecishere{
     \vspace{0pt plus 1filll}
     \begin{chapterabstract}
@@ -194,7 +192,7 @@ In matrix form, with $\mathsf{A}_1$ the matrix of $\inner{\grad\vec{v}^h}{\grad\
 on the zero-mean pressures. Each zero eigenvalue beyond the one of the constant pressure is a spurious mode. Computing $\beta_h$ on a sequence of meshes (\cref{alg:infsup-estimate}) is the standard numerical test of a new velocity--pressure pair.
 
 \begin{algorithm}[tbp]
-    \caption{Numerical test of the inf-sup condition for a velocity--pressure pair.}
+    \caption[Numerical test of the inf-sup condition]{Numerical test of the inf-sup condition for a velocity--pressure pair.}
     \label{alg:infsup-estimate}
     \begin{algorithmic}[1]
         \Require meshes with sizes $h_1 > h_2 > \dots > h_m$

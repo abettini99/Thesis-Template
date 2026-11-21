@@ -81,7 +81,7 @@ Set in the first line of `main.tex`, for example:
 4. **Remove the examples.** In `main.tex`, delete the lines `\include{Chapters/02Examples}` and `\include{Chapters/03InfSup}` (keep the files for reference), the references they use from `references.bib`, and, once no chapter uses `\lipsum` any more, the `lipsum` line. Replace the example appendix `A_Appendix.tex` with your own or remove its `\include`.
 5. **Your chapters.** Turn `01Introduction.tex` into your introduction, and copy `Chapters/_newChapter.tex` for every further chapter (`03Name.tex`, ...), adding an `\include` line for each in `main.tex`.
 6. **References, symbols, hyphenation.** Replace the entries in `references.bib`, define your acronyms and symbols in `_nomenclature.tex`, and add technical terms to `_hyphenation.tex` as you go.
-7. **Example files.** Delete `Images/example_plot.pdf` and `Images/graph.jpg` once nothing uses them; keep `Python/thesis.mplstyle` and copy `Python/example_plot.py` as a starting point for your own plots.
+7. **Example files.** Delete the `Images/example_*.pdf` figures once nothing uses them; keep `Python/thesis.mplstyle` and copy `Python/example_figures.py` as a starting point for your own plots.
 8. **Propositions and cover** come at the end: see *Propositions and cover* below.
 
 ## Writing
@@ -89,7 +89,7 @@ Set in the first line of `main.tex`, for example:
 - **Cross-references:** use `\cref{...}` (gives "Figure 2.1", "Equation (2.3)", "Section 2.1") and `\Cref{...}` at the start of a sentence.
 - **Chapter titles:** they are set large and aligned right, which suits one or two short lines; keep chapter titles short (a few words) and move detail into the opening paragraph or abstract.
 - **Short titles:** a long chapter title crowds the page number in the running head; give it a short version, `\chapter[title in the contents][title in the running heads]{full title}` (and `\section[short]{full}` for long section titles).
-- **Captions:** keep citations and long explanations out of the lists of figures and tables with a short version, `\caption[short]{long}`: only the short one appears in the list (and a citation there would also take a reference number before the text cites it).
+- **Captions:** give every figure, table and algorithm a short version without a full stop, `\caption[short]{Long caption.}`: only the short one appears in the list, so the lists read as even one-line entries, with no citations in them (a citation there would also take a reference number before the text cites it).
 - **Tables:** `booktabs` rules (`\toprule`, `\midrule`, `\bottomrule`), no vertical lines, numbers in siunitx `S` columns so they align on the decimal point. A column of sentences is an `X` column in `tabularx` (or `xltabular` across pages): it takes the remaining width and is set ragged right automatically.
 - **URLs, DOIs and file names** are set in typewriter: `\url{...}`, `\doi{...}` and `\orcid{...}` as links (DOIs in the references come out the same), `\file{...}` without. ISBNs stay in the text font: they are catalogue numbers of digits, not addresses. They break without a hyphen, at the points the Chicago Manual of Style recommends (before a full stop, hyphen or single slash, after a colon or double slash), so a character at a line end is never mistaken for punctuation.
 - **Labels:** one prefix per kind of thing, then a short name that says what it is: `ch:` chapter, `sec:` section or subsection, `app:` appendix, `fig:` figure, `tab:` table, `eq:` equation, `form:` formulation, `alg:` algorithm, `def:` / `lem:` / `thm:` / `cor:` definitions, lemmas, theorems, corollaries. In a long thesis, add the chapter to the name (`fig:wake-velocity`, `sec:burgers-weak-form`) so labels stay unique and readable; never use numbers in labels, as they change.
@@ -146,7 +146,7 @@ Every symbol also goes in `_nomenclature.tex`, so the nomenclature doubles as a 
 
 ## Plots
 
-Make plots in Python with the style file `Python/thesis.mplstyle` (see `Python/example_plot.py`):
+Make plots in Python with the style file `Python/thesis.mplstyle` (see `Python/example_figures.py`, which makes every plot in the example chapter):
 
 ```python
 import matplotlib.pyplot as plt

@@ -181,7 +181,7 @@ for which $\tilde{c}(\vec{w}; \vec{v}, \vec{v}) = 0$ whenever $\vec{v} = \vec{0}
 Algorithms are floats like figures, with the caption on top (\cref{alg:picard}). Number the lines and refer to them as well: the linear system is solved in line~\ref{alg:picard-solve}.
 
 \begin{algorithm}[tbp]
-    \caption{Picard iteration for one time step of \cref{form:burgers}.}
+    \caption[Picard iteration for one time step]{Picard iteration for one time step of \cref{form:burgers}.}
     \label{alg:picard}
     \begin{algorithmic}[1]
         \Require solution $\vec{u}^n$, time step $\Delta t$, tolerance $\varepsilon$
@@ -211,8 +211,8 @@ Figures float to the top or bottom of a page, or onto a page of their own, so th
 
 \begin{figure}[tbp]
     \centering
-    \includegraphics[width=0.75\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
-    \caption[A single figure]{A single figure. Captions are set in a smaller size than the text; a short version in square brackets goes in the list of figures.}
+    \includegraphics[scale=1, alt={Velocity u against position x at times 0, 0.25, 0.5 and 1: the initial negative sine wave steepens into a jump from about plus one to minus one at x = 0, which then slowly weakens}]{Images/example_burgers.pdf}
+    \caption[Solution of the viscous Burgers equation]{Solution of the viscous Burgers equation at four times, for $\nu = 0.01/\pi$: the initial sine wave steepens into a shock at $x = 0$. Captions are set in a smaller size than the text; the short version in square brackets, without a full stop, goes in the list of figures.}
     \label{fig:single}
 \end{figure}
 
@@ -224,40 +224,39 @@ A figure with several panels is best made as one PDF, with the panel letters dra
 
 \begin{figure}[tbp]
     \centering
-    \includegraphics[width=0.48\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}\hfill
-    \includegraphics[width=0.48\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
-    \caption[A figure with two panels]{A figure with two panels: (a) the left panel; (b) the right panel. In a real figure, the letters are part of the image.}
+    \includegraphics[scale=1, alt={Panel a: the solution at t = 0.5 with its linear interpolant on 16 elements, which smears the shock over two elements. Panel b: the errors of Table 2.2 against the number of elements on logarithmic axes, falling with slope 1 for the gradient and slope 2 for the solution}]{Images/example_panels.pdf}
+    \caption[Coarse-mesh solution and convergence of the errors]{(a) The solution at $t = 0.5$ and its linear interpolant on 16 elements; (b) the errors of \cref{tab:convergence} against the number of elements, with the expected slopes. The panel letters are part of the image.}
     \label{fig:panels}
 \end{figure}
 
 \subsection{Figures side by side}
 
-Two separate figures can also sit side by side, each with its own number, as \cref{fig:left,fig:right} show.
+Two separate figures can also sit side by side, each with its own number, as \cref{fig:left,fig:right} show. Make each at half the text width (see the README).
 
 \begin{figure}[tbp]
     \centering
     \begin{minipage}[t]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
-        \caption{The left figure.}
+        \includegraphics[scale=1, alt={Residual against iteration number on a logarithmic axis for time steps 1, 10 and 40: each falls along a straight line, more slowly in later time steps}]{Images/example_residual.pdf}
+        \caption[Residual of the Picard iteration]{Residual of the Picard iteration in three time steps (illustrative).}
         \label{fig:left}
     \end{minipage}\hfill
     \begin{minipage}[t]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
-        \caption{The right figure, with a caption long enough to wrap.}
+        \includegraphics[scale=1, alt={Kinetic energy against time: it stays near 0.5 until the shock forms at t = 1 over pi, then falls to about 0.18 at t = 1}]{Images/example_energy.pdf}
+        \caption[Kinetic energy of the Burgers solution]{Kinetic energy of the Burgers solution, which falls faster once the shock has formed.}
         \label{fig:right}
     \end{minipage}
 \end{figure}
 
 \subsection{Plots}
 
-Plots are made in Python and included as PDF, at the width they were made for (\cref{fig:plot}). The style file \file{thesis.mplstyle} in the \texttt{Python} folder uses Times, sizes the text just below the caption size, and draws each line in a colour that is safe for colour-blind readers and with its own line style, so the lines stay apart when printed in greyscale. The script \texttt{example\_plot.py} in the same folder makes this figure.
+Plots are made in Python and included as PDF, at the width they were made for (\cref{fig:plot}). The style file \file{thesis.mplstyle} in the \texttt{Python} folder uses Times, sizes the text just below the caption size, and draws each line in a colour that is safe for colour-blind readers and with its own line style, so the lines stay apart when printed in greyscale. The script \file{example_figures.py} in the same folder makes all the plots in this chapter, each at the size it is printed, so they are included without scaling.
 
 \begin{figure}[tbp]
     \centering
     \includegraphics[scale=1, alt={Lift coefficient against angle of attack: the thin-aerofoil line rises straight; with the propeller off the lift levels off near 1.0 at 15 degrees, and higher thrust coefficients raise the maximum lift to about 1.6}]{Images/example_plot.pdf}%
-    \caption{A plot made with \file{thesis.mplstyle} (illustrative data).}
+    \caption[A plot made with the thesis plot style]{A plot made with \file{thesis.mplstyle} (illustrative data).}
     \label{fig:plot}
 \end{figure}
 
@@ -279,7 +278,7 @@ Simple diagrams can be drawn with TikZ, in the same fonts and colours as the tex
         \draw[arrow] (sim) -- (post);
         \draw[arrow] (post.south) -- ++(0,-5mm) -| node[pos=0.25, below, font=\small] {refine} (pre.south);
     \end{tikzpicture}
-    \caption{A diagram drawn with TikZ.}
+    \caption[A diagram drawn with TikZ]{A diagram drawn with TikZ.}
     \label{fig:diagram}
 \end{figure}
 
@@ -289,8 +288,8 @@ A figure shown earlier can be repeated later, keeping its original number and po
 
 \begin{figure}[tbp]
     \centering
-    \includegraphics[width=0.5\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
-    \repeatcaption{fig:single}{A single figure}
+    \includegraphics[scale=1, alt={The Burgers solution plot, repeated from earlier in this chapter}]{Images/example_burgers.pdf}
+    \repeatcaption{fig:single}{Solution of the viscous Burgers equation}
 \end{figure}
 
 %% =====================================================================
@@ -344,7 +343,7 @@ When a column holds sentences rather than numbers, it can take up the remaining 
 
 \begin{table}[tbp]
     \centering
-    \caption{A table with a column of wrapping text.}
+    \caption[A table with a column of wrapping text]{A table with a column of wrapping text.}
     \label{tab:wrapping}
     \begin{tabularx}{\textwidth}{@{}l X@{}}
         \toprule
@@ -363,7 +362,7 @@ Long tables break across pages and repeat their header on each page (\cref{tab:l
 
 {\small
 \begin{xltabular}{\textwidth}{@{}l X S[table-format=1.1] S[table-format=1.2]@{}}
-    \caption{A long table that continues across pages.}\label{tab:long} \\
+    \caption[A long table that continues across pages]{A long table that continues across pages.}\label{tab:long} \\
     \toprule
     Case & Description & {$\Re$ ($10^{6}$)} & {$\Ma$} \\
     \midrule
@@ -437,7 +436,7 @@ Material that is too wide for the page, such as \cref{tab:sideways}, goes in a \
 
 \begin{sidewaystable}
     \centering
-    \caption{A wide table set sideways.}
+    \caption[A wide table set sideways]{A wide table set sideways.}
     \label{tab:sideways}
     \begin{tabular}{@{}l *{9}{S[table-format=1.3]}@{}}
         \toprule

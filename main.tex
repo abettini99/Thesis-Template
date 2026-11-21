@@ -48,17 +48,18 @@
     \include{Chapters/00Summary}
     \include{Chapters/00Preface}
 
-    \cleardoublepage
+    %% Contents and lists start on the next page, left or right; the summary, preface, nomenclature and
+    %% every chapter start on a right-hand page.
+    \clearpage
     \setcounter{tocdepth}{1} % How deep the contents will actually go: 1 will only go into sections, 2 into subsection, 3 into subsubsections
     \pdfbookmark[0]{Contents}{contents} % bookmark for the contents themselves (they are not listed in them)
     \tableofcontents*
-    \cleardoublepage
+    \clearpage
     \listoffigures
-    \cleardoublepage
+    \clearpage
     \listoftables
-    \cleardoublepage
+    % \clearpage
     % \listofalgorithms % uncomment if the thesis has more than a few algorithms
-    % \cleardoublepage
 
     \input{Chapters/00Nomenclature.tex}
 
