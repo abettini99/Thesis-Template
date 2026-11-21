@@ -1,0 +1,92 @@
+# Builds the thesis on every push, checks it, and keeps the PDF.
+#
+#   - The PDF (and its log) is kept for 30 days: Actions tab > the run > Artifacts.
+#   - It is checked with tools/check_pdf.py, with veraPDF for a full PDF/A-2u validation, and with
+#     tools/check_figures.py. A run fails (red cross) if the PDF has something that must be fixed.
+#   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10) to publish the PDF as a
+#     release: a fixed link to send to your supervisors. In a private repository only people with
+#     access to it can open the link.
+#
+# The build uses the latest TeX Live, like Overleaf. MathTime fonts are never on GitHub, so these
+# builds always use newtx for the maths.
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['*']
+    paths-ignore:
+      - '**.md'
+      - .github/readme/**
+  workflow_dispatch:   # run by hand: Actions tab > Build > Run workflow
+
+permissions:
+  contents: write      # to create releases for tags
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: texlive/texlive:latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Compile
+        run: latexmk -interaction=nonstopmode -halt-on-error main.tex
+      - name: Keep the PDF and the log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: thesis
+          path: |
+            main.pdf
+            main.log
+          retention-days: 30
+
+  check:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: thesis
+      - name: Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends poppler-utils
+          pip install --quiet pikepdf
+          # veraPDF from its official Docker image, as a "verapdf" command for check_pdf.py
+          docker pull -q verapdf/cli:latest
+          mkdir -p "$HOME/bin"
+          printf '#!/bin/sh\nexec docker run --rm -v "%s:%s" -w "%s" verapdf/cli:latest "$@"\n' \
+            "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE" > "$HOME/bin/verapdf"
+          chmod +x "$HOME/bin/verapdf"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Check the PDF (PDF/A with veraPDF, fonts, images, log)
+        run: python3 tools/check_pdf.py main.pdf
+      - name: Check the figures
+        if: always()
+        run: python3 tools/check_figures.py main.log
+      - name: veraPDF report
+        if: always()
+        run: verapdf --flavour 2u --format html main.pdf > verapdf-report.html || true
+      - name: Keep the veraPDF report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verapdf-report
+          path: verapdf-report.html
+          retention-days: 30
+      - name: Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          cp main.pdf "thesis-${tag}.pdf"
+          gh release create "$tag" "thesis-${tag}.pdf" --title "Thesis ${tag}" \
+            --notes "Built from ${GITHUB_SHA::7} on $(date -u +%Y-%m-%d). Maths in newtx (MathTime fonts are not on GitHub)." \
+            || gh release upload "$tag" "thesis-${tag}.pdf" --clobber

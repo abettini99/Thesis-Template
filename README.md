@@ -81,7 +81,7 @@ The print editions are set for paper: links invisible (they still work in the PD
 | `personal.cls` | The class: page layout, options, core packages. |
 | `_options/` | Fonts, heading styles, page styles, colours, extra packages, custom commands. |
 | `Fonts/` | Optional: MathTime Professional 2 for the maths (see `Fonts/README.md`). Never put it in a public repository. |
-| `tools/` | `check_pdf.py` checks the compiled PDF before submission; `check_figures.py` checks each figure's printed size, text size and fonts; `mtpro2_unicode.py` and its table prepare MathTime Professional 2 (see `Fonts/README.md`); `hooks/pre-commit` refuses commits with MathTime files. |
+| `tools/` | `check_pdf.py` checks the compiled PDF before submission; `check_figures.py` checks each figure's printed size, text size and fonts; `check_bib.py` tidies `references.bib`; `diff_versions.py` makes a PDF with the changes since an earlier version marked; `mtpro2_unicode.py` and its table prepare MathTime Professional 2 (see `Fonts/README.md`); `hooks/pre-commit` refuses commits with MathTime files. |
 | `requirements.txt` | Python packages for the scripts and plots: `pip install -r requirements.txt`. |
 | `latexmkrc` | latexmk settings: LuaLaTeX, and the `Fonts/` folder on TeX's search paths. |
 | `propositions.tex` | The propositions (stellingen), a separate document. |
@@ -94,7 +94,7 @@ The print editions are set for paper: links invisible (they still work in the PD
 3. **Front and back matter.** Replace the placeholder text in `Chapters/00Summary.tex` (summary and samenvatting), `00Preface.tex`, `Z_Acknowledgements.tex`, `Z_CurriculumVitae.tex` and `Z_ListOfPublications.tex`.
 4. **Remove the examples.** In `main.tex`, delete the lines `\include{Chapters/02Examples}` and `\include{Chapters/03InfSup}` (keep the files for reference), the references they use from `references.bib`, and, once no chapter uses `\lipsum` any more, the `lipsum` line. Replace the example appendix `A_Appendix.tex` with your own or remove its `\include`.
 5. **Your chapters.** Turn `01Introduction.tex` into your introduction, and copy `Chapters/_newChapter.tex` for every further chapter (`03Name.tex`, ...), adding an `\include` line for each in `main.tex`.
-6. **References, symbols, hyphenation.** Replace the entries in `references.bib`, define your acronyms and symbols in `_nomenclature.tex`, and add technical terms to `_hyphenation.tex` as you go.
+6. **References, symbols, hyphenation.** Replace the entries in `references.bib`, define your acronyms and symbols in `_nomenclature.tex`, and add technical terms to `_hyphenation.tex` as you go. Now and then, run `python3 tools/check_bib.py`: it finds duplicate entries, unused ones, missing fields and page ranges written with a hyphen, and with `--doi` it looks up missing DOIs on Crossref (`--write` adds the certain fixes).
 7. **Example files.** Delete the `Images/example_*.pdf` figures once nothing uses them; keep `Python/thesis.mplstyle` and copy `Python/example_figures.py` as a starting point for your own plots.
 8. **Propositions and cover** come at the end: see *Propositions and cover* below.
 
@@ -213,21 +213,22 @@ Both are separate documents that use the fonts and the details in `_thesisinfo.t
 
 1. **Details:** check every line of `_thesisinfo.tex` again: names (all first names, as on your passport), title, defence date and time, Rector Magnificus, committee and order, ISBN, printer, cover designer.
 2. **Final build:** compile with the `final` option (removes all todo notes) and `print-preparation`, and without `draft` (with `showtrims` if the printer wants crop marks). For the repository, compile the same with `digital`: the same pages, at their final size. Search the PDF for "??" (broken references) and "[" followed by a citation key (missing references).
-3. **Check the PDF:** run `python3 tools/check_pdf.py` (it reads `main.pdf` and `main.log`; on Overleaf, download both first). It reports what printers and the repository reject: PDF/A problems, fonts not embedded (also inside figure files) or without Unicode, blurry raster images (below 300 ppi at their printed size), CMYK images, broken references and citations, missing characters and overfull boxes. Fix everything marked FAIL.
-4. **Overfull lines:** compile once with `draft`; a black bar in the margin marks every line that sticks out. Fix them by rewording or adding words to `_hyphenation.tex`.
-5. **Contents and bookmarks:** check the contents, the running heads (long titles get cut off or wrap) and the PDF bookmarks.
-6. **Figures:** run `python3 tools/check_figures.py`: every figure at its printed size, legible, and correct in greyscale where the printer charges for colour pages.
-7. **PDF/A:** the PDF should be PDF/A-2u with all fonts embedded (most printers check this; the check above, veraPDF or Adobe Acrobat's Preflight shows it).
-8. **Page count and blank pages:** chapters start on a right-hand page, so blank left-hand pages are expected. Note the total page count.
-9. **Cover:** set the page count and the paper thickness in `cover.tex` (or the spine width from the printer), the bleed the printer asks for, turn off the guides with `\coverguidesfalse`, and compare with the printer's cover template.
-10. **Propositions:** compile `propositions.tex` separately; check the promotors' names and that the promotors have approved them.
-11. **Proof copy:** ask the printer for a proof copy and check it on paper before the full run.
+3. **Check the references:** run `python3 tools/check_bib.py --doi` and fix what it reports.
+4. **Check the PDF:** run `python3 tools/check_pdf.py` (it reads `main.pdf` and `main.log`; on Overleaf, download both first). It reports what printers and the repository reject: PDF/A problems, fonts not embedded (also inside figure files) or without Unicode, blurry raster images (below 300 ppi at their printed size), CMYK images, broken references and citations, missing characters and overfull boxes. Fix everything marked FAIL.
+5. **Overfull lines:** compile once with `draft`; a black bar in the margin marks every line that sticks out. Fix them by rewording or adding words to `_hyphenation.tex`.
+6. **Contents and bookmarks:** check the contents, the running heads (long titles get cut off or wrap) and the PDF bookmarks.
+7. **Figures:** run `python3 tools/check_figures.py`: every figure at its printed size, legible, and correct in greyscale where the printer charges for colour pages.
+8. **PDF/A:** the PDF should be PDF/A-2u with all fonts embedded (most printers check this; the check above, veraPDF or Adobe Acrobat's Preflight shows it).
+9. **Page count and blank pages:** chapters start on a right-hand page, so blank left-hand pages are expected. Note the total page count.
+10. **Cover:** set the page count and the paper thickness in `cover.tex` (or the spine width from the printer), the bleed the printer asks for, turn off the guides with `\coverguidesfalse`, and compare with the printer's cover template.
+11. **Propositions:** compile `propositions.tex` separately; check the promotors' names and that the promotors have approved them.
+12. **Proof copy:** ask the printer for a proof copy and check it on paper before the full run.
 
 ## After the committee's comments
 
 The committee usually asks for corrections, and it helps to show them what changed.
 
-- **latexdiff** marks every change between two versions in one PDF: deleted text struck through in red, new text underlined in blue. Keep a copy of the version the committee read (a Git tag: `git tag committee-draft`), then run `latexdiff --flatten old/main.tex main.tex > diff.tex` and compile `diff.tex`. Locally it comes with TeX Live; on Overleaf, compile the diff locally or ask the committee to compare PDFs.
+- **Marked-up changes:** `python3 tools/diff_versions.py committee-draft` makes `main-diff.pdf`, with every change since that version marked: deleted text struck through in red, new text underlined in blue. Tag each version you send out (`git tag committee-draft`, then `git push origin committee-draft`); any tag, commit or branch works. It uses latexdiff and latexmk, which come with TeX Live, so run it locally (Overleaf cannot).
 - **Overleaf's history** (the clock icon) compares any two versions of a file, and labelled versions make the committee draft easy to find later.
 - For a short list of changes, a table in a letter (comment, response, page) is often clearer than a marked-up PDF.
 
@@ -237,7 +238,11 @@ Printers usually charge every page that contains any colour as a colour page. So
 
 ## Overleaf ↔ GitHub
 
-This repository is synced with Overleaf (*Menu → GitHub*). On every push that changes the template, a GitHub workflow (`.github/workflows/page-sizes.yml`) compiles it in all four page sizes on the latest TeX Live and updates the page-size image above; a failed run in the *Actions* tab means the template no longer compiles. When it updates the image it adds a commit, so pull in Overleaf afterwards.
+This repository is synced with Overleaf (*Menu → GitHub*).
+
+**Every push builds the thesis** (`.github/workflows/build.yml`) on the latest TeX Live and checks it: `tools/check_pdf.py` with [veraPDF](https://verapdf.org) for a full PDF/A-2u validation, and `tools/check_figures.py`. A red cross in the *Actions* tab means the PDF has something to fix; the run's *Artifacts* hold the PDF, its log and the veraPDF report for 30 days. **Push a tag** (`git tag draft-2026-10 && git push origin draft-2026-10`) and the PDF is published as a release, a fixed link for your supervisors (in a private repository, only people with access can open it). These builds use newtx for the maths, as the MathTime fonts are never on GitHub.
+
+On every push that changes the template, a second workflow (`.github/workflows/page-sizes.yml`) compiles it in all four page sizes on the latest TeX Live and updates the page-size image above; a failed run in the *Actions* tab means the template no longer compiles. When it updates the image it adds a commit, so pull in Overleaf afterwards.
 
 - Before editing elsewhere (locally, or with Claude), **push** from Overleaf so the repository has your latest version.
 - After changes were committed to the repository, **pull** in Overleaf to bring them in.

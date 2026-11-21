@@ -75,11 +75,12 @@ def check_pdfa(pdf: Path, r: Report) -> None:
     r.section("Archival PDF (PDF/A-2u)")
     verapdf = shutil.which("verapdf")
     if verapdf:
-        out = run(verapdf, "--flavour", "2u", "--format", "text", str(pdf))
+        out = run(verapdf, "--flavour", "2u", "--format", "text", "--verbose", str(pdf))
         if re.search(r"^PASS\b", out, re.M):
             r.ok("veraPDF: PDF/A-2u compliant")
         else:
-            rules = sorted(set(re.findall(r"^\s*FAIL\s+(\S.*)$", out, re.M))) or out.strip().splitlines()[-5:]
+            rules = [l.strip() for l in out.splitlines() if l.strip() and not l.startswith("FAIL ")][:40] \
+                or out.strip().splitlines()[-5:]
             r.fail("veraPDF: not PDF/A-2u compliant", rules)
         return
     data = pdf.read_bytes()
