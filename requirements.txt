@@ -1,0 +1,13 @@
+# Python packages for the template's scripts:  pip install -r requirements.txt
+# (LaTeX itself needs none of these; Overleaf ignores this file.)
+#
+#   Python/example_figures.py and your own plots        matplotlib, numpy
+#   tools/check_figures.py (text sizes, fonts in figures) pikepdf
+#   .github/scripts/ (README images)                     Pillow
+#
+# tools/check_pdf.py and tools/mtpro2_unicode.py need only Python itself (check_pdf.py also
+# uses the poppler tools pdfinfo, pdffonts and pdfimages, which are not Python packages).
+matplotlib>=3.7
+numpy>=1.24
+pikepdf>=8.0
+Pillow>=10.0

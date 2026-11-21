@@ -20,7 +20,7 @@ is printed at. For each figure this reports:
   resolution printed resolution of PNG and JPEG figures (300 ppi or more for print)
 
 It also lists files in Images/ that the thesis does not use. Needs Python 3.8+;
-the text sizes and fonts of PDF figures need pikepdf (pip install pikepdf).
+the text sizes and fonts of PDF figures need pikepdf (pip install -r requirements.txt).
 """
 from __future__ import annotations
 
@@ -169,7 +169,7 @@ def main(argv=None) -> int:
             notes.append(f"{mm(pw)} wide, wider than the text ({mm(textwidth)}): it sticks into the margin")
         if suffix == ".pdf" and path.exists():
             if pikepdf is None:
-                notes_text = "text sizes not checked (pip install pikepdf)"
+                notes_text = "text sizes not checked (pip install -r requirements.txt)"
             else:
                 try:
                     sizes, fonts = text_sizes(path)

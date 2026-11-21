@@ -82,6 +82,7 @@ The print editions are set for paper: links invisible (they still work in the PD
 | `_options/` | Fonts, heading styles, page styles, colours, extra packages, custom commands. |
 | `Fonts/` | Optional: MathTime Professional 2 for the maths (see `Fonts/README.md`). Never put it in a public repository. |
 | `tools/` | `check_pdf.py` checks the compiled PDF before submission; `check_figures.py` checks each figure's printed size, text size and fonts; `mtpro2_unicode.py` and its table prepare MathTime Professional 2 (see `Fonts/README.md`); `hooks/pre-commit` refuses commits with MathTime files. |
+| `requirements.txt` | Python packages for the scripts and plots: `pip install -r requirements.txt`. |
 | `latexmkrc` | latexmk settings: LuaLaTeX, and the `Fonts/` folder on TeX's search paths. |
 | `propositions.tex` | The propositions (stellingen), a separate document. |
 | `cover.tex` | The book cover (back, spine, front) with the spine width calculated from the page count. |
@@ -199,7 +200,7 @@ It sets Times (or STIX, a Times-like font included with matplotlib), text at abo
 
 The full widths are a little under the nominal 92/100/105/113 mm, because the class rounds the text width down to whole points (Dover: 261 pt = 91.7 mm); a figure made at the nominal width would stick out by a fraction of a millimetre.
 
-**Checking the figures:** after compiling, run `python3 tools/check_figures.py` (it reads `main.log`, in which the class records every figure's own and printed size). For each figure it reports whether it is printed at its own size (scaling with `width=` scales the text in it too), whether it fits the text width, the printed size of the text in it (most of it should be about the caption size; below 5 pt is hard to read), fonts other than Times, and the printed resolution of PNG and JPEG files. It also lists files in `Images/` that the thesis no longer uses. The text sizes and fonts need `pikepdf` (`pip install pikepdf`).
+**Checking the figures:** after compiling, run `python3 tools/check_figures.py` (it reads `main.log`, in which the class records every figure's own and printed size). For each figure it reports whether it is printed at its own size (scaling with `width=` scales the text in it too), whether it fits the text width, the printed size of the text in it (most of it should be about the caption size; below 5 pt is hard to read), fonts other than Times, and the printed resolution of PNG and JPEG files. It also lists files in `Images/` that the thesis no longer uses. The text sizes and fonts need `pikepdf` (`pip install -r requirements.txt` installs it with the plotting packages).
 
 ## Propositions and cover
 
