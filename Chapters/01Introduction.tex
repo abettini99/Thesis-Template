@@ -1,14 +1,4 @@
-%% The abstract environment is used for the abstract of a chapter.
-\newenvironment{chapterabstract}{%
-    \list{}{\leftmargin\rightmargin}%
-    \item%
-    \relax%
-    \rmfamily\itshape%
-}{%
-    \endlist%
-}
-
-\chapter{Introduction} \pagestyle{chapteronly}
+\chapter{Introduction}\label{ch:introduction} \pagestyle{chapteronly}
 \chapterprecishere{
     \begin{epigraphs}
         \qitem{

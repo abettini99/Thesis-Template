@@ -62,7 +62,11 @@
 %% only the paper it sits on differs between modes:
 %%   print  : the book page plus 2mm bleed on every side, for the printer.
 %%   report : the book page centred on an A4 sheet, for reading on screen or printing at home.
-\LoadClass[10pt]{memoir}
+%% Type size: 10 pt (Dover scales it to 9.5 pt below); 11 pt for the wider TU Delft text block, which
+%% would otherwise have over 80 characters per line.
+\def\thesis@ptsize{10pt}
+\def\thesis@tmp{tudelft}\ifx\thesis@pagesize\thesis@tmp \def\thesis@ptsize{11pt}\fi
+\edef\thesis@tmp{\noexpand\LoadClass[\thesis@ptsize]{memoir}}\thesis@tmp
 
 \newlength{\thesis@pagewidth}   \newlength{\thesis@pageheight}  %% trimmed (final) book page
 \newlength{\thesis@textwidth}   \newlength{\thesis@textheight}  %% type block (where you write)
@@ -101,7 +105,7 @@
 \ifthenelse{\equal{\thesis@pagesize}{dover}}{\renewcommand*{\chaptertitlesize}{28pt}}{}
 
 %% Fore-edge margins follow foreedge = (2/3)*(page width - binding - text width);
-%% text widths give roughly 53-60 characters per line at 10pt in every size.
+%% text widths give roughly 70-76 characters per line in every size (11 pt type for TU Delft).
 
 \if@print
     \setstocksize{\dimexpr\thesis@pageheight+2\thesis@bleed\relax}{\dimexpr\thesis@pagewidth+2\thesis@bleed\relax}

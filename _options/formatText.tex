@@ -119,3 +119,14 @@
     \renewcommand{\afterloftitle}{\afterchaptertitle\insertchapterspace} % for some reason the spacing between the title and first entry of ToC and LoF/LoT is not the same.
     \renewcommand{\afterlottitle}{\afterchaptertitle\insertchapterspace}
     
+
+%% Chapter abstract: a short summary in italics on the chapter's opening page (inside \chapterprecishere).
+\newenvironment{chapterabstract}{%
+    \list{}{\leftmargin\rightmargin}%
+    \item%
+    \relax%
+    \rmfamily\itshape%
+}{%
+    \endlist%
+}
+

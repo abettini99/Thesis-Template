@@ -11,7 +11,7 @@ font.family:        serif
 font.serif:         Times New Roman, STIXGeneral, Nimbus Roman, TeX Gyre Termes, DejaVu Serif
 mathtext.fontset:   stix            # Times-like maths: $\alpha$, $C_L$, $U_\infty$
 ## Sizes, set for the Dover default (9.5 pt text, captions about 8.5 pt): figure text at about the
-## caption size. For the other page sizes (10 pt text), add 0.5 to each.
+## caption size. For A5 and Royal (10 pt text), add 0.5 to each; for TU Delft (11 pt text), add 1.5.
 font.size:          8.5
 axes.titlesize:     8.5
 axes.labelsize:     8.5

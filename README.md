@@ -42,7 +42,7 @@ Set in the first line of `main.tex`, for example:
 
 | Option | Effect |
 |---|---|
-| `dover` *(default)*, `a5`, `royal`, `tudelft` | Book page size: 137 × 213 mm (the classic Dover paperback, 5⅜ × 8⅜ in), 148 × 210 mm, 156 × 234 mm or 170 × 240 mm. Text block, margins and chapter-title size follow automatically. Dover is set in 9.5 pt type on 12.4 pt leading, like the Dover paperbacks; the other sizes in 10 pt on 13.2 pt. Check that your printer offers the size. |
+| `dover` *(default)*, `a5`, `royal`, `tudelft` | Book page size: 137 × 213 mm (the classic Dover paperback, 5⅜ × 8⅜ in), 148 × 210 mm, 156 × 234 mm or 170 × 240 mm. Text block, margins and chapter-title size follow automatically. Dover is set in 9.5 pt type on 11.4 pt leading, like the Dover paperbacks; A5 and Royal in 10 pt on 13.2 pt; TU Delft in 11 pt on 15 pt, so its wider lines stay at about the same length as the other sizes (75–77 characters). Check that your printer offers the size. |
 | `print` | Book version: the page plus 2 mm bleed on every side, chapters start on right-hand pages. Without it you get the report version: the same page centred on A4, no blank pages. |
 | `thumb` | Chapter thumb tabs on the page edge (print version only). Appendices continue below the last chapter; the spacing adapts so all tabs fit on the page (it uses the chapter count from the previous compile, so compile twice after adding chapters). |
 | `showtrims` | Crop marks showing where the page is trimmed (print) or where the book page sits on A4 (report). |
@@ -61,7 +61,8 @@ Set in the first line of `main.tex`, for example:
 | `_thesisinfo.tex` | **Fill this in:** title, author, defence date, Rector Magnificus, doctoral committee, keywords, printer, ISBN. Used on the title pages, CV and in the PDF metadata. |
 | `_titlepage.tex` | Title page, official TU Delft dissertation page, committee and colophon page. |
 | `Chapters/` | Front matter (`00…`), chapters (`01…`, `02…`), appendices (`A_…`) and back matter (`Z_…`). |
-| `Chapters/02Examples.tex` | Demonstrations of everything the template supports. Delete it (and the `lipsum`/`blindtext` lines in `main.tex`) once you no longer need it. |
+| `Chapters/02Examples.tex` | Demonstrations of everything the template supports. Take it out of `main.tex` when you start writing, but keep the file to look things up. |
+| `Chapters/_newChapter.tex` | Starting point for a new chapter: copy it, rename it and `\include` it in `main.tex`. |
 | `_hyphenation.tex` | Hyphenation of words TeX breaks wrongly or not at all (technical terms, names). Add to it as you write. |
 | `_nomenclature.tex` | **Fill this in:** acronyms and symbols for the nomenclature. |
 | `Chapters/00Nomenclature.tex` | Prints the nomenclature lists. |
@@ -71,9 +72,21 @@ Set in the first line of `main.tex`, for example:
 | `propositions.tex` | The propositions (stellingen), a separate document. |
 | `cover.tex` | The book cover (back, spine, front) with the spine width calculated from the page count. |
 
+## Starting your thesis
+
+1. **Your own copy.** Make a new, private repository for the thesis from this template (on GitHub: *Use this template*, or duplicate the repository) and link it to a new Overleaf project. Keep the template repository as it is, so fixes can be copied over later.
+2. **Details.** Fill in `_thesisinfo.tex`: title, names, committee, defence date, keywords, licence, ORCID, data availability. Check the class options at the top of `main.tex` (page size, `print`, language).
+3. **Front and back matter.** Replace the placeholder text in `Chapters/00Summary.tex` (summary and samenvatting), `00Preface.tex`, `Z_Acknowledgements.tex`, `Z_CurriculumVitae.tex` and `Z_ListOfPublications.tex`.
+4. **Remove the examples.** In `main.tex`, delete the line `\include{Chapters/02Examples}` (keep the file for reference) and, once no chapter uses `\lipsum` any more, the `lipsum` and `blindtext` lines. Replace the example appendix `A_Appendix.tex` with your own or remove its `\include`.
+5. **Your chapters.** Turn `01Introduction.tex` into your introduction, and copy `Chapters/_newChapter.tex` for every further chapter (`03Name.tex`, ...), adding an `\include` line for each in `main.tex`.
+6. **References, symbols, hyphenation.** Replace the entries in `references.bib`, define your acronyms and symbols in `_nomenclature.tex`, and add technical terms to `_hyphenation.tex` as you go.
+7. **Example files.** Delete `Images/example_plot.pdf` and `Images/graph.jpg` once nothing uses them; keep `Python/thesis.mplstyle` and copy `Python/example_plot.py` as a starting point for your own plots.
+8. **Propositions and cover** come at the end: see *Propositions and cover* below.
+
 ## Writing
 
 - **Cross-references:** use `\cref{...}` (gives "Figure 2.1", "Equation (2.3)", "Section 2.1") and `\Cref{...}` at the start of a sentence.
+- **Labels:** one prefix per kind of thing, then a short name that says what it is: `ch:` chapter, `sec:` section or subsection, `app:` appendix, `fig:` figure, `tab:` table, `eq:` equation, `form:` formulation, `alg:` algorithm, `def:` / `lem:` / `thm:` / `cor:` definitions, lemmas, theorems, corollaries. In a long thesis, add the chapter to the name (`fig:wake-velocity`, `sec:burgers-weak-form`) so labels stay unique and readable; never use numbers in labels, as they change.
 - **Citations:** `\cite{key}` for [1], `\citet{key}` for "Author [1]", `\citeauthor{key}`, `\citeyear{key}`.
 - **Units:** `\qty{1.225}{\kilo\gram\per\cubic\metre}`, `\num{6.02e23}`, `\unit{\metre\per\second}` (siunitx).
 - **Custom maths commands** (in `_options/commands.tex`): `\vec{u}` and `\tensor{\tau}` (bold italics by default; switch both to plain italics, arrows or underlines in one place), `\grad`, `\div`, `\curl`, `\deriv{y}{x}`, `\pderiv{y}{x}`, `\sderiv{y}{t}` (material derivative), `\transpose`, `\cddot`, `\inner{v}{u}_\Omega` for $(v,u)_\Omega$, the $L^2$ inner product in weak forms (`\inner[\big]{v}{u}_\Omega` for larger brackets in displays, `\inner*{...}` to fit the contents; write time derivatives inside it as `\cpderiv{u}{t}`, which gives $\partial_t u$), and dimensionless numbers such as `\Re`, `\Ma`, `\Pr`.
@@ -102,6 +115,29 @@ Set in the first line of `main.tex`, for example:
 
 - **A chapter based on a published paper:** see `Chapters/01Introduction.tex` for the chapter opener with an epigraph and a short abstract, followed by `\chapterbasedon{\cite{key}}{contributions}`: a note at the start of the chapter with the reference and who did what, in the [CRediT roles](https://credit.niso.org) (conceptualisation, methodology, software, writing -- original draft, ...). Committees like to see this for co-authored papers. To include the published PDF itself, uncomment `pdfpages` in `_options/packages.tex` and use `\includepdf[pages=-]{paper.pdf}`.
 
+## Notation
+
+Decide the notation once and keep it for the whole thesis; it drifts when chapters are written years apart. The template is set up for the following conventions; change a command in `_options/commands.tex` and the whole thesis follows.
+
+| What | Written as | Command |
+|---|---|---|
+| Scalars | italic: $u$, $\nu$, $p$ | plain letters |
+| Vectors and tensors | bold italic: $\boldsymbol{u}$, $\boldsymbol{\sigma}$ | `\vec{u}`, `\tensor{\sigma}` |
+| Matrices and vectors of unknowns (discrete) | upright sans-serif: $\mathsf{A}$, $\mathsf{b}$ | `\mathsf{A}` |
+| Differential operators | $\nabla p$, $\nabla\cdot\boldsymbol{u}$, $\nabla\times\boldsymbol{u}$ | `\grad`, `\div`, `\curl` |
+| Derivatives in displays | $\dfrac{\partial u}{\partial t}$, $\dfrac{\mathrm{D}u}{\mathrm{D}t}$ | `\pderiv{u}{t}`, `\sderiv{u}{t}` |
+| Derivatives inline and in weak forms | $\partial_t u$, $\partial^2_x u$ | `\cpderiv{u}{t}`, `\cpderiv[2]{u}{x}` |
+| Upright constants and labels | $\mathrm{d}x$, $\mathrm{e}$, $u_\mathrm{in}$ | `\mathrm{...}` for anything that is a name, not a variable |
+| Inner product | $(\boldsymbol{v}, \boldsymbol{u})_\Omega$, test function first | `\inner{\vec{v}}{\vec{u}}_\Omega` |
+| Named forms | $a(\boldsymbol{v}, \boldsymbol{u})$, $c(\boldsymbol{w}; \boldsymbol{v}, \boldsymbol{u})$ | defined once, with `\coloneqq` |
+| Boundary parts | $\Gamma_\mathrm{in}$, $\Gamma_\mathrm{wall}$, $\partial\Omega = \Gamma_\mathrm{in} \cup \Gamma_\mathrm{wall}$ | not $\partial\Omega_\mathcal{I}$ |
+| Discrete quantities | superscript $h$: $\boldsymbol{u}^h$, $\mathcal{V}^h$ | |
+| Time levels | superscript $n$: $\boldsymbol{u}^n$, $\boldsymbol{u}^{n+1}$ | |
+| Dimensionless numbers | upright: $\mathrm{Re}$, $\mathrm{Ma}$ | `\Re`, `\Ma`, ... |
+| Units | upright, with a thin space: $10\,\mathrm{m\,s^{-1}}$ | `\qty{10}{\metre\per\second}` (siunitx) |
+
+Every symbol also goes in `_nomenclature.tex`, so the nomenclature doubles as a check that nothing is used for two things.
+
 ## Plots
 
 Make plots in Python with the style file `Python/thesis.mplstyle` (see `Python/example_plot.py`):
@@ -111,7 +147,7 @@ import matplotlib.pyplot as plt
 plt.style.use("Python/thesis.mplstyle")
 ```
 
-It sets Times (or STIX, a Times-like font included with matplotlib), text at about the caption size (7.5–8.5 pt for the Dover default; add 0.5 pt for the other page sizes), a default size of 91.5 mm wide, colour-blind-safe colours each with its own line style (so lines stay apart in greyscale), and PDF output with embedded TrueType fonts, as needed for PDF/A. Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
+It sets Times (or STIX, a Times-like font included with matplotlib), text at about the caption size (7.5–8.5 pt for the Dover default; add 0.5 pt for A5 and Royal, 1.5 pt for TU Delft), a default size of 91.5 mm wide, colour-blind-safe colours each with its own line style (so lines stay apart in greyscale), and PDF output with embedded TrueType fonts, as needed for PDF/A. Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
 
 | Page size | Full text width | Half width (two side by side) |
 |---|---|---|
