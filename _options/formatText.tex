@@ -23,54 +23,52 @@
     \else
         \openany % report: chapters start on the next page, no blank pages
     \fi
-    \makechapterstyle{mainmatter}{%
-        \renewcommand{\chapternamenum}{\space}
-        \renewcommand{\chapnamefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
-        \renewcommand{\chapnumfont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
-        \renewcommand{\chaptitlefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
-        \renewcommand{\printchaptername}{%
-            \raggedleft \chapnamefont \@chapapp}
-        \renewcommand{\printchaptertitle}[1]{%
-            \raggedleft \chaptitlefont ##1}
-        \setlength{\beforechapskip}{50pt}
-        \setlength{\midchapskip}{20pt}
-        \setlength{\afterchapskip}{60pt}
-
+    %% Chapter openings. One style for every chapter-level heading (front matter, chapters, references,
+    %% appendices, back matter), so all titles start at the same height on the page:
+    %%   - a small label, "CHAPTER 3" / "APPENDIX A", in letterspaced capitals;
+    %%   - the title in Source Sans Light at \chaptertitlesize, aligned right;
+    %%   - unnumbered headings (Summary, Contents, References, ...) leave the label's space empty, so
+    %%     their titles line up with the chapter titles.
+    %% A chapter with an epigraph or abstract (\chapterprecishere{...}) gets an opening page of its own,
+    %% and its text starts on the next page; with \chapterprecishere{} or without it, the text starts
+    %% below the title.
+    \newcommand{\thesis@chaptitlefont}{\fontsize{\chaptertitlesize}{1.15\dimexpr\chaptertitlesize\relax}\headingfont}
+    \newcommand{\thesis@chaplabelfont}{\normalsize\runningheadcaps}
+    \newcommand{\thesis@chapterstyle}{%
+        \setlength{\beforechapskip}{40pt}
+        \setlength{\midchapskip}{1\onelineskip}
+        \setlength{\afterchapskip}{3\onelineskip}
+        \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+        \renewcommand{\chapnamefont}{\thesis@chaplabelfont}
+        \renewcommand{\chapnumfont}{\thesis@chaplabelfont}
+        \renewcommand{\chaptitlefont}{\thesis@chaptitlefont}
+        \renewcommand{\printchaptername}{\thesis@chapterlabel{\MakeUppercase{\@chapapp}\space\thechapter}}
+        \renewcommand{\chapternamenum}{}
+        \renewcommand{\printchapternum}{}
+        \renewcommand{\afterchapternum}{\par\nobreak\vskip\midchapskip}
+        \renewcommand{\printchapternonum}{\thesis@chapterlabelspace}
+        \renewcommand{\printchaptertitle}[1]{\raggedleft\chaptitlefont ##1}
+        \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
         \renewcommand{\prechapterprecis}{%
             \vspace*{\prechapterprecisshift}%
-            \precisfont\begin{Spacing}{1.10}} %% NOTE: Spacing in here mismatches with maintext! On purpose!
-        \renewcommand{\postchapterprecis}{\end{Spacing}\clearpage\@afterindentfalse\@afterheading} % text continues on the next page, unindented
+            \precisfont\begin{Spacing}{1.10}} % the opening page has its own, looser line spacing
+        \renewcommand{\postchapterprecis}{\end{Spacing}\clearpage\@afterindentfalse\@afterheading}
         \renewcommand*{\precisfont}{}
     }
-    
-    \makechapterstyle{frontmatter}{%
-        \renewcommand{\chapternamenum}{\space}
-        \renewcommand{\chapnamefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
-        \renewcommand{\chapnumfont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
-        \renewcommand{\chaptitlefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
-        \renewcommand{\printchaptername}{%
-            \raggedleft \chapnamefont \@chapapp}
-        \renewcommand{\printchaptertitle}[1]{%
-            \raggedleft \chaptitlefont ##1}
-        \setlength{\beforechapskip}{0pt}
-        \setlength{\midchapskip}{20pt}
-        \setlength{\afterchapskip}{20pt}
-    }
+    %% The label line is a box of fixed height, so it takes the same space with or without a label
+    %% (chapters, unnumbered headings, contents and lists alike).
+    \newcommand{\thesis@chapterlabel}[1]{\vbox to \onelineskip{\vss\hbox to \linewidth{\hfill\chapnamefont #1}}}
+    \newcommand{\thesis@chapterlabelspace}{\thesis@chapterlabel{}\par\nobreak\vskip\midchapskip}
+    %% \chapterprecishere{} (empty): no opening page, the text follows the title
+    \let\thesis@chapterprecishere\chapterprecishere
+    \renewcommand{\chapterprecishere}[1]{%
+        \if\relax\detokenize{#1}\relax\else\thesis@chapterprecishere{#1}\fi}
 
-    \makechapterstyle{bibliography}{%
-        \renewcommand{\chapternamenum}{\space}
-        \renewcommand{\chapnamefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
-        \renewcommand{\chapnumfont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
-        \renewcommand{\chaptitlefont}{\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont}
-        \renewcommand{\printchaptername}{%
-            \raggedleft \chapnamefont \@chapapp}
-        \renewcommand{\printchaptertitle}[1]{%
-            \raggedleft \chaptitlefont ##1}
-        \setlength{\beforechapskip}{0pt}
-        \setlength{\midchapskip}{20pt}
-        \setlength{\afterchapskip}{20pt}
-    }
-    
+    \makechapterstyle{mainmatter}{\thesis@chapterstyle}
+    \makechapterstyle{frontmatter}{\thesis@chapterstyle}
+    \makechapterstyle{bibliography}{\thesis@chapterstyle}
+    \makechapterstyle{appendix}{\thesis@chapterstyle}
+
     %% Heading levels differ by size and space, never by extra boldness:
     %%   section        semibold, 1.15 x text size, 1.5 lines above, half a line below
     %%   subsection     semibold, text size, 1 line above, a quarter line below
@@ -117,14 +115,15 @@
     \setlength{\afterepigraphskip}{1\baselineskip}
 
     %% ToC, LoF, LoT formatting
+    %% Contents and lists: memoir already puts \printchapternonum (the empty label line) before the title
     \renewcommand{\tocheadstart}{\chapterheadstart}
     \renewcommand{\lofheadstart}{\chapterheadstart}
     \renewcommand{\lotheadstart}{\chapterheadstart}
-    \renewcommand{\printtoctitle}[1]{\hfill\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont Contents}
-    \renewcommand{\printloftitle}[1]{\hfill\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont List of Figures}
-    \renewcommand{\printlottitle}[1]{\hfill\fontsize{\chaptertitlesize}{\chaptertitlesize}\headingfont List of Tables}
+    \renewcommand{\printtoctitle}[1]{\printchaptertitle{Contents}}
+    \renewcommand{\printloftitle}[1]{\printchaptertitle{List of Figures}}
+    \renewcommand{\printlottitle}[1]{\printchaptertitle{List of Tables}}
     \renewcommand{\aftertoctitle}{\afterchaptertitle}
-    \renewcommand{\afterloftitle}{\afterchaptertitle\insertchapterspace} % for some reason the spacing between the title and first entry of ToC and LoF/LoT is not the same.
+    \renewcommand{\afterloftitle}{\afterchaptertitle\insertchapterspace}
     \renewcommand{\afterlottitle}{\afterchaptertitle\insertchapterspace}
     
 
