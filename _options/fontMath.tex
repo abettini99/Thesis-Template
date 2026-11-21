@@ -1,18 +1,35 @@
-%% Math: newtxmath, the Times-style math font that matches the TeX Gyre Termes body text.
-%% Variables are italic, as is standard for Times-based documents.
-%% newtxmath takes digits, \mathrm, \mathbf, \mathit and operator names (sin, log, ...) from the current
-%% roman font. Under fontspec that font has no math encoding, so it would fall back to Computer Modern.
-%% Temporarily point it at newtx's own Times while loading, then restore the fontspec main font.
-%% Scaled like the text (95 % for the Dover size): maths fonts via newtxmath's option, digits and
-%% operator names via newtx's text-font scaling.
-\edef\ntx@scaled{s*[\thesis@fontscale]}
-\let\thesis@rmdefault\rmdefault
-\renewcommand{\rmdefault}{ntxtlf}
-\edef\thesis@tmp{\noexpand\RequirePackage[scaled=\thesis@fontscale]{newtxmath}}\thesis@tmp
-\let\rmdefault\thesis@rmdefault
+%% Maths: STIX Two, the maths companion of the STIX Two Text body font (package stix2, without its
+%% text fonts, which fontspec sets). Letters, digits, operator names (sin, log, ...) and symbols all
+%% come from STIX Two, so maths and text match.
+%% The Dover size sets everything at 95 %: the stix2 font definitions have no scaling option, so each
+%% one is scaled as it loads (a size of "<->" becomes "<->s*[0.95]"; substitutions are left alone).
+\ExplSyntaxOn
+\tl_new:N \l__thesis_shape_tl
+\cs_new_protected:Npn \__thesis_scaled_shape:nnnnnn #1#2#3#4#5#6
+  {
+    \tl_set:Nn \l__thesis_shape_tl {#5}
+    \tl_if_in:nnTF {#5} { sub }
+      { % a substitution (sub, ssub) points to a shape that is scaled itself; make it silent (ssub),
+        % as stix2 has no bold for its extension font and would warn on every bold formula
+        \tl_if_in:NnF \l__thesis_shape_tl { ssub } { \tl_replace_once:Nnn \l__thesis_shape_tl { sub } { ssub } }
+      }
+      { \exp_args:NNnx \tl_replace_all:Nnn \l__thesis_shape_tl { <-> } { <->s*[\thesis@fontscale] } }
+    \use:e { \exp_not:N \__thesis_orig_shape:nnnnnn { \exp_not:n {#1} } { \exp_not:n {#2} } { \exp_not:n {#3} }
+          { \exp_not:n {#4} } { \exp_not:V \l__thesis_shape_tl } { \exp_not:n {#6} } }
+  }
+\clist_map_inline:nn
+  { ls1stix2, ls1stix2bb, ls1stix2frak, ls1stix2scr, ls1stix2sf, ls2stix2, ls2stix2cal, ls2stix2ex, ls2stix2tt }
+  {
+    \AddToHook { file/#1.fd/before }
+      { \cs_set_eq:NN \__thesis_orig_shape:nnnnnn \DeclareFontShape@ \cs_set_eq:NN \DeclareFontShape@ \__thesis_scaled_shape:nnnnnn }
+    \AddToHook { file/#1.fd/after } { \cs_set_eq:NN \DeclareFontShape@ \__thesis_orig_shape:nnnnnn }
+  }
+\ExplSyntaxOff
+\RequirePackage[notext]{stix2}
+%% := and =: as single glyphs (mathtools builds them from two symbols, which leaves a gap in STIX Two).
+\let\coloneqq\coloneq
+\let\eqqcolon\eqcolon
 
 %% \mathsf (e.g. matrices \mathsf{A}, operators \mathsf{Res}) in Source Sans, the document's sans-serif font.
-%% newtxmath declares it in the old OT1 encoding, for which fontspec fonts have no shapes, so TeX
-%% substituted a default font (warning "Font shape OT1/SourceSans3/m/n undefined").
 \DeclareMathAlphabet{\mathsf}{TU}{\sfdefault}{m}{n}
 \SetMathAlphabet{\mathsf}{bold}{TU}{\sfdefault}{\bfdefault}{n}

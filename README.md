@@ -1,6 +1,6 @@
 # Thesis template
 
-A LaTeX template for a TU Delft PhD dissertation, built on the `memoir` class. It produces either a printable book (with bleed, crop marks and thumb tabs) or a report version of the same pages centred on A4.
+A LaTeX template for a TU Delft PhD dissertation, built on the `memoir` class. It produces four editions of the same pages, with the same page numbers: a digital edition for the screen and the repository, one for the professional printer (with bleed, crop marks and thumb tabs), the printed book as it looks after trimming, and a proof to print at home on A4 or US Letter.
 
 ## Compiling
 
@@ -30,22 +30,28 @@ The PDF is produced as **PDF/A-2u**, the archival standard: fonts are embedded, 
 - **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A.
 - **Engine:** compile with LuaLaTeX for PDF/A. XeLaTeX still produces the same-looking PDF, but `pdfx` cannot add the XMP metadata there, so that file is not PDF/A.
 - **Checking:** the template passes the standard PDF/A-2u checks with LuaLaTeX, but have the final PDF validated once with [veraPDF](https://verapdf.org) (free) or Adobe Acrobat's preflight.
-- **Accessible (tagged) PDF**, the higher PDF/UA and PDF/A "a" levels, is not possible yet: the `memoir` class, the `caption` package and the `newtxmath` maths font are not yet compatible with LaTeX's tagging code, and several other packages have not been tested with it.
+- **Accessible (tagged) PDF**, the higher PDF/UA and PDF/A "a" levels, is not possible yet: the `memoir` class, the `caption` package and the Type 1 maths fonts (`stix2`) are not yet compatible with LaTeX's tagging code, and several other packages have not been tested with it.
 
 ## Class options
 
 Set in the first line of `main.tex`, for example:
 
 ```latex
-\documentclass[print,thumb,showtrims]{personal}
+\documentclass[print-preparation,thumb,showtrims]{personal}
 ```
 
 | Option | Effect |
 |---|---|
 | `dover` *(default)*, `a5`, `royal`, `tudelft` | Book page size: 137 × 213 mm (the classic Dover paperback, 5⅜ × 8⅜ in), 148 × 210 mm, 156 × 234 mm or 170 × 240 mm. Text block, margins and chapter-title size follow automatically. Dover is set in 9.5 pt type on 12 pt leading (the Dover paperbacks used 11.4 pt; the extra air helps inline maths); A5 and Royal in 10 pt on 13.2 pt; TU Delft in 11 pt on 15 pt, so its wider lines stay at about the same length as the other sizes (75–77 characters). Check that your printer offers the size. |
-| `print` | Book version: the page plus 2 mm bleed on every side, chapters start on right-hand pages. Without it you get the report version: the same page centred on A4, no blank pages. |
-| `thumb` | Chapter thumb tabs on the page edge (print version only): square, light grey with a black number; the colours are set in `_options/formatColor.tex`. Appendices continue below the last chapter; the spacing adapts so all tabs fit on the page (it uses the chapter count from the previous compile, so compile twice after adding chapters). |
-| `showtrims` | Crop marks showing where the page is trimmed (print) or where the book page sits on A4 (report). |
+| `digital` *(default)* | For the screen, the TU Delft repository and sharing: the pages at their final size, with links in maroon (set once in `_options/formatColor.tex`; symbols and acronyms stay black, so maths is never coloured), coloured code and sideways pages shown upright. |
+| `print-preparation` | For the professional printer: the pages plus 2 mm bleed on every side (add `showtrims` for crop marks). |
+| `print-showcase` | The printed book as it looks after trimming: the pages at their final size, as on paper. For checking the layout on screen. |
+| `print-report` | For printing a proof at home: the pages centred on an A4 sheet (`showtrims` marks where to cut). |
+| `letter` | With `print-report`: US Letter instead of A4. |
+
+The print editions are set for paper: links invisible (they still work in the PDF), code in black and white.
+| `thumb` | Chapter thumb tabs on the page edge: square, light grey with a black number; the colours are set in `_options/formatColor.tex`. Appendices continue below the last chapter; the spacing adapts so all tabs fit on the page (it uses the chapter count from the previous compile, so compile twice after adding chapters). |
+| `showtrims` | Crop marks showing where the page is trimmed (`print-preparation`, `print-report`). |
 | `british` *(default)*, `american` | Language: hyphenation, quotation marks and dates. |
 | `showframe` | Shows the page layout frames, for checking the layout. |
 | `draft` | Fast compiles while writing: images as boxes, overfull lines marked, *DRAFT* and the date on every page. |
@@ -58,7 +64,7 @@ Set in the first line of `main.tex`, for example:
 | File | Contents |
 |---|---|
 | `main.tex` | Document structure: which chapters are included, in which order, and `\includeonly` for compiling single chapters. |
-| `_thesisinfo.tex` | **Fill this in:** title, author, defence date, Rector Magnificus, doctoral committee, keywords, printer, ISBN. Used on the title pages, CV and in the PDF metadata. |
+| `_thesisinfo.tex` | **Fill this in:** title, author, defence date, Rector Magnificus, doctoral committee, keywords, printer, ISBN, an optional dedication. Used on the title pages, CV and in the PDF metadata; leave an optional field empty, `{}`, to leave it out. |
 | `_titlepage.tex` | Title page, official TU Delft dissertation page, committee and colophon page. |
 | `Chapters/` | Front matter (`00…`), chapters (`01…`, `02…`), appendices (`A_…`) and back matter (`Z_…`). |
 | `Chapters/02Examples.tex` | Demonstrations of everything the template supports. Take it out of `main.tex` when you start writing, but keep the file to look things up. |
@@ -76,7 +82,7 @@ Set in the first line of `main.tex`, for example:
 ## Starting your thesis
 
 1. **Your own copy.** Make a new, private repository for the thesis from this template (on GitHub: *Use this template*, or duplicate the repository) and link it to a new Overleaf project. Keep the template repository as it is, so fixes can be copied over later.
-2. **Details.** Fill in `_thesisinfo.tex`: title, names, committee, defence date, keywords, licence, ORCID, data availability. Check the class options at the top of `main.tex` (page size, `print`, language).
+2. **Details.** Fill in `_thesisinfo.tex`: title, names, committee, defence date, keywords, licence, ORCID, data availability. Check the class options at the top of `main.tex` (page size, edition, language).
 3. **Front and back matter.** Replace the placeholder text in `Chapters/00Summary.tex` (summary and samenvatting), `00Preface.tex`, `Z_Acknowledgements.tex`, `Z_CurriculumVitae.tex` and `Z_ListOfPublications.tex`.
 4. **Remove the examples.** In `main.tex`, delete the lines `\include{Chapters/02Examples}` and `\include{Chapters/03InfSup}` (keep the files for reference), the references they use from `references.bib`, and, once no chapter uses `\lipsum` any more, the `lipsum` line. Replace the example appendix `A_Appendix.tex` with your own or remove its `\include`.
 5. **Your chapters.** Turn `01Introduction.tex` into your introduction, and copy `Chapters/_newChapter.tex` for every further chapter (`03Name.tex`, ...), adding an `\include` line for each in `main.tex`.
@@ -105,7 +111,7 @@ Set in the first line of `main.tex`, for example:
 - **Todo notes:** `\todo{...}` puts a note in the margin, `\todo[inline]{...}` in the text, `\missingfigure{...}` a placeholder figure. The class option `final` removes them all.
 - **Alt text:** give every image a short description, `\includegraphics[width=..., alt={Lift coefficient against angle of attack, ...}]{...}`: what the figure shows, in a sentence or two. If `alt` is the only key and its text contains a comma, some TeX Live versions misread it and print the text instead of the image: put another key first, e.g. `scale=1, alt={...}`. It is ignored in today's PDF, but it is what screen readers will read once the thesis can be produced as tagged (accessible) PDF, so writing it as you go saves revisiting every figure later.
 - **Long equations:** the Dover text is 92 mm wide, so long equations need breaking. Use `multline` for one long expression and `split` (inside `equation`) to align continuation lines on the `=`; break before an operator. See the Mathematics section of the Examples chapter. A black bar in the margin with the `draft` option shows any equation that is still too wide.
-- **Figures and tables:** use `[tbp]` placement, so floats don't leave half-empty pages (`[H]`, "exactly here", needs the `float` package, commented out in `_options/packages.tex`). Set full-width blocks that are *not* inside a figure or table environment with `\noindent` in front, so they don't pick up the paragraph indent. A table or figure too wide for the page goes in a `sidewaystable` or `sidewaysfigure`: a page of its own, turned so its top is at the left edge (on left and right pages alike, the book convention), while the text keeps flowing around it; the report version shows that page upright in PDF viewers.
+- **Figures and tables:** use `[tbp]` placement, so floats don't leave half-empty pages (`[H]`, "exactly here", needs the `float` package, commented out in `_options/packages.tex`). Set full-width blocks that are *not* inside a figure or table environment with `\noindent` in front, so they don't pick up the paragraph indent. A table or figure too wide for the page goes in a `sidewaystable` or `sidewaysfigure`: a page of its own, turned so its top is at the left edge (on left and right pages alike, the book convention), while the text keeps flowing around it; the digital edition shows that page upright in PDF viewers.
 - **Acronyms and symbols:** define them once in `_nomenclature.tex` and use them with `\gls{label}`. An acronym is written out in full the first time ("blade element momentum theory (BEM)") and abbreviated afterwards; a symbol is printed as defined, in text or maths. In headings and captions, use `\glsfmtshort{label}` for acronyms. Everything defined appears in the nomenclature; delete `\glsaddall` in `Chapters/00Nomenclature.tex` to list only what the text actually uses.
 
   | Command | List |
@@ -153,7 +159,7 @@ import matplotlib.pyplot as plt
 plt.style.use("Python/thesis.mplstyle")
 ```
 
-It sets Times (or STIX, a Times-like font included with matplotlib), text at about the caption size (7.5–8.5 pt for the Dover default; add 0.5 pt for A5 and Royal, 1.5 pt for TU Delft), a default size of 91.5 mm wide, colour-blind-safe colours each with its own line style (so lines stay apart in greyscale), and PDF output with embedded TrueType fonts, as needed for PDF/A. Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
+It sets STIX Two Text, the thesis font (or STIX, its predecessor, included with matplotlib), text at about the caption size (7.5–8.5 pt for the Dover default; add 0.5 pt for A5 and Royal, 1.5 pt for TU Delft), a default size of 91.5 mm wide, colour-blind-safe colours each with its own line style (so lines stay apart in greyscale), and PDF output with embedded TrueType fonts, as needed for PDF/A. Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
 
 | Page size | Full text width | Half width (two side by side) |
 |---|---|---|
@@ -174,7 +180,7 @@ Both are separate documents that use the fonts and the details in `_thesisinfo.t
 ## Before sending it to the printer
 
 1. **Details:** check every line of `_thesisinfo.tex` again: names (all first names, as on your passport), title, defence date and time, Rector Magnificus, committee and order, ISBN, printer, cover designer.
-2. **Final build:** compile with the `final` option (removes all todo notes) and the `print` option, and without `draft` and `showtrims`. Search the PDF for "??" (broken references) and "[" followed by a citation key (missing references).
+2. **Final build:** compile with the `final` option (removes all todo notes) and `print-preparation`, and without `draft` (with `showtrims` if the printer wants crop marks). For the repository, compile the same with `digital`: the same pages, at their final size. Search the PDF for "??" (broken references) and "[" followed by a citation key (missing references).
 3. **Overfull lines:** compile once with `draft`; a black bar in the margin marks every line that sticks out. Fix them by rewording or adding words to `_hyphenation.tex`.
 4. **Contents and bookmarks:** check the contents, the running heads (long titles get cut off or wrap) and the PDF bookmarks.
 5. **Figures:** every figure at its printed size, legible, and correct in greyscale where the printer charges for colour pages.
@@ -194,7 +200,7 @@ The committee usually asks for corrections, and it helps to show them what chang
 
 ## Print costs
 
-Printers usually charge every page that contains any colour as a colour page. So the print version keeps everything that appears on many pages black and white: the thumb tabs are light grey (black ink only), links are invisible and code listings use bold and grey instead of colours. Colour in your own figures is fine; it only affects the pages they are on.
+Printers usually charge every page that contains any colour as a colour page. So the print editions keep everything that appears on many pages black and white: the thumb tabs are light grey (black ink only), links are invisible and code listings use bold and grey instead of colours. Colour in your own figures is fine; it only affects the pages they are on.
 
 ## Overleaf ↔ GitHub
 

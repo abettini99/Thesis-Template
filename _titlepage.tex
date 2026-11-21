@@ -4,6 +4,7 @@
 %%   page iii : official title page (wording prescribed by TU Delft; check it against the
 %%              Graduate School's current template before printing)
 %%   page iv  : doctoral committee and colophon
+%%   page v   : dedication (optional; \thesisdedication in _thesisinfo.tex)
 
 %% ---------------------------------------------------------------------
 %% Page i: half-title (title only, smaller than on the title page, at the height of the chapter titles)
@@ -90,25 +91,18 @@
     \thesiscommittee
 \end{tabular}
 
-\ifx\thesiscommitteenote\empty\else
+\IfThesisEmpty{\thesiscommitteenote}{}{%
     \medskip
-    \noindent \thesiscommitteenote
-\fi
+    \noindent \thesiscommitteenote}
 
 \vfill
 \noindent\includegraphics[height=8mm, alt={Delft University of Technology logo}]{Images/_title_images/logo_black.pdf}
 
 \bigskip
-\ifx\thesisfunding\empty\else
-    \noindent \thesisfunding
-
-    \medskip
-\fi
-\ifx\thesisdataavailability\empty\else
-    \noindent \thesisdataavailability
-
-    \medskip
-\fi
+\IfThesisEmpty{\thesisfunding}{}{%
+    \noindent \thesisfunding\par\medskip}
+\IfThesisEmpty{\thesisdataavailability}{}{%
+    \noindent \thesisdataavailability\par\medskip}
 \noindent
 \begin{tabular}{@{}p{0.22\textwidth}@{}p{0.78\textwidth}@{}}
     \textit{Keywords:}   & \thesiskeywords \\[\smallskipamount]
@@ -118,12 +112,8 @@
 
 \bigskip
 \noindent Copyright \textcopyright\ \the\year\ by \thesisauthorinitials~\thesisauthorlastname
-\ifx\thesislicence\empty\else\par\noindent \thesislicence\fi
-\ifx\thesisorcid\empty\else
-
-\smallskip
-\noindent ORCID \orcid{\thesisorcid}
-\fi
+\IfThesisEmpty{\thesislicence}{}{\par\noindent \thesislicence}
+\IfThesisEmpty{\thesisorcid}{}{\par\smallskip\noindent ORCID \orcid{\thesisorcid}}
 
 \smallskip
 \noindent ISBN \thesisisbn
@@ -133,3 +123,17 @@
 \url{https://repository.tudelft.nl/}.
 }
 \cleardoublepage
+
+%% ---------------------------------------------------------------------
+%% Page v (optional): dedication, at the height of the half-title, with a blank page behind it
+%% ---------------------------------------------------------------------
+\makeatletter
+\IfThesisEmpty{\thesisdedication}{}{%
+    \thispagestyle{empty}%
+    \begingroup
+        \parskip\z@ \parindent\z@
+        \chapterheadstart\thesis@chapterlabelspace
+        \centering\itshape\thesisdedication\par
+    \endgroup
+    \cleardoublepage}
+\makeatother

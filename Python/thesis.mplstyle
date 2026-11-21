@@ -4,12 +4,13 @@
 ## Then save figures as PDF and include them with \includegraphics, at the width they were made for
 ## (see the README for the text widths of each page size).
 
-## --- Fonts: Times, like the text --------------------------------------------------------
-## Times New Roman if installed (Windows, macOS); otherwise STIX, a Times-like font that ships with
-## matplotlib, so the result looks the same on every computer.
+## --- Fonts: STIX, like the text --------------------------------------------------------
+## STIX Two Text if installed (free, https://github.com/stipub/stixfonts); otherwise STIX, its
+## predecessor, which ships with matplotlib, so the result looks the same on every computer.
+## matplotlib caches its font list: after installing STIX Two, delete the cache (matplotlib.get_cachedir()).
 font.family:        serif
-font.serif:         Times New Roman, STIXGeneral, Nimbus Roman, TeX Gyre Termes, DejaVu Serif
-mathtext.fontset:   stix            # Times-like maths: $\alpha$, $C_L$, $U_\infty$
+font.serif:         STIX Two Text, STIXGeneral, Times New Roman, DejaVu Serif
+mathtext.fontset:   stix            # STIX maths: $\alpha$, $C_L$, $U_\infty$
 ## Sizes, set for the Dover default (9.5 pt text, captions about 8.5 pt): figure text at about the
 ## caption size. For A5 and Royal (10 pt text), add 0.5 to each; for TU Delft (11 pt text), add 1.5.
 font.size:          8.5

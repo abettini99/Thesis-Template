@@ -17,6 +17,10 @@
 \makenoidxglossaries
 %% Store entry fields exactly as written (units such as \unit{\metre} only work when typeset).
 \glsnoexpandfields
+%% Symbols and acronyms in the text stay in the text colour, also in the digital edition: they still
+%% link to their nomenclature entry, but colour is kept for references (sections, equations, figures,
+%% sources, URLs), so maths is never coloured.
+\renewcommand*{\glstextformat}[1]{{\normalcolor #1}}
 
 %% One list per kind of entry.
 \newglossary*{acronyms}{Acronyms}

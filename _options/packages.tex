@@ -22,7 +22,7 @@
 \usepackage[figuresright]{rotating} % https://ctan.org/pkg/rotating
 %% Report (screen) version with LuaLaTeX: those pages are shown turned upright in PDF viewers. A
 %% marker inside the float sets /Rotate on the page it lands on; the next page resets it. Not in the
-%% print version, where a rotated page can confuse the printer's imposition software.
+%% print editions; for the printer, a rotated page can confuse the printer's imposition software.
 \ifprintversion\else\ifdefined\directlua
     \protected\def\thesisrotatepage{\latelua{
         thesis_pageattr = pdf.getpageattributes() or ""
@@ -51,12 +51,12 @@
 
 %% Hyperlinks and PDF bookmarks
 \usepackage{bookmark}           % https://ctan.org/pkg/bookmark %% PDF bookmarks (loads hyperref)
-%% Hyperlinks: invisible in the print version (they would only show up as coloured text on paper),
-%% subtle TU Delft dark blue in the report/screen version.
+%% Hyperlinks: invisible in the print editions (they would only show up as coloured text on paper),
+%% maroon in the digital edition (the colour "link", set in formatColor.tex).
 \ifprintversion
     \hypersetup{hidelinks}
 \else
-    \hypersetup{colorlinks=true, linkcolor=tudelft-dark-blue, citecolor=tudelft-dark-blue, urlcolor=tudelft-dark-blue}
+    \hypersetup{colorlinks=true, linkcolor=link, citecolor=link, urlcolor=link}
 \fi
 %% Show the title (not the file name) in the PDF viewer's title bar. pdfx already does this for the
 %% archival PDF; asking hyperref as well would write the setting into the PDF twice.
@@ -76,7 +76,6 @@
 %%   proof        "Proof."           ends with a square (\qedhere puts it on the last line of an equation)
 %% Theorems are often set in italics; upright reads better when the statement is full of maths.
 %% To rename one, change the word here and in its \crefname below.
-\let\openbox\relax  % also defined by newtxmath; let amsthm define it
 \usepackage{amsthm}
 %% Proofs stretch like the other statements (amsthm gives them 6pt plus 6pt, so they took up most of the
 %% slack on a page that breaks early, leaving holes around them).

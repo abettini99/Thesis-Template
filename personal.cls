@@ -12,11 +12,24 @@
 \DeclareOption{a5}{\renewcommand*{\thesis@pagesize}{a5}}
 \DeclareOption{royal}{\renewcommand*{\thesis@pagesize}{royal}}
 \DeclareOption{tudelft}{\renewcommand*{\thesis@pagesize}{tudelft}}
-\newif\if@print
-\DeclareOption{print}{\@printtrue}
+%% Edition: the same book pages, prepared for where they go.
+%%   digital           : final size, for the screen (maroon links, coloured code, sideways pages
+%%                       upright); for the repository, sharing and writing (default)
+%%   print-preparation : with 2 mm bleed, for the professional printer
+%%   print-showcase    : final size, as on paper: the printed book as it looks after trimming
+%%   print-report      : on an A4 sheet (letter: US Letter), for printing a proof at home; with showtrims,
+%%                       crop marks show where to cut
+%% The print editions are set for paper: links invisible, code in black and white, no rotated pages.
+\newcommand*{\thesis@edition}{digital}
+\DeclareOption{digital}{\renewcommand*{\thesis@edition}{digital}}
+\DeclareOption{print-preparation}{\renewcommand*{\thesis@edition}{print-preparation}}
+\DeclareOption{print-showcase}{\renewcommand*{\thesis@edition}{print-showcase}}
+\DeclareOption{print-report}{\renewcommand*{\thesis@edition}{print-report}}
+\newif\if@letter
+\DeclareOption{letter}{\@lettertrue}
 \newif\if@thumb
-\DeclareOption{thumb}{\@thumbtrue} % only drawn in the print version (see below)
-\DeclareOption{showtrims}{\PassOptionsToClass{\CurrentOption}{memoir}} % in report mode this marks the book page on the A4 sheet
+\DeclareOption{thumb}{\@thumbtrue}
+\DeclareOption{showtrims}{\PassOptionsToClass{\CurrentOption}{memoir}} % crop marks (print-preparation, print-report)
 \newif\if@showframe
 \DeclareOption{showframe}{\@showframetrue}
 %% draft: fast compiles while writing. Images become labelled boxes, overfull lines are marked
@@ -33,7 +46,9 @@
 \newif\ifchapterbib
 \DeclareOption{chapterbib}{\chapterbibtrue}
 \ProcessOptions\relax
-\if@print\else \@thumbfalse \fi
+\def\thesis@paper{trimmed}
+\def\thesis@tmp{print-preparation}\ifx\thesis@edition\thesis@tmp \def\thesis@paper{bleed}\fi
+\def\thesis@tmp{print-report}\ifx\thesis@edition\thesis@tmp \def\thesis@paper{sheet}\fi
 \def\thesis@tmp{american}
 \ifx\thesis@language\thesis@tmp \def\thesis@bcp{en-US}\else \def\thesis@bcp{en-GB}\fi % language in the PDF metadata
 
@@ -43,9 +58,10 @@
         In Overleaf: Menu > Settings > Compiler > LuaLaTeX}
 \fi
 
-%% Public switch so files outside the class can check for print mode (\ifprintversion ... \else ... \fi)
+%% Public switch, for files outside the class (\ifprintversion ... \else ... \fi): true for the print
+%% editions (links invisible, code in black and white, no rotated pages), false for digital.
 \newif\ifprintversion
-\if@print \printversiontrue \fi
+\def\thesis@tmp{digital}\ifx\thesis@edition\thesis@tmp\else \printversiontrue \fi
 
 %% Page sizes. Per size: trimmed page, type block, fore-edge and top margins, chapter-title size.
 %% The fore-edge margin is (2/3) x (page width - binding - text width); text widths give 70-77
@@ -70,18 +86,23 @@
 \@nameuse{thesis@size@\thesis@pagesize}
 \edef\thesis@tmp{\noexpand\LoadClass[\thesis@ptsize]{memoir}}\thesis@tmp
 
-%% Paper: print = the book page plus 2 mm bleed on every side, for the printer;
-%%        report = the book page centred on an A4 sheet, for reading on screen or printing at home.
+%% Paper: bleed   = the book page plus 2 mm bleed on every side (print-preparation);
+%%        trimmed = the book page alone, at its final size (digital, print-showcase);
+%%        sheet   = the book page centred on an A4 or US Letter sheet (print-report).
 \newlength{\thesis@bleed}       \setlength{\thesis@bleed}{2mm}  % TU Delft uses 2mm bleed
-\if@print
+\def\thesis@tmp{bleed}\ifx\thesis@paper\thesis@tmp
     \setstocksize{\dimexpr\thesis@pageheight+2\thesis@bleed\relax}{\dimexpr\thesis@pagewidth+2\thesis@bleed\relax}
     \settrimmedsize{\thesis@pageheight}{\thesis@pagewidth}{*}
     \settrims{\thesis@bleed}{\thesis@bleed}             %% Bleed: how far from {top}{right} the page sits on the stock
-\else
-    \setstocksize{297mm}{210mm}                         %% A4
+\else\def\thesis@tmp{trimmed}\ifx\thesis@paper\thesis@tmp
+    \setstocksize{\thesis@pageheight}{\thesis@pagewidth} %% the trimmed page itself, nothing around it
     \settrimmedsize{\thesis@pageheight}{\thesis@pagewidth}{*}
-    \settrims{\dimexpr(297mm-\thesis@pageheight)/2\relax}{\dimexpr(210mm-\thesis@pagewidth)/2\relax} %% centre the book page on A4
-\fi
+    \settrims{0pt}{0pt}
+\else
+    \if@letter \setstocksize{11in}{8.5in}\else \setstocksize{297mm}{210mm}\fi %% A4 or US Letter
+    \settrimmedsize{\thesis@pageheight}{\thesis@pagewidth}{*}
+    \settrims{\dimexpr(\stockheight-\thesis@pageheight)/2\relax}{\dimexpr(\stockwidth-\thesis@pagewidth)/2\relax} %% centred on the sheet
+\fi\fi
 \settypeblocksize{\thesis@textheight}{\thesis@textwidth}{*}
 \setbinding{7.0mm}                      %% allowance for the binding (glue and the curve into the spine); the TU Delft
                                         %% template uses 3 mm. Increase for very thick books (500+ pages).
@@ -105,6 +126,11 @@
 %% Overfull lines under 1 pt (0.35 mm, invisible) are not reported, e.g. a figure made at exactly the
 %% text width that comes out a fraction of a point wider after rounding.
 \hfuzz=1pt
+
+%% Optional fields in _thesisinfo.tex: \IfThesisEmpty{\thesisfunding}{if empty}{if filled in}.
+%% (\ifx against \empty fails for fields made with \newcommand, which are \long.)
+\newcommand{\IfThesisEmpty}[1]{\if\relax\detokenize\expandafter{#1}\relax
+    \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
 
 \if@showframe
     \RequirePackage{showframe}
@@ -138,7 +164,7 @@
 
 \RequirePackage{microtype}
 
-%%% MATHS: mathtools (loads amsmath); integrals such as \oiint come from newtxmath
+%%% MATHS: mathtools (loads amsmath); the maths font is STIX Two (fontMath.tex)
 \RequirePackage{mathtools}
 
 %%% TEXT FONTS

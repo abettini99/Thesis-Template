@@ -38,6 +38,13 @@
   \addtocounter{figure}{-1}% So that next figure after the repeat gets the right number.
 }
 
+%% inf, max, min, lim and lim inf get the depth of a descender, as sup and lim sup have from their p, so
+%% the limits under operators side by side line up: \inf_{q} \sup_{v} puts q and v on one baseline.
+\renewcommand{\inf}{\operatorname*{inf\vphantom{p}}}
+\renewcommand{\max}{\operatorname*{max\vphantom{p}}}
+\renewcommand{\min}{\operatorname*{min\vphantom{p}}}
+\renewcommand{\lim}{\operatorname*{lim\vphantom{p}}}
+\renewcommand{\liminf}{\operatorname*{lim\,inf\vphantom{p}}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 

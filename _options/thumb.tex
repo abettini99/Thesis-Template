@@ -1,5 +1,5 @@
 %% =====================================================================
-%% Thumb tabs (class option thumb, print version only)
+%% Thumb tabs (class option thumb)
 %% A tab with the chapter number on the outer page edge, running into the bleed, so the
 %% chapters can be found by flipping through the closed book.
 %%  - Tabs step down the page, one position per chapter; appendices continue below the last
@@ -42,7 +42,7 @@
 }
 
 %% TikZ's "current page" is the whole sheet, but the book page sits inside a larger one (bleed, or A4
-%% in the report version). Redefine it as the book page whenever an overlay is drawn, on the correct
+%% in print-report). Redefine it as the book page whenever an overlay is drawn, on the correct
 %% side for left and right pages (after https://texample.net/tikz/examples/modifying-current-page-node/).
 \usetikzlibrary{calc}
 \newcommand\thesis@setpagenode{%

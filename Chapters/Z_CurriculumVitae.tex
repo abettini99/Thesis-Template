@@ -2,7 +2,7 @@
 \addcontentsline{toc}{chapter}{Curriculum Vit\ae}
 
 {\sffamily\Large \thesisauthorfirstnames\ \thesisauthorlastname}
-\ifx\thesisorcid\empty\else\par\smallskip\noindent ORCID \orcid{\thesisorcid}\fi
+\IfThesisEmpty{\thesisorcid}{}{\par\smallskip\noindent ORCID \orcid{\thesisorcid}}
 
 \bigskip
 \noindent Born on [day month year] in \thesisbirthplace.

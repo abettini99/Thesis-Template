@@ -26,8 +26,8 @@
     \par\addvspace{0.5\onelineskip}}
 \newcommand{\contentsstyle}[1]{\clearpage\immediate\write\@auxout{\string\@writefile{toc}{\expandafter\string\csname toc#1\endcsname}}}
 
-%% Chapters start on a right-hand page in the book, on the next page in the report version.
-\if@print \openright \else \openany \fi
+%% Chapters start on a right-hand page, in every edition, so all editions have the same page numbers.
+\openright
 %% Chapter openings. One style for every chapter-level heading (front matter, chapters, references,
 %% appendices, back matter), so all titles start at the same height on the page:
 %%   - a small label, "CHAPTER 3" / "APPENDIX A", in letterspaced capitals;

@@ -8,7 +8,7 @@ This chapter shows the elements a thesis typically needs, typeset with this temp
 \section{Text}\label{sec:text}
 %% =====================================================================
 
-Body text is set in Times with indented paragraphs. Use \emph{emphasis} sparingly, \textbf{bold} even more so, and \textsc{small capitals} for the occasional acronym that should not shout. Quotation marks follow British style: \enquote{single quotes outside, with \enquote{double quotes} inside}. Numbers and units stay together on one line, as in a span of \qty{1.397}{\metre}, and references never start a line on their own, as in \cref{fig:single}.%
+Body text is set in STIX Two with indented paragraphs. Use \emph{emphasis} sparingly, \textbf{bold} even more so, and \textsc{small capitals} for the occasional acronym that should not shout. Quotation marks follow British style: \enquote{single quotes outside, with \enquote{double quotes} inside}. Numbers and units stay together on one line, as in a span of \qty{1.397}{\metre}, and references never start a line on their own, as in \cref{fig:single}.%
 \footnote{Footnotes are numbered per chapter and set in a smaller size at the bottom of the page.}
 
 Notes to yourself go in the margin\todo{Check this value against the measurements.} or, for longer remarks, in the text:
@@ -60,7 +60,7 @@ Citations use numbered references~\cite{Allen2002}, several at once~\cite{Sinnig
 \section{Mathematics}\label{sec:maths}
 %% =====================================================================
 
-Inline maths such as $\Re = \rho U L / \mu$ uses the same Times letters as the text. Vectors and tensors are set in bold, as in the velocity $\vec{u}$ and the stress tensor $\tensor{\tau}$; writing them with \verb|\vec| and \verb|\tensor| lets you change that notation everywhere with a single change. For an incompressible flow, mass and momentum conservation read
+Inline maths such as $\Re = \rho U L / \mu$ uses the same STIX Two letters as the text. Vectors and tensors are set in bold, as in the velocity $\vec{u}$ and the stress tensor $\tensor{\tau}$; writing them with \verb|\vec| and \verb|\tensor| lets you change that notation everywhere with a single change. For an incompressible flow, mass and momentum conservation read
 \begin{align}
     \div \vec{u} &= 0, \label{eq:continuity} \\
     \sderiv{\vec{u}}{t} &= -\frac{1}{\rho} \grad p + \nu \nabla^2 \vec{u}, \label{eq:navier-stokes}
@@ -251,7 +251,7 @@ Two separate figures can also sit side by side, each with its own number, as \cr
 
 \subsection{Plots}
 
-Plots are made in Python and included as PDF, at the width they were made for (\cref{fig:plot}). The style file \file{thesis.mplstyle} in the \texttt{Python} folder uses Times, sizes the text just below the caption size, and draws each line in a colour that is safe for colour-blind readers and with its own line style, so the lines stay apart when printed in greyscale. The script \file{example_figures.py} in the same folder makes all the plots in this chapter, each at the size it is printed, so they are included without scaling.
+Plots are made in Python and included as PDF, at the width they were made for (\cref{fig:plot}). The style file \file{thesis.mplstyle} in the \texttt{Python} folder uses STIX, like the text, sizes the text just below the caption size, and draws each line in a colour that is safe for colour-blind readers and with its own line style, so the lines stay apart when printed in greyscale. The script \file{example_figures.py} in the same folder makes all the plots in this chapter, each at the size it is printed, so they are included without scaling.
 
 \begin{figure}[tbp]
     \centering
@@ -432,7 +432,7 @@ for alpha in range(0, 12, 2):
 \section{Sideways tables and figures}\label{sec:sideways}
 %% =====================================================================
 
-Material that is too wide for the page, such as \cref{tab:sideways}, goes in a \texttt{sidewaystable} (or \texttt{sidewaysfigure}): it gets a page of its own, turned so that its top is at the left edge, on left and right pages alike, and the text continues around it. In the report version, PDF viewers show that page upright.
+Material that is too wide for the page, such as \cref{tab:sideways}, goes in a \texttt{sidewaystable} (or \texttt{sidewaysfigure}): it gets a page of its own, turned so that its top is at the left edge, on left and right pages alike, and the text continues around it. In the digital edition, PDF viewers show that page upright.
 
 \begin{sidewaystable}
     \centering
