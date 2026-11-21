@@ -62,6 +62,7 @@ Set in the first line of `main.tex`, for example:
 | `_titlepage.tex` | Title page, official TU Delft dissertation page, committee and colophon page. |
 | `Chapters/` | Front matter (`00…`), chapters (`01…`, `02…`), appendices (`A_…`) and back matter (`Z_…`). |
 | `Chapters/02Examples.tex` | Demonstrations of everything the template supports. Take it out of `main.tex` when you start writing, but keep the file to look things up. |
+| `Chapters/03InfSup.tex` | A sample chapter on a real topic (the inf-sup condition for Navier–Stokes), showing the template in use: formulations, lemmas and proofs, an algorithm, a TikZ figure, a table, citations. |
 | `Chapters/_newChapter.tex` | Starting point for a new chapter: copy it, rename it and `\include` it in `main.tex`. |
 | `_hyphenation.tex` | Hyphenation of words TeX breaks wrongly or not at all (technical terms, names). Add to it as you write. |
 | `_nomenclature.tex` | **Fill this in:** acronyms and symbols for the nomenclature. |
@@ -77,7 +78,7 @@ Set in the first line of `main.tex`, for example:
 1. **Your own copy.** Make a new, private repository for the thesis from this template (on GitHub: *Use this template*, or duplicate the repository) and link it to a new Overleaf project. Keep the template repository as it is, so fixes can be copied over later.
 2. **Details.** Fill in `_thesisinfo.tex`: title, names, committee, defence date, keywords, licence, ORCID, data availability. Check the class options at the top of `main.tex` (page size, `print`, language).
 3. **Front and back matter.** Replace the placeholder text in `Chapters/00Summary.tex` (summary and samenvatting), `00Preface.tex`, `Z_Acknowledgements.tex`, `Z_CurriculumVitae.tex` and `Z_ListOfPublications.tex`.
-4. **Remove the examples.** In `main.tex`, delete the line `\include{Chapters/02Examples}` (keep the file for reference) and, once no chapter uses `\lipsum` any more, the `lipsum` and `blindtext` lines. Replace the example appendix `A_Appendix.tex` with your own or remove its `\include`.
+4. **Remove the examples.** In `main.tex`, delete the lines `\include{Chapters/02Examples}` and `\include{Chapters/03InfSup}` (keep the files for reference), the references they use from `references.bib`, and, once no chapter uses `\lipsum` any more, the `lipsum` and `blindtext` lines. Replace the example appendix `A_Appendix.tex` with your own or remove its `\include`.
 5. **Your chapters.** Turn `01Introduction.tex` into your introduction, and copy `Chapters/_newChapter.tex` for every further chapter (`03Name.tex`, ...), adding an `\include` line for each in `main.tex`.
 6. **References, symbols, hyphenation.** Replace the entries in `references.bib`, define your acronyms and symbols in `_nomenclature.tex`, and add technical terms to `_hyphenation.tex` as you go.
 7. **Example files.** Delete `Images/example_plot.pdf` and `Images/graph.jpg` once nothing uses them; keep `Python/thesis.mplstyle` and copy `Python/example_plot.py` as a starting point for your own plots.

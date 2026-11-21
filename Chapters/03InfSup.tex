@@ -1,0 +1,273 @@
+\chapter{The inf-sup condition and spurious pressure modes}\label{ch:infsup} \pagestyle{mainmatter}
+\chapterprecishere{
+    \vspace{0pt plus 1filll}
+    \begin{chapterabstract}
+        A velocity--pressure discretisation of the incompressible Navier--Stokes equations can admit pressures that the discrete momentum equation cannot see. These spurious modes are elements of the null space of the discrete gradient that have no counterpart in the null space of the continuous one. This chapter shows how discretisation creates them, and that the inf-sup condition is precisely the requirement that the discrete null space contains nothing but the continuous null space, uniformly as the mesh is refined.
+    \end{chapterabstract}
+}
+\chapterprecistoc{}
+
+%% This is a sample chapter. It shows the template in use for a real topic: formulations, a lemma with
+%% proof, theorems, an algorithm, a TikZ figure, a table and citations. Remove its \include in main.tex
+%% together with the examples chapter.
+
+Of the two unknowns of incompressible flow, only the velocity has an equation of its own. The pressure has no evolution equation; it is whatever it needs to be for the velocity to stay divergence free. Mathematically, the pressure is a Lagrange multiplier, and the incompressible Navier--Stokes equations are a constrained problem. Discretising a constrained problem requires more care than discretising an unconstrained one: the discrete velocity and pressure spaces have to be compatible, or the discrete problem has pressure solutions that are not approximations of anything.
+
+\Cref{sec:infsup-continuous} sets out the continuous problem and the null space of its gradient operator. \Cref{sec:infsup-discrete} shows how a discretisation can enlarge that null space, with the checkerboard mode as the classic example, and \cref{sec:infsup-condition} shows that the discrete inf-sup condition is exactly the requirement that it does not. \Cref{sec:infsup-remedies} discusses how stable discretisations meet that requirement.
+
+%% =====================================================================
+\section{The continuous problem}\label{sec:infsup-continuous}
+%% =====================================================================
+
+\subsection{From Navier--Stokes to Stokes}
+
+The incompressible Navier--Stokes equations on a bounded domain $\Omega \subset \mathbb{R}^d$, with the velocity prescribed on the whole boundary, read
+\begin{subequations}\label{eq:infsup-ns}
+\begin{gather}
+    \cpderiv{\vec{u}}{t} + \vec{u} \cdot \grad\vec{u} - \nu \nabla^2 \vec{u} + \grad p = \vec{f}
+    \quad \text{in } \Omega , \label{eq:infsup-ns-momentum} \\
+    \div\vec{u} = 0 \quad \text{in } \Omega , \qquad \vec{u} = \vec{0} \quad \text{on } \partial\Omega , \label{eq:infsup-ns-mass}
+\end{gather}
+\end{subequations}
+with $p$ the kinematic pressure. After an implicit time discretisation and a Picard linearisation of the convective term, every time step and iteration solves an Oseen problem,
+\begin{equation*}
+    \frac{1}{\Delta t}\, \vec{u} + \vec{w} \cdot \grad\vec{u} - \nu \nabla^2 \vec{u} + \grad p = \vec{g} , \qquad \div\vec{u} = 0 ,
+\end{equation*}
+with $\vec{w}$ the latest velocity iterate. The time derivative and the convective term change the velocity--velocity block of the problem, but not the coupling between velocity and pressure: the gradient in the momentum equation and the divergence in the mass equation. Everything that can go wrong in that coupling already goes wrong for the steady Stokes problem, which is therefore the problem studied in the rest of this chapter.
+
+With $\mathcal{V} \coloneqq [H^1_0(\Omega)]^d$ and $\mathcal{Q} \coloneqq L^2_0(\Omega)$, the square-integrable functions with zero mean, and the forms
+\begin{equation}\label{eq:infsup-forms}
+    a(\vec{v}, \vec{u}) \coloneqq \inner[\big]{\grad\vec{v}}{\nu \grad\vec{u}}_\Omega ,
+    \qquad
+    b(\vec{v}, q) \coloneqq -\inner[\big]{\div\vec{v}}{q}_\Omega ,
+\end{equation}
+the Stokes problem in weak form is \cref{form:infsup-stokes}. The form $b$ appears twice: in the momentum equation it tests the pressure gradient with $\vec{v}$, after integration by parts, and in the mass equation it tests the divergence of the velocity with $q$.
+
+\begin{formulation}[Stokes problem]\label{form:infsup-stokes}
+Find $\vec{u} \in \mathcal{V}$ and $p \in \mathcal{Q}$ such that
+\begin{subequations}\label{eq:infsup-stokes}
+\begin{alignat}{2}
+    a(\vec{v}, \vec{u}) + b(\vec{v}, p) &= \inner[\big]{\vec{v}}{\vec{f}}_\Omega & \qquad & \forall\, \vec{v} \in \mathcal{V} , \label{eq:infsup-stokes-momentum} \\
+    b(\vec{u}, q) &= 0 & & \forall\, q \in \mathcal{Q} . \label{eq:infsup-stokes-mass}
+\end{alignat}
+\end{subequations}
+\end{formulation}
+
+\subsection{The divergence, the gradient and their null spaces}
+
+The form $b$ defines two operators that are each other's adjoints: the divergence $B \colon \mathcal{V} \to \mathcal{Q}'$ and the gradient $B' \colon \mathcal{Q} \to \mathcal{V}'$, through
+\begin{equation*}
+    \langle B\vec{v}, q \rangle = b(\vec{v}, q) = \langle B' q, \vec{v} \rangle
+    \qquad \forall\, \vec{v} \in \mathcal{V} ,\ q \in \mathcal{Q} .
+\end{equation*}
+The null space of $B$ is the space of divergence-free velocities, where the solution lives. The null space of $B'$ contains the pressures that \cref{eq:infsup-stokes-momentum} cannot see: adding such a pressure to a solution gives another solution. On $L^2(\Omega)$, these are the pressures with a vanishing gradient,
+\begin{equation}\label{eq:infsup-kernel-continuous}
+    \bigl\{ q \in L^2(\Omega) : b(\vec{v}, q) = 0 \ \ \forall\, \vec{v} \in \mathcal{V} \bigr\} = \{ \text{constants} \} ,
+\end{equation}
+which reflects that only pressure differences enter incompressible flow. Choosing $\mathcal{Q} = L^2_0(\Omega)$ removes this one-dimensional null space, so that in $\mathcal{Q}$ the gradient is injective. The continuous problem, in other words, has a null space that is known, physical and removed by fixing the mean pressure.
+
+Injectivity alone is not enough in infinite dimensions; the gradient also has to be bounded from below, which is the continuous inf-sup condition.
+
+\begin{theorem}[Continuous inf-sup condition]\label{thm:infsup-continuous}
+There is a constant $\beta > 0$, depending only on $\Omega$, such that
+\begin{equation}\label{eq:infsup-continuous}
+    \inf_{q \in \mathcal{Q} \setminus \{0\}} \ \sup_{\vec{v} \in \mathcal{V} \setminus \{\vec{0}\}}
+    \frac{b(\vec{v}, q)}{\lVert \grad\vec{v} \rVert_\Omega \, \lVert q \rVert_\Omega} \geq \beta .
+\end{equation}
+\end{theorem}
+
+Equivalently, the divergence maps $\mathcal{V}$ onto $L^2_0(\Omega)$: every zero-mean function is the divergence of a velocity field that vanishes on the boundary, with a bounded norm. Together with the coercivity of $a$, $a(\vec{v}, \vec{v}) = \nu \lVert \grad\vec{v} \rVert_\Omega^2$, \cref{eq:infsup-continuous} gives existence, uniqueness and stability of the solution of \cref{form:infsup-stokes}: this is the theory of saddle-point problems of \textcite{Babuska1973} and \textcite{Brezzi1974}, set out in full by \textcite{Boffi2013}.
+
+%% =====================================================================
+\section{Discretisation enlarges the null space}\label{sec:infsup-discrete}
+%% =====================================================================
+
+\subsection{The discrete problem}
+
+A conforming discretisation replaces the spaces by subspaces of finite dimension, $\mathcal{V}^h \subset \mathcal{V}$ for the velocity and $\mathcal{Q}^h \subset L^2(\Omega)$ for the pressure, and asks \cref{eq:infsup-stokes} to hold for all test functions in those subspaces. In terms of the coefficient vectors $\mathsf{u}$ and $\mathsf{p}$ of $\vec{u}^h$ and $p^h$, this is the linear system
+\begin{equation}\label{eq:infsup-matrix}
+    \begin{bmatrix} \mathsf{A} & \mathsf{B}\transpose \\ \mathsf{B} & \mathsf{0} \end{bmatrix}
+    \begin{bmatrix} \mathsf{u} \\ \mathsf{p} \end{bmatrix}
+    =
+    \begin{bmatrix} \mathsf{f} \\ \mathsf{0} \end{bmatrix} ,
+\end{equation}
+in which $\mathsf{B}$ is the discrete divergence and $\mathsf{B}\transpose$ the discrete gradient. The null space of the discrete gradient is
+\begin{equation}\label{eq:infsup-kernel-discrete}
+    \mathcal{N}^h \coloneqq \bigl\{ q^h \in \mathcal{Q}^h : b(\vec{v}^h, q^h) = 0 \ \ \forall\, \vec{v}^h \in \mathcal{V}^h \bigr\} .
+\end{equation}
+Compare this with \cref{eq:infsup-kernel-continuous}. A continuous pressure is in the null space if no velocity in $\mathcal{V}$ can detect it; a discrete pressure only has to be invisible to the finitely many velocities in $\mathcal{V}^h$. That is a weaker requirement, and it can only let more pressures in.
+
+\begin{lemma}[Discretisation can only enlarge the null space]\label{lem:infsup-inclusion}
+Every pressure of $\mathcal{Q}^h$ in the continuous null space is in the discrete null space:
+$\{ \text{constants} \} \cap \mathcal{Q}^h \subseteq \mathcal{N}^h$.
+\end{lemma}
+
+\begin{proof}
+If $q^h \in \mathcal{Q}^h$ is constant, then $b(\vec{v}, q^h) = 0$ for all $\vec{v} \in \mathcal{V}$, by \cref{eq:infsup-kernel-continuous}, and in particular for all $\vec{v}^h \in \mathcal{V}^h \subset \mathcal{V}$.
+\end{proof}
+
+The inclusion is in general strict. A pressure $q^\ast \in \mathcal{N}^h$ that is not constant is a \emph{spurious pressure mode}: it is not in the null space of the continuous gradient, but the discrete gradient maps it to zero. If $(\vec{u}^h, p^h)$ solves the discrete problem, so does $(\vec{u}^h, p^h + c\, q^\ast)$ for every $c \in \mathbb{R}$. The matrix in \cref{eq:infsup-matrix} is singular, the pressure is not determined, and an iterative solver returns a pressure polluted by an arbitrary multiple of $q^\ast$. The velocity is not affected, as $q^\ast$ does not enter the momentum equation, which is why such discretisations produce, in the words of \textcite{Sani1981}, spurious pressures together with ostensibly acceptable velocities.
+
+\subsection{The checkerboard mode}\label{sec:infsup-checkerboard}
+
+The best-known example is the $Q_1$--$P_0$ element on a uniform mesh of $N \times N$ square elements of size $h$: continuous bilinear velocities, which vanish on the boundary, and pressures that are constant on each element. With $q_K$ the pressure in element $K$,
+\begin{equation*}
+    b(\vec{v}^h, q^h) = -\sum_K q_K \int_K \div\vec{v}^h \,\mathrm{d}\Omega
+                      = -\sum_K q_K \oint_{\partial K} \vec{v}^h \cdot \vec{n} \,\mathrm{d}\Gamma .
+\end{equation*}
+Take the velocity basis function that is one in the $x$-component at an interior node and zero at all other nodes. Its flux out of each of the four surrounding elements is $\pm h/2$, from the edge on which it is not zero, so
+\begin{equation*}
+    b(\vec{v}^h, q^h) = -\tfrac{h}{2} \bigl( q_\mathrm{SW} + q_\mathrm{NW} - q_\mathrm{SE} - q_\mathrm{NE} \bigr) ,
+\end{equation*}
+with the subscripts denoting the elements south-west, north-west, south-east and north-east of the node; the $y$-component gives the same with $q_\mathrm{NW}$ and $q_\mathrm{SE}$ interchanged. Both vanish for every node if $q_K$ alternates between $+1$ and $-1$ like the squares of a chessboard (\cref{fig:infsup-checkerboard}). The checkerboard pressure is therefore in $\mathcal{N}^h$, although it is as far from constant as a pressure on this mesh can be.
+
+\begin{figure}[tbp]
+    \centering
+    \begin{tikzpicture}[x=10mm, y=10mm]
+        \foreach \i in {0,...,3} {
+            \foreach \j in {0,...,3} {
+                \pgfmathtruncatemacro{\s}{mod(\i+\j,2)}
+                \ifnum\s=0
+                    \fill[tudelft-cyan!25] (\i,\j) rectangle ++(1,1);
+                    \node at (\i+0.5,\j+0.5) {$+1$};
+                \else
+                    \node at (\i+0.5,\j+0.5) {$-1$};
+                \fi
+            }
+        }
+        \draw[thin] (0,0) grid (4,4);
+        \foreach \i in {1,2,3} { \foreach \j in {1,2,3} { \fill (\i,\j) circle (1.4pt); } }
+        \foreach \k in {0,...,4} {
+            \draw[fill=white] (\k,0) circle (1.4pt) (\k,4) circle (1.4pt)
+                              (0,\k) circle (1.4pt) (4,\k) circle (1.4pt);
+        }
+        \draw[very thick, tudelft-orange] (1,1) rectangle (3,3);
+    \end{tikzpicture}
+    \caption{The checkerboard pressure of the $Q_1$--$P_0$ element on a $4 \times 4$ mesh. Around every interior velocity node (filled), such as the one in the centre of the outlined patch, the four element pressures cancel, so no discrete velocity detects the mode; the boundary nodes (open) carry no velocity.}
+    \label{fig:infsup-checkerboard}
+\end{figure}
+
+Counting does not reveal the problem. On this mesh $\dim \mathcal{V}^h = 2(N-1)^2$ and $\dim \mathcal{Q}^h = N^2$, so for $N \geq 4$ there are more velocity than pressure unknowns, and $\mathsf{B}\transpose$ could well be injective. That it is not is a matter of how the two spaces fit together, not of how large they are. Too few velocities guarantee spurious modes; enough velocities do not prevent them.
+
+%% =====================================================================
+\section{What the inf-sup condition requires}\label{sec:infsup-condition}
+%% =====================================================================
+
+The discrete counterpart of \cref{eq:infsup-continuous} is
+\begin{equation}\label{eq:infsup-discrete}
+    \beta_h \coloneqq
+    \inf_{q^h \in \mathcal{Q}^h_0 \setminus \{0\}} \ \sup_{\vec{v}^h \in \mathcal{V}^h \setminus \{\vec{0}\}}
+    \frac{b(\vec{v}^h, q^h)}{\lVert \grad\vec{v}^h \rVert_\Omega \, \lVert q^h \rVert_\Omega} ,
+\end{equation}
+with $\mathcal{Q}^h_0 \coloneqq \mathcal{Q}^h \cap L^2_0(\Omega)$: the discrete pressures with the continuous null space removed, exactly as $\mathcal{Q} = L^2_0(\Omega)$ removes it from the continuous problem.
+
+\begin{lemma}[Inf-sup and the null space]\label{lem:infsup-kernel}
+On a given mesh, $\beta_h > 0$ if and only if the discrete null space contains no element outside the continuous null space, $\mathcal{N}^h \cap \mathcal{Q}^h_0 = \{0\}$.
+\end{lemma}
+
+\begin{proof}
+The supremum in \cref{eq:infsup-discrete}, as a function of $q^h$, is continuous and homogeneous of degree zero, so in the finite-dimensional space $\mathcal{Q}^h_0$ the infimum is attained on the unit sphere. It is zero if and only if some $q^h \neq 0$ in $\mathcal{Q}^h_0$ has $b(\vec{v}^h, q^h) = 0$ for all $\vec{v}^h \in \mathcal{V}^h$, that is, $q^h \in \mathcal{N}^h \cap \mathcal{Q}^h_0$.
+\end{proof}
+
+On a fixed mesh, then, the inf-sup condition says no more than that the discretisation must not create null-space elements of its own: after removing the constants, as in the continuous problem, nothing may be left. It does not ask the discrete operators to reproduce anything else of the continuous ones. The checkerboard of \cref{sec:infsup-checkerboard} has zero mean for even $N$ (for odd $N$, its combination with a constant does), so $\mathcal{N}^h \cap \mathcal{Q}^h_0 \neq \{0\}$ and $\beta_h = 0$ for the $Q_1$--$P_0$ element.
+
+For a sequence of meshes the requirement is stronger, because $\beta_h$ enters the error estimate. If $\beta_h \geq \beta_0 > 0$ for all $h$, the discrete solution is quasi-optimal,
+\begin{equation}\label{eq:infsup-error}
+\begin{split}
+    \lVert \grad(\vec{u} - \vec{u}^h) \rVert_\Omega &+ \lVert p - p^h \rVert_\Omega \\
+    &\leq C(\beta_0) \Bigl( \inf_{\vec{v}^h \in \mathcal{V}^h} \lVert \grad(\vec{u} - \vec{v}^h) \rVert_\Omega \\
+    &\qquad\qquad + \inf_{q^h \in \mathcal{Q}^h_0} \lVert p - q^h \rVert_\Omega \Bigr) ,
+\end{split}
+\end{equation}
+with a constant that grows as $\beta_0$ decreases \parencite{Brezzi1974,Boffi2013}. A discretisation whose null space is correct on every mesh but with $\beta_h \to 0$ has pressures that come ever closer to the null space: modes the velocity space can detect only faintly, which are amplified in the pressure solution. The $Q_1$--$P_0$ element is the standard example once more: with the checkerboard filtered out, $\beta_h > 0$ on every mesh, but $\beta_h$ decreases in proportion to $h$.
+
+\begin{remark}
+The condition is therefore twofold. The discrete null space must coincide with the continuous one on every mesh, and it must do so robustly: no family of discrete pressures may approach the null space as the mesh is refined.
+\end{remark}
+
+In matrix form, with $\mathsf{A}_1$ the matrix of $\inner{\grad\vec{v}^h}{\grad\vec{u}^h}_\Omega$ and $\mathsf{M}$ the pressure mass matrix, the supremum over the velocities can be evaluated, $\sup_{\mathsf{v}} \mathsf{q}\transpose\mathsf{B}\mathsf{v} / \lVert \mathsf{v} \rVert_{\mathsf{A}_1} = \lVert \mathsf{A}_1^{-1/2} \mathsf{B}\transpose \mathsf{q} \rVert$, and $\beta_h^2$ is the smallest eigenvalue $\lambda$ of
+\begin{equation}\label{eq:infsup-eigen}
+    \mathsf{B} \mathsf{A}_1^{-1} \mathsf{B}\transpose \mathsf{q} = \lambda\, \mathsf{M} \mathsf{q}
+\end{equation}
+on the zero-mean pressures. Each zero eigenvalue beyond the one of the constant pressure is a spurious mode. Computing $\beta_h$ on a sequence of meshes (\cref{alg:infsup-estimate}) is the standard numerical test of a new velocity--pressure pair.
+
+\begin{algorithm}[tbp]
+    \caption{Numerical test of the inf-sup condition for a velocity--pressure pair.}
+    \label{alg:infsup-estimate}
+    \begin{algorithmic}[1]
+        \Require meshes with sizes $h_1 > h_2 > \dots > h_m$
+        \Ensure number of spurious modes and $\beta_h$ on each mesh
+        \For{$k = 1, \dots, m$}
+            \State assemble $\mathsf{A}_1$, $\mathsf{B}$ and $\mathsf{M}$ on mesh $h_k$
+            \State solve $\mathsf{B} \mathsf{A}_1^{-1} \mathsf{B}\transpose \mathsf{q} = \lambda \mathsf{M} \mathsf{q}$ for the smallest eigenvalues
+            \State $n_k \gets$ number of zero eigenvalues $- 1$ \Comment{constant pressure}
+            \State $\beta_{h_k} \gets \sqrt{\lambda_\mathrm{min}}$ over the nonzero eigenvalues
+        \EndFor
+        \State \Return stable if all $n_k = 0$ and $\beta_{h_k}$ does not decrease with $h_k$
+    \end{algorithmic}
+\end{algorithm}
+
+%% =====================================================================
+\section{Keeping the null space correct}\label{sec:infsup-remedies}
+%% =====================================================================
+
+\subsection{Stable pairs and Fortin operators}
+
+The practical tool for proving \cref{eq:infsup-discrete} uniformly is a Fortin operator: a projection onto the discrete velocities that preserves the divergence as the discrete pressures see it.
+
+\begin{theorem}[Fortin criterion]\label{thm:infsup-fortin}
+Let $\Pi_h \colon \mathcal{V} \to \mathcal{V}^h$ satisfy $b(\vec{v} - \Pi_h\vec{v}, q^h) = 0$ for all $q^h \in \mathcal{Q}^h$ and $\lVert \grad \Pi_h\vec{v} \rVert_\Omega \leq C_\Pi \lVert \grad\vec{v} \rVert_\Omega$ for all $\vec{v} \in \mathcal{V}$, with $C_\Pi$ independent of $h$. Then $\beta_h \geq \beta / C_\Pi$.
+\end{theorem}
+
+\begin{proof}
+Let $q^h \in \mathcal{Q}^h_0 \subset \mathcal{Q}$. For every $\vec{v} \in \mathcal{V}$ with $b(\vec{v}, q^h) > 0$, also $\Pi_h\vec{v} \neq \vec{0}$, and
+\begin{equation*}
+    \frac{b(\Pi_h\vec{v}, q^h)}{\lVert \grad \Pi_h\vec{v} \rVert_\Omega}
+    \geq \frac{b(\vec{v}, q^h)}{C_\Pi \lVert \grad\vec{v} \rVert_\Omega} ;
+\end{equation*}
+the other velocities do not contribute to the supremum in \cref{eq:infsup-continuous}. Taking the supremum over $\vec{v}$ and using \cref{eq:infsup-continuous} gives
+\begin{equation*}
+    \sup_{\vec{v}^h \in \mathcal{V}^h \setminus \{\vec{0}\}} \frac{b(\vec{v}^h, q^h)}{\lVert \grad\vec{v}^h \rVert_\Omega}
+    \geq \frac{\beta}{C_\Pi} \lVert q^h \rVert_\Omega . \qedhere
+\end{equation*}
+\end{proof}
+
+The Fortin operator makes the null-space argument quantitative: every pressure the continuous velocities can detect is detected, with a comparable strength, by a discrete velocity. \Cref{tab:infsup-pairs} lists common pairs. The stable ones enrich the velocity space relative to the pressure space just enough for such an operator to exist, as in the Taylor--Hood elements \parencite{Taylor1973} and the MINI element \parencite{Arnold1984}.
+
+\begin{table}[tbp]
+    \centering
+    \caption{Common velocity--pressure pairs. $P_k$ and $Q_k$ are continuous polynomials of degree $k$ on triangles and quadrilaterals, $P_k^\mathrm{disc}$ discontinuous ones \parencite{Boffi2013}.}
+    \label{tab:infsup-pairs}
+    \begin{tabularx}{\textwidth}{@{}l l >{\RaggedRight\arraybackslash}X@{}}
+        \toprule
+        Pair & Stable & Null space and notes \\
+        \midrule
+        $Q_1$--$P_0$                      & no  & checkerboard mode; $\beta_h \sim h$ once it is filtered out \\
+        $P_1$--$P_1$                      & no  & spurious modes on some meshes; needs stabilisation \\
+        $P_1$--$P_0$                      & no  & too many pressure constraints: the velocity locks \\
+        $P_2$--$P_1$, $Q_2$--$Q_1$        & yes & Taylor--Hood \\
+        $P_1^{+}$--$P_1$                  & yes & MINI: $P_1$ plus a cubic bubble per element \\
+        $Q_2$--$P_1^\mathrm{disc}$        & yes & mass conserved element by element \\
+        $P_k$--$P_{k-1}^\mathrm{disc}$    & on suitable meshes & Scott--Vogelius: $\div \mathcal{V}^h = \mathcal{Q}^h$, so pointwise divergence free \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Compatible discretisations}
+
+A Fortin operator is easiest to find when the discretisation is built so that the divergence maps the discrete velocities into the discrete pressures, $\div \mathcal{V}^h \subseteq \mathcal{Q}^h$, with a projection $\Pi_h$ that commutes with it: $\div \Pi_h\vec{v} = \pi_h \div\vec{v}$, where $\pi_h$ is the $L^2$ projection onto $\mathcal{Q}^h$. Then
+\begin{equation*}
+    b(\vec{v} - \Pi_h\vec{v}, q^h) = -\inner[\big]{\div\vec{v} - \pi_h \div\vec{v}}{q^h}_\Omega = 0
+    \qquad \forall\, q^h \in \mathcal{Q}^h ,
+\end{equation*}
+by the definition of the $L^2$ projection, so a bounded commuting projection is a Fortin operator. The discrete divergence then inherits the range of the continuous one, and the discrete gradient its null space: nothing beyond the constants. This is the structure of the de Rham complex, which finite element exterior calculus \parencite{Arnold2006} and mimetic methods carry over to the discrete level. It brings a second benefit: as $\div\vec{u}^h \in \mathcal{Q}^h$, choosing $q^h = \div\vec{u}^h$ in the discrete mass equation gives $\lVert \div\vec{u}^h \rVert_\Omega = 0$, a velocity that is divergence free pointwise, not only in a weak sense. The mixed mimetic spectral element method of \textcite{Kreeft2013} obtains this for Stokes flow in a vorticity--velocity--pressure formulation, whose three unknowns fit the spaces of the complex directly.
+
+\subsection{Stabilisation}
+
+The alternative is to keep an unstable pair and change the discrete problem: pressure-stabilised methods add to the mass equation a term, scaled with $h^2$, that penalises pressure gradients (or, for discontinuous pressures, their jumps between elements). Spurious modes are rough, so the term gives them energy and removes them from the null space. The price is a consistency error, which has to be kept below the discretisation error, and stabilisation parameters that have to be chosen.
+
+%% =====================================================================
+\section{Conclusions}\label{sec:infsup-conclusions}
+%% =====================================================================
+
+The pressure in incompressible flow is determined only up to the null space of the gradient, which for the continuous problem consists of the constants and is removed by fixing the mean pressure. A discretisation tests the gradient against fewer velocities and can therefore only enlarge this null space (\cref{lem:infsup-inclusion}). The extra elements are spurious pressure modes, such as the checkerboard of the $Q_1$--$P_0$ element. The discrete inf-sup condition asks for nothing more than that these extra elements do not exist (\cref{lem:infsup-kernel}), but it asks for it uniformly in the mesh size: no discrete pressure may approach the null space under refinement. Stable pairs satisfy it by a suitable balance between velocity and pressure spaces, and compatible discretisations by construction, as their discrete divergence maps onto the discrete pressures and their discrete gradient keeps the continuous null space.
