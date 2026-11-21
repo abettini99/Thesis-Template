@@ -1,33 +1,25 @@
 %% Title pages of a TU Delft dissertation. All names, dates and numbers come from _thesisinfo.tex.
-%%   page i   : title page
+%%   page i   : half-title
 %%   page ii  : blank
 %%   page iii : official title page (wording prescribed by TU Delft; check it against the
 %%              Graduate School's current template before printing)
 %%   page iv  : doctoral committee and colophon
-\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
 %% ---------------------------------------------------------------------
-%% Page i: title page
+%% Page i: half-title (title only, smaller than on the title page, at the height of the chapter titles)
 %% ---------------------------------------------------------------------
+\chapterstyle{frontmatter} % the chapter-title spacing, so the titles sit at the height of the chapter titles
 \thispagestyle{empty}
-\vspace*{0.15\textheight}
-\noindent\HRule
-\begin{center}
-    \vspace{2mm}
-    \begin{Spacing}{2.0}
-        {\headingfont\Huge\thesistitle}
-    \end{Spacing}
-    {\headingfont\Large\thesissubtitle} \\
-    \vspace{5mm}
-\end{center}
-\vspace*{-0.8em}
-\noindent\HRule
-
-\vfill
-\begin{center}
-    {\headingfont\Large\thesisauthorfirstnames\ \thesisauthorlastname}
-\end{center}
-\vspace*{0.1\textheight}
+\makeatletter
+\begingroup
+    \parskip\z@ \parindent\z@
+    \chapterheadstart\thesis@chapterlabelspace
+    \centering
+    {\fontsize{0.75\dimexpr\chaptertitlesize\relax}{1.15\dimexpr\chaptertitlesize\relax}\headingfont\thesistitle\par}
+    \medskip
+    {\headingfont\large\thesissubtitle\par}
+\endgroup
+\makeatother
 
 %% ---------------------------------------------------------------------
 %% Page ii: blank
@@ -38,15 +30,19 @@
 %% Page iii: official title page
 %% ---------------------------------------------------------------------
 \thispagestyle{empty}
-\begin{center}
-    {\headingfont\LARGE\thesistitle} \\[0.5em]
-    {\headingfont\large\thesissubtitle}
-
-    \vfill
-
-    {\Large\bfseries Dissertation}
-
+\makeatletter
+\begingroup
+    \parskip\z@ \parindent\z@
+    \chapterheadstart\thesis@chapterlabelspace
+    \centering
+    {\fontsize{\chaptertitlesize}{1.15\dimexpr\chaptertitlesize\relax}\headingfont\thesistitle\par}
     \bigskip
+    {\headingfont\Large\thesissubtitle\par}
+\endgroup
+\vfill
+\begin{center}
+    {\runningheadcaps DISSERTATION}
+
     \bigskip
 
     for the purpose of obtaining the degree of doctor \\
@@ -64,7 +60,7 @@
     \bigskip
     \bigskip
 
-    {\Large\bfseries \thesisauthorfirstnames\ \MakeUppercase{\thesisauthorlastname}}
+    {\headingfont\Large\bfseries \thesisauthorfirstnames\ \MakeUppercase{\thesisauthorlastname}}
 
     \bigskip
     \bigskip
@@ -74,6 +70,7 @@
 
     \vspace*{2\bigskipamount}
 \end{center}
+\makeatother
 
 %% ---------------------------------------------------------------------
 %% Page iv: doctoral committee and colophon
@@ -100,11 +97,9 @@
 \fi
 
 \vfill
-\begin{center}
-    \includegraphics[height=10mm, alt={Delft University of Technology logo}]{Images/_title_images/logo_black.pdf}
-\end{center}
-\vfill
+\noindent\includegraphics[height=8mm, alt={Delft University of Technology logo}]{Images/_title_images/logo_black.pdf}
 
+\bigskip
 \ifx\thesisfunding\empty\else
     \noindent \thesisfunding
 
