@@ -57,6 +57,7 @@
     \chapterstyle{frontmatter}
     \aliaspagestyle{chapter}{plain}
 
+    \contentsstyle{frontmatter} % front matter: a compact block in the contents
     \include{Chapters/00Summary}
     \include{Chapters/00Preface}
 
@@ -85,6 +86,7 @@
     \chapterstyle{mainmatter}
     \aliaspagestyle{chapter}{chapteropening}
     
+    \contentsstyle{mainmatter}
     \include{Chapters/01Introduction} % actual pagestyle set in here
 
     %% Example chapter (every element the template supports): remove this line when you start
@@ -126,6 +128,7 @@
     \chapterstyle{frontmatter}
     \aliaspagestyle{chapter}{plain}
     \pagestyle{frontmatter}
+    \contentsstyle{frontmatter} % back matter: compact again
     \include{Chapters/Z_Acknowledgements}
     \include{Chapters/Z_CurriculumVitae}
     \include{Chapters/Z_ListOfPublications}

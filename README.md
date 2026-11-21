@@ -44,7 +44,7 @@ Set in the first line of `main.tex`, for example:
 |---|---|
 | `dover` *(default)*, `a5`, `royal`, `tudelft` | Book page size: 137 × 213 mm (the classic Dover paperback, 5⅜ × 8⅜ in), 148 × 210 mm, 156 × 234 mm or 170 × 240 mm. Text block, margins and chapter-title size follow automatically. Dover is set in 9.5 pt type on 12 pt leading (the Dover paperbacks used 11.4 pt; the extra air helps inline maths); A5 and Royal in 10 pt on 13.2 pt; TU Delft in 11 pt on 15 pt, so its wider lines stay at about the same length as the other sizes (75–77 characters). Check that your printer offers the size. |
 | `print` | Book version: the page plus 2 mm bleed on every side, chapters start on right-hand pages. Without it you get the report version: the same page centred on A4, no blank pages. |
-| `thumb` | Chapter thumb tabs on the page edge (print version only). Appendices continue below the last chapter; the spacing adapts so all tabs fit on the page (it uses the chapter count from the previous compile, so compile twice after adding chapters). |
+| `thumb` | Chapter thumb tabs on the page edge (print version only): square, light grey with a black number; the colours are set in `_options/formatColor.tex`. Appendices continue below the last chapter; the spacing adapts so all tabs fit on the page (it uses the chapter count from the previous compile, so compile twice after adding chapters). |
 | `showtrims` | Crop marks showing where the page is trimmed (print) or where the book page sits on A4 (report). |
 | `british` *(default)*, `american` | Language: hyphenation, quotation marks and dates. |
 | `showframe` | Shows the page layout frames, for checking the layout. |
@@ -193,7 +193,7 @@ The committee usually asks for corrections, and it helps to show them what chang
 
 ## Print costs
 
-Printers usually charge every page that contains any colour as a colour page. So the print version keeps everything that appears on many pages black and white: the thumb tabs are black, links are invisible and code listings use bold and grey instead of colours. Colour in your own figures is fine; it only affects the pages they are on.
+Printers usually charge every page that contains any colour as a colour page. So the print version keeps everything that appears on many pages black and white: the thumb tabs are light grey (black ink only), links are invisible and code listings use bold and grey instead of colours. Colour in your own figures is fine; it only affects the pages they are on.
 
 ## Overleaf ↔ GitHub
 

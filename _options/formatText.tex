@@ -9,9 +9,27 @@
 \setsecnumformat{\csname the#1\endcsname.\quad}
 \renewcommand{\cftsectionaftersnum}{.}
 \renewcommand{\cftsubsectionaftersnum}{.}
-%% Chapter lines in the contents in the heading font, as the chapter titles themselves
-\renewcommand{\cftchapterfont}{\headingfont\bfseries}
-\renewcommand{\cftchapterpagefont}{\headingfont\bfseries}
+%% Contents and lists: no dot leaders, every page number in the text font. Chapters in the heading
+%% font; the front and back matter (summary, preface, lists, acknowledgements, ...) as a compact
+%% block in regular weight. main.tex switches with \contentsstyle{frontmatter} and
+%% \contentsstyle{mainmatter}; they start a new page and write the switch at once, so it lands in the
+%% right place among the entries of \include'd chapters.
+\renewcommand*{\cftdotsep}{\cftnodots}
+\renewcommand*{\cftsectiondotsep}{\cftnodots}
+\renewcommand*{\cftsubsectiondotsep}{\cftnodots}
+\renewcommand*{\cftfiguredotsep}{\cftnodots}
+\renewcommand*{\cfttabledotsep}{\cftnodots}
+\renewcommand{\cftchapterpagefont}{\normalfont}
+\newcommand{\tocfrontmatter}{%
+    \setlength{\cftbeforechapterskip}{0pt plus 1pt}%
+    \renewcommand{\cftchapterfont}{\sffamily}%
+    \par\addvspace{1em}}
+\newcommand{\tocmainmatter}{%
+    \setlength{\cftbeforechapterskip}{1em plus 1pt}%
+    \renewcommand{\cftchapterfont}{\headingfont\bfseries}%
+    \par\addvspace{0.5\onelineskip}}
+\newcommand{\contentsstyle}[1]{\clearpage\immediate\write\@auxout{\string\@writefile{toc}{\expandafter\string\csname toc#1\endcsname}}}
+\renewcommand{\cftchapterfont}{\headingfont\bfseries} % default, also without the switches
 
 \def\blfootnote{\xdef\@thefnmark{}\@footnotetext}
 

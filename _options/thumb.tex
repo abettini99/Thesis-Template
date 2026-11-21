@@ -8,12 +8,13 @@
 %%    compile), so the tabs always fit between the top and bottom of the text block, on any
 %%    page size. With few chapters, tabs are spaced 2 tab heights apart; with many, they move
 %%    closer and become shorter.
-%%  - Black (tudelft-black, set as "thumb" in formatColor.tex): coloured tabs would make every
-%%    page of the book a colour page at the printer.
+%%  - Square tabs in a light grey with a black number ("thumb" and "thumbtext" in
+%%    formatColor.tex). Grey prints with black ink only; coloured tabs would make every page of
+%%    the book a colour page at the printer.
 %% \thumbsoff and \thumbson switch them off and on, e.g. around the references.
 %% =====================================================================
 \newlength\thumbheight      \setlength\thumbheight{24pt}    % tab height (maximum)
-\newlength\thumbedge        \setlength\thumbedge{4pt}       % corner radius
+\newlength\thumbedge        \setlength\thumbedge{4pt}       % padding around the number
 \newlength\thumbhspace      \setlength\thumbhspace{36pt}    % how far the tab reaches into the page
 \newlength\thumbvspace                                      % step between tab positions (computed)
 \newlength\thesis@thumbtab                                  % actual tab height (computed)
@@ -53,14 +54,14 @@
             \def\thesis@side{#1}%
             \ifx\thesis@side\thesis@west
                 %% left page: the tab runs from beyond the left edge (bleed) into the page
-                \fill[fill=thumb,rounded corners=\thumbedge] ($(tab top)-(3*\thumbedge,0pt)$) rectangle ($(tab top)+(\thumbhspace,-\thesis@thumbtab)$);
+                \fill[fill=thumb] ($(tab top)-(3*\thumbedge,0pt)$) rectangle ($(tab top)+(\thumbhspace,-\thesis@thumbtab)$);
                 \node at ($(tab top)+(\thumbhspace,-0.5\thesis@thumbtab)$)[anchor=east,inner sep=2\thumbedge]{%
-                    \headingfont\bfseries\color{tudelft-white}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
+                    \headingfont\bfseries\color{thumbtext}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
             \else
                 %% right page: mirror image
-                \fill[fill=thumb,rounded corners=\thumbedge] ($(tab top)+(3*\thumbedge,0pt)$) rectangle ($(tab top)+(-\thumbhspace,-\thesis@thumbtab)$);
+                \fill[fill=thumb] ($(tab top)+(3*\thumbedge,0pt)$) rectangle ($(tab top)+(-\thumbhspace,-\thesis@thumbtab)$);
                 \node at ($(tab top)+(-\thumbhspace,-0.5\thesis@thumbtab)$)[anchor=west,inner sep=2\thumbedge]{%
-                    \headingfont\bfseries\color{tudelft-white}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
+                    \headingfont\bfseries\color{thumbtext}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
             \fi
         \end{tikzpicture}%
     \fi\fi\fi}
