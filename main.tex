@@ -11,10 +11,8 @@
 %   backreferences -- each reference lists the pages it is cited on
 %   chapterbib -- every chapter ends with its own reference list
 
-% thesis information: title, author, committee, defence date, colophon (fill this in!)
-\input{_thesisinfo}
-% archival PDF (PDF/A-2u), with the metadata taken from _thesisinfo.tex; keep it before the packages
-\input{_options/pdfa}
+% thesis information (title, author, committee, defence date, colophon: fill in _thesisinfo.tex!) and the
+% archival PDF setup (_options/pdfa.tex) are loaded by the class.
 % packages
 \input{_options/packages}
 % fix for booktabs rules in tables that break across pages (xltabular)
@@ -114,6 +112,7 @@
     \chapterstyle{appendix}
     \aliaspagestyle{chapter}{chapteropening}
     \appendix
+    \crefalias{chapter}{appendix}\crefalias{section}{subappendix} % \cref gives "Appendix A", "Section A.1"
     \thumbson % appendices get tabs, continuing below the last chapter
 
     \clearpage

@@ -11,6 +11,7 @@
 %% PDF/A-2u without it, identically on every TeX Live version.
 %% Needs: _thesisinfo.tex loaded first. Optional: \thesispdfsuffix (e.g. " (cover)") for the title.
 %% =====================================================================
+\chardef\thesisatcatcode=\catcode`\@ % restored at the end (this file is read inside the class too)
 \makeatletter
 \providecommand*{\thesispdfsuffix}{}
 \providecommand*{\thesis@bcp}{en-GB}
@@ -24,7 +25,26 @@
 \immediate\write\thesis@xmpfile{\string\Publisher{Delft University of Technology}}
 \immediate\write\thesis@xmpfile{\string\Copyright{Copyright \the\year\space\thesisauthorfirstnames\space\thesisauthorlastname}}
 \immediate\closeout\thesis@xmpfile
-\makeatother
+%% pdfx loads xcolor with an option ("hyperref") that newer xcolor versions declare obsolete and warn
+%% about; remove just that option when xcolor loads.
+\ExplSyntaxOn
+\cs_new_protected:Npn \__thesis_drop_option:nn #1#2 % #1: option list macro name, #2: option
+  {
+    \cs_if_exist:cT {#1}
+      {
+        \clist_clear:N \l_tmpa_clist
+        \exp_args:Nv \clist_map_inline:nn {#1}
+          { \str_if_eq:eeF { \tl_trim_spaces:n {##1} } {#2} { \clist_put_right:Nn \l_tmpa_clist {##1} } }
+        \cs_set_eq:cN {#1} \l_tmpa_clist
+      }
+  }
+\AddToHook{package/xcolor/before}
+  {
+    \__thesis_drop_option:nn { opt@xcolor.sty } { hyperref }
+    \__thesis_drop_option:nn { @raw@opt@xcolor.sty } { hyperref }
+  }
+\ExplSyntaxOff
+\catcode`\@=\thesisatcatcode
 %% PDF version 1.4 (allowed by PDF/A-2): hyperref's PDF/A mode, which pdfx switches on, expects it.
 %% XeLaTeX (not the default engine) can't set the creation date the way PDF/A wants; pdfx then
 %% warns instead of stopping.

@@ -47,6 +47,9 @@
 \newcommand{\coverspinerotation}{-90}
 
 %% Colours: the accent band on the back, spine and front.
+\input{_thesisinfo}
+\def\thesispdfsuffix{ (cover)}
+\input{_options/pdfa} % archival PDF; before xcolor, which pdfx sets up
 \usepackage{xcolor}
 \makeatletter
 \input{_options/formatColor}
@@ -73,7 +76,6 @@
 %% ---------------------------------------------------------------------
 %% Geometry (no changes needed below this line)
 %% ---------------------------------------------------------------------
-\input{_thesisinfo}
 \ExplSyntaxOn
 \cs_if_exist:NTF \coverspinefixed
     { \edef\coverspine{\fp_eval:n { round(\coverspinefixed, 2) }} }
@@ -101,8 +103,6 @@
 \input{_options/fontText}
 \makeatother
 
-\def\thesispdfsuffix{ (cover)}
-\input{_options/pdfa}
 
 \pagestyle{empty}
 \setlength{\parindent}{0pt}

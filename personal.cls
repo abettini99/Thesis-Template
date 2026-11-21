@@ -147,6 +147,12 @@
     \RequirePackage{showframe}
 \fi
 
+%%% THESIS INFORMATION AND ARCHIVAL PDF
+%% _thesisinfo.tex (title, author, committee, ...) is read here, so that the PDF/A setup (pdfx) can
+%% take its metadata from it; pdfx has to come before any colour package, as it sets up xcolor itself.
+\IfFileExists{_thesisinfo.tex}{\input{_thesisinfo}}{\ClassWarningNoLine{personal}{_thesisinfo.tex not found}}
+\input{_options/pdfa}
+
 \if@draft
     \RequirePackage[firstpageonly=false]{draftwatermark}
     \DraftwatermarkOptions{text={DRAFT \textendash\ \today}, fontsize=8pt, angle=0, pos={0.5\paperwidth, 4mm}, color=black!60}
