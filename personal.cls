@@ -125,13 +125,14 @@
 \setheaderspaces{*}{2\onelineskip}{*}
 \setmarginnotes{2.5mm}{\dimexpr\thesis@foremargin-4.5mm\relax}{\onelineskip} %% margin (todo) notes fill the outer margin
 \checkandfixthelayout
-\sloppybottom % see memoir manual
 %% No widows or orphans: never leave a single line of a paragraph alone at the top or bottom of a
-%% page. \sloppybottom lets a page run one line long instead, so pages stay full.
+%% page. Facing pages still end on the same line: when a page has to break early, the space around
+%% headings, displays and floats stretches a little instead (pages are never allowed to run long).
 \clubpenalty=10000          % first line of a paragraph alone at the bottom of a page
 \widowpenalty=10000         % last line of a paragraph alone at the top of a page
 \displaywidowpenalty=10000  % last line before a displayed equation alone at the top of a page
 \brokenpenalty=5000         % avoid a page break right after a hyphenated line
+\vbadness=10000             % that stretching is intended: don't report it as an underfull page
 %% On narrow pages, allow a little extra word spacing in a line rather than letting it stick out
 %% into the margin (e.g. a long file name or URL that cannot be hyphenated).
 \setlength{\emergencystretch}{1.5em}

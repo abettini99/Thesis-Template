@@ -39,7 +39,7 @@
         \renewcommand{\prechapterprecis}{%
             \vspace*{\prechapterprecisshift}%
             \precisfont\begin{Spacing}{1.10}} %% NOTE: Spacing in here mismatches with maintext! On purpose!
-        \renewcommand{\postchapterprecis}{\end{Spacing}\clearpage}
+        \renewcommand{\postchapterprecis}{\end{Spacing}\clearpage\@afterindentfalse\@afterheading} % text continues on the next page, unindented
         \renewcommand*{\precisfont}{}
     }
     
@@ -71,20 +71,21 @@
         \setlength{\afterchapskip}{20pt}
     }
     
-    %% Section formatting
-    \setbeforesecskip{1\onelineskip}
+    %% Section formatting. A negative space before a heading (memoir convention) means the first
+    %% paragraph after it is not indented, as usual in books; the space itself is the same.
+    \setbeforesecskip{-1\onelineskip}
     \setsecindent{0em}
     \setsecheadstyle{\bfseries\headingfont}
     \setaftersecskip{0.1\onelineskip}
 
     %% Subsection formatting
-    \setbeforesubsecskip{1\onelineskip}
+    \setbeforesubsecskip{-1\onelineskip}
     \setsubsecindent{0em}
     \setsubsecheadstyle{\bfseries\headingfont}
     \setaftersubsecskip{0.1\onelineskip}
 
     %% Subsubsection formatting
-    \setbeforesubsubsecskip{1\onelineskip}
+    \setbeforesubsubsecskip{-1\onelineskip}
     \setsubsubsecindent{0em}
     \setsubsubsecheadstyle{\bfseries\headingfont}
     \setaftersubsubsecskip{0.1\onelineskip}

@@ -102,10 +102,10 @@
 \renewcommand*{\lotheadstart}{\vspace*{0pt}}
 
 %% Dashes as list bullets
-\renewcommand{\labelitemi}{-}
-\renewcommand{\labelitemii}{-}
-\renewcommand{\labelitemiii}{-}
-\renewcommand{\labelitemiv}{-}
+\renewcommand{\labelitemi}{\textendash}
+\renewcommand{\labelitemii}{\textendash}
+\renewcommand{\labelitemiii}{\textendash}
+\renewcommand{\labelitemiv}{\textendash}
 
 %% Dutch name prefixes: write {\VAN} in references.bib (e.g. author = {T. \VAN~Pelt}). It prints "Van"
 %% in the text (\citet) and "van" in the reference list (switched in main.tex).
@@ -118,9 +118,12 @@
 
 %% Chapter based on a paper: a small note at the start of the chapter text with the reference and the
 %% author contributions. \chapterbasedon{\cite{key}}{A.~Author: conceptualisation, ...; B.~Author: ...}
+\makeatletter
 \newcommand{\chapterbasedon}[2]{%
     \par\begingroup\small\setlength{\parindent}{0pt}%
     This chapter is based on #1.\par
     \textit{Author contributions:} #2\par
     \endgroup\bigskip
+    \@afterindentfalse\@afterheading % the text after the note starts unindented
 }
+\makeatother

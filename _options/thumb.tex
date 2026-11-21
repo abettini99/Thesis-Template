@@ -55,12 +55,12 @@
                 %% left page: the tab runs from beyond the left edge (bleed) into the page
                 \fill[fill=thumb,rounded corners=\thumbedge] ($(tab top)-(3*\thumbedge,0pt)$) rectangle ($(tab top)+(\thumbhspace,-\thesis@thumbtab)$);
                 \node at ($(tab top)+(\thumbhspace,-0.5\thesis@thumbtab)$)[anchor=east,inner sep=2\thumbedge]{%
-                    \bfseries\color{tudelft-white}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
+                    \headingfont\bfseries\color{tudelft-white}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
             \else
                 %% right page: mirror image
                 \fill[fill=thumb,rounded corners=\thumbedge] ($(tab top)+(3*\thumbedge,0pt)$) rectangle ($(tab top)+(-\thumbhspace,-\thesis@thumbtab)$);
                 \node at ($(tab top)+(-\thumbhspace,-0.5\thesis@thumbtab)$)[anchor=west,inner sep=2\thumbedge]{%
-                    \bfseries\color{tudelft-white}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
+                    \headingfont\bfseries\color{tudelft-white}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
             \fi
         \end{tikzpicture}%
     \fi\fi\fi}

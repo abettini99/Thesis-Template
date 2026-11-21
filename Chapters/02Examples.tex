@@ -209,7 +209,7 @@ Figures float to the top or bottom of a page, or onto a page of their own, so th
 \begin{figure}[tbp]
     \centering
     \includegraphics[width=0.75\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
-    \caption{A single figure. Captions are set in a smaller size than the text; keep the first sentence short, as it also appears in the list of figures.}
+    \caption[A single figure]{A single figure. Captions are set in a smaller size than the text; a short version in square brackets goes in the list of figures.}
     \label{fig:single}
 \end{figure}
 
@@ -223,7 +223,7 @@ A figure with several panels is best made as one PDF, with the panel letters dra
     \centering
     \includegraphics[width=0.48\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}\hfill
     \includegraphics[width=0.48\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
-    \caption{A figure with two panels: (a) the left panel; (b) the right panel. In a real figure, the letters are part of the image.}
+    \caption[A figure with two panels]{A figure with two panels: (a) the left panel; (b) the right panel. In a real figure, the letters are part of the image.}
     \label{fig:panels}
 \end{figure}
 
@@ -253,7 +253,7 @@ Plots are made in Python and included as PDF, at the width they were made for (\
 
 \begin{figure}[tbp]
     \centering
-    \includegraphics[alt={Lift coefficient against angle of attack: the thin-aerofoil line rises straight; with the propeller off the lift levels off near 1.0 at 15 degrees, and higher thrust coefficients raise the maximum lift to about 1.6}]{Images/example_plot.pdf}%
+    \includegraphics[scale=1, alt={Lift coefficient against angle of attack: the thin-aerofoil line rises straight; with the propeller off the lift levels off near 1.0 at 15 degrees, and higher thrust coefficients raise the maximum lift to about 1.6}]{Images/example_plot.pdf}%
     \caption{A plot made with \file{thesis.mplstyle} (illustrative data).}
     \label{fig:plot}
 \end{figure}
@@ -298,7 +298,7 @@ Tables use horizontal rules only, with numbers aligned on the decimal point (\cr
 
 \begin{table}[tbp]
     \centering
-    \caption{Wind-tunnel model geometry~\cite[Tab.~5]{Bettini2021}.}
+    \caption[Wind-tunnel model geometry]{Wind-tunnel model geometry~\cite[Tab.~5]{Bettini2021}.}
     \label{tab:geometry}
     \begin{tabular}{@{}l S[table-format=1.4] l@{}}
         \toprule
@@ -320,7 +320,7 @@ A convergence study is a table of errors against mesh size, with the observed or
 
 \begin{table}[tbp]
     \centering
-    \caption{Errors of the Burgers solution~\cite{BettiniData2026} with linear elements on uniform meshes of $N \times N$ elements, with the observed orders of convergence. The expected orders are 2 in the $L^2$ norm and 1 in the $H^1$ seminorm.}
+    \caption[Errors of the Burgers solution on uniform meshes]{Errors of the Burgers solution~\cite{BettiniData2026} with linear elements on uniform meshes of $N \times N$ elements, with the observed orders of convergence. The expected orders are 2 in the $L^2$ norm and 1 in the $H^1$ seminorm.}
     \label{tab:convergence}
     \begin{tabular}{@{}S[table-format=3.0] S[table-format=1.2e-1] S[table-format=1.2] S[table-format=1.2e-1] S[table-format=1.2]@{}}
         \toprule

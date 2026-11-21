@@ -1,4 +1,6 @@
-\chapter{The inf-sup condition and spurious pressure modes}\label{ch:infsup} \pagestyle{mainmatter}
+%% \chapter[title in the contents][title in the running heads]{title}: a short running-head title keeps
+%% long titles from crowding the page number.
+\chapter[The inf-sup condition and spurious pressure modes][The inf-sup condition]{The inf-sup condition and spurious pressure modes}\label{ch:infsup} \pagestyle{mainmatter}
 \chapterprecishere{
     \vspace{0pt plus 1filll}
     \begin{chapterabstract}
@@ -143,7 +145,7 @@ with the subscripts denoting the elements south-west, north-west, south-east and
         }
         \draw[very thick, tudelft-orange] (1,1) rectangle (3,3);
     \end{tikzpicture}
-    \caption{The checkerboard pressure of the $Q_1$--$P_0$ element on a $4 \times 4$ mesh. Around every interior velocity node (filled), such as the one in the centre of the outlined patch, the four element pressures cancel, so no discrete velocity detects the mode; the boundary nodes (open) carry no velocity.}
+    \caption[The checkerboard pressure mode of the $Q_1$--$P_0$ element]{The checkerboard pressure of the $Q_1$--$P_0$ element on a $4 \times 4$ mesh. Around every interior velocity node (filled), such as the one in the centre of the outlined patch, the four element pressures cancel, so no discrete velocity detects the mode; the boundary nodes (open) carry no velocity.}
     \label{fig:infsup-checkerboard}
 \end{figure}
 
@@ -236,7 +238,7 @@ The Fortin operator makes the null-space argument quantitative: every pressure t
 
 \begin{table}[tbp]
     \centering
-    \caption{Common velocity--pressure pairs. $P_k$ and $Q_k$ are continuous polynomials of degree $k$ on triangles and quadrilaterals, $P_k^\mathrm{disc}$ discontinuous ones \parencite{Boffi2013}.}
+    \caption[Common velocity--pressure pairs]{Common velocity--pressure pairs. $P_k$ and $Q_k$ are continuous polynomials of degree $k$ on triangles and quadrilaterals, $P_k^\mathrm{disc}$ discontinuous ones \parencite{Boffi2013}.}
     \label{tab:infsup-pairs}
     \begin{tabularx}{\textwidth}{@{}l l >{\RaggedRight\arraybackslash}X@{}}
         \toprule
