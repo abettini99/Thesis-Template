@@ -167,13 +167,17 @@
 %%% MATHS: mathtools (loads amsmath); the maths font is set in fontMath.tex
 \RequirePackage{mathtools}
 
-%%% MATHS FONT CHOICE: MathTime Professional 2 if its OpenType file is in the Fonts folder
-%% (Fonts/MTPro2MathFull.otf, else Fonts/MTPro2MathLite.otf; see Fonts/README.md), otherwise newtx.
-%% \ifthesismathtime ... \else ... \fi lets other files follow the choice.
+%%% MATHS FONT CHOICE: MathTime Professional 2 if its OpenType file is in the Fonts folder: Complete
+%% (Fonts/MTPro2Math.otf, as mtp2otf names it, or Fonts/MTPro2MathFull.otf), else Lite
+%% (Fonts/MTPro2MathLite.otf); see Fonts/README.md. Otherwise newtx.
+%% \ifthesismathtime ... \else ... \fi lets other files follow the choice; \thesismathtimefile is the file.
 \newif\ifthesismathtime
 \def\thesismathtimeedition{}
-\IfFileExists{Fonts/MTPro2MathFull.otf}{\thesismathtimetrue\def\thesismathtimeedition{Full}}{%
-    \IfFileExists{Fonts/MTPro2MathLite.otf}{\thesismathtimetrue\def\thesismathtimeedition{Lite}}{}}
+\def\thesis@tmp#1#2{\ifthesismathtime\else\IfFileExists{Fonts/#1}{\thesismathtimetrue
+    \def\thesismathtimeedition{#2}\def\thesismathtimefile{#1}}{}\fi}
+\thesis@tmp{MTPro2Math.otf}{Complete}
+\thesis@tmp{MTPro2MathFull.otf}{Complete}
+\thesis@tmp{MTPro2MathLite.otf}{Lite}
 
 %%% TEXT FONTS
 %% Compile with LuaLaTeX (XeLaTeX also works); fonts are loaded through fontspec.
