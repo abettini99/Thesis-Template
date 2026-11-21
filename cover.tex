@@ -1,0 +1,181 @@
+%% =====================================================================
+%% COVER
+%% Back, spine and front on one sheet, with bleed, as printers ask for a paperback cover.
+%% Compile it on its own: in Overleaf, open this file and choose Menu > Main document > cover.tex
+%% (switch back to main.tex after), or locally run: latexmk cover.tex
+%% Title and name come from _thesisinfo.tex.
+%%
+%% Before sending it to the printer:
+%%   1. Set the page size below to the one the thesis uses.
+%%   2. Set the page count to the number of pages of the FINAL thesis PDF (main.pdf, print version),
+%%      including the blank pages.
+%%   3. Ask the printer for the paper thickness (or the spine width) and set it below.
+%%   4. Ask the printer how much bleed they want on the cover (often 3 to 5 mm; more for hardcovers).
+%%   5. Turn the guides off (\coverguidesfalse) and send cover.pdf.
+%% Many printers also have a cover template or calculator; check the result against it.
+%% =====================================================================
+\DocumentMetadata{pdfstandard = A-2u, lang = en-GB}
+\documentclass{article}
+
+%% ---------------------------------------------------------------------
+%% Settings
+%% ---------------------------------------------------------------------
+%% Book page size (trimmed), the same as the class option in main.tex:
+%%   dover 137 x 213   a5 148 x 210   royal 156 x 234   tudelft 170 x 240   (mm)
+\newcommand{\coverpagewidth}{137}   % mm
+\newcommand{\coverpageheight}{213}  % mm
+
+%% Spine width = number of pages / 2 x thickness of one sheet (leaf) + extra for the cover board/glue.
+\newcommand{\coverpagecount}{200}         % pages of the final thesis PDF, including blank pages
+\newcommand{\coverpaperthickness}{0.110}  % mm per sheet; about 0.10 mm for 80 g/m2, 0.11 mm for 90 g/m2,
+                                          % 0.12-0.13 mm for 100 g/m2 uncoated paper. Ask the printer!
+\newcommand{\coverspineextra}{0.5}        % mm, for the cover itself; the printer will tell you (0 if unsure)
+%% Or set the spine width the printer gives you directly, and ignore the three lines above:
+% \newcommand{\coverspinefixed}{12.5}     % mm
+
+\newcommand{\coverbleed}{3}  % mm on all four sides
+\newcommand{\coversafe}{5}   % mm: keep text at least this far inside the trim and away from the spine folds
+
+%% Show trim lines, spine folds and the safe area (for checking only; turn off for the printer).
+\newif\ifcoverguides
+\coverguidestrue   % \coverguidesfalse for the final file
+
+%% Spine text direction: -90 reads from top to bottom (English convention, and most Dutch books
+%% today), 90 from bottom to top (traditional continental convention).
+\newcommand{\coverspinerotation}{-90}
+
+%% Colours: the accent band on the back, spine and front.
+\usepackage{xcolor}
+\makeatletter
+\input{_options/formatColor}
+\makeatother
+\colorlet{coveraccent}{tudelft-cyan}
+\colorlet{covertext}{tudelft-black}
+\colorlet{coveraccenttext}{tudelft-white}
+
+%% Optional image on the front (filling the front panel up to the bleed). Leave empty for none.
+\newcommand{\coverimage}{}   % e.g. Images/cover.jpg
+
+%% ISBN barcode on the back: an image file from the printer or an online barcode generator (vector PDF
+%% or EPS is best). Leave empty to keep a white box, where the printer places the barcode.
+\newcommand{\coverbarcode}{}   % e.g. Images/barcode.pdf
+
+%% Text on the back.
+\newcommand{\coverblurb}{%
+    A short summary of the thesis for the back cover, in two or three paragraphs: what the problem is,
+    what was done and what was found. Write it for an interested reader who is not a specialist.
+
+    The back cover is also a good place for a short biography of the author.
+}
+
+%% ---------------------------------------------------------------------
+%% Geometry (no changes needed below this line)
+%% ---------------------------------------------------------------------
+\input{_thesisinfo}
+\ExplSyntaxOn
+\cs_if_exist:NTF \coverspinefixed
+    { \edef\coverspine{\fp_eval:n { round(\coverspinefixed, 2) }} }
+    { \edef\coverspine{\fp_eval:n { round(\coverpagecount / 2 * \coverpaperthickness + \coverspineextra, 2) }} }
+\edef\coversheetwidth {\fp_eval:n { 2*\coverbleed + 2*\coverpagewidth + \coverspine }}
+\edef\coversheetheight{\fp_eval:n { 2*\coverbleed + \coverpageheight }}
+%% x positions of the trim and fold lines, measured from the left edge of the sheet
+\edef\coverbackleft  {\fp_eval:n { \coverbleed }}
+\edef\coverspineleft {\fp_eval:n { \coverbleed + \coverpagewidth }}
+\edef\coverspineright{\fp_eval:n { \coverbleed + \coverpagewidth + \coverspine }}
+\edef\coverfrontright{\fp_eval:n { \coverbleed + 2*\coverpagewidth + \coverspine }}
+\edef\coverbottom    {\fp_eval:n { \coverbleed }}
+\edef\covertop       {\fp_eval:n { \coverbleed + \coverpageheight }}
+\ExplSyntaxOff
+\typeout{}\typeout{Cover: spine width \coverspine\space mm, sheet \coversheetwidth\space x \coversheetheight\space mm (including \coverbleed\space mm bleed)}\typeout{}
+
+\usepackage[paperwidth=\coversheetwidth mm, paperheight=\coversheetheight mm, margin=0pt]{geometry}
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage[british]{babel}
+
+%% Same fonts as the thesis
+\makeatletter
+\newcommand*{\thesis@fontscale}{1}
+\input{_options/fontText}
+\makeatother
+
+\usepackage{hyperref}
+\hypersetup{pdftitle={\thesispdftitle\ (cover)}, pdfauthor={\thesisauthorfirstnames\ \thesisauthorlastname}}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6\baselineskip}
+
+\begin{document}
+\begin{tikzpicture}[remember picture, overlay, x=1mm, y=1mm, shift={(current page.south west)}]
+    \pgfmathsetmacro{\bandheight}{0.17*\coverpageheight}   % accent band at the bottom
+    \pgfmathsetmacro{\frontcentre}{(\coverspineright + \coverfrontright)/2}
+    \pgfmathsetmacro{\backcentre}{(\coverbackleft + \coverspineleft)/2}
+    \pgfmathsetmacro{\covertextwidth}{\coverpagewidth - 2*\coversafe - 6}
+
+    %% Front image
+    \if\relax\detokenize\expandafter{\coverimage}\relax\else
+        \begin{scope}
+            \clip (\coverspineright, 0) rectangle (\coversheetwidth, \coversheetheight);
+            \node[anchor=center, inner sep=0] at (\frontcentre + \coverbleed/2, \coversheetheight/2)
+                {\includegraphics[width=\coverpagewidth mm + \coverbleed mm, height=\coversheetheight mm, keepaspectratio=false]{\coverimage}};
+        \end{scope}
+    \fi
+
+    %% Accent: band along the bottom of back and front, and the whole spine
+    \fill[coveraccent] (0, 0) rectangle (\coversheetwidth, \coverbottom + \bandheight);
+    \fill[coveraccent] (\coverspineleft, 0) rectangle (\coverspineright, \coversheetheight);
+
+    %% Front: title and subtitle in the upper part, name in the band
+    \node[anchor=north, align=center, text width=\covertextwidth mm, text=covertext, inner sep=0]
+        at (\frontcentre, \covertop - 0.2*\coverpageheight)
+        {\headingfont\fontsize{28}{33}\selectfont \thesistitle\par
+         \vspace{4mm}\fontsize{14}{17}\selectfont\color{covertext!75}\thesissubtitle};
+    \node[anchor=center, align=center, text width=\covertextwidth mm, text=coveraccenttext, inner sep=0]
+        at (\frontcentre, \coverbottom + \bandheight/2)
+        {\headingfont\fontsize{14}{17}\selectfont \thesisauthorfirstnames\ \thesisauthorlastname};
+
+    %% Spine: name and title, if the spine is wide enough for text
+    \pgfmathparse{\coverspine >= 6 ? 1 : 0}
+    \ifnum\pgfmathresult=1
+        \pgfmathsetmacro{\spinefont}{min(10, 0.55*\coverspine/0.3528)}   % pt, at most 10 pt
+        \node[rotate=\coverspinerotation, anchor=center, text=coveraccenttext, inner sep=0]
+            at ({(\coverspineleft + \coverspineright)/2}, \coversheetheight/2)
+            {\headingfont\fontsize{\spinefont}{\spinefont}\selectfont
+             \textbf{\thesisauthorlastname}\hspace{3em}\thesistitle};
+    \else
+        \typeout{Cover: the spine is narrower than 6 mm, so no text is printed on it.}
+    \fi
+
+    %% Back: blurb, and space for the ISBN barcode in the band
+    \node[anchor=north west, text width=\covertextwidth mm, text=covertext, inner sep=0, font=\normalsize]
+        at (\backcentre - \covertextwidth/2, \covertop - \coversafe - 10)
+        {\setlength{\parskip}{0.6\baselineskip}\coverblurb};
+    \begin{scope}[shift={(\coverspineleft - \coversafe - 40, \coverbottom + \coversafe)}]
+        \fill[white] (0, 0) rectangle (40, 22);
+        \if\relax\detokenize\expandafter{\coverbarcode}\relax
+            \ifcoverguides\node[text=black!50, font=\sffamily\scriptsize, align=center] at (20, 11) {ISBN \thesisisbn\\barcode area};\fi
+        \else
+            \node[inner sep=0] at (20, 11) {\includegraphics[width=36mm, height=18mm, keepaspectratio]{\coverbarcode}};
+        \fi
+    \end{scope}
+
+    %% Guides (not for the printer)
+    \ifcoverguides
+        \begin{scope}[line width=0.4pt]
+            \draw[red] (\coverbackleft, \coverbottom) rectangle (\coverfrontright, \covertop);        % trim
+            \draw[red, dashed] (\coverspineleft, 0) -- (\coverspineleft, \coversheetheight)          % spine folds
+                               (\coverspineright, 0) -- (\coverspineright, \coversheetheight);
+            \draw[blue, densely dotted]                                                                % safe area
+                (\coverbackleft + \coversafe, \coverbottom + \coversafe) rectangle (\coverspineleft - \coversafe, \covertop - \coversafe)
+                (\coverspineright + \coversafe, \coverbottom + \coversafe) rectangle (\coverfrontright - \coversafe, \covertop - \coversafe);
+            \node[red, font=\sffamily\tiny, anchor=north, fill=white, inner sep=1pt]
+                at ({(\coverspineleft + \coverspineright)/2}, \covertop - 2)
+                {spine \coverspine\,mm};
+            \node[red, font=\sffamily\tiny, anchor=south west, fill=white, inner sep=1pt]
+                at (\coverbackleft + 1, \covertop + 0.3)
+                {back \quad sheet \coversheetwidth\,×\,\coversheetheight\,mm incl.\ \coverbleed\,mm bleed \quad guides on: set \textbackslash coverguidesfalse for the printer};
+        \end{scope}
+    \fi
+\end{tikzpicture}
+\end{document}

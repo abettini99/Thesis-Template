@@ -128,10 +128,12 @@ Figures float to the top or bottom of a page, or onto a page of their own, so th
 
 \begin{figure}[tbp]
     \centering
-    \includegraphics[width=0.75\textwidth]{Images/graph.jpg}
+    \includegraphics[width=0.75\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
     \caption{A single figure. Captions are set in a smaller size than the text; keep the first sentence short, as it also appears in the list of figures.}
     \label{fig:single}
 \end{figure}
+
+Give every image a short alternative text with the \texttt{alt} key: a sentence or two saying what the figure shows, for readers who cannot see it. It is invisible in the PDF today, but the thesis is then ready for an accessible (tagged) PDF later without revisiting every figure.
 
 \subsection{Figures with several panels}
 
@@ -139,8 +141,8 @@ A figure with several panels is best made as one PDF, with the panel letters dra
 
 \begin{figure}[tbp]
     \centering
-    \includegraphics[width=0.48\textwidth]{Images/graph.jpg}\hfill
-    \includegraphics[width=0.48\textwidth]{Images/graph.jpg}
+    \includegraphics[width=0.48\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}\hfill
+    \includegraphics[width=0.48\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
     \caption{A figure with two panels: (a) the left panel; (b) the right panel. In a real figure, the letters are part of the image.}
     \label{fig:panels}
 \end{figure}
@@ -153,13 +155,13 @@ Two separate figures can also sit side by side, each with its own number, as \cr
     \centering
     \begin{minipage}[t]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Images/graph.jpg}
+        \includegraphics[width=\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
         \caption{The left figure.}
         \label{fig:left}
     \end{minipage}\hfill
     \begin{minipage}[t]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Images/graph.jpg}
+        \includegraphics[width=\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
         \caption{The right figure, with a caption long enough to wrap.}
         \label{fig:right}
     \end{minipage}
@@ -171,7 +173,7 @@ Plots are made in Python and included as PDF, at the width they were made for (\
 
 \begin{figure}[tbp]
     \centering
-    \includegraphics{Images/example_plot.pdf}
+    \includegraphics[alt={Lift coefficient against angle of attack: the thin-aerofoil line rises straight; with the propeller off the lift levels off near 1.0 at 15 degrees, and higher thrust coefficients raise the maximum lift to about 1.6}]{Images/example_plot.pdf}
     \caption{A plot made with \texttt{thesis.mplstyle} (illustrative data).}
     \label{fig:plot}
 \end{figure}
@@ -204,7 +206,7 @@ A figure shown earlier can be repeated later, keeping its original number and po
 
 \begin{figure}[tbp]
     \centering
-    \includegraphics[width=0.5\textwidth]{Images/graph.jpg}
+    \includegraphics[width=0.5\textwidth, alt={Plot of magnetisation (kA/m) against applied field (10\textsuperscript{4} A/m): it rises steeply at first, then levels off}]{Images/graph.jpg}
     \repeatcaption{fig:single}{A single figure}
 \end{figure}
 

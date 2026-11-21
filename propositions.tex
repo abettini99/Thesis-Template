@@ -1,0 +1,85 @@
+%% =====================================================================
+%% PROPOSITIONS (stellingen)
+%% A separate document, printed and handed out with the thesis. Compile it on its own: in Overleaf,
+%% open this file and choose Menu > Main document > propositions.tex (switch back to main.tex after),
+%% or locally run: latexmk propositions.tex
+%% Title, name and promotors come from _thesisinfo.tex.
+%% Check the TU Delft Doctorate Regulations for the number and kind of propositions required.
+%% =====================================================================
+\DocumentMetadata{pdfstandard = A-2u, lang = en-GB}
+\documentclass[print]{personal}   % same page size and fonts as the thesis; remove print for an A4 version
+\input{_thesisinfo}
+
+%% Also print a Dutch version (stellingen) on a second page?
+\newif\ifdutchversion
+\dutchversiontrue   % \dutchversionfalse for English only
+
+\newcommand{\propositionshead}[3]{% #1 Propositions/Stellingen, #2 accompanying/behorende bij, #3 by/door
+    \begin{center}
+        {\headingfont\fontsize{\chaptertitlesize}{1.2\chaptertitlesize}\selectfont #1}
+
+        \bigskip
+        #2
+
+        \bigskip
+        {\headingfont\LARGE \thesistitle} \\[0.3em]
+        {\headingfont\large \thesissubtitle}
+
+        \bigskip
+        #3
+
+        \bigskip
+        {\large\bfseries \thesisauthorfirstnames\ \MakeUppercase{\thesisauthorlastname}}
+    \end{center}
+    \bigskip}
+
+\begin{document}
+\pagestyle{empty}
+\setlength{\parskip}{0pt}
+
+%% ---------------------------------------------------------------------
+%% English
+%% ---------------------------------------------------------------------
+\propositionshead{Propositions}{accompanying the dissertation}{by}
+
+\begin{enumerate}
+    \setlength{\itemsep}{0.6\baselineskip}
+    \item A proposition about the main result of the thesis.
+    \item A proposition about the method or a finding in one of the chapters.
+    \item A proposition that follows from the thesis but goes beyond it.
+    \item A proposition about the research field.
+    \item A proposition on a topic outside the thesis, e.g. science, education or society.
+    \item A proposition you can defend in a lively discussion.
+\end{enumerate}
+
+\vfill
+\begin{center}
+    \small These propositions are regarded as opposable and defendable, and have been approved as such by \thesispromotors.
+\end{center}
+
+%% ---------------------------------------------------------------------
+%% Nederlands
+%% ---------------------------------------------------------------------
+\ifdutchversion
+\clearpage
+\begin{otherlanguage}{dutch}
+\propositionshead{Stellingen}{behorende bij het proefschrift}{door}
+
+\begin{enumerate}
+    \setlength{\itemsep}{0.6\baselineskip}
+    \item Een stelling over het belangrijkste resultaat van het proefschrift.
+    \item Een stelling over de methode of een bevinding in een van de hoofdstukken.
+    \item Een stelling die volgt uit het proefschrift, maar verder gaat.
+    \item Een stelling over het onderzoeksveld.
+    \item Een stelling over een onderwerp buiten het proefschrift, bijvoorbeeld wetenschap, onderwijs of samenleving.
+    \item Een stelling die u in een levendige discussie kunt verdedigen.
+\end{enumerate}
+
+\vfill
+\begin{center}
+    \small Deze stellingen worden opponeerbaar en verdedigbaar geacht en zijn als zodanig goedgekeurd door \thesispromotorsdutch.
+\end{center}
+\end{otherlanguage}
+\fi
+
+\end{document}

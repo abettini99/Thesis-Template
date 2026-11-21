@@ -67,6 +67,8 @@ Set in the first line of `main.tex`, for example:
 | `references.bib` | Bibliography database. |
 | `personal.cls` | The class: page layout, options, core packages. |
 | `_options/` | Fonts, heading styles, page styles, colours, extra packages, custom commands. |
+| `propositions.tex` | The propositions (stellingen), a separate document. |
+| `cover.tex` | The book cover (back, spine, front) with the spine width calculated from the page count. |
 
 ## Writing
 
@@ -75,6 +77,7 @@ Set in the first line of `main.tex`, for example:
 - **Units:** `\qty{1.225}{\kilo\gram\per\cubic\metre}`, `\num{6.02e23}`, `\unit{\metre\per\second}` (siunitx).
 - **Custom maths commands** (in `_options/commands.tex`): `\vec{u}` and `\tensor{\tau}` (plain italics by default; switch both to bold, arrows or underlines in one place), `\grad`, `\div`, `\curl`, `\deriv{y}{x}`, `\pderiv{y}{x}`, `\sderiv{y}{t}` (material derivative), `\transpose`, `\cddot`, and dimensionless numbers such as `\Re`, `\Ma`, `\Pr`.
 - **Todo notes:** `\todo{...}` puts a note in the margin, `\todo[inline]{...}` in the text, `\missingfigure{...}` a placeholder figure. The class option `final` removes them all.
+- **Alt text:** give every image a short description, `\includegraphics[width=..., alt={Lift coefficient against angle of attack, ...}]{...}`: what the figure shows, in a sentence or two. It is ignored in today's PDF, but it is what screen readers will read once the thesis can be produced as tagged (accessible) PDF, so writing it as you go saves revisiting every figure later.
 - **Long equations:** the Dover text is 92 mm wide, so long equations need breaking. Use `multline` for one long expression and `split` (inside `equation`) to align continuation lines on the `=`; break before an operator. See the Mathematics section of the Examples chapter. A black bar in the margin with the `draft` option shows any equation that is still too wide.
 - **Figures and tables:** prefer `[tbp]` placement over `[H]`, so floats don't leave half-empty pages. Set full-width blocks that are *not* inside a figure or table environment with `\noindent` in front, so they don't pick up the paragraph indent.
 - **Acronyms and symbols:** define them once in `_nomenclature.tex` and use them with `\gls{label}`. An acronym is written out in full the first time ("blade element momentum theory (BEM)") and abbreviated afterwards; a symbol is printed as defined, in text or maths. In headings and captions, use `\glsfmtshort{label}` for acronyms. Everything defined appears in the nomenclature; delete `\glsaddall` in `Chapters/00Nomenclature.tex` to list only what the text actually uses.
@@ -109,6 +112,13 @@ It sets Times (or STIX, a Times-like font included with matplotlib), text at abo
 | `a5` | 100 mm (3.94 in) | 48 mm (1.89 in) |
 | `royal` | 105 mm (4.13 in) | 50 mm (1.98 in) |
 | `tudelft` | 113 mm (4.45 in) | 54 mm (2.13 in) |
+
+## Propositions and cover
+
+Both are separate documents that use the fonts and the details in `_thesisinfo.tex`. Compile them on their own: in Overleaf open the file and choose *Menu → Main document*, then switch back to `main.tex`; locally run `latexmk propositions.tex` or `latexmk cover.tex`.
+
+- **`propositions.tex`** prints the propositions in the thesis page size, in English with an optional Dutch page (`\dutchversionfalse` for English only), ending with the approval sentence naming the promotors (`\thesispromotors` in `_thesisinfo.tex`). Check the Doctorate Regulations for how many propositions are required and what kind.
+- **`cover.tex`** lays out back, spine and front on one sheet with bleed. Set the page size, the number of pages of the final thesis PDF and the paper thickness at the top; it calculates the spine width (shown on the sheet and in the log), or takes the width the printer gives you. Text goes on the spine only when it is at least 6 mm wide. There are settings for the accent colour, a front image, the back cover text and an ISBN barcode. The red and blue guides show the trim, the spine folds and the safe area; turn them off with `\coverguidesfalse` before sending the file. Ask the printer for the paper thickness and the bleed they want, and check the result against their cover template if they have one.
 
 ## Print costs
 
