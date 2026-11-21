@@ -1,0 +1,20 @@
+# LaTeX build files (Overleaf does not sync these, but local builds create them)
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.glo
+*.gls
+*.glg
+*.ist
+*.lof
+*.log
+*.lot
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.xmpdata
+*.xmpi

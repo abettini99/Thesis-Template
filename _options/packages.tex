@@ -34,7 +34,7 @@
 %% Hyperlinks and PDF bookmarks
 \usepackage{bookmark}           % https://ctan.org/pkg/bookmark %% PDF bookmarks (loads hyperref)
 %% Hyperlinks: invisible in the print version (they would only show up as coloured text on paper),
-%% subtle TU Delft dark blue in the report/screen version. PDF metadata comes from _thesisinfo.tex.
+%% subtle TU Delft dark blue in the report/screen version.
 \ifprintversion
     \hypersetup{hidelinks}
 \else
@@ -44,16 +44,7 @@
 %% Bookmarks: numbered ("2.1 Text"), and one level deeper than the contents (down to subsections),
 %% so the PDF can be navigated in more detail than the printed contents show.
 \bookmarksetup{numbered, depth=2}
-%% TeX Live 2026: with \DocumentMetadata the LaTeX kernel makes the footnote links and hyperref no
-%% longer defines the counter Hfootnote, which memoir's footnote code still steps. Define it if missing.
-%% (A bare count register, not \newcounter, so hyperref doesn't try to define \theHfootnote again.)
-\makeatletter\@ifundefined{c@Hfootnote}{\expandafter\newcount\csname c@Hfootnote\endcsname}{}\makeatother
-\AtBeginDocument{\hypersetup{
-    pdftitle    = {\thesispdftitle},
-    pdfauthor   = {\thesisauthorfirstnames\ \thesisauthorlastname},
-    pdfsubject  = {Doctoral dissertation, Delft University of Technology},
-    pdfkeywords = {\thesiskeywords},
-}}
+%% PDF metadata (title, author, keywords) is set by pdfx from _thesisinfo.tex (_options/pdfa.tex).
 
 %% Nomenclature (acronyms and symbols): glossaries-extra, must come after hyperref
 \input{_options/formatNomenclature}

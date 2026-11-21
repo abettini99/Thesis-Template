@@ -1,0 +1,32 @@
+%% =====================================================================
+%% PDF/A-2u (archival PDF, e.g. for the TU Delft repository) with the pdfx package.
+%% Fonts embedded, sRGB output intent, all text mapped to Unicode, and XMP metadata.
+%%
+%% pdfx reads the metadata from a file named after the output (\jobname.xmpdata; on Overleaf the
+%% output is called "output"). It is written here from _thesisinfo.tex on every compile, so there is
+%% nothing to edit in it: change _thesisinfo.tex instead.
+%%
+%% Why not \DocumentMetadata: since 2025, \DocumentMetadata always loads LaTeX's new tagging code,
+%% which replaces parts of memoir (captions, section headings, appendices). pdfx gives the same
+%% PDF/A-2u without it, identically on every TeX Live version.
+%% Needs: _thesisinfo.tex loaded first. Optional: \thesispdfsuffix (e.g. " (cover)") for the title.
+%% =====================================================================
+\makeatletter
+\providecommand*{\thesispdfsuffix}{}
+\providecommand*{\thesis@bcp}{en-GB}
+\newwrite\thesis@xmpfile
+\immediate\openout\thesis@xmpfile=\jobname.xmpdata
+\immediate\write\thesis@xmpfile{\string\Title{\thesispdftitle\thesispdfsuffix}}
+\immediate\write\thesis@xmpfile{\string\Author{\thesisauthorfirstnames\space\thesisauthorlastname}}
+\immediate\write\thesis@xmpfile{\string\Subject{Doctoral dissertation, Delft University of Technology}}
+\immediate\write\thesis@xmpfile{\string\Keywords{\thesiskeywords}}
+\immediate\write\thesis@xmpfile{\string\Language{\thesis@bcp}}
+\immediate\write\thesis@xmpfile{\string\Publisher{Delft University of Technology}}
+\immediate\write\thesis@xmpfile{\string\Copyright{Copyright \the\year\space\thesisauthorfirstnames\space\thesisauthorlastname}}
+\immediate\closeout\thesis@xmpfile
+\makeatother
+%% PDF version 1.4 (allowed by PDF/A-2): hyperref's PDF/A mode, which pdfx switches on, expects it.
+%% XeLaTeX (not the default engine) can't set the creation date the way PDF/A wants; pdfx then
+%% warns instead of stopping.
+\ifdefined\XeTeXrevision \PassOptionsToPackage{noerr}{pdfx}\fi
+\RequirePackage[a-2u, pdf14]{pdfx}

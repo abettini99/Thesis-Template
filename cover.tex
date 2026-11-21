@@ -14,8 +14,10 @@
 %%   5. Turn the guides off (\coverguidesfalse) and send cover.pdf.
 %% Many printers also have a cover template or calculator; check the result against it.
 %% =====================================================================
-\DocumentMetadata{pdfstandard = A-2u, lang = en-GB}
 \documentclass{article}
+%% PDF 1.4 without object streams, as pdfx and hyperref expect for PDF/A (see _options/pdfa.tex)
+\ifdefined\pdfvariable \pdfvariable majorversion=1 \pdfvariable minorversion=4 \pdfvariable objcompresslevel=0 \fi
+\usepackage{fix-cm} % maths fonts at any size (the large title)
 
 %% ---------------------------------------------------------------------
 %% Settings
@@ -99,8 +101,8 @@
 \input{_options/fontText}
 \makeatother
 
-\usepackage{hyperref}
-\hypersetup{pdftitle={\thesispdftitle\ (cover)}, pdfauthor={\thesisauthorfirstnames\ \thesisauthorlastname}}
+\def\thesispdfsuffix{ (cover)}
+\input{_options/pdfa}
 
 \pagestyle{empty}
 \setlength{\parindent}{0pt}

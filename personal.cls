@@ -1,4 +1,7 @@
 \ProvidesClass{personal}[2026/11/21 v2.0 TU Delft dissertation class, based on memoir]
+%% PDF version 1.4 without object streams, as pdfx and hyperref expect for PDF/A (see _options/pdfa.tex);
+%% it has to be set before anything writes to the PDF.
+\ifdefined\pdfvariable \pdfvariable majorversion=1 \pdfvariable minorversion=4 \pdfvariable objcompresslevel=0 \fi
 
 \RequirePackage{ifthen}
 
@@ -163,7 +166,9 @@
 
 \input{_options/formatText}
 
+\def\thesis@bcp{en-GB}  % document language for the PDF metadata
 \if@american
+    \def\thesis@bcp{en-US}
     \RequirePackage[dutch,american]{babel}  % dutch for the Samenvatting; the last language is the main one
     \RequirePackage[style=american]{csquotes}
 \fi

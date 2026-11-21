@@ -1,12 +1,3 @@
-%% PDF/A-2u: archival PDF for long-term storage (e.g. the TU Delft repository). Fonts are embedded, colours
-%% use the sRGB profile, all text (maths included) maps to Unicode, and the file carries XMP metadata.
-%% \DocumentMetadata must stay the first command in this file.
-%% (Tagged, accessible PDF (PDF/UA, PDF/A "a" levels) is not yet possible: the memoir class, the caption
-%% package and newtxmath are not compatible with LaTeX's tagging code yet.)
-\DocumentMetadata{
-    pdfstandard = A-2u,
-    lang        = en-GB,
-}
 \documentclass[print,thumb,showtrims]{personal}
 % options:
 %   british (default), american -- language: hyphenation, quotation marks, dates
@@ -20,6 +11,10 @@
 %   backreferences -- each reference lists the pages it is cited on
 %   chapterbib -- every chapter ends with its own reference list
 
+% thesis information: title, author, committee, defence date, colophon (fill this in!)
+\input{_thesisinfo}
+% archival PDF (PDF/A-2u), with the metadata taken from _thesisinfo.tex; keep it before the packages
+\input{_options/pdfa}
 % packages
 \input{_options/packages}
 % fix for booktabs rules in tables that break across pages (xltabular)
@@ -30,8 +25,6 @@
 \input{_options/formatPagestyles}
 % new commands
 \input{_options/commands}
-% thesis information: title, author, committee, defence date, colophon (fill this in!)
-\input{_thesisinfo}
 % hyphenation of technical terms and names (add to it as you write)
 \input{_hyphenation}
 % acronyms and symbols for the nomenclature (fill this in!)
