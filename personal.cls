@@ -131,6 +131,9 @@
 %% On narrow pages, allow a little extra word spacing in a line rather than letting it stick out
 %% into the margin (e.g. a long file name or URL that cannot be hyphenated).
 \setlength{\emergencystretch}{1.5em}
+%% Overfull lines under 1 pt (0.35 mm, invisible) are not reported, e.g. a figure made at exactly the
+%% text width that comes out a fraction of a point wider after rounding.
+\hfuzz=1pt
 
 \if@showframe
     \RequirePackage{showframe}

@@ -10,3 +10,9 @@
 \renewcommand{\rmdefault}{ntxtlf}
 \edef\thesis@tmp{\noexpand\RequirePackage[scaled=\thesis@fontscale]{newtxmath}}\thesis@tmp
 \let\rmdefault\thesis@rmdefault
+
+%% \mathsf (e.g. matrices \mathsf{A}, operators \mathsf{Res}) in Source Sans, the document's sans-serif font.
+%% newtxmath declares it in the old OT1 encoding, for which fontspec fonts have no shapes, so TeX
+%% substituted a default font (warning "Font shape OT1/SourceSans3/m/n undefined").
+\DeclareMathAlphabet{\mathsf}{TU}{\sfdefault}{m}{n}
+\SetMathAlphabet{\mathsf}{bold}{TU}{\sfdefault}{\bfdefault}{n}

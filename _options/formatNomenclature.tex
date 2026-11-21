@@ -6,6 +6,13 @@
 %% No external tool is needed: sorting is done by LaTeX itself (\makenoidxglossaries).
 %% =====================================================================
 \makeatletter
+%% glossaries loads datatool, which (v3, TeX Live 2025 and later) warns that it has no Dutch localisation
+%% because babel loads Dutch for the summary. That is harmless here (nothing is sorted in Dutch), so turn the
+%% warning off. Only for datatool v3, recognised by its rollback file; older versions don't know the option.
+\IfFileExists{datatool-base-2019-09-27.sty}{%
+    \PassOptionsToPackage{lang-warn=false}{datatool-base}%
+    \PassOptionsToPackage{nowarn}{tracklang}%
+}{}
 \usepackage[nomain, nopostdot, nonumberlist, nogroupskip]{glossaries-extra}
 \makenoidxglossaries
 %% Store entry fields exactly as written (units such as \unit{\metre} only work when typeset).

@@ -46,7 +46,8 @@
 \bookmarksetup{numbered, depth=2}
 %% TeX Live 2026: with \DocumentMetadata the LaTeX kernel makes the footnote links and hyperref no
 %% longer defines the counter Hfootnote, which memoir's footnote code still steps. Define it if missing.
-\makeatletter\@ifundefined{c@Hfootnote}{\newcounter{Hfootnote}}{}\makeatother
+%% (A bare count register, not \newcounter, so hyperref doesn't try to define \theHfootnote again.)
+\makeatletter\@ifundefined{c@Hfootnote}{\expandafter\newcount\csname c@Hfootnote\endcsname}{}\makeatother
 \AtBeginDocument{\hypersetup{
     pdftitle    = {\thesispdftitle},
     pdfauthor   = {\thesisauthorfirstnames\ \thesisauthorlastname},
