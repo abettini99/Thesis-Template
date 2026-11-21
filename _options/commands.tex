@@ -79,8 +79,10 @@
 % tensor - double dot product
 \newcommand{\cddot}{\mathbin{{\cdot}{\cdot}}}
 
-% bilinear form (inner product) for weak forms: \BilinearForm{\vec{v}}{\vec{u}^h}{L^2(\Omega)}
-\newcommand\BilinearForm[3]{\Big(#1\,,\,#2\Big)_{#3}}
+% L2 inner product in weak forms, subscript = domain of integration: \BilinearForm{\vec{v}}{\vec{u}^h}{\Omega}
+% gives (v, u^h)_Omega. \bigl/\bigr brackets keep lines short; write time derivatives inside it as
+% \cpderiv{\vec{u}^h}{t} (gives \partial_t u^h), as a fraction would be taller than the brackets.
+\newcommand\BilinearForm[3]{\bigl(#1,\,#2\bigr)_{#3}}
 
 %% Vectors and tensors are written like other symbols, in plain italics, as is usual in
 %% mathematics and numerical analysis. Change these two lines to switch notation everywhere:
