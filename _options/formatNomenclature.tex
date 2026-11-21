@@ -67,7 +67,7 @@
     \fi}
 %% Definitions are set in full-size (display-style) maths, with room above and below so fractions
 %% do not touch the next row.
-\newcommand{\thesis@definition}[1]{\ensuremath{\displaystyle #1}\rule[-2.6ex]{0pt}{5.4ex}}
+\newcommand{\thesis@definition}[1]{\ensuremath{\displaystyle #1}\rule[-2.4ex]{0pt}{6.2ex}}
 %% Dimensions are given in maths ("\Lunit\Tunit^{-1}"); "--" gives an en dash for dimensionless quantities.
 \newcommand{\thesis@dims}[1]{%
     \def\thesis@arg{#1}\def\thesis@dash{--}%
@@ -82,6 +82,7 @@
 %% ---------------------------------------------------------------------
 %% Layout of the lists: same columns as before.
 %% ---------------------------------------------------------------------
+%% A hairline (0.3 pt, like the rule under the running heads) separates the column headers.
 %% Narrow symbol, dimensions and units columns and 4 pt column gaps leave the description as much
 %% room as possible, also on the narrow Dover page.
 \newlength\symbolwidth      \setlength\symbolwidth{4em}
@@ -91,14 +92,42 @@
 \newlength\definitionwidth
 
 \newcommand{\nomheader}[1]{{\sffamily\mbox{#1}}} % Source Sans Regular; \mbox: no hyphenation in narrow columns
-%% List titles look like section headings: semibold, 1.15 x text size, the same space around them.
-\newcommand{\nomtitle}[1]{\par\addvspace{1.5\onelineskip}\noindent{\thesis@secsize\bfseries\headingfont #1}\par\nopagebreak\vspace{0.5\onelineskip}}
+%% List titles look like section headings: semibold, 1.15 x text size, the same space around them;
+%% a title only starts a list where its header and first rows fit below it.
+\newcommand{\nomtitle}[1]{\par\addvspace{1.5\onelineskip}\needspace{7\onelineskip}\noindent{\thesis@secsize\bfseries\headingfont #1}\par\nopagebreak\vspace{0.5\onelineskip}}
 
-%% A hairline under the column headers (0.3 pt, like the rule under the running heads).
 %% The lists get their titles from \printnom, so the glossary's own heading is switched off.
 \renewcommand*{\glossarysection}[2][]{}
 
-%% Common settings for the styles below.
+%% The rows of a list are collected first and set as one longtable at the end, so that the first
+%% two and the last two rows can be kept together: a page break never leaves a single row under the
+%% header at the bottom of a page, or alone at the top of the next.
+\ExplSyntaxOn
+\seq_new:N \g__thesis_nom_seq
+\tl_new:N \l__thesis_nom_tl
+\cs_new_protected:Npn \thesis@nomrow #1 { \seq_gput_right:Nn \g__thesis_nom_seq {#1} }
+\cs_new_protected:Npn \thesis@nomtable #1#2 % #1 column spec, #2 header row
+  {
+    \tl_clear:N \l__thesis_nom_tl
+    \int_set:Nn \l_tmpa_int { \seq_count:N \g__thesis_nom_seq }
+    \seq_map_indexed_inline:Nn \g__thesis_nom_seq
+      {
+        \tl_put_right:Nn \l__thesis_nom_tl {##2}
+        \bool_lazy_or:nnTF
+          { \int_compare_p:nNn {##1} = { 1 } }
+          { \int_compare_p:nNn {##1} = { \l_tmpa_int - 1 } }
+          { \tl_put_right:Nn \l__thesis_nom_tl { \tabularnewline* } }
+          { \tl_put_right:Nn \l__thesis_nom_tl { \tabularnewline } }
+      }
+    \seq_gclear:N \g__thesis_nom_seq
+    \exp_args:NnnV \__thesis_nom_longtable:nnn {#1} {#2} \l__thesis_nom_tl
+  }
+\cs_new_protected:Npn \__thesis_nom_longtable:nnn #1#2#3
+  { \begin{longtable}{#1} #2 \tabularnewline* \midrule[0.3pt] \endhead #3 \end{longtable} }
+\ExplSyntaxOff
+
+%% Common settings for the styles below. Descriptions are set ragged right without hyphenation, as in
+%% the other tables.
 \newcommand{\thesis@nomtablesetup}{%
     \setlength\tabcolsep{4pt}%
     \setlength\LTleft{0pt}\setlength\LTright{0pt}\setlength\LTpre{0pt}\setlength\LTpost{0pt}%
@@ -110,40 +139,37 @@
 %% Symbol | Description          (acronyms: description starts with a capital)
 \newglossarystyle{nom-plain}{%
     \thesis@nomtablesetup
-    \renewenvironment{theglossary}{%
+    \renewenvironment{theglossary}{}{%
         \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-2\tabcolsep\relax}%
-        \begin{longtable}{@{}p{\symbolwidth}p{\descriptionwidth}@{}}
-            \nomheader{Symbol} & \nomheader{Description} \\ \midrule[0.3pt] \endhead}
-        {\end{longtable}}%
+        \thesis@nomtable{@{}p{\symbolwidth}>{\raggedright\arraybackslash}p{\descriptionwidth}@{}}
+            {\nomheader{Symbol} & \nomheader{Description}}}%
     \renewcommand*{\glossentry}[2]{%
-        \glstarget{##1}{\glossentryname{##1}} & \RaggedRight\glossentrydesc{##1} \tabularnewline}}
+        \thesis@nomrow{\glstarget{##1}{\glossentryname{##1}} & \glossentrydesc{##1}}}}
 \newglossarystyle{nom-acronyms}{%
     \setglossarystyle{nom-plain}%
     \renewcommand*{\glossentry}[2]{%
-        \glstarget{##1}{\glossentryname{##1}} & \RaggedRight\Glsxtrlong{##1} \tabularnewline}}
+        \thesis@nomrow{\glstarget{##1}{\glossentryname{##1}} & \Glsxtrlong{##1}}}}
 
 %% Symbol | Description | Definition
 \newglossarystyle{nom-definition}{%
     \thesis@nomtablesetup
-    \renewenvironment{theglossary}{%
+    \renewenvironment{theglossary}{}{%
         \setlength\definitionwidth{\dimexpr\dimensionswidth+\unitswidth+2\tabcolsep\relax}%
         \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-\definitionwidth-4\tabcolsep\relax}%
-        \begin{longtable}{@{}p{\symbolwidth}p{\descriptionwidth}p{\definitionwidth}@{}}
-            \nomheader{Symbol} & \nomheader{Description} & \nomheader{Definition} \\ \midrule[0.3pt] \endhead}
-        {\end{longtable}}%
+        \thesis@nomtable{@{}p{\symbolwidth}>{\raggedright\arraybackslash}p{\descriptionwidth}p{\definitionwidth}@{}}
+            {\nomheader{Symbol} & \nomheader{Description} & \nomheader{Definition}}}%
     \renewcommand*{\glossentry}[2]{%
-        \glstarget{##1}{\glossentryname{##1}} & \RaggedRight\glossentrydesc{##1} & \glsentrydefinition{##1} \tabularnewline}}
+        \thesis@nomrow{\glstarget{##1}{\glossentryname{##1}} & \glossentrydesc{##1} & \glsentrydefinition{##1}}}}
 
 %% Symbol | Description | Dimensions | Units
 \newglossarystyle{nom-dimensions}{%
     \thesis@nomtablesetup
-    \renewenvironment{theglossary}{%
+    \renewenvironment{theglossary}{}{%
         \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-\dimensionswidth-\unitswidth-6\tabcolsep\relax}%
-        \begin{longtable}{@{}p{\symbolwidth}p{\descriptionwidth}p{\dimensionswidth}p{\unitswidth}@{}}
-            \nomheader{Symbol} & \nomheader{Description} & \nomheader{Dimensions} & \nomheader{Units} \\ \midrule[0.3pt] \endhead}
-        {\end{longtable}}%
+        \thesis@nomtable{@{}p{\symbolwidth}>{\raggedright\arraybackslash}p{\descriptionwidth}p{\dimensionswidth}p{\unitswidth}@{}}
+            {\nomheader{Symbol} & \nomheader{Description} & \nomheader{Dimensions} & \nomheader{Units}}}%
     \renewcommand*{\glossentry}[2]{%
-        \glstarget{##1}{\glossentryname{##1}} & \RaggedRight\glossentrydesc{##1} & \glsentrydimensions{##1} & \glsentryunits{##1} \tabularnewline}}
+        \thesis@nomrow{\glstarget{##1}{\glossentryname{##1}} & \glossentrydesc{##1} & \glsentrydimensions{##1} & \glsentryunits{##1}}}}
 
 %% \printnom{type}{title}{style}{sort}: prints one list with its title.
 \newcommand{\printnom}[4]{%

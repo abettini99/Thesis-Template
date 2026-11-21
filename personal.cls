@@ -175,13 +175,48 @@
 \addbibresource{references.bib}
 \setlength\bibitemsep{0.25\baselineskip} % space between references
 %% Set ragged right: references are full of long names, journal titles and DOIs, which in justified
-%% text leave wide gaps. DOIs and URLs in the text font, and allowed to break after any character.
+%% text leave wide gaps.
 \RequirePackage{ragged2e}
 \renewcommand*{\bibfont}{\RaggedRight}
-\AtBeginBibliography{\urlstyle{same}}
-\setcounter{biburlnumpenalty}{100}
-\setcounter{biburlucpenalty}{100}
-\setcounter{biburllcpenalty}{100}
+
+%% Line breaks in URLs and DOIs (typewriter), in the text and the references alike. Never a hyphen;
+%% preferably where the Chicago Manual of Style puts them, so a character at the end of a line is
+%% never mistaken for punctuation and the next line visibly continues the address:
+%%   after a colon or a double slash;  before a single slash, full stop, comma, hyphen, underscore,
+%%   tilde, number sign or percent sign;  before or after = and &.
+%% Only if none of those fits does a URL break between other characters (letters, digits), so it never
+%% sticks out into the margin.
+%% (Penalties as registers, so a digit that follows in the URL is not read as part of the number.)
+\chardef\thesis@urlgood=50   % penalty at a Chicago break point
+\chardef\thesis@urlother=200 % penalty between other characters
+\newif\ifthesis@urlslash
+\newcommand*{\thesis@urlsetup}{%
+    \Urlmuskip=0mu\relax
+    \def\UrlBreaks{}\def\UrlBigBreaks{}%
+    \def\UrlSpecials{%
+        \do\ {\Url@space}\do\^^M{\Url@space}%
+        \do\%{\thesis@urlslashfalse\penalty\thesis@urlgood\Url@percent}%
+        \do\:{\thesis@urlslashfalse\mathchar`\:\penalty\thesis@urlgood}%
+        \do\/{\ifthesis@urlslash \mathchar`\/\penalty\thesis@urlgood\thesis@urlslashfalse
+              \else \penalty\thesis@urlgood\mathchar`\/\thesis@urlslashtrue \fi}%
+        \do\.{\thesis@urlbefore\.}\do\,{\thesis@urlbefore\,}\do\-{\thesis@urlbefore\-}%
+        \do\_{\thesis@urlbefore\_}\do\~{\thesis@urlbefore\~}\do\#{\thesis@urlbefore\#}%
+        \do\={\thesis@urlbefore\=\penalty\thesis@urlgood}\do\&{\thesis@urlbefore\&\penalty\thesis@urlgood}%
+        \thesis@urlotherchars}}
+\newcommand*{\thesis@urlbefore}[1]{\thesis@urlslashfalse\penalty\thesis@urlgood\mathchar`#1}
+\newcommand*{\thesis@urlotherchars}{%
+    \def\thesis@do##1{\do##1{\thesis@urlslashfalse\mathchar`##1\penalty\thesis@urlother}}%
+    \thesis@do a\thesis@do b\thesis@do c\thesis@do d\thesis@do e\thesis@do f\thesis@do g\thesis@do h%
+    \thesis@do i\thesis@do j\thesis@do k\thesis@do l\thesis@do m\thesis@do n\thesis@do o\thesis@do p%
+    \thesis@do q\thesis@do r\thesis@do s\thesis@do t\thesis@do u\thesis@do v\thesis@do w\thesis@do x%
+    \thesis@do y\thesis@do z\thesis@do A\thesis@do B\thesis@do C\thesis@do D\thesis@do E\thesis@do F%
+    \thesis@do G\thesis@do H\thesis@do I\thesis@do J\thesis@do K\thesis@do L\thesis@do M\thesis@do N%
+    \thesis@do O\thesis@do P\thesis@do Q\thesis@do R\thesis@do S\thesis@do T\thesis@do U\thesis@do V%
+    \thesis@do W\thesis@do X\thesis@do Y\thesis@do Z\thesis@do 0\thesis@do 1\thesis@do 2\thesis@do 3%
+    \thesis@do 4\thesis@do 5\thesis@do 6\thesis@do 7\thesis@do 8\thesis@do 9\thesis@do )\thesis@do ]%
+    \thesis@do ?\thesis@do ;\thesis@do !\thesis@do @\thesis@do +} % not ( or [: amsmath measures ( for its struts
+\thesis@urlsetup
+\renewcommand*{\biburlsetup}{\thesis@urlsetup} % biblatex would otherwise apply its own rules in the references
 %% A URL adds nothing when there is a DOI: hide it (and its access date).
 \AtEveryBibitem{\iffieldundef{doi}{}{\clearfield{url}\clearfield{urlyear}\clearfield{urlmonth}\clearfield{urlday}}}
 \if@backref

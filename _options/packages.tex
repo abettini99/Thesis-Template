@@ -15,7 +15,23 @@
 %% Wrapping (X) columns are set ragged right without hyphenation: in a narrow column justified text
 %% leaves wide gaps, and a word broken over two lines of a table cell reads badly.
 \renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash}p{#1}}
-\usepackage{pdflscape}          % https://ctan.org/pkg/pdflscape %% landscape pages, shown rotated in PDF viewers
+%% Sideways floats (sidewaystable, sidewaysfigure) for material too wide for the page: a page of
+%% their own, turned so that the top of the table is at the left edge on left and right pages alike
+%% (the book convention: the reader always turns the book clockwise, and a table continued over a
+%% spread reads as one page). The text keeps flowing around it.
+\usepackage[figuresright]{rotating} % https://ctan.org/pkg/rotating
+%% Report (screen) version with LuaLaTeX: those pages are shown turned upright in PDF viewers. A
+%% marker inside the float sets /Rotate on the page it lands on; the next page resets it. Not in the
+%% print version, where a rotated page can confuse the printer's imposition software.
+\ifprintversion\else\ifdefined\directlua
+    \protected\def\thesisrotatepage{\latelua{
+        thesis_pageattr = pdf.getpageattributes() or ""
+        pdf.setpageattributes(thesis_pageattr .. " /Rotate 90")}}
+    \AddToHook{env/sidewaystable/end}{\thesisrotatepage}
+    \AddToHook{env/sidewaysfigure/end}{\thesisrotatepage}
+    \AddToHook{shipout/before}{\directlua{
+        if thesis_pageattr then pdf.setpageattributes(thesis_pageattr); thesis_pageattr = nil end}}
+\fi\fi
 \usetikzlibrary{positioning,arrows.meta} % TikZ itself is loaded by the class (thumb tabs)
 
 %% Text and code
@@ -29,7 +45,7 @@
 %% Paragraphs: book style, first line indented and no blank space between paragraphs.
 %% (The first paragraph after a heading is not indented, as usual.)
 \setlength{\parindent}{1.5em}
-\setlength{\parskip}{0pt}
+\setlength{\parskip}{0pt plus 1pt} % a tiny stretch, so a page that breaks early spreads the gap over all paragraphs
 %% Tables are set in \small, matching the captions.
 \AddToHook{env/table/begin}{\small}
 
@@ -62,6 +78,9 @@
 %% To rename one, change the word here and in its \crefname below.
 \let\openbox\relax  % also defined by newtxmath; let amsthm define it
 \usepackage{amsthm}
+%% Proofs stretch like the other statements (amsthm gives them 6pt plus 6pt, so they took up most of the
+%% slack on a page that breaks early, leaving holes around them).
+\makeatletter\expandafter\patchcmd\csname\string\proof\endcsname{\topsep6\p@\@plus6\p@}{\topsep6\p@\@plus2\p@}{}{\PackageWarning{thesis}{Could not patch the proof spacing}}\makeatother
 %% (the environments are defined after cleveref below, so it names shared-counter ones correctly)
 
 %% Algorithms (pseudocode): "Algorithm 2.1", numbered per chapter, as a float with its caption on top.
@@ -69,6 +88,15 @@
 %% List of algorithms: \listofalgorithms in main.tex (commented out there).
 \usepackage[chapter]{algorithm}
 \usepackage{algpseudocode}
+%% Same look as code listings and tables: caption above (small, label in bold small capitals), then a
+%% thin rule, the steps, and a thin rule.
+\makeatletter
+\renewcommand\fs@ruled{\def\@fs@cfont{}\let\@fs@capt\floatc@ruled
+    \def\@fs@pre{}\def\@fs@post{\kern2pt\hrule\relax}%
+    \def\@fs@mid{\kern3pt\hrule\kern3pt}\let\@fs@iftopcapt\iftrue}
+\makeatother
+\floatstyle{ruled}\restylefloat{algorithm}
+\DeclareCaptionStyle{ruled}{font=small, labelfont={sc,bf}, labelsep=quad}
 \algrenewcommand\algorithmicrequire{\textbf{Input:}}
 \algrenewcommand\algorithmicensure{\textbf{Output:}}
 \algrenewcommand\algorithmiccomment[1]{\hfill\textcolor{black!60}{\(\triangleright\) \textit{#1}}}
@@ -86,7 +114,10 @@
 %% Refer to an algorithm line with line~\ref{alg:...} (\cref would capitalise it mid-sentence).
 
 %% The numbered statements described above (after cleveref, which needs that for shared counters)
-\theoremstyle{definition}
+%% Head: "Theorem 3.1." in bold; with a note, "Theorem 3.1 (Name)." with note and full stop in regular weight.
+\newtheoremstyle{thesis}{\topsep}{\topsep}{\normalfont}{0pt}{\normalfont}{}{5pt plus 1pt minus 1pt}%
+    {\textbf{\thmname{#1}\thmnumber{ #2}\ifx\relax#3\relax.\fi}\thmnote{ (#3).}}
+\theoremstyle{thesis}
 \newtheorem{formulation}{Formulation}[chapter]
 \newtheorem{definition}{Definition}[chapter]
 \newtheorem{lemma}[definition]{Lemma}

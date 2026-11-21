@@ -33,7 +33,7 @@
 
 \begin{document}
 
-\pagenumbering{gobble}
+\pagenumbering{roman} % counted from the half-title (page i), as in books; the title pages print no number
 \input{_titlepage.tex}
 
 \begin{Spacing}{\thesisspacing} % line spacing of the main text (set per page size in personal.cls)
@@ -41,7 +41,6 @@
     %% =========== %%
     %% FRONTMATTER %%
     %% =========== %%
-    \pagenumbering{roman}
     \pagestyle{frontmatter}
     \aliaspagestyle{chapter}{plain}
 

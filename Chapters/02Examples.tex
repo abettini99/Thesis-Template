@@ -430,16 +430,15 @@ for alpha in range(0, 12, 2):
 \end{lstlisting}
 
 %% =====================================================================
-\begin{landscape}
-\section{Landscape pages}\label{sec:landscape}
+\section{Sideways tables and figures}\label{sec:sideways}
 %% =====================================================================
 
-Material that is too wide for the page, such as this table, can be set on a landscape page (\cref{tab:landscape}). In the PDF, the page is shown rotated so it can be read without turning the screen.
+Material that is too wide for the page, such as \cref{tab:sideways}, goes in a \texttt{sidewaystable} (or \texttt{sidewaysfigure}): it gets a page of its own, turned so that its top is at the left edge, on left and right pages alike, and the text continues around it. In the report version, PDF viewers show that page upright.
 
-\begin{table}[htbp]
+\begin{sidewaystable}
     \centering
-    \caption{A wide table on a landscape page.}
-    \label{tab:landscape}
+    \caption{A wide table set sideways.}
+    \label{tab:sideways}
     \begin{tabular}{@{}l *{9}{S[table-format=1.3]}@{}}
         \toprule
         & \multicolumn{9}{c}{Angle of attack (\unit{\degree})} \\
@@ -451,5 +450,6 @@ Material that is too wide for the page, such as this table, can be set on a land
         Propeller, outboard-up & 0.009 & 0.214 & 0.418 & 0.620 & 0.821 & 1.019 & 1.174 & 1.257 & 1.221 \\
         \bottomrule
     \end{tabular}
-\end{table}
-\end{landscape}
+\end{sidewaystable}
+
+\lipsum[1-2]
