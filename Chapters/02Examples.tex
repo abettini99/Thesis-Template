@@ -36,7 +36,7 @@ A description list:
 
 \subsection{Acronyms and symbols}
 
-Acronyms and symbols are defined once and then appear in the nomenclature automatically; their definitions are in the file \texttt{\_nomenclature.tex}. An acronym is written out the first time it is used: the \gls{bem} method is fast. After that, only the short form appears: \gls{bem} is used throughout. Symbols work in text and in maths alike: the dynamic pressure is $\frac{1}{2} \gls{rho} \gls{Uinf}^2$, with \gls{rho} the air density.
+Acronyms and symbols are defined once and then appear in the nomenclature automatically; they are all defined in \file{_nomenclature.tex}. An acronym is written out the first time it is used: the \gls{bem} method is fast. After that, only the short form appears: \gls{bem} is used throughout. Symbols work in text and in maths alike: the dynamic pressure is $\frac{1}{2} \gls{rho} \gls{Uinf}^2$, with \gls{rho} the air density.
 
 \subsection{Quotations}
 
@@ -169,12 +169,12 @@ Two separate figures can also sit side by side, each with its own number, as \cr
 
 \subsection{Plots}
 
-Plots are made in Python and included as PDF, at the width they were made for (\cref{fig:plot}). The style file \texttt{thesis.mplstyle} in the \texttt{Python} folder uses Times, sizes the text just below the caption size, and draws each line in a colour that is safe for colour-blind readers and with its own line style, so the lines stay apart when printed in greyscale. The script \texttt{example\_plot.py} in the same folder makes this figure.
+Plots are made in Python and included as PDF, at the width they were made for (\cref{fig:plot}). The style file \file{thesis.mplstyle} in the \texttt{Python} folder uses Times, sizes the text just below the caption size, and draws each line in a colour that is safe for colour-blind readers and with its own line style, so the lines stay apart when printed in greyscale. The script \texttt{example\_plot.py} in the same folder makes this figure.
 
 \begin{figure}[tbp]
     \centering
     \includegraphics[alt={Lift coefficient against angle of attack: the thin-aerofoil line rises straight; with the propeller off the lift levels off near 1.0 at 15 degrees, and higher thrust coefficients raise the maximum lift to about 1.6}]{Images/example_plot.pdf}
-    \caption{A plot made with \texttt{thesis.mplstyle} (illustrative data).}
+    \caption{A plot made with \file{thesis.mplstyle} (illustrative data).}
     \label{fig:plot}
 \end{figure}
 

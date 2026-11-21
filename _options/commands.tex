@@ -100,3 +100,8 @@
 %% Dutch name prefixes: write {\VAN} in references.bib (e.g. author = {T. \VAN~Pelt}). It prints "Van"
 %% in the text (\citet) and "van" in the reference list (switched in main.tex).
 \DeclareRobustCommand{\VAN}[0]{Van}
+
+%% File and package names in typewriter type that may break across lines after . / _ (a long name in
+%% \texttt can't be broken and sticks out into the margin on a narrow page). Type underscores as they are:
+%% \file{_nomenclature.tex}, \file{Python/thesis.mplstyle}
+\newcommand{\file}[1]{\nolinkurl{#1}}
