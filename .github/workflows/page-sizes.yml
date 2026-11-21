@@ -1,0 +1,56 @@
+# Regenerates .github/readme/page-sizes.png (the page-size comparison in the README) whenever the
+# template changes, and commits it if it looks different. It compiles the template in all four
+# page sizes on the latest TeX Live, so a failing run also means the template no longer compiles.
+name: Page sizes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - personal.cls
+      - main.tex
+      - _options/**
+      - _thesisinfo.tex
+      - _titlepage.tex
+      - _nomenclature.tex
+      - _hyphenation.tex
+      - references.bib
+      - Chapters/**
+      - Images/**
+      - .github/scripts/page_sizes.py
+      - .github/workflows/page-sizes.yml
+  workflow_dispatch:   # run by hand: Actions tab > Page sizes > Run workflow
+
+permissions:
+  contents: write      # to commit the image
+
+concurrency:
+  group: page-sizes
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    container: texlive/texlive:latest
+    steps:
+      - name: Tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git python3-pil poppler-utils
+      - uses: actions/checkout@v4
+      - name: Render the page sizes
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          python3 .github/scripts/page_sizes.py
+      - name: Commit the image if it changed
+        run: |
+          if git diff --quiet -- .github/readme/page-sizes.png; then
+            echo "Image unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/readme/page-sizes.png
+          git commit -m "Update the page-size comparison"
+          git pull --rebase origin main
+          git push origin HEAD:main

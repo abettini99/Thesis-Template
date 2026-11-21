@@ -40,6 +40,10 @@ Set in the first line of `main.tex`, for example:
 \documentclass[print-preparation,thumb,showtrims]{personal}
 ```
 
+![The same page in the four page sizes, at the same scale, with type size, leading, lines per page and line length](.github/readme/page-sizes.png)
+
+*The same page in the four page sizes, at the same scale (print-showcase edition). The image is regenerated automatically whenever the template changes ([`.github/scripts/page_sizes.py`](.github/scripts/page_sizes.py)).*
+
 | Option | Effect |
 |---|---|
 | `dover` *(default)*, `a5`, `royal`, `tudelft` | Book page size: 137 × 213 mm (the classic Dover paperback, 5⅜ × 8⅜ in), 148 × 210 mm, 156 × 234 mm or 170 × 240 mm. Text block, margins and chapter-title size follow automatically. Dover is set in 9.5 pt type on 12 pt leading (the Dover paperbacks used 11.4 pt; the extra air helps inline maths); A5 and Royal in 10 pt on 13.2 pt; TU Delft in 11 pt on 15 pt, so its wider lines stay at about the same length as the other sizes (75–77 characters). Check that your printer offers the size. |
@@ -204,7 +208,7 @@ Printers usually charge every page that contains any colour as a colour page. So
 
 ## Overleaf ↔ GitHub
 
-This repository is synced with Overleaf (*Menu → GitHub*).
+This repository is synced with Overleaf (*Menu → GitHub*). On every push that changes the template, a GitHub workflow (`.github/workflows/page-sizes.yml`) compiles it in all four page sizes on the latest TeX Live and updates the page-size image above; a failed run in the *Actions* tab means the template no longer compiles. When it updates the image it adds a commit, so pull in Overleaf afterwards.
 
 - Before editing elsewhere (locally, or with Claude), **push** from Overleaf so the repository has your latest version.
 - After changes were committed to the repository, **pull** in Overleaf to bring them in.
