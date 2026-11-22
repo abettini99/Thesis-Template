@@ -228,6 +228,30 @@ def tounicode_tex(suffixed: dict[str, str]) -> str:
     return "\n".join(lines) + "\n"
 
 
+# --- the pre-commit hook -----------------------------------------------------
+
+def install_hook() -> None:
+    """Copy tools/hooks/pre-commit into the clone's .git/hooks (executable), so git refuses commits with
+    the converted fonts. A copy, because Overleaf's GitHub synchronisation drops the executable flag of
+    the file in tools/hooks. Leaves a different pre-commit hook of your own alone."""
+    src, git = ROOT / "tools" / "hooks" / "pre-commit", ROOT / ".git"
+    if not src.is_file() or not git.is_dir():           # not a git clone (e.g. an Overleaf download)
+        return
+    dst = git / "hooks" / "pre-commit"
+    new = src.read_bytes()
+    if dst.exists():
+        old = dst.read_bytes()
+        if old == new and dst.stat().st_mode & 0o111:
+            return
+        if b"MathTime" not in old:
+            print(f"note: {dst} is a hook of your own; add the MathTime check from {src} to it")
+            return
+    dst.parent.mkdir(exist_ok=True)
+    dst.write_bytes(new)
+    dst.chmod(0o755)
+    print(f"Installed the pre-commit hook that keeps the fonts out of git: {dst}")
+
+
 # --- main ------------------------------------------------------------------
 
 def main(argv: list[str] | None = None) -> int:
@@ -278,6 +302,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"warning: {need} not found in {src.label}")
     print(f"{len(src.pfbs)} fonts converted ({total} glyphs mapped), {copied} files copied -> {out}")
     print("Licence: keep these files private. Never commit or share them; the .gitignore blocks them.")
+    install_hook()
     return 0
 
 
