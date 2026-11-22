@@ -33,7 +33,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PT_PER_MM = 72.27 / 25.4
-TIMES = re.compile(r"Times|Termes|NimbusRom|Nimbus Roman|STIX|NewTX|ntx|Tinos|Liberation ?Serif|"
+TIMES = re.compile(r"Times|Termes|NimbusRom|Nimbus Roman|STIX|NewTX|ntx|tx(mia|sys|exa|sy|ex)|Tinos|Liberation ?Serif|"
                    r"MT2|MTPro|TeXGyreTermes|Symbol", re.I)
 MIN_MAIN, MIN_ANY, SCALE_TOL, PRINT_PPI = 6.5, 5.0, 0.03, 300
 
@@ -115,10 +115,14 @@ def text_sizes(path: Path):
                 tm = tlm
             elif op in ("Tj", "TJ", "'", '"') and size:
                 m = mul(tm, ctm)
-                sizes.append(abs(size) * math.sqrt(abs(m[0] * m[3] - m[1] * m[2])))
-                if font is not None and font.get("/Subtype") == "/Type0":
-                    items = operands[0] if op == "TJ" else [operands[-1]]
-                    data = b"".join(bytes(x) for x in items if isinstance(x, pikepdf.String))
+                items = operands[0] if op == "TJ" else [operands[-1]]
+                data = b"".join(bytes(x) for x in items if isinstance(x, pikepdf.String))
+                type0 = font is not None and font.get("/Subtype") == "/Type0"
+                # one entry per glyph, so "most of the text" counts characters, not text pieces
+                # (TeX sets an exponent as a piece of its own)
+                nglyphs = max(1, len(data) // 2 if type0 else len(data))
+                sizes.extend([abs(size) * math.sqrt(abs(m[0] * m[3] - m[1] * m[2]))] * nglyphs)
+                if type0:
                     missing[0] += sum(1 for i in range(0, len(data) - 1, 2) if data[i:i + 2] == b"\0\0")
             elif op == "Do" and resources is not None:
                 xo = resources.get("/XObject", {}).get(str(operands[0]))
@@ -201,7 +205,7 @@ def main(argv=None) -> int:
                                  "them off as Python/example_figures.py does, and export again")
                 other = sorted(f for f in fonts if f and not TIMES.search(f))
                 if other:
-                    notes.append(f"fonts other than Times: {', '.join(other)} (the template's style file uses Times)")
+                    notes.append(f"fonts other than Times: {', '.join(other)} (the thesis uses Times)")
         elif suffix in (".png", ".jpg", ".jpeg") and path.exists():
             px = raster_pixels(path)
             if px:

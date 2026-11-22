@@ -7,7 +7,7 @@
 %%   page v   : dedication (optional; \thesisdedication in _thesisinfo.tex)
 
 %% ---------------------------------------------------------------------
-%% Page i: half-title (title only, smaller than on the title page, at the height of the chapter titles)
+%% Page i: half-title (the title alone, without the subtitle, which waits for the title page; smaller than on the title page, at the height of the chapter titles)
 %% ---------------------------------------------------------------------
 \thispagestyle{empty}
 \makeatletter
@@ -16,8 +16,6 @@
     \chapterheadstart\thesis@chapterlabelspace
     \centering
     {\fontsize{0.75\dimexpr\chaptertitlesize\relax}{1.15\dimexpr\chaptertitlesize\relax}\headingfont\thesistitle\par}
-    \medskip
-    {\sffamily\large\thesissubtitle\par}
 \endgroup
 \makeatother
 

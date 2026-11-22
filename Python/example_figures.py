@@ -8,19 +8,27 @@ Produces, in Images/:
     example_energy.pdf     half width   kinetic energy of the Burgers solution
     example_plot.pdf       full width   lift curves (illustrative data)
 
-Run from the repository root:  python Python/example_figures.py
+Run from the repository root:  python Python/example_figures.py [--maths auto|mathtime|newtx]
+The text in the figures is set in the thesis's fonts (thesis_fonts.py): Times, with MathTime maths if
+it is in Fonts/, otherwise newtx. The figures that come with the template are made with newtx.
 Include each figure without scaling, e.g. \\includegraphics[scale=1]{Images/example_burgers.pdf},
 so the text in it keeps its size. Copy this file as a starting point for your own plots.
 """
+import argparse
 from pathlib import Path
 
-import matplotlib.text
 import matplotlib.pyplot as plt
 import numpy as np
+
+import thesis_fonts
 
 HERE = Path(__file__).parent
 OUT = HERE.parent / "Images"
 plt.style.use(HERE / "thesis.mplstyle")
+parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+parser.add_argument("--maths", choices=("auto", "mathtime", "newtx"), default="auto",
+                    help="maths font in the figures (auto: MathTime if prepared in Fonts/)")
+print("figure fonts:", thesis_fonts.setup(parser.parse_args().maths))
 
 # Text widths of the book (mm), slightly under the nominal sizes because the class rounds the
 # text width to whole points: Dover 91.5, A5 99.5, Royal 104.5, TU Delft 112.5. Half width (two
@@ -31,12 +39,7 @@ MM = 1 / 25.4
 
 
 def save(fig, name):
-    # Matplotlib 3.11 and later join "ff", "fi", "fl" into ligatures, which its PDF output stores as a
-    # missing glyph: the PDF/A check then fails and the text cannot be copied. Switch them off.
-    for text in fig.findobj(matplotlib.text.Text):
-        if hasattr(text, "set_fontfeatures"):
-            text.set_fontfeatures(["-liga", "-clig"])
-    fig.savefig(OUT / name)
+    thesis_fonts.save(fig, OUT / name)
     plt.close(fig)
     print(f"saved {OUT / name}")
 

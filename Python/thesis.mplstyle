@@ -5,8 +5,10 @@
 ## (see the README for the text widths of each page size).
 
 ## --- Fonts: Times, like the text --------------------------------------------------------
-## Times New Roman if installed (Windows, macOS); otherwise STIX, a Times-like font that ships with
-## matplotlib, so the result looks the same on every computer.
+## thesis_fonts.setup() (Python/thesis_fonts.py) replaces these with the thesis's own fonts, set by
+## LuaLaTeX, or without LuaLaTeX with matplotlib's maths in Times New Roman. With this file alone: Times
+## New Roman text if installed (Windows, macOS), otherwise STIX, a Times-like font that ships with
+## matplotlib; STIX maths.
 font.family:        serif
 font.serif:         Times New Roman, STIXGeneral, Nimbus Roman, TeX Gyre Termes, DejaVu Serif
 mathtext.fontset:   stix            # Times-like maths: $\alpha$, $C_L$, $U_\infty$

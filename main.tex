@@ -52,7 +52,7 @@
     %% FRONTMATTER %%
     %% =========== %%
     \pagestyle{frontmatter}
-    \aliaspagestyle{chapter}{plain}
+    \aliaspagestyle{chapter}{empty}
 
     \contentsstyle{frontmatter} % front matter: a compact block in the contents
     \include{Chapters/00Summary}
@@ -91,7 +91,7 @@
     %% One reference list at the end of the book (not with the chapterbib option: then every chapter has its own)
     \ifchapterbib\else
         \thumbsoff % no thumb tab on the reference pages
-        \aliaspagestyle{chapter}{plain}
+        \aliaspagestyle{chapter}{empty}
         \DeclareRobustCommand{\VAN}[0]{van} % "van" prefixes lowercase in the reference list (see commands.tex)
         \renewcommand{\bibname}{References}
         \printbibliography
@@ -116,7 +116,7 @@
     %% =========== %%
     \bookmarksetup{startatroot}
     \cleardoublepage
-    \aliaspagestyle{chapter}{plain}
+    \aliaspagestyle{chapter}{empty}
     \pagestyle{frontmatter}
     \contentsstyle{frontmatter} % back matter: compact again
     \include{Chapters/Z_Acknowledgements}

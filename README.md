@@ -186,10 +186,14 @@ Make plots in Python with the style file `Python/thesis.mplstyle` (see `Python/e
 
 ```python
 import matplotlib.pyplot as plt
+import thesis_fonts                       # Python/thesis_fonts.py
 plt.style.use("Python/thesis.mplstyle")
+thesis_fonts.setup()                      # figure text in the thesis's own fonts
+...
+thesis_fonts.save(fig, "Images/my_figure.pdf")
 ```
 
-It sets Times (or STIX, a Times-like font included with matplotlib), text at about the caption size (7.5–8.5 pt for the Dover default; add 0.5 pt for A5 and Royal, 1.5 pt for TU Delft), a default size of 91.5 mm wide, colour-blind-safe colours each with its own line style (so lines stay apart in greyscale), and PDF output with embedded TrueType fonts, as needed for PDF/A. With matplotlib 3.11 or newer, save through the `save()` helper of `example_figures.py` (or copy its two lines): newer matplotlib joins *ff*, *fi* and *fl* into ligatures that its PDF output stores as missing glyphs, which fail the PDF/A check. Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
+The style sets text at about the caption size (7.5–8.5 pt for the Dover default; add 0.5 pt for A5 and Royal, 1.5 pt for TU Delft), a default size of 91.5 mm wide, and colour-blind-safe colours each with its own line style (so lines stay apart in greyscale). `thesis_fonts` has matplotlib set every label with LuaLaTeX, in the fonts of the text: Times, with MathTime maths when `tools/mtpro2_unicode.py` has prepared it in `Fonts/`, otherwise newtx. So `$\alpha$` or `$\Vert\nabla\boldsymbol{e}\Vert$` in a figure is the same glyph as in the text, and the PDF stays PDF/A-ready. `setup("newtx")` forces newtx; the figures that come with the template are made that way. Without LuaLaTeX it falls back to matplotlib's own maths in Times New Roman (or in STIX, its Times-like font, where Times New Roman is not installed). Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
 
 | Page size | Full text width | Half width (two side by side) |
 |---|---|---|
