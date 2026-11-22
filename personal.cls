@@ -160,6 +160,12 @@
 \RequirePackage{tikz}
 \input{_options/thumb}
 
+%%% HYPHENATION LOG for tools/check_hyphenation.py: every word TeX hyphenates at a line end goes to the
+%% log with its page (LuaLaTeX; the output does not change).
+\ifdefined\directlua
+    \IfFileExists{_options/hyphenationlog.lua}{\directlua{dofile("_options/hyphenationlog.lua")}}{}
+\fi
+
 %%% FIGURE LOG for tools/check_figures.py: every included graphic writes its natural and printed size
 %% (and page) to the log, and the log records the text width, caption size and font scale.
 \patchcmd{\Gin@setfile}{\leavevmode}{\thesis@logfigure{#3}\leavevmode}{}%

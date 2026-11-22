@@ -22,6 +22,8 @@ _pagesizes_*
 # tools/diff_versions.py output
 *-diff.tex
 *-diff.pdf
+# tools/greyscale_preview.py output
+*-grey.pdf
 
 # MathTime Professional 2 (optional maths fonts): licensed to you alone. The originals, the zips and
 # everything tools/mtpro2_unicode.py writes into Fonts/ must never be committed. See Fonts/README.md.
