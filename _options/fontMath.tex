@@ -11,17 +11,21 @@
 %%   ntxcal: \mathcal from newtx (the simpler V and W)
 %%   textsf: \mathsf (matrices \mathsf{A}, operators \mathsf{Res}) in Source Sans, the document's sans
 %%   scale:  the maths at the size of the text (95 % for the Dover size)
-%% (unicode-math replaces four of mathtools' colon symbols by characters MathTime does not have: keep
-%% mathtools' own, built from : and =, as with the Type 1 fonts; and its brackets, without the notes)
+%% (unicode-math replaces some symbols built from pieces by characters MathTime does not have. Keep the
+%% composite ones, as with the Type 1 fonts: mathtools' colons (from : and =) and brackets, amsmath's
+%% \iiiint and slanted \varTheta; and without unicode-math's notes about them)
 \ExplSyntaxOn
 \msg_redirect_name:nnn { unicode-math } { mathtools-colon } { none }
 \msg_redirect_name:nnn { unicode-math } { mathtools-overbracket } { none }
 \ExplSyntaxOff
-\@for\thesis@tmp:={dblcolon,coloneqq,Coloneqq,eqqcolon}\do{%
+\@for\thesis@tmp:={overbracket,underbracket,iiiint,varTheta}\do{%
     \expandafter\let\csname thesis@\thesis@tmp\expandafter\endcsname\csname\thesis@tmp\endcsname}
 \edef\thesis@tmp{\noexpand\RequirePackage[ntxcal, textsf, scale=\thesis@fontscale]{mtpro2-otf}}\thesis@tmp
-\@for\thesis@tmp:={dblcolon,coloneqq,Coloneqq,eqqcolon}\do{%
-    \expandafter\let\csname\thesis@tmp\expandafter\endcsname\csname thesis@\thesis@tmp\endcsname}
+\AddToHook{begindocument/end}{% (unicode-math sets its own at the start of the document)
+    \@for\thesis@tmp:={overbracket,underbracket,iiiint,varTheta}\do{%
+        \expandafter\let\csname\thesis@tmp\expandafter\endcsname\csname thesis@\thesis@tmp\endcsname}%
+    \def\dblcolon{\MATHT@dblcolon}\def\coloneqq{\MATHT@coloneq}% (mathtools' own, which it sets up
+    \def\Coloneqq{\MATHT@dblcoloneq}\def\eqqcolon{\MATHT@eqcolon}}% at the start of the document too)
 %% Characters of siunitx's units that MathTime has no glyph for (°, µ, Å, Ω): from the text font
 \DeclareSymbolFont{thesistext}{TU}{\rmdefault}{m}{n}
 \SetSymbolFont{thesistext}{bold}{TU}{\rmdefault}{\bfdefault}{n}
@@ -32,6 +36,39 @@
 \def\thesis@tmp{Lite}\ifx\MTPOTFedition\thesis@tmp
     \DeclareFontShape{TU}{MTPro2Math.otf(1)}{b}{n}{<->ssub*MTPro2Math.otf(1)/m/n}{}
 \fi
+%% Maths in a heading also goes into the PDF bookmarks. hyperref cannot read unicode-math's symbol commands
+%% there (\alpha, \nabla, \int, ...: an error per symbol): in bookmarks, let each stand for its character.
+\directlua{
+    local chars, aliases
+    function thesis_bookmark_symbols()
+        local bs, pc, lb, rb = string.char(92), string.char(37), string.char(123), string.char(125)
+        if not chars then
+            chars = {}
+            local f = io.open(kpse.find_file("unicode-math-table.tex"))
+            local pattern = "UnicodeMathSymbol" .. lb .. '"(' .. pc .. "x+)" .. rb .. lb .. "." .. "(" .. pc .. "a+)"
+                .. pc .. "s*" .. rb .. lb .. "." .. "(" .. pc .. "a+)"
+            for cp, name, class in f:read("a"):gmatch(pattern) do
+                cp = tonumber(cp, 16)
+                if cp > 127 and not class:find("accent") and not class:find("radical")
+                    and not class:find("over") and not class:find("under") then
+                    chars[name] = chars[name] or utf8.char(cp)
+                end
+            end
+            f:close()
+            aliases = {le = "leq", ge = "geq", ne = "neq", to = "rightarrow", gets = "leftarrow"}
+            for a, b in pairs(aliases) do chars[a] = chars[b] end % (unicode-math's other names)
+        end
+        local ct = luatexbase.registernumber("catcodetable@atletter")
+        for name, ch in pairs(chars) do              % (not where a macro of the document's own stands)
+            if aliases[name] or not token.create(name).cmdname:find("call") then
+                tex.sprint(ct, bs .. "def" .. bs .. name .. "{" .. ch .. "}")
+            end
+        end
+    end
+}
+\AtBeginDocument{\ifdefined\pdfstringdefDisableCommands
+    \pdfstringdefDisableCommands{\directlua{thesis_bookmark_symbols()}%
+        \let\xl\@empty\let\XL\@empty\let\XXL\@empty\let\XXXL\@empty}\fi}
 \newcommand{\thesisboldmath}{\bm} % mtpro2-otf's \bm (Lite: newtx bold letters)
 \edef\thesismathtimeedition{\MTPOTFedition}
 \ClassInfo{personal}{Maths font: MathTime Professional 2 \MTPOTFedition\space (OpenType, Fonts/)}
@@ -59,3 +96,10 @@
 \DeclareMathAlphabet{\mathsf}{TU}{\sfdefault}{m}{n}
 \SetMathAlphabet{\mathsf}{bold}{TU}{\sfdefault}{\bfdefault}{n}
 \fi
+
+%% In PDF bookmarks (maths in a heading), the alphabets and bold commands just pass their letters on
+%% (bm's \bm would stop the build there).
+\AtBeginDocument{\ifdefined\pdfstringdefDisableCommands\pdfstringdefDisableCommands{%
+    \@for\thesis@tmp:={mathrm,mathit,mathbf,mathsf,mathtt,mathcal,mathscr,mathfrak,mathbb,mathcurly,%
+        symup,symit,symbf,symsf,symtt,symcal,symscr,symfrak,symbb,bm,hm,boldsymbol}\do{%
+        \expandafter\let\csname\thesis@tmp\endcsname\@firstofone}}\fi}
