@@ -24,10 +24,10 @@
 %% (the book convention: the reader always turns the book clockwise, and a table continued over a
 %% spread reads as one page). The text keeps flowing around it.
 \usepackage[figuresright]{rotating} % https://ctan.org/pkg/rotating
-%% Report (screen) version with LuaLaTeX: those pages are shown turned upright in PDF viewers. A
+%% Report (screen) version: those pages are shown turned upright in PDF viewers. A
 %% marker inside the float sets /Rotate on the page it lands on; the next page resets it. Not in the
 %% print editions; for the printer, a rotated page can confuse the printer's imposition software.
-\ifprintversion\else\ifdefined\directlua
+\ifprintversion\else
     \protected\def\thesisrotatepage{\latelua{
         thesis_pageattr = pdf.getpageattributes() or ""
         pdf.setpageattributes(thesis_pageattr .. " /Rotate 90")}}
@@ -35,7 +35,7 @@
     \AddToHook{env/sidewaysfigure/end}{\thesisrotatepage}
     \AddToHook{shipout/before}{\directlua{
         if thesis_pageattr then pdf.setpageattributes(thesis_pageattr); thesis_pageattr = nil end}}
-\fi\fi
+\fi
 \usetikzlibrary{positioning,arrows.meta} % TikZ itself is loaded by the class (thumb tabs)
 
 %% Text and code

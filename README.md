@@ -9,7 +9,7 @@ Compile with **LuaLaTeX**. In Overleaf: *Menu → Settings → Compiler → LuaL
 - LuaLaTeX lets `microtype` stretch letters very slightly, which halves the number of hyphenated lines and gives evener word spacing.
 - The bibliography uses **biblatex + biber**, which Overleaf runs automatically. The nomenclature needs no extra tool.
 - The first compile on a new machine (or a new Overleaf project) takes longer while LuaLaTeX builds its font cache.
-- XeLaTeX also works (it is somewhat faster), but the class prints a warning as a reminder.
+- LuaLaTeX only: the class stops with a message under pdfLaTeX or XeLaTeX.
 
 ## Faster compiling
 
@@ -26,8 +26,7 @@ A long thesis gets slow because every chapter, figure and plot is processed on e
 The PDF is produced as **PDF/A-2u**, the archival standard: fonts are embedded, colours are defined against the sRGB colour profile, every character (maths included) maps to Unicode so text can be searched and copied reliably, and the file carries standard metadata. It will display the same in decades. This is set up in `_options/pdfa.tex` (with the `pdfx` package), which the class loads right after reading `_thesisinfo.tex`; the metadata (title, author, keywords, language) comes from `_thesisinfo.tex`, so there is nothing to edit there. (LaTeX's newer `\DocumentMetadata` is not used: it brings in tagging code that changes memoir's captions and headings.) The same PDF works for the printer and for the TU Delft repository.
 
 - **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A.
-- **Engine:** compile with LuaLaTeX for PDF/A. XeLaTeX still produces the same-looking PDF, but `pdfx` cannot add the XMP metadata there, so that file is not PDF/A.
-- **Checking:** the template passes the standard PDF/A-2u checks with LuaLaTeX. `python3 tools/check_pdf.py` checks your compiled PDF (see *Before sending it to the printer*); it runs [veraPDF](https://verapdf.org) (free) for a full validation when that is installed, otherwise have the final PDF validated once with veraPDF or Adobe Acrobat's preflight.
+- **Checking:** the template passes the standard PDF/A-2u checks. `python3 tools/check_pdf.py` checks your compiled PDF (see *Before sending it to the printer*); it runs [veraPDF](https://verapdf.org) (free) for a full validation when that is installed, otherwise have the final PDF validated once with veraPDF or Adobe Acrobat's preflight.
 - **Accessible (tagged) PDF**, the higher PDF/UA and PDF/A "a" levels, is not possible yet: the `memoir` class, the `caption` package and the `newtxmath` maths font are not yet compatible with LaTeX's tagging code, and several other packages have not been tested with it.
 
 ## Class options

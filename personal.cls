@@ -52,10 +52,11 @@
 \def\thesis@tmp{american}
 \ifx\thesis@language\thesis@tmp \def\thesis@bcp{en-US}\else \def\thesis@bcp{en-GB}\fi % language in the PDF metadata
 
-%% This template is set up for LuaLaTeX (better justification, PDF/A-2u maths). XeLaTeX still works.
+%% LuaLaTeX only: the class uses Lua for page balance, line breaks of URLs, maths fonts and the logs.
 \ifdefined\directlua\else
-    \ClassWarningNoLine{personal}{This template is meant to be compiled with LuaLaTeX.\MessageBreak
-        In Overleaf: Menu > Settings > Compiler > LuaLaTeX}
+    \ClassError{personal}{This template needs LuaLaTeX}{In Overleaf: Menu > Settings > Compiler > LuaLaTeX.
+        Locally: latexmk main.tex (latexmkrc selects LuaLaTeX).}
+    \expandafter\@@end
 \fi
 
 %% Public switch, for files outside the class (\ifprintversion ... \else ... \fi): true for the print
@@ -120,7 +121,6 @@
 \displaywidowpenalty=10000  % last line before a displayed equation alone at the top of a page
 \brokenpenalty=5000         % avoid a page break right after a hyphenated line
 \vbadness=10000             % that stretching is intended: don't report it as an underfull page
-\ifdefined\directlua % (LuaLaTeX; XeLaTeX keeps TeX's plain flush pages)
 %% But only up to a limit: each space stretches at most as far as it allows. A page that needs more (few
 %% headings or displays to share the gap) ends short by the rest instead, so the spacing stays even.
 \directlua{
@@ -145,7 +145,6 @@
                 \setbox\@outputbox\vbox to\@colht{\unvbox\@outputbox\vskip\z@\@plus\dimen@}%
             \fi
         \fi\fi}}
-\fi
 %% On narrow pages, allow a little extra word spacing in a line rather than letting it stick out
 %% into the margin (e.g. a long file name or URL that cannot be hyphenated).
 \setlength{\emergencystretch}{1.5em}
@@ -187,10 +186,8 @@
 \input{_options/thumb}
 
 %%% HYPHENATION LOG for tools/check_hyphenation.py: every word TeX hyphenates at a line end goes to the
-%% log with its page (LuaLaTeX; the output does not change).
-\ifdefined\directlua
-    \IfFileExists{_options/hyphenationlog.lua}{\directlua{dofile("_options/hyphenationlog.lua")}}{}
-\fi
+%% log with its page (the output does not change).
+\IfFileExists{_options/hyphenationlog.lua}{\directlua{dofile("_options/hyphenationlog.lua")}}{}
 
 %%% FIGURE LOG for tools/check_figures.py: every included graphic writes its natural and printed size
 %% (and page) to the log, and the log records the text width, caption size and font scale.
@@ -217,24 +214,20 @@
 \RequirePackage{mathtools}
 
 %%% MATHS FONT CHOICE (see Fonts/README.md): MathTime Professional 2, as prepared by
-%% tools/mtpro2_unicode.py (Fonts/mtpro2.sty + Fonts/mtpro2-glyphtounicode.tex; LuaLaTeX only), Complete
+%% tools/mtpro2_unicode.py (Fonts/mtpro2.sty + Fonts/mtpro2-glyphtounicode.tex), Complete
 %% if its bold fonts are there, else Lite. Otherwise newtx. \ifthesismathtime follows this choice.
 \newif\ifthesismathtime
 \def\thesismathtimeedition{}
 \IfFileExists{Fonts/mtpro2-glyphtounicode.tex}{\IfFileExists{Fonts/mtpro2.sty}{%
-    \ifdefined\directlua
-        %% the fonts are found through the search path that latexmkrc adds (Overleaf runs latexmk)
-        \IfFileExists{mtpro2-glyphtounicode.tex}{\thesismathtimetrue
-            \IfFileExists{Fonts/mt2bmit.pfb}{\def\thesismathtimeedition{Complete}}{\def\thesismathtimeedition{Lite}}}%
-          {\ClassWarningNoLine{personal}{MathTime fonts found in Fonts/, but TeX cannot see that folder.\MessageBreak
-            Compile with latexmk, which reads the template's latexmkrc (Overleaf does this).\MessageBreak
-            Using newtx for now}}%
-    \else
-        \ClassInfo{personal}{The MathTime fonts in Fonts/ need LuaLaTeX; using newtx}%
-    \fi}{}}{}
+    %% the fonts are found through the search path that latexmkrc adds (Overleaf runs latexmk)
+    \IfFileExists{mtpro2-glyphtounicode.tex}{\thesismathtimetrue
+        \IfFileExists{Fonts/mt2bmit.pfb}{\def\thesismathtimeedition{Complete}}{\def\thesismathtimeedition{Lite}}}%
+      {\ClassWarningNoLine{personal}{MathTime fonts found in Fonts/, but TeX cannot see that folder.\MessageBreak
+        Compile with latexmk, which reads the template's latexmkrc (Overleaf does this).\MessageBreak
+        Using newtx for now}}}{}}{}
 
 %%% TEXT FONTS
-%% Compile with LuaLaTeX (XeLaTeX also works); fonts are loaded through fontspec.
+%% Loaded through fontspec.
 \input{_options/fontText}
 
 %%% MATH FONT
@@ -245,13 +238,10 @@
 %% Break an inline formula across lines only when nothing else works (TeX's defaults allow it readily after
 %% =, < and after +, -); rewording is the better fix when it still happens.
 \relpenalty=9999 \binoppenalty=9999
-%% LuaLaTeX: give the Type 1 maths fonts a Unicode map, so maths can be copied and searched
-%% (and PDF/A "u" levels are possible). XeLaTeX does this by itself.
-\ifdefined\directlua
-    \pdfvariable gentounicode = 1
-    \protected\def\pdfglyphtounicode{\pdfextension glyphtounicode}
-    \input{glyphtounicode}
-\fi
+%% Give the Type 1 maths fonts a Unicode map, so maths can be copied and searched (PDF/A-2u).
+\pdfvariable gentounicode = 1
+\protected\def\pdfglyphtounicode{\pdfextension glyphtounicode}
+\input{glyphtounicode}
 
 %%% CAPTIONS (figures, tables and equations are numbered per chapter by memoir: 2.1, 2.2, ...)
 \RequirePackage[tableposition=top]{caption}
@@ -312,10 +302,9 @@
     \@tfor\thesis@c:=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789)]?;!@+\do{%
         \expandafter\thesis@do\thesis@c}}
 \newcommand*{\thesis@do}[1]{\do#1{\thesis@urlslashfalse\mathchar`#1\penalty\thesis@urlother}}
-%% Never leave the last few characters of a URL or DOI alone on a new line (LuaLaTeX: the break points
-%% among the last four characters are removed from the list url.sty has just built; no ~ in the Lua: it
-%% is an active character here).
-\ifdefined\directlua
+%% Never leave the last few characters of a URL or DOI alone on a new line (the break points among the
+%% last four characters are removed from the list url.sty has just built; no ~ in the Lua: it is an
+%% active character here).
 \directlua{
     function thesis_urltail(k)
         local nest = tex.nest[tex.nest.ptr]
@@ -328,7 +317,6 @@
     end
 }
 \def\UrlRight{\directlua{thesis_urltail(4)}}
-\fi
 \thesis@urlsetup
 \renewcommand*{\biburlsetup}{\thesis@urlsetup} % biblatex would otherwise apply its own rules in the references
 %% "doi:" stays on the same line as the DOI itself (biblatex's default allows a break after the colon).
