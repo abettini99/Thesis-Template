@@ -50,3 +50,8 @@ __pycache__/
 # the converter and its table hold no font data: keep them
 !tools/mtpro2_unicode.py
 !tools/mtpro2_unicode_map.json
+
+# Build output (XeLaTeX and pdfx)
+main.pdf
+*.xdv
+creationdate.lua
