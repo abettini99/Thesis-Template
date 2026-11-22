@@ -1,8 +1,10 @@
 #!/bin/sh
 # Refuse commits that contain MathTime Professional 2 font files (licensed to you alone),
-# even ones forced past .gitignore with "git add -f". Turn it on once per clone:
-#     git config core.hooksPath tools/hooks
-# (Overleaf's own GitHub synchronisation does not run hooks.)
+# even ones forced past .gitignore with "git add -f". Turn it on once per clone (and again after this
+# file changes):
+#     cp tools/hooks/pre-commit .git/hooks/ && chmod +x .git/hooks/pre-commit
+# A copy, because Overleaf's GitHub synchronisation drops the executable flag of this file, and git
+# skips a hook that is not executable. (Overleaf itself does not run hooks.)
 
 blocked=""
 nl='
