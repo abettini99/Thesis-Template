@@ -194,7 +194,7 @@ with a constant that grows as $\beta_0$ decreases \parencite{Brezzi1974,Boffi201
 The condition is therefore twofold. The discrete null space must coincide with the continuous one on every mesh, and it must do so robustly: no family of discrete pressures may approach the null space as the mesh is refined.
 \end{remark}
 
-In matrix form, with $\mathsf{A}_1$ the matrix of $\inner{\grad\vec{v}^h}{\grad\vec{u}^h}_\Omega$ and $\mathsf{M}$ the pressure mass matrix, the supremum over the velocities can be evaluated, $\sup_{\mathsf{v}} \mathsf{q}\transpose\mathsf{B}\mathsf{v} / \lVert \mathsf{v} \rVert_{\mathsf{A}_1} = \lVert \mathsf{A}_1^{-1/2} \mathsf{B}\transpose \mathsf{q} \rVert$, and $\beta_h^2$ is the smallest eigenvalue $\lambda$ of
+In matrix form, with $\mathsf{A}_1$ the matrix of $\inner{\grad\vec{v}^h}{\grad\vec{u}^h}_\Omega$ and $\mathsf{M}$ the pressure mass matrix, the supremum over the velocities can be evaluated, $\sup_{\mathsf{v}} \mathsf{q}\transpose\mathsf{B}\mathsf{v} / \lVert \mathsf{v} \rVert_{\mathsf{A}_1} = \lVert \mathsf{A}_1^{-1/2} \mathsf{B}\transpose \mathsf{q} \rVert$. So $\beta_h^2$ is the smallest eigenvalue $\lambda$ of the generalised eigenvalue problem
 \begin{equation}\label{eq:infsup-eigen}
     \mathsf{B} \mathsf{A}_1^{-1} \mathsf{B}\transpose \mathsf{q} = \lambda\, \mathsf{M} \mathsf{q}
 \end{equation}

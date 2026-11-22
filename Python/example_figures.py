@@ -38,6 +38,15 @@ FULL_MM, HALF_MM = 91.5, 44.0
 MM = 1 / 25.4
 
 
+def plot_margins(fig, left=13.0, bottom=10.6, right=2.7, top=1.5):
+    """Fix the plot area by its margins (mm) instead of matplotlib's automatic layout. Figures that
+    sit side by side then have plot areas of the same size, on the same baseline."""
+    w, h = fig.get_size_inches() * 25.4
+    fig.set_layout_engine("none")
+    for ax in fig.axes:
+        ax.set_position([left / w, bottom / h, 1 - (left + right) / w, 1 - (bottom + top) / h])
+
+
 def save(fig, name):
     thesis_fonts.save(fig, OUT / name)
     plt.close(fig)
@@ -114,7 +123,9 @@ for ax, letter in ((ax1, "a"), (ax2, "b")):
 save(fig, "example_panels.pdf")
 
 # --- Two figures side by side: Picard residuals and kinetic energy ----------------------------
+# Both with the same plot margins, so their plot areas line up next to each other.
 fig, ax = plt.subplots(figsize=(HALF_MM * MM, 0.85 * HALF_MM * MM))
+plot_margins(fig)
 k = np.arange(0, 9)
 for step, rate in ((1, 0.18), (10, 0.32), (40, 0.45)):    # illustrative contraction rates
     ax.semilogy(k, rate ** k, marker="o", markersize=2.5)
@@ -130,6 +141,7 @@ ax.minorticks_off()
 save(fig, "example_residual.pdf")
 
 fig, ax = plt.subplots(figsize=(HALF_MM * MM, 0.85 * HALF_MM * MM))
+plot_margins(fig)
 tt = np.linspace(0, 1, 101)
 xq = np.linspace(-1, 1, 4001)
 energy = [0.5 * np.trapezoid(burgers(xq, t) ** 2, xq) for t in tt]
