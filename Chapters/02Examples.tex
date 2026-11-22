@@ -153,11 +153,11 @@ The diffusive form $a$ is bilinear; the convective form $c$ is linear in $\vec{v
 Definitions, lemmas, theorems and corollaries share one counter, so \cref{def:energy-norm} is followed by \cref{lem:coercivity}; a remark is unnumbered. All are set upright, which reads better than the usual italics when a statement is mostly maths.
 
 \begin{definition}[Energy norm]\label{def:energy-norm}
-For $\nu > 0$, the energy norm of $\vec{v} \in \mathcal{W}^h(\Omega)$ is $\lVert \vec{v} \rVert_a \coloneqq a(\vec{v}, \vec{v})^{1/2}$.
+For $\nu > 0$, the energy norm on $\mathcal{W}^h(\Omega)$ is $\lVert \vec{v} \rVert_a \coloneqq a(\vec{v}, \vec{v})^{1/2}$.
 \end{definition}
 
 \begin{lemma}[Coercivity]\label{lem:coercivity}
-For constant $\nu > 0$, $a(\vec{v}, \vec{v}) = \nu \lVert \grad\vec{v} \rVert_\Omega^2 \geq 0$ for all $\vec{v} \in \mathcal{W}^h(\Omega)$.
+For constant $\nu > 0$ and all $\vec{v} \in \mathcal{W}^h(\Omega)$, the form is non-negative: $a(\vec{v}, \vec{v}) = \nu \lVert \grad\vec{v} \rVert_\Omega^2 \geq 0$.
 \end{lemma}
 
 \begin{proof}

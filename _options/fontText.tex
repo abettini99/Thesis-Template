@@ -28,8 +28,12 @@
 %% Also the document's sans-serif font (\sffamily, \textsf), so nothing falls back to Latin Modern Sans.
 \setsansfont{\thesis@sourcesans}[Extension={.otf}, UprightFont={*-Regular}, BoldFont={*-Semibold}, ItalicFont={*-RegularIt}, BoldItalicFont={*-SemiboldIt}, Ligatures=TeX, Scale=\thesis@fontscale]
 
-%% Typewriter font (code listings, file names): Latin Modern Mono, scaled with the rest.
-\setmonofont{lmmono10-regular.otf}[ItalicFont=lmmono10-italic.otf, BoldFont=lmmonolt10-bold.otf, Scale=\thesis@fontscale]
+%% Typewriter font (code, file names, URLs, DOIs): Source Code Pro (Adobe, in TeX Live), the monospaced
+%% companion of Source Sans. Its weight sits well next to Times (Latin Mono looked thin); scaled to the
+%% x-height of the text. Older TeX Live names the italic SourceCodePro-It, newer SourceCodePro-RegularIt.
+\IfFontExistsTF{SourceCodePro-RegularIt.otf}{\def\thesis@tmp{RegularIt}}{\def\thesis@tmp{It}}
+\setmonofont{SourceCodePro}[Extension=.otf, UprightFont=*-Regular, ItalicFont=*-\thesis@tmp,
+    BoldFont=*-Semibold, BoldItalicFont=*-SemiboldIt, Scale=MatchLowercase]
 
 %% Running heads: Source Sans Regular capitals, letterspaced (capitals need extra space between them
 %% to read well), a size below the text. Page numbers in the same size, not spaced.

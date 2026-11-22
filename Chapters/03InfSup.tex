@@ -147,7 +147,7 @@ with the subscripts denoting the elements south-west, north-west, south-east and
     \label{fig:infsup-checkerboard}
 \end{figure}
 
-Counting does not reveal the problem. On this mesh $\dim \mathcal{V}^h = 2(N-1)^2$ and $\dim \mathcal{Q}^h = N^2$, so for $N \geq 4$ there are more velocity than pressure unknowns, and $\mathsf{B}\transpose$ could well be injective. That it is not is a matter of how the two spaces fit together, not of how large they are. Too few velocities guarantee spurious modes; enough velocities do not prevent them.
+Counting does not reveal the problem. On this mesh the velocity space has dimension $2(N-1)^2$ and the pressure space $N^2$, so for $N \geq 4$ there are more velocity than pressure unknowns, and $\mathsf{B}\transpose$ could well be injective. That it is not is a matter of how the two spaces fit together, not of how large they are. Too few velocities guarantee spurious modes; enough velocities do not prevent them.
 
 %% =====================================================================
 \section{What the inf-sup condition requires}\label{sec:infsup-condition}
@@ -216,7 +216,11 @@ on the zero-mean pressures. Each zero eigenvalue beyond the one of the constant 
 The practical tool for proving \cref{eq:infsup-discrete} uniformly is a Fortin operator: a projection onto the discrete velocities that preserves the divergence as the discrete pressures see it.
 
 \begin{theorem}[Fortin criterion]\label{thm:infsup-fortin}
-Let $\Pi_h \colon \mathcal{V} \to \mathcal{V}^h$ satisfy $b(\vec{v} - \Pi_h\vec{v}, q^h) = 0$ for all $q^h \in \mathcal{Q}^h$ and $\lVert \grad \Pi_h\vec{v} \rVert_\Omega \leq C_\Pi \lVert \grad\vec{v} \rVert_\Omega$ for all $\vec{v} \in \mathcal{V}$, with $C_\Pi$ independent of $h$. Then $\beta_h \geq \beta / C_\Pi$.
+Let $\Pi_h \colon \mathcal{V} \to \mathcal{V}^h$ be an operator such that, for all $\vec{v} \in \mathcal{V}$ and $q^h \in \mathcal{Q}^h$,
+\[
+    b(\vec{v} - \Pi_h\vec{v}, q^h) = 0, \qquad \lVert \grad \Pi_h\vec{v} \rVert_\Omega \leq C_\Pi \lVert \grad\vec{v} \rVert_\Omega,
+\]
+with $C_\Pi$ independent of $h$. Then $\beta_h \geq \beta / C_\Pi$.
 \end{theorem}
 
 \begin{proof}

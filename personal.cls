@@ -120,6 +120,32 @@
 \displaywidowpenalty=10000  % last line before a displayed equation alone at the top of a page
 \brokenpenalty=5000         % avoid a page break right after a hyphenated line
 \vbadness=10000             % that stretching is intended: don't report it as an underfull page
+\ifdefined\directlua % (LuaLaTeX; XeLaTeX keeps TeX's plain flush pages)
+%% But only up to a limit: each space stretches at most as far as it allows. A page that needs more (few
+%% headings or displays to share the gap) ends short by the rest instead, so the spacing stays even.
+\directlua{
+    function thesis_stretch(n)
+        local s = 0
+        for g in node.traverse_id(node.id("glue"), tex.box[n].list) do
+            if g.stretch_order > 0 and g.stretch > 0 then tex.sprint("-1") return end
+            s = s + g.stretch
+        end
+        tex.sprint(s)
+    end
+}
+\AtBeginDocument{%
+    \let\thesis@makecol\@makecol
+    \def\@makecol{\thesis@makecol
+        \setbox\@tempboxa\vbox{\unvcopy\@outputbox}%
+        \dimen@=\dimexpr\@colht-\ht\@tempboxa-\dp\@tempboxa\relax % the gap to fill
+        \dimen@ii=\directlua{thesis_stretch(\number\@outputbox)}sp % what the spaces allow
+        \ifdim\dimen@ii>\z@ \ifdim\dimen@>\z@
+            \dimen@=\dimexpr\dimen@-\dimen@ii\relax % the part beyond what they allow: at the foot
+            \ifdim\dimen@>\onelineskip % less than a line: stretch a little further, stay flush
+                \setbox\@outputbox\vbox to\@colht{\unvbox\@outputbox\vskip\z@\@plus\dimen@}%
+            \fi
+        \fi\fi}}
+\fi
 %% On narrow pages, allow a little extra word spacing in a line rather than letting it stick out
 %% into the margin (e.g. a long file name or URL that cannot be hyphenated).
 \setlength{\emergencystretch}{1.5em}
@@ -216,6 +242,9 @@
 %% Space around relations (=, <, \to) may stretch only a little in justified lines (TeX allows it to
 %% double); the word spaces take up the slack instead.
 \AtBeginDocument{\thickmuskip=5mu plus 2mu\relax}
+%% Break an inline formula across lines only when nothing else works (TeX's defaults allow it readily after
+%% =, < and after +, -); rewording is the better fix when it still happens.
+\relpenalty=9999 \binoppenalty=9999
 %% LuaLaTeX: give the Type 1 maths fonts a Unicode map, so maths can be copied and searched
 %% (and PDF/A "u" levels are possible). XeLaTeX does this by itself.
 \ifdefined\directlua
@@ -290,8 +319,28 @@
     \thesis@do W\thesis@do X\thesis@do Y\thesis@do Z\thesis@do 0\thesis@do 1\thesis@do 2\thesis@do 3%
     \thesis@do 4\thesis@do 5\thesis@do 6\thesis@do 7\thesis@do 8\thesis@do 9\thesis@do )\thesis@do ]%
     \thesis@do ?\thesis@do ;\thesis@do !\thesis@do @\thesis@do +} % not ( or [: amsmath measures ( for its struts
+%% Never leave the last few characters of a URL or DOI alone on a new line (LuaLaTeX: the break points
+%% among the last four characters are removed from the list url.sty has just built; no ~ in the Lua: it
+%% is an active character here).
+\ifdefined\directlua
+\directlua{
+    function thesis_urltail(k)
+        local nest = tex.nest[tex.nest.ptr]
+        local n, chars = nest.tail, 0
+        while n and not (n == nest.head) and chars < k do
+            if n.id == node.id("penalty") then n.penalty = 10000
+            elseif n.id == node.id("noad") then chars = chars + 1 end
+            n = n.prev
+        end
+    end
+}
+\def\UrlRight{\directlua{thesis_urltail(4)}}
+\fi
 \thesis@urlsetup
 \renewcommand*{\biburlsetup}{\thesis@urlsetup} % biblatex would otherwise apply its own rules in the references
+%% "doi:" stays on the same line as the DOI itself (biblatex's default allows a break after the colon).
+\DeclareFieldFormat{doi}{\mkbibacro{DOI}\addcolon\addnbspace
+    \ifhyperref{\href{https://doi.org/#1}{\nolinkurl{#1}}}{\nolinkurl{#1}}}
 %% A URL adds nothing when there is a DOI: hide it (and its access date).
 \AtEveryBibitem{\iffieldundef{doi}{}{\clearfield{url}\clearfield{urlyear}\clearfield{urlmonth}\clearfield{urlday}}}
 \if@backref

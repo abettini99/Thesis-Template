@@ -101,11 +101,11 @@
 \bigskip
 \IfThesisEmpty{\thesisfunding}{}{%
     \noindent \thesisfunding\par\medskip}
-\IfThesisEmpty{\thesisdataavailability}{}{%
-    \noindent \thesisdataavailability\par\medskip}
 \noindent
 \begin{tabular}{@{}p{0.22\textwidth}@{}p{0.78\textwidth}@{}}
     \textit{Keywords:}   & \thesiskeywords \\[\smallskipamount]
+    \IfThesisEmpty{\thesisdata}{}{\textit{Data:} & \thesisdata \\[\smallskipamount]}
+    \IfThesisEmpty{\thesiscode}{}{\textit{Code:} & \thesiscode \\[\smallskipamount]}
     \textit{Printed by:} & \thesisprinter  \\[\smallskipamount]
     \textit{Cover by:}   & \thesiscover    \\
 \end{tabular}
