@@ -1,4 +1,9 @@
-\ProvidesClass{personal}[2026/11/21 v2.0 TU Delft dissertation class, based on memoir]
+\ProvidesClass{personal}[2026/11/22 v3.0 TU Delft dissertation class, based on book]
+%% Parts of this class are adapted from the memoir class (Peter Wilson, Lars Madsen and Will Robertson;
+%% https://ctan.org/pkg/memoir), distributed under the LaTeX Project Public License 1.3c: the page
+%% styles, the epigraphs, the Spacing environment, the crop marks and the type sizes (read from memoir's
+%% size files). memoir's code is unchanged in memoir; the adapted copies here carry other names or
+%% replace memoir's only inside this class.
 
 %% Options. Language: british (default) or american. Page size: dover (default), a5, royal or tudelft.
 \newcommand*{\thesis@language}{british}
@@ -26,13 +31,14 @@
 \DeclareOption{letter}{\@lettertrue}
 \newif\if@thumb
 \DeclareOption{thumb}{\@thumbtrue}
-\DeclareOption{showtrims}{\PassOptionsToClass{\CurrentOption}{memoir}} % crop marks (print-preparation, print-report)
+\newif\ifthesis@showtrims
+\DeclareOption{showtrims}{\thesis@showtrimstrue} % crop marks (print-preparation, print-report)
 \newif\if@showframe
 \DeclareOption{showframe}{\@showframetrue}
 %% draft: fast compiles while writing. Images become labelled boxes, overfull lines are marked
 %% with a black bar in the margin, and every page says DRAFT so it is never mistaken for the final version.
 \newif\if@draft
-\DeclareOption{draft}{\@drafttrue \PassOptionsToPackage{draft}{graphicx} \PassOptionsToClass{draft}{memoir}}
+\DeclareOption{draft}{\@drafttrue \PassOptionsToPackage{draft}{graphicx} \PassOptionsToClass{draft}{book}}
 %% final: the version for the printer and the repository; hides all \todo notes.
 \DeclareOption{final}{\PassOptionsToPackage{disable}{todonotes}}
 %% backreferences: each reference lists the pages it is cited on. (Not called "backref": that name
@@ -58,6 +64,10 @@
         Locally: latexmk main.tex (latexmkrc selects LuaLaTeX).}
     \expandafter\@@end
 \fi
+%% LaTeX's PDF management and tagging code: \DocumentMetadata{...} on the first line of main.tex.
+\IfDocumentMetadataTF{}{%
+    \ClassError{personal}{\string\DocumentMetadata\space missing}{Put
+        \string\DocumentMetadata{pdfversion=2.0, pdfstandard=a-4f} on the first line, before \string\documentclass.}}
 
 %% Public switch, for files outside the class (\ifprintversion ... \else ... \fi): true for the print
 %% editions (links invisible, code in black and white, no rotated pages), false for digital.
@@ -85,34 +95,239 @@
 \@namedef{thesis@size@royal}  {\thesis@size{156mm}{234mm}{105mm}{180mm}{29.3mm}{25mm}  {33pt}}
 \@namedef{thesis@size@tudelft}{\thesis@size{170mm}{240mm}{113mm}{192mm}{33.4mm}{23.9mm}{36pt}\def\thesis@ptsize{11pt}}
 \@nameuse{thesis@size@\thesis@pagesize}
-\edef\thesis@tmp{\noexpand\LoadClass[\thesis@ptsize]{memoir}}\thesis@tmp
+\edef\thesis@tmp{\noexpand\LoadClass[\thesis@ptsize,twoside,openright]{book}}\thesis@tmp
+\RequirePackage{etoolbox}
+%% The type sizes and default spacings of memoir, which the earlier versions of this class were based on
+%% (\small and \large are a little smaller than in the book class): its size option file, read as is.
+\newlength{\onelineskip} \newlength{\lxvchars} \newlength{\xlvchars} \newif\ifextrafontsizes
+\def\thesis@tmp#1pt{#1}\edef\thesis@tmp{\expandafter\thesis@tmp\thesis@ptsize}\input{mem\thesis@tmp.clo}
+%% One em of the class's type size, as memoir measured lengths given in em when the class was loaded
+\newdimen\thesis@em \thesis@em=\@xpt\p@ \def\thesis@tmpb{11}\ifx\thesis@tmp\thesis@tmpb \thesis@em=\@xipt\p@\fi
+\def\thesis@tmpb{12}\ifx\thesis@tmp\thesis@tmpb \thesis@em=\@xiipt\p@\fi
 
-%% Paper: bleed   = the book page plus 2 mm bleed on every side (print-preparation);
-%%        trimmed = the book page alone, at its final size (digital, print-showcase);
-%%        sheet   = the book page centred on an A4 or US Letter sheet (print-report).
+%%% PAGE LAYOUT
+%% The sheet (the PDF page), the book page on it and the type block on the book page:
+%%   bleed   = the book page plus 2 mm bleed on every side (print-preparation);
+%%   trimmed = the book page alone, at its final size (digital, print-showcase);
+%%   sheet   = the book page centred on an A4 or US Letter sheet (print-report).
+%% \stockwidth x \stockheight is the sheet, \paperwidth x \paperheight the book page, \trimtop and
+%% \trimedge its distance from the sheet's top and outer edge.
+\providecommand\stockwidth{}\providecommand\stockheight{}% (the kernel's)
+\newlength{\trimtop}     \newlength{\trimedge}
+\newlength{\spinemargin} \newlength{\foremargin}  \newlength{\uppermargin} \newlength{\lowermargin}
+\setlength{\onelineskip}{\baselineskip} % one line of normal text
 \newlength{\thesis@bleed}       \setlength{\thesis@bleed}{2mm}  % TU Delft uses 2mm bleed
+\setlength{\paperwidth}{\thesis@pagewidth}
+\setlength{\paperheight}{\thesis@pageheight}
 \def\thesis@tmp{bleed}\ifx\thesis@paper\thesis@tmp
-    \setstocksize{\dimexpr\thesis@pageheight+2\thesis@bleed\relax}{\dimexpr\thesis@pagewidth+2\thesis@bleed\relax}
-    \settrimmedsize{\thesis@pageheight}{\thesis@pagewidth}{*}
-    \settrims{\thesis@bleed}{\thesis@bleed}             %% Bleed: how far from {top}{right} the page sits on the stock
-\else\def\thesis@tmp{trimmed}\ifx\thesis@paper\thesis@tmp
-    \setstocksize{\thesis@pageheight}{\thesis@pagewidth} %% the trimmed page itself, nothing around it
-    \settrimmedsize{\thesis@pageheight}{\thesis@pagewidth}{*}
-    \settrims{0pt}{0pt}
+    \setlength{\stockwidth}{\dimexpr\paperwidth+2\thesis@bleed}%
+    \setlength{\stockheight}{\dimexpr\paperheight+2\thesis@bleed}%
+    \setlength{\trimtop}{\thesis@bleed}\setlength{\trimedge}{\thesis@bleed}%
+\else\def\thesis@tmp{sheet}\ifx\thesis@paper\thesis@tmp
+    \if@letter \setlength{\stockwidth}{8.5in}\setlength{\stockheight}{11in}%
+    \else      \setlength{\stockwidth}{210mm}\setlength{\stockheight}{297mm}\fi
+    \setlength{\trimtop}{\dimexpr(\stockheight-\paperheight)/2}%
+    \setlength{\trimedge}{\dimexpr(\stockwidth-\paperwidth)/2}%
 \else
-    \if@letter \setstocksize{11in}{8.5in}\else \setstocksize{297mm}{210mm}\fi %% A4 or US Letter
-    \settrimmedsize{\thesis@pageheight}{\thesis@pagewidth}{*}
-    \settrims{\dimexpr(\stockheight-\thesis@pageheight)/2\relax}{\dimexpr(\stockwidth-\thesis@pagewidth)/2\relax} %% centred on the sheet
+    \setlength{\stockwidth}{\paperwidth}\setlength{\stockheight}{\paperheight}%
+    \setlength{\trimtop}{0pt}\setlength{\trimedge}{0pt}%
 \fi\fi
-\settypeblocksize{\thesis@textheight}{\thesis@textwidth}{*}
-\setbinding{7.0mm}                      %% allowance for the binding (glue and the curve into the spine); the TU Delft
-                                        %% template uses 3 mm. Increase for very thick books (500+ pages).
-\setlrmargins{*}{\thesis@foremargin}{*} %% fore-edge margin; the spine margin follows (text width and binding).
-\setulmargins{\thesis@topmargin}{*}{*}  %% top margin; bottom margin automatically handled.
-\setheadfoot{\onelineskip}{2\onelineskip}
-\setheaderspaces{*}{2\onelineskip}{*}
-\setmarginnotes{2.5mm}{\dimexpr\thesis@foremargin-4.5mm\relax}{\onelineskip} %% margin (todo) notes fill the outer margin
-\checkandfixthelayout
+%% The type block: the given width, and the height rounded down to whole lines. The spine margin is
+%% what the fore-edge margin and the text leave (it includes 7 mm for the binding: the glue and the
+%% curve into the spine; increase the fore-edge margin's share for very thick books, 500+ pages).
+\setlength{\textwidth}{\thesis@textwidth}
+\setlength{\foremargin}{\thesis@foremargin}
+\setlength{\spinemargin}{\dimexpr\paperwidth-\textwidth-\foremargin}
+\@tempdima=\thesis@textheight \divide\@tempdima\baselineskip \@tempcnta=\@tempdima
+\setlength{\textheight}{\dimexpr\@tempcnta\baselineskip+\topskip}
+\setlength{\uppermargin}{\thesis@topmargin}
+\setlength{\lowermargin}{\dimexpr\paperheight-\textheight-\uppermargin}
+\setlength{\headheight}{\onelineskip}   \setlength{\headsep}{2\onelineskip}
+\setlength{\footskip}{2\onelineskip}
+\setlength{\marginparsep}{2.5mm}        %% margin (todo) notes fill the outer margin
+\setlength{\marginparwidth}{\dimexpr\foremargin-4.5mm}
+\setlength{\marginparpush}{\onelineskip}
+%% TeX's own margins (from 1 inch), in whole points, as memoir computed them for the earlier versions
+\def\thesis@topoint#1{\divide#1\p@\multiply#1\p@}
+\setlength{\topmargin}{\dimexpr\trimtop+\uppermargin-\headsep-\headheight-1in}
+\setlength{\oddsidemargin}{\dimexpr\stockwidth-\trimedge-\paperwidth+\spinemargin-1in}
+\setlength{\evensidemargin}{\dimexpr\trimedge+\foremargin-1in}
+\thesis@topoint\textwidth \thesis@topoint\oddsidemargin \thesis@topoint\evensidemargin
+\setlength{\pagewidth}{\stockwidth} \setlength{\pageheight}{\stockheight}
+%% Crop marks (showtrims, print-preparation and print-report): a cross at each corner of the book page
+%% and a short mark at the middle of each edge, drawn on every sheet.
+\ifthesis@showtrims
+    \newcommand*{\thesis@trimcross}{\begin{picture}(0,0)\unitlength 1cm\thinlines
+        \put(-2,0){\line(1,0){4}}\put(0,-2){\line(0,1){4}}\end{picture}}
+    \newcommand*{\thesis@trimmid}[4]{\begin{picture}(0,0)\unitlength 1mm\thinlines\put(#1,#2){\line(#3,#4){10}}\end{picture}}
+    \AddToHook{shipout/background}{\put(0,0){\vbox to \z@{%
+        \vskip\trimtop
+        \hb@xt@\z@{%
+            \ifodd\c@page \hskip\dimexpr\stockwidth-\trimedge-\paperwidth\relax \else \hskip\trimedge \fi
+            \vbox to \paperheight{\let\protect\relax
+                \hb@xt@\paperwidth{\thesis@trimcross\hfil\thesis@trimmid{0}{2}{0}{1}\hfil\thesis@trimcross}%
+                \vfil
+                \hb@xt@\paperwidth{\thesis@trimmid{-2}{0}{-1}{0}\hfil\thesis@trimmid{2}{0}{1}{0}}%
+                \vfil
+                \hb@xt@\paperwidth{\thesis@trimcross\hfil\thesis@trimmid{0}{-12}{0}{1}\hfil\thesis@trimcross}}%
+            \hss}%
+        \vss}}}
+\fi
+
+%% A chapter starts on a right-hand page; the empty left-hand page before it has no running head.
+\def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else
+    \hbox{}\thispagestyle{cleared}\newpage\if@twocolumn\hbox{}\newpage\fi\fi\fi}
+
+%% Line spacing of a passage: \begin{Spacing}{1.1} ... \end{Spacing} (used for the main text in main.tex)
+\newenvironment{Spacing}[1]{\par\begingroup\def\baselinestretch{#1}\@currsize}
+    {\par\vskip\parskip\vskip\baselineskip\endgroup\vskip-\parskip\vskip-\baselineskip}
+
+%% Floats are set at single spacing, whatever the text around them; \setfloatadjustment{table}{\small}
+%% adds settings of its own to every float of a type.
+\newcommand{\setfloatadjustment}[2]{\@namedef{#1adjustment}{#2}}
+\AddToHook{cmd/@floatboxreset/after}{\def\baselinestretch{1}\normalsize\@nameuse{\@captype adjustment}}
+
+%% Description lists as memoir set them: the label at the left margin in bold, a label separation
+%% before and after it. (LaTeX's tagging code sets lists with its own templates, not \descriptionlabel.)
+\@for\thesis@tmp:=1,2,3,4,5,6\do{\EditInstance{list}{description-\thesis@tmp}
+    {label-width = \z@, item-indent = -\leftmargin}}
+\EditInstance{item}{description}{label-format = \hspace\labelsep\normalfont\bfseries #1}
+
+%% After a displayed equation that ends a paragraph or an environment (a proof ending with \qedhere,
+%% say), LaTeX's new code takes the paragraph skip off below it and adds it back at the next blank line.
+%% Added back as a separate skip it keeps the space before a following heading, statement or list from
+%% merging with the space below the equation; both are left out instead, as with the old code.
+\def\thesis@addparskip{%
+    \ifdim\lastskip>\z@
+        \@tempskipa\lastskip \unskip \@tempskipb\glueexpr\lastskip+\parskip\relax
+        \ifdim\@tempskipb=\z@ \ifdim\gluestretch\@tempskipb=\z@ \ifdim\glueshrink\@tempskipb=\z@
+            \unskip \vskip\@tempskipa % the display's "minus the paragraph skip" and this one cancel out
+        \else \vskip\glueexpr\@tempskipa+\parskip\relax \fi
+        \else \vskip\glueexpr\@tempskipa+\parskip\relax \fi
+        \else \vskip\glueexpr\@tempskipa+\parskip\relax \fi
+    \else \vskip\parskip \fi}
+\ExplSyntaxOn
+\def\@doendpe{\@endpetrue
+  \def\par{\@restorepar \clubpenalty\@clubpenalty
+    \if@domathendpe \thesis@addparskip \@domathendpefalse \fi
+    \tag_socket_use:n {@doendpe} \@endpefalse \everypar{} \par}
+  \everypar{{\setbox\z@\lastbox}\everypar{}\@endpefalse\@domathendpefalse}}
+\ExplSyntaxOff
+
+%% A page that ends with a displayed equation: LaTeX's new display code leaves skips after it that add up
+%% to nothing, and they kept the type block from ending at the equation's depth, as it did with the old
+%% code (the page then came out a few points fuller). Skips at the end of a page that add up to nothing
+%% are removed before the page is made up.
+%% (The page is made up as before: a stretchable skip at its end, from \clearpage, stays where it is.)
+\def\@outputbox@removebskip{\global\let\@outputbox@reinsertbskip\relax}
+\newif\ifthesis@stripped \newif\ifthesis@stripany
+\def\thesis@striptail{%
+    \ifnum\lastnodetype=13 \unpenalty\expandafter\thesis@striptail
+    \else\ifnum\lastnodetype=11
+        \ifnum\numexpr\gluestretchorder\lastskip+\glueshrinkorder\lastskip=\z@
+            \ifdim\lastskip=\z@\else\thesis@strippedtrue\fi
+            \thesis@stripanytrue \advance\skip@\lastskip \unskip\expandafter\expandafter\expandafter\thesis@striptail
+        \fi
+    \fi\fi}
+\def\@make@normalcolbox{%
+    \setbox\@outputbox\vbox{\boxmaxdepth\@maxdepth \unvbox\@outputbox
+        \skip@\z@skip \thesis@strippedfalse \thesis@stripanyfalse \thesis@striptail
+        \ifthesis@stripped
+            \ifdim\skip@=\z@ \ifdim\gluestretch\skip@=\z@ \ifdim\glueshrink\skip@=\z@
+            \else\vskip\skip@\fi \else\vskip\skip@\fi \else\vskip\skip@\fi
+        \else \ifthesis@stripany \vskip\skip@ \fi\fi}% (only skips of nothing: one is put back, as the page
+        % then ended with a skip with the old code too)
+    \setbox\@outputbox \vbox to\@colht {%
+        \@texttop
+        \@outputbox@depth \dp\@outputbox
+        \unvbox \@outputbox
+        \vskip -\@outputbox@depth
+        \@textbottom}}
+
+%% microtype lets the first letter after the label of a list item or statement ("Proof.") protrude into
+%% the space after the label; it does that through LaTeX's old list code, so with the new code here.
+\newif\ifthesis@afterlabel
+\def\thesis@lpstep{\ifthesis@afterlabel\global\thesis@afterlabelfalse\expandafter\thesis@lp\fi}
+\def\thesis@lp{\ifdefined\leftprotrusion\expandafter\leftprotrusion\fi}
+\ExplSyntaxOn
+\cs_gset_protected:Npn \__kernel_list_label_after:n #1
+  {
+    \tag_socket_use:nn {block/startpara/direct} { #1 }
+    \global\thesis@afterlabeltrue
+    \exp_args:No \tl_if_in:nnF { \the\everypar } { \thesis@lpstep }
+      { \everypar \expandafter { \the\everypar \thesis@lpstep } }
+  }
+\ExplSyntaxOff
+
+%% Float placement as memoir set it: more floats per page, and fuller pages of text and floats.
+\renewcommand{\topfraction}{.85}    \renewcommand{\bottomfraction}{.5}
+\renewcommand{\textfraction}{.1}    \renewcommand{\floatpagefraction}{.7}
+\renewcommand{\dbltopfraction}{.85} \renewcommand{\dblfloatpagefraction}{.7}
+\setcounter{topnumber}{3} \setcounter{bottomnumber}{2} \setcounter{totalnumber}{4} \setcounter{dbltopnumber}{3}
+\setcounter{tocdepth}{1}
+\renewcommand{\labelenumii}{\theenumii)}
+\renewcommand{\thefigure}{\thechapter.\@arabic\c@figure}
+\renewcommand{\thetable}{\thechapter.\@arabic\c@table}
+
+%% After a displayed equation the page may break at once, as with LaTeX's old display code: LaTeX's
+%% new code allows the break only after some skips, which counts the equation's depth into the page
+%% and could push the next lines to the next page.
+\ExplSyntaxOn
+\cs_if_exist:NT \__math_prepare_display_end:
+  {
+    \cs_gset_protected:Npn \__math_prepare_display_end:
+      {
+        \bool_lazy_or:nnTF
+          { \dim_compare_p:nNn \belowdisplayskip < {0pt} }
+          { \dim_compare_p:nNn \belowdisplayshortskip < {0pt} }
+          { \tl_gclear:N \g__math_skip_sign_tl }
+          {
+            \tl_gset:Nn \g__math_skip_sign_tl {-}
+            \skip_set:Nn \belowdisplayskip      {-\belowdisplayskip}
+            \skip_set:Nn \belowdisplayshortskip {-\belowdisplayshortskip}
+          }
+        \int_gset:Nn \g__math_postdisplaypenalty_int { \@M }
+      }
+  }
+\ExplSyntaxOff
+
+%% Footnotes as memoir set them: a big skip above the rule, measured from the baseline of the last line
+%% of text (not from below its descenders).
+\setlength{\skip\footins}{\bigskipamount}
+%% the mark in a box 1.8 em of the class's type size wide, the text then indented 1 em per paragraph
+\AddToHook{begindocument/before}{\ifdefined\footnotemargin \setlength{\footnotemargin}{1.8\thesis@em}\fi}
+\newdimen\thesis@footparindent \thesis@footparindent=\thesis@em
+\AddToHook{fntext/para}{\parindent\thesis@footparindent}
+\AddToHook{fntext}{\def\baselinestretch{1}}% footnotes single-spaced (as memoir)
+\AssignSocketPlug{build/column/baselineattach}{on}
+
+%% Lists (memoir's scheme, as in the earlier versions of this class): \tightlists (commands.tex) sets
+%% them without extra space between items, the first line of a further paragraph in an item indented.
+\newskip\parsepi \newskip\topsepi \newskip\itemsepi \newskip\parsepii \newskip\topsepii \newskip\itemsepii
+\newskip\topsepiii \newskip\itemsepiii \newskip\partopsepiii
+\setlength{\partopsep}{0.2\onelineskip \@plus 0.1\onelineskip \@minus 0.1\onelineskip}
+\parsepi=0.3333\onelineskip \@plus 0.1667\onelineskip \@minus\p@ \itemsepi=\parsepi
+\topsepi=0.6667\onelineskip \@plus 0.3333\onelineskip \@minus 0.2\onelineskip
+\parsepii=0.1667\onelineskip \@plus\p@ \@minus\p@ \topsepii=\parsepi \itemsepii=\parsepii
+\topsepiii=\parsepii \itemsepiii=\topsepiii \partopsepiii=\p@ \@plus\z@ \@minus\p@
+\newdimen\thesis@listparindent % the paragraph indent in lists: none, or the text's (\tightlists)
+\def\@listi{\leftmargin\leftmargini \parsep\parsepi \topsep\topsepi \itemsep\itemsepi \listparindent\thesis@listparindent}
+\let\@listI\@listi \@listi
+\def\@listii{\leftmargin\leftmarginii \labelwidth\leftmarginii \advance\labelwidth-\labelsep
+    \topsep\topsepii \parsep\parsepii \itemsep\itemsepii \listparindent\thesis@listparindent}
+\def\@listiii{\leftmargin\leftmarginiii \labelwidth\leftmarginiii \advance\labelwidth-\labelsep
+    \topsep\topsepiii \parsep\z@ \itemsep\itemsepiii \partopsep\partopsepiii \listparindent\thesis@listparindent}
+\newcommand*{\tightlists}{%
+    \setlength{\partopsep}{0.5\onelineskip \@plus \p@ \@minus \p@}%
+    \parsepi=\z@ \@plus\p@ \@minus\p@ \itemsepi=\parsepi \topsepi=\z@ \@plus\p@ \@minus\p@
+    \parsepii=\z@ \@plus\p@ \@minus\p@ \topsepii=\parsepi \topsepiii=\parsepii
+    \thesis@listparindent\parindent}
+
+%% \needspace{3\onelineskip}: start a new page unless that much space is left on this one
+\newcommand{\needspace}[1]{\begingroup\setlength{\dimen@}{#1}%
+    \vskip\z@\@plus\dimen@\penalty -100\vskip\z@\@plus-\dimen@
+    \vskip\dimen@\penalty 9999\vskip-\dimen@\vskip\z@skip\endgroup}
+
 %% No widows or orphans: never leave a single line of a paragraph alone at the top or bottom of a
 %% page. Facing pages still end on the same line: when a page has to break early, the space around
 %% headings, displays and floats stretches a little instead (pages are never allowed to run long).
@@ -181,7 +396,7 @@
         set = thesis
     }
     \RequirePackage[firstpageonly=false]{draftwatermark}
-    \DraftwatermarkOptions{text={DRAFT \textendash\ \today}, fontsize=8pt, angle=0, pos={0.5\paperwidth, 4mm}, color=black!60}
+    \DraftwatermarkOptions{text={\normalfont DRAFT \textendash\ \today}, fontsize=8pt, angle=0, pos={0.5\paperwidth, 4mm}, color=black!60}
 \fi
 
 %%% COLOR-RELATED
@@ -198,8 +413,11 @@
 
 %%% FIGURE LOG for tools/check_figures.py: every included graphic writes its natural and printed size
 %% (and page) to the log, and the log records the text width, caption size and font scale.
-\patchcmd{\Gin@setfile}{\leavevmode}{\thesis@logfigure{#3}\leavevmode}{}%
-    {\ClassInfo{personal}{Figure log unavailable (graphics changed)}}
+\AddToHookWithArguments{cmd/Gin@setfile/after}{\thesis@logfigure{#3}}
+%% (draft: the space before the file name in the box that graphicx sets, which LaTeX's tagging version of
+%% that code drops: the name is the only thing set in \ttfamily there)
+\AddToHook{cmd/Gin@setfile/before}{\ifGin@draft \let\thesis@ttfamily\ttfamily
+    \def\ttfamily{\space\thesis@ttfamily\let\ttfamily\thesis@ttfamily}\fi}
 \AtBeginDocument{%
     \begingroup\small\edef\thesis@tmp{\f@size}\expandafter\endgroup
     \expandafter\def\expandafter\thesis@captionsize\expandafter{\thesis@tmp}%
@@ -249,11 +467,74 @@
 \input{glyphtounicode}
 
 %%% CAPTIONS (figures, tables and equations are numbered per chapter by memoir: 2.1, 2.2, ...)
-\RequirePackage[tableposition=top]{caption}
-%% Captions narrower than 60 mm (figures side by side) are set ragged-right without hyphens: justified,
-%% such a narrow measure gives uneven word spaces and hyphens. Wider captions stay justified.
-\DeclareCaptionJustification{thesis}{\ifdim\hsize<60mm \thesis@raggednohyphen\fi}
-\captionsetup*{font={small}, labelfont={sc, bf}, labelsep=quad, justification=thesis}
+%% "TABLE 2.1" in bold small capitals, a quad, the caption in the small size. Tables have their caption
+%% on top, figures below; 6pt (half a line) between caption and content. A caption that fits on one
+%% line is centred; a longer one is justified, or ragged right without hyphens if narrower than 60 mm
+%% (figures side by side: justified, such a narrow measure gives uneven word spaces and hyphens).
+%% (The class sets its captions itself, as the caption package did for the earlier versions: that
+%% package does not work with LaTeX's tagging code yet.)
+\setlength{\abovecaptionskip}{0.5\onelineskip} \setlength{\belowcaptionskip}{\z@}
+\newcommand*{\captionlabelfont}{\scshape\bfseries}
+\newcommand*{\thesis@captiontop}{table,lstlisting}
+\newif\ifthesis@captop
+\newcommand*{\thesis@capstrut}{\vrule\@height\ht\strutbox\@width\z@}% (the first line as high as a strut)
+\newif\ifthesis@capcentre \thesis@capcentretrue % (the captions of algorithms are not centred)
+\newcommand{\thesis@captionbox}[2]{% label, text: the caption, as a box the width of the line
+    \sbox\@tempboxa{\small{\captionlabelfont #1}\quad #2}%
+    \vbox{\small\parindent\z@
+        \ifdim\wd\@tempboxa>\hsize
+            \parfillskip\z@\@plus1fil \ifdim\hsize<60mm \thesis@raggednohyphen\fi
+        \else\ifthesis@capcentre
+            \leftskip\@flushglue \rightskip\@flushglue \parfillskip\z@skip
+        \fi\fi
+        {\captionlabelfont #1}\thesis@capstrut\quad #2\@finalstrut\strutbox\par}}
+%% Long tables: the caption the width of the line, centred on the table, 6pt above the table.
+\ExplSyntaxOn
+\def\thesis@LTmakecaption#1#2#3{% \@gobble for \caption*, label, text
+  \LT@mcol\LT@cols{@{}c@{}}{%
+    \AssignTaggingSocketPlug{parbox/before}{noop}%
+    \AssignTaggingSocketPlug{parbox/after}{noop}%
+    \hbox to\z@{\hss\parbox[t]\linewidth{\reset@font\normalsize
+      \vskip-\ht\strutbox
+      {\parindent\z@ \leavevmode
+       \cs_if_eq:NNTF #1 \@gobble {\thesis@captionnolabel{#3}} {\thesis@captionbox{#2}{#3}}\par}%
+      \vskip\dimexpr\abovecaptionskip\relax \hrule\@height\z@}%
+    \hss}}}
+\ExplSyntaxOff
+\newcommand{\thesis@captionnolabel}[1]{\vbox{\small\parindent\z@
+    \leftskip\@flushglue \rightskip\@flushglue \parfillskip\z@skip \thesis@capstrut#1\@finalstrut\strutbox\par}}
+\AddToHook{begindocument}{\@ifpackageloaded{longtable}{\let\LT@makecaption\thesis@LTmakecaption}{}}
+%% (and spaces after \caption in a long table are ignored, as with the caption package)
+\AddToHook{begindocument/end}{\@ifpackageloaded{longtable}{\let\thesis@LTc@ption\LT@c@ption
+    \def\LT@c@ption#1[#2]#3{\thesis@LTc@ption{#1}[{#2}]{#3}\ignorespaces}}{}}
+
+%% Table rules and the space around them as memoir set them: in em and ex of the class's type size
+%% (booktabs measures them in the text font when it is loaded, which is set 5 % smaller).
+\AddToHook{package/booktabs/after}{%
+    \dimen@=\thesis@em
+    \setlength{\heavyrulewidth}{0.08\dimen@} \setlength{\lightrulewidth}{0.05\dimen@}
+    \setlength{\cmidrulewidth}{0.03\dimen@}  \setlength{\cmidrulekern}{0.5\dimen@}
+    \setlength{\defaultaddspace}{0.5\dimen@}
+    \setlength{\belowrulesep}{0.28015\dimen@} \setlength{\aboverulesep}{0.1724\dimen@}}
+
+%% A caption starts a paragraph of its own: its link target then does not add an empty line below a
+%% figure that is set in the same paragraph as the \caption command.
+\AddToHook{cmd/caption/before}{\ifhmode\par\fi}
+\AddToHook{begindocument}{%
+    \long\def\@makecaption#1#2{%
+        \thesis@captopfalse
+        \@for\@tempa:=\thesis@captiontop\do{\ifx\@tempa\@captype\thesis@captoptrue\fi}%
+        \par
+        \ifthesis@captop \vskip\belowcaptionskip \else \hrule\@height\z@ \vskip\abovecaptionskip \fi
+        \UseHookWithArguments{cmd/@makecaption/before}{2}{#1}{#2}%
+        \UseTaggingSocket{caption/begin}{\@current@float@struct}%
+        \UseTaggingSocket{para/begin}%
+        {\parindent\z@ \leavevmode \thesis@captionbox{#1}{#2}\par}%
+        \@minipagefalse % (as a paragraph did: the material below the caption is spaced as in the text)
+        \UseTaggingSocket{caption/end}%
+        \ifthesis@captop \vskip\dimexpr\abovecaptionskip\relax
+            \def\@tempa{lstlisting}\ifx\@tempa\@captype\else\hrule\@height\z@\fi
+        \else \vskip\belowcaptionskip \fi}}
 \renewcommand{\arraystretch}{1.2}
 
 %% Bibliography: numbered in order of citation, compressed ([2-4]), \citet/\citep available (natbib=true).
@@ -269,6 +550,9 @@
     eprint      = false,
 ]{biblatex}
 \addbibresource{references.bib}
+%% The reference list is listed in the contents (as memoir did)
+\defbibheading{bibliography}[\bibname]{\chapter*{#1}\addcontentsline{toc}{chapter}{#1}%
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
 \setlength\bibitemsep{0.25\baselineskip} % space between references
 %% Set ragged right: references are full of long names, journal titles and DOIs, which in justified
 %% text leave wide gaps.
@@ -338,6 +622,7 @@
     %% Every \chapter starts a new reference section; its list is printed at the end of the chapter
     %% file (\include). Chapters without citations print nothing (and don't warn about it).
     \ExecuteBibliographyOptions{refsection=chapter}
+    \AddToHook{cmd/chapter/before}{\newrefsection}% (biblatex finds no \@makechapterhead to hook into)
     \AddToHook{include/end}{\begingroup\let\blx@warn@bibempty\relax
         \printbibliography[heading=subbibintoc, title={References}]\endgroup}
 \fi

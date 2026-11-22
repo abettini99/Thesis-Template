@@ -1,4 +1,4 @@
-%% Page styles (memoir). Running heads in letterspaced capitals, page numbers in the same size
+%% Page styles. Running heads in letterspaced capitals, page numbers in the same size
 %% (\runningheadtext and \runningheadfolio in fontText.tex). New page styles have empty heads and feet.
 %%   mainmatter     : chapter title on left pages, section on right pages, thumb tabs
 %%   chapteronly    : chapter title on both pages (chapters without sections, the references)
@@ -7,6 +7,39 @@
 %%                    \chapter[title in the contents][title in the head]{title}
 %%   chapteropening : chapter opening pages: only the thumb tab
 %%   frontmatter    : page number centred at the bottom
+%% Running heads and feet, as memoir builds them (the earlier versions of this class were based on memoir):
+%% \makepagestyle{name} starts an empty style; \makeevenhead{name}{left}{centre}{right} and \makeoddhead,
+%% \makeevenfoot, \makeoddfoot fill it in; \makeheadrule{name}{width}{thickness} rules the head;
+%% \aliaspagestyle{name}{other} makes one style stand for another.
+\newcommand{\makepagestyle}[1]{%
+    \@namedef{ps@#1}{\thesis@usepagestyle{#1}}%
+    \makeevenhead{#1}{}{}{}\makeoddhead{#1}{}{}{}\makeevenfoot{#1}{}{}{}\makeoddfoot{#1}{}{}{}%
+    \makeheadrule{#1}{\textwidth}{0pt}%
+    \def\thesis@tmp{#1}\def\thesis@tmpb{empty}%
+    \ifx\thesis@tmp\thesis@tmpb \@namedef{#1psstrut}{}\else \@namedef{#1psstrut}{\strut}\fi}
+\newcommand{\makeevenhead}[4]{\@namedef{#1eheadl}{#2}\@namedef{#1eheadc}{#3}\@namedef{#1eheadr}{#4}}
+\newcommand{\makeoddhead}[4]{\@namedef{#1oheadl}{#2}\@namedef{#1oheadc}{#3}\@namedef{#1oheadr}{#4}}
+\newcommand{\makeevenfoot}[4]{\@namedef{#1efootl}{#2}\@namedef{#1efootc}{#3}\@namedef{#1efootr}{#4}}
+\newcommand{\makeoddfoot}[4]{\@namedef{#1ofootl}{#2}\@namedef{#1ofootc}{#3}\@namedef{#1ofootr}{#4}}
+\newcommand{\makeheadrule}[3]{\@namedef{#1headrule}{\hrule\@width #2\@height #3 \vskip-#3}}
+\newcommand{\aliaspagestyle}[2]{\@namedef{ps@#1}{\@nameuse{ps@#2}}}
+\newcommand{\thesis@usepagestyle}[1]{%
+    \def\@evenhead{\thesis@headfoot{#1}{e}{head}}\def\@oddhead{\thesis@headfoot{#1}{o}{head}}%
+    \def\@evenfoot{\thesis@headfoot{#1}{e}{foot}}\def\@oddfoot{\thesis@headfoot{#1}{o}{foot}}}
+%% A line of the text width with the three parts left, centred and right (each a bottom-aligned
+%% paragraph box, so a part can run to two lines), at single spacing; the head rule below the head.
+\newcommand{\thesis@headfoot}[3]{%
+    \hb@xt@\textwidth{\def\baselinestretch{1}\normalsize
+        \vbox{\hbox{%
+            \rlap{\parbox[b]{\textwidth}{\raggedright\@nameuse{#1psstrut}\@nameuse{#1#2#3l}\@nameuse{#1psstrut}}}\hfill
+            \parbox[b]{\textwidth}{\centering\@nameuse{#1psstrut}\@nameuse{#1#2#3c}\@nameuse{#1psstrut}}\hfill
+            \llap{\parbox[b]{\textwidth}{\raggedleft\@nameuse{#1psstrut}\@nameuse{#1#2#3r}\@nameuse{#1psstrut}}}}%
+          \def\thesis@tmp{#3}\def\thesis@tmpb{head}\ifx\thesis@tmp\thesis@tmpb\@nameuse{#1headrule}\fi}}}
+\makepagestyle{empty}
+\makepagestyle{plain}
+\aliaspagestyle{chapter}{plain}  % chapter opening pages (main.tex chooses the style)
+\aliaspagestyle{cleared}{empty}  % the empty page before a chapter
+
 \makepagestyle{mainmatter}
 \makeevenhead{mainmatter}{\runningheadfolio\lthumb\thepage}{\runningheadtext{\leftmark}}{}
 \makeoddhead{mainmatter}{}{\runningheadtext{\rightmark}}{\runningheadfolio\thepage\rthumb}

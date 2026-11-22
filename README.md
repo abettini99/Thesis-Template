@@ -1,6 +1,6 @@
 # Thesis template
 
-A LaTeX template for a TU Delft PhD dissertation, built on the `memoir` class. It produces four editions of the same pages, with the same page numbers: a digital edition for the screen and the repository, one for the professional printer (with bleed, crop marks and thumb tabs), the printed book as it looks after trimming, and a proof to print at home on A4 or US Letter.
+A LaTeX template for a TU Delft PhD dissertation, built on LaTeX's standard `book` class. It produces four editions of the same pages, with the same page numbers: a digital edition for the screen and the repository, one for the professional printer (with bleed, crop marks and thumb tabs), the printed book as it looks after trimming, and a proof to print at home on A4 or US Letter.
 
 ## Compiling
 
@@ -39,8 +39,8 @@ The PDF standards, roughly from least to most demanding:
 
 - **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A.
 - **Checking:** the template passes the PDF/A-4f checks. `python3 tools/check_pdf.py` checks your compiled PDF (see *Before sending it to the printer*); it runs [veraPDF](https://verapdf.org) (free) for a full validation when that is installed, otherwise have the final PDF validated once with veraPDF or Adobe Acrobat's preflight.
-- **Why not `\DocumentMetadata`:** LaTeX's documented route also loads its new tagging support code, which replaces parts of `memoir` (captions, headings, appendices) and changes the look. The class loads the PDF management on its own instead, which gives the same archival PDF.
-- **Accessible (tagged) PDF**, the PDF/UA level, is not possible yet: the `memoir` class and the `caption` package are not yet compatible with LaTeX's tagging code, and several other packages have not been tested with it.
+- **`\DocumentMetadata`:** the first line of `main.tex` (and of `propositions.tex`) switches on LaTeX's PDF management, which writes the archival PDF. It is required: the class stops with an error without it.
+- **Accessible (tagged) PDF**, the PDF/UA level, is the next step: the class no longer depends on `memoir` or the `caption` package, which are not compatible with LaTeX's tagging code, but a few packages the template loads still have to be checked with it.
 
 ## Class options
 

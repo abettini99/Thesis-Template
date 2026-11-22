@@ -2,9 +2,9 @@
 %% PDF/A-4f (archival PDF on PDF 2.0, e.g. for the TU Delft repository) with LaTeX's own PDF management.
 %% Fonts embedded, sRGB output intent, all text mapped to Unicode, and XMP metadata.
 %%
-%% The PDF management is loaded as a package (here, inside the class, or before \documentclass in
-%% cover.tex), not through \DocumentMetadata: that also loads LaTeX's new tagging support code, which
-%% replaces parts of memoir (captions, headings, appendices). The archival PDF needs none of it.
+%% The PDF management itself is switched on by \DocumentMetadata in the first line of main.tex; this file
+%% adds the language and the metadata. cover.tex has no \DocumentMetadata (it is a single page in the
+%% article class, not tagged) and loads the PDF management here, as a package.
 %%
 %% The metadata (title, author, keywords, ...) comes from _thesisinfo.tex, through hyperref's keys once
 %% hyperref is loaded: there is nothing to edit here.

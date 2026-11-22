@@ -14,7 +14,7 @@
 \usepackage{xltabular}          % https://ctan.org/pkg/xltabular %% tabularx (wrapping columns) + longtable (across pages)
 %% All tables in one size, the caption size (\small): table text then sits between the captions and the text.
 %% (The nomenclature lists are not tables in this sense and keep the text size.)
-\setfloatadjustment{table}{\small} % memoir: applied inside every table float, also sideways ones
+\setfloatadjustment{table}{\small} % applied inside every table float, also sideways ones (personal.cls)
 \AddToHook{env/xltabular/begin}{\small} % long tables are not floats
 %% Wrapping (X) columns are set ragged right without hyphenation: in a narrow column justified text
 %% leaves wide gaps, and a word broken over two lines of a table cell reads badly.
@@ -77,9 +77,16 @@
 %% To rename one, change the word here and in its \crefname below.
 \let\openbox\relax  % also defined by newtxmath; let amsthm define it
 \usepackage{amsthm}
+%% (With \DocumentMetadata, LaTeX's own code stands in for amsthm and does not define \openbox, the square
+%% at the end of a proof: amsthm's definition.)
+\providecommand{\openbox}{\leavevmode\hbox to.77778em{\hfil\vrule\vbox to.675em{\hrule width.6em\vfil\hrule}\vrule\hfil}}
 %% Proofs stretch like the other statements (amsthm gives them 6pt plus 6pt, so they took up most of the
 %% slack on a page that breaks early, leaving holes around them).
-\makeatletter\expandafter\patchcmd\csname\string\proof\endcsname{\topsep6\p@\@plus6\p@}{\topsep6\p@\@plus2\p@}{}{\PackageWarning{thesis}{Could not patch the proof spacing}}\makeatother
+%% (With \DocumentMetadata, LaTeX's own code replaces amsthm: proofs are its "proof" blocks.)
+\IfInstanceExistsTF{block}{proof-1}
+    {\EditInstance{block}{proof-1}{begin-vspace = 6pt plus 2pt}\EditInstance{block}{proof-2}{begin-vspace = 6pt plus 2pt}%
+     \EditInstance{captionedtext}{proof}{after-hspace = \labelsep, caption-unbreakable = true}}% (as amsthm: a rigid separation, the label in a box)
+    {\makeatletter\expandafter\patchcmd\csname\string\proof\endcsname{\topsep6\p@\@plus6\p@}{\topsep6\p@\@plus2\p@}{}{\PackageWarning{thesis}{Could not patch the proof spacing}}\makeatother}
 %% (the environments are defined after cleveref below, so it names shared-counter ones correctly)
 
 %% Algorithms (pseudocode): "Algorithm 2.1", numbered per chapter, as a float with its caption on top.
@@ -97,7 +104,7 @@
 \renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
 \makeatother
 \floatstyle{ruled}\restylefloat{algorithm}
-\DeclareCaptionStyle{ruled}{font=small, labelfont={sc,bf}, labelsep=quad}
+\makeatletter\renewcommand\floatc@ruled[2]{{\parindent\z@\thesis@capcentrefalse\leavevmode\thesis@captionbox{#1}{#2}\par}\@minipagefalse}\makeatother
 \algrenewcommand\algorithmicrequire{\textbf{Input:}}
 \algrenewcommand\algorithmicensure{\textbf{Output:}}
 \algrenewcommand\algorithmiccomment[1]{\hfill\textcolor{black!60}{\(\triangleright\) \textit{#1}}}
@@ -115,9 +122,19 @@
 %% Refer to an algorithm line with line~\ref{alg:...} (\cref would capitalise it mid-sentence).
 
 %% The numbered statements described above (after cleveref, which needs that for shared counters)
-%% Head: "Theorem 3.1." in bold; with a note, "Theorem 3.1 (Name)." with note and full stop in regular weight.
-\newtheoremstyle{thesis}{\topsep}{\topsep}{\normalfont}{0pt}{\normalfont}{}{5pt plus 1pt minus 1pt}%
-    {\textbf{\thmname{#1}\thmnumber{ #2}\ifx\relax#3\relax.\fi}\thmnote{ (#3).}}
+%% Head: "Theorem 3.1." in bold; with a note, "Theorem 3.1 (Name)." with the note in regular weight.
+%% (LaTeX's tagging code reads the last argument as a list of \thmname, \thmnumber and \thmnote only.)
+\newtheoremstyle{thesis}{\topsep}{\topsep}{\normalfont}{0pt}{\bfseries}{.}{5pt plus 1pt minus 1pt}%
+    {\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}
+%% (amsthm put only the space above and below a statement around it; LaTeX's own code adds \partopsep)
+%% (and the paragraph skip of the first paragraph is part of the space above, as with amsthm)
+\IfInstanceExistsT{block}{thm-thesis-1}{%
+    \newskip\thesistheoremsep \thesistheoremsep=\topsep
+    \newskip\thesisremarksep \thesisremarksep=\glueexpr\topsep/2\relax % (as amsthm: half the space around a theorem)
+    \EditInstance{block}{thm-thesis-1}{begin-extra-vspace = 0pt, begin-vspace = \thesistheoremsep - \parskip, end-vspace = \thesistheoremsep}%
+    \EditInstance{block}{thm-thesis-2}{begin-extra-vspace = 0pt, begin-vspace = \thesistheoremsep - \parskip, end-vspace = \thesistheoremsep}%
+    \EditInstance{block}{thm-remark-1}{begin-vspace = \thesisremarksep - \parskip, end-vspace = \thesisremarksep}%
+    \EditInstance{block}{thm-remark-2}{begin-vspace = \thesisremarksep - \parskip, end-vspace = \thesisremarksep}}
 \theoremstyle{thesis}
 \newtheorem{formulation}{Formulation}[chapter]
 \newtheorem{definition}{Definition}[chapter]

@@ -47,8 +47,7 @@
 \usetikzlibrary{calc}
 \newcommand\thesis@setpagenode{%
     \expandafter\def\csname pgf@sh@ns@current page\endcsname{rectangle}%
-    \strictpagecheck\checkoddpage
-    \ifoddpage
+    \ifodd\c@page % (drawn in the running head, while the page is being finished: the page number is right)
         \expandafter\def\csname pgf@sh@np@current page\endcsname{%
             \def\southwest{\pgfpoint{\stockwidth-\paperwidth-\trimedge}{\stockheight-\trimtop-\paperheight}}%
             \def\northeast{\pgfpoint{\stockwidth-\trimedge}{\stockheight-\trimtop}}}%
