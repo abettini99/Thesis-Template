@@ -21,11 +21,9 @@ A long thesis gets slow because every chapter, figure and plot is processed on e
 4. **Keep images light.** Use vector PDF for plots and diagrams. For photos and renders, use JPG (or PNG for screenshots) at no more than about 300 dpi at the size they are printed: a figure 100 mm wide needs about 1200 pixels, not 6000.
 5. **Load only what you use.** Optional packages are listed, commented out, at the bottom of `_options/packages.tex`.
 
-(Automatic caching of TikZ pictures with the `memoize` package was tested and left out: it clashes with biblatex and depends on Perl modules that are not available everywhere.)
-
 ## Archival PDF (PDF/A)
 
-The PDF is produced as **PDF/A-2u**, the archival standard: fonts are embedded, colours are defined against the sRGB colour profile, every character (maths included) maps to Unicode so text can be searched and copied reliably, and the file carries standard metadata. It will display the same in decades. This is set up in `_options/pdfa.tex` (with the `pdfx` package), which the class loads right after reading `_thesisinfo.tex`; the metadata (title, author, keywords, language) comes from `_thesisinfo.tex`, so there is nothing to edit there. LaTeX's newer route, `\DocumentMetadata`, is deliberately not used: since 2025 it also loads LaTeX's tagging code, which replaces parts of memoir (captions, headings, appendices) and makes the thesis look different on newer TeX Live versions, Overleaf included. The same PDF works for the printer and for the TU Delft repository.
+The PDF is produced as **PDF/A-2u**, the archival standard: fonts are embedded, colours are defined against the sRGB colour profile, every character (maths included) maps to Unicode so text can be searched and copied reliably, and the file carries standard metadata. It will display the same in decades. This is set up in `_options/pdfa.tex` (with the `pdfx` package), which the class loads right after reading `_thesisinfo.tex`; the metadata (title, author, keywords, language) comes from `_thesisinfo.tex`, so there is nothing to edit there. (LaTeX's newer `\DocumentMetadata` is not used: it brings in tagging code that changes memoir's captions and headings.) The same PDF works for the printer and for the TU Delft repository.
 
 - **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A.
 - **Engine:** compile with LuaLaTeX for PDF/A. XeLaTeX still produces the same-looking PDF, but `pdfx` cannot add the XMP metadata there, so that file is not PDF/A.
@@ -52,8 +50,6 @@ Set in the first line of `main.tex`, for example:
 | `print-showcase` | The printed book as it looks after trimming: the pages at their final size, as on paper. For checking the layout on screen. |
 | `print-report` | For printing a proof at home: the pages centred on an A4 sheet (`showtrims` marks where to cut). |
 | `letter` | With `print-report`: US Letter instead of A4. |
-
-The print editions are set for paper: links invisible (they still work in the PDF), code in black and white.
 | `thumb` | Chapter thumb tabs on the page edge: square, light grey with a black number; the colours are set in `_options/formatColor.tex`. Appendices continue below the last chapter; the spacing adapts so all tabs fit on the page (it uses the chapter count from the previous compile, so compile twice after adding chapters). |
 | `showtrims` | Crop marks showing where the page is trimmed (`print-preparation`, `print-report`). |
 | `british` *(default)*, `american` | Language: hyphenation, quotation marks and dates. |
@@ -62,6 +58,8 @@ The print editions are set for paper: links invisible (they still work in the PD
 | `final` | The version for the printer and the repository: hides all todo notes. |
 | `backreferences` | Each reference in the bibliography ends with the pages it is cited on: "(cited on pages 12, 45)". |
 | `chapterbib` | Every chapter ends with its own reference list instead of one list at the end of the book, as is common for a thesis built from papers. |
+
+The print editions are set for paper: links invisible (they still work in the PDF), code in black and white.
 
 ## Where things are
 
