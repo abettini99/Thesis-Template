@@ -16,7 +16,6 @@
 *.run.xml
 *.synctex.gz
 *.toc
-*.xmpdata
 *.xmpi
 _pagesizes_*
 # tools/diff_versions.py output
@@ -57,7 +56,7 @@ __pycache__/
 !tools/mtpro2_unicode_map.json
 !tools/mtpro2_otf.py
 
-# Build output (XeLaTeX and pdfx)
+# Build output
 main.pdf
 *.xdv
 creationdate.lua

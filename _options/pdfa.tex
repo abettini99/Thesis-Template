@@ -1,66 +1,28 @@
 %% =====================================================================
-%% PDF/A-2u (archival PDF, e.g. for the TU Delft repository) with the pdfx package.
+%% PDF/A-4f (archival PDF on PDF 2.0, e.g. for the TU Delft repository) with LaTeX's own PDF management.
 %% Fonts embedded, sRGB output intent, all text mapped to Unicode, and XMP metadata.
 %%
-%% pdfx reads the metadata from a file named after the output (\jobname.xmpdata; on Overleaf the
-%% output is called "output"). It is written here from _thesisinfo.tex on every compile, so there is
-%% nothing to edit in it: change _thesisinfo.tex instead.
+%% The PDF management is loaded as a package (here, inside the class, or before \documentclass in
+%% cover.tex), not through \DocumentMetadata: that also loads LaTeX's new tagging support code, which
+%% replaces parts of memoir (captions, headings, appendices). The archival PDF needs none of it.
 %%
-%% Not \DocumentMetadata: since 2025 it always loads LaTeX's tagging code, which replaces parts of
-%% memoir (captions, section headings, appendices). pdfx gives the same PDF/A-2u without it.
+%% The metadata (title, author, keywords, ...) comes from _thesisinfo.tex, through hyperref's keys once
+%% hyperref is loaded: there is nothing to edit here.
 %% Needs: _thesisinfo.tex loaded first. Optional: \thesispdfsuffix (e.g. " (cover)") for the title.
 %% =====================================================================
 \chardef\thesisatcatcode=\catcode`\@ % restored at the end (this file is read inside the class too)
 \makeatletter
 \providecommand*{\thesispdfsuffix}{}
 \providecommand*{\thesis@bcp}{en-GB}
-\newwrite\thesis@xmpfile
-\immediate\openout\thesis@xmpfile=\jobname.xmpdata
-\def\thesis@xmp#1#2{\immediate\write\thesis@xmpfile{\string#1{#2}}}
-\thesis@xmp\Title{\thesispdftitle\thesispdfsuffix}
-\thesis@xmp\Author{\thesisauthorfirstnames\space\thesisauthorlastname}
-\thesis@xmp\Subject{Doctoral dissertation, Delft University of Technology}
-\thesis@xmp\Keywords{\thesiskeywords}
-\thesis@xmp\Language{\thesis@bcp}
-\thesis@xmp\Publisher{Delft University of Technology}
-\thesis@xmp\Copyright{Copyright \the\year\space\thesisauthorfirstnames\space\thesisauthorlastname}
-\immediate\closeout\thesis@xmpfile
-%% pdfx loads xcolor with an option ("hyperref") that newer xcolor versions declare obsolete and warn
-%% about; remove just that option when xcolor loads.
-\ExplSyntaxOn
-\cs_new_protected:Npn \__thesis_drop_option:nn #1#2 % #1: option list macro name, #2: option
-  {
-    \cs_if_exist:cT {#1}
-      {
-        \clist_clear:N \l_tmpa_clist
-        \exp_args:Nv \clist_map_inline:nn {#1}
-          { \str_if_eq:eeF { \tl_trim_spaces:n {##1} } {#2} { \clist_put_right:Nn \l_tmpa_clist {##1} } }
-        \cs_set_eq:cN {#1} \l_tmpa_clist
-      }
-  }
-\AddToHook{package/xcolor/before}
-  {
-    \__thesis_drop_option:nn { opt@xcolor.sty } { hyperref }
-    \__thesis_drop_option:nn { @raw@opt@xcolor.sty } { hyperref }
-  }
-\ExplSyntaxOff
-%% pdfx adds the font-map entry "dummy-space", which TeX Live's map already has; LuaTeX cannot hide the
-%% resulting "duplicate entry" warning, so skip that one line while pdfx loads. (pdfx may load
-%% luatex85, which defines \pdfmapline afresh: filter it again then.)
-\def\thesis@filtermapline{\let\thesis@pdfmapline\pdfmapline
-    \protected\def\pdfmapline##1{\in@{dummy-space}{##1}\ifin@\else\thesis@pdfmapline{##1}\fi}}
-\AddToHook{package/pdfx/before}{\thesis@filtermapline}
-\AddToHook{package/luatex85/after}{\thesis@filtermapline}
-\AddToHook{package/pdfx/after}{\let\pdfmapline\thesis@pdfmapline}
-%% Newer pdfx reports "Setting all color commands to rgb" on every PDF/A compile. The template's colours
-%% are all RGB or grey already, so that message is only information: show it as such in the log.
-\def\thesis@colourinfo#1#2#3{% #1: the original warning command
-    \in@{Setting all color commands}{#3}\ifin@ \PackageInfo{#2}{#3}\else #1{#2}{#3}\fi}
-\let\thesis@PackageWarning\PackageWarning
-\let\thesis@PackageWarningNoLine\PackageWarningNoLine
-\def\PackageWarning{\thesis@colourinfo\thesis@PackageWarning}
-\def\PackageWarningNoLine{\thesis@colourinfo\thesis@PackageWarningNoLine}
-\RequirePackage[a-2u, pdf14]{pdfx}
-\let\PackageWarning\thesis@PackageWarning
-\let\PackageWarningNoLine\thesis@PackageWarningNoLine
+\RequirePackage{pdfmanagement}
+\edef\thesis@tmp{\noexpand\SetKeys[document/metadata]{pdfstandard=a-4f, pdfversion=2.0, lang=\thesis@bcp}}
+\thesis@tmp
+\AddToHook{package/hyperref/after}{\hypersetup{
+    pdftitle     = {\thesispdftitle\thesispdfsuffix},
+    pdfauthor    = {\thesisauthorfirstnames\space\thesisauthorlastname},
+    pdfsubject   = {Doctoral dissertation, Delft University of Technology},
+    pdfkeywords  = {\thesiskeywords},
+    pdfpublisher = {Delft University of Technology},
+    pdfcopyright = {Copyright \the\year\space\thesisauthorfirstnames\space\thesisauthorlastname},
+    pdfdisplaydoctitle = true}}
 \catcode`\@=\thesisatcatcode

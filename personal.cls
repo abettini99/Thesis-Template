@@ -1,7 +1,4 @@
 \ProvidesClass{personal}[2026/11/21 v2.0 TU Delft dissertation class, based on memoir]
-%% PDF version 1.4 without object streams, as pdfx and hyperref expect for PDF/A (see _options/pdfa.tex);
-%% it has to be set before anything writes to the PDF.
-\ifdefined\pdfvariable \pdfvariable majorversion=1 \pdfvariable minorversion=4 \pdfvariable objcompresslevel=0 \fi
 
 %% Options. Language: british (default) or american. Page size: dover (default), a5, royal or tudelft.
 \newcommand*{\thesis@language}{british}
@@ -53,6 +50,9 @@
 \ifx\thesis@language\thesis@tmp \def\thesis@bcp{en-US}\else \def\thesis@bcp{en-GB}\fi % language in the PDF metadata
 
 %% LuaLaTeX only: the class uses Lua for page balance, line breaks of URLs, maths fonts and the logs.
+\IfFormatAtLeastF{2026-06-01}{%
+    \ClassError{personal}{This template needs TeX Live 2026 or later}{In Overleaf: Menu > Settings >
+        TeX Live version > 2026.}\@@end}
 \ifdefined\directlua\else
     \ClassError{personal}{This template needs LuaLaTeX}{In Overleaf: Menu > Settings > Compiler > LuaLaTeX.
         Locally: latexmk main.tex (latexmkrc selects LuaLaTeX).}
@@ -157,22 +157,29 @@
 \newcommand{\IfThesisEmpty}[1]{\if\relax\detokenize\expandafter{#1}\relax
     \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
 
+%%% THESIS INFORMATION AND ARCHIVAL PDF
+%% _thesisinfo.tex (title, author, committee, ...) is read here, so that the PDF/A setup can
+%% take its metadata from it.
+\IfFileExists{_thesisinfo.tex}{\input{_thesisinfo}}{\ClassWarningNoLine{personal}{_thesisinfo.tex not found}}
+\input{_options/pdfa} % before anything that loads xcolor (showframe, lualineno, ...)
+
 \if@showframe
     \RequirePackage{showframe}
 \fi
 
-%%% THESIS INFORMATION AND ARCHIVAL PDF
-%% _thesisinfo.tex (title, author, committee, ...) is read here, so that the PDF/A setup (pdfx) can
-%% take its metadata from it; pdfx has to come before any colour package, as it sets up xcolor itself.
-\IfFileExists{_thesisinfo.tex}{\input{_thesisinfo}}{\ClassWarningNoLine{personal}{_thesisinfo.tex not found}}
-\input{_options/pdfa}
-
 \if@draft
-    %% line numbers in the margin, so readers can point at a line ("p. 12, l. 31")
-    \RequirePackage{lineno}
-    \renewcommand{\linenumberfont}{\normalfont\fontsize{6}{7}\selectfont\sffamily\color{black!45}}
-    \setlength{\linenumbersep}{4mm}
-    \AtBeginDocument{\linenumbers}
+    %% line numbers in the margin, so readers can point at a line ("p. 12, l. 31"); lualineno numbers
+    %% the lines of each finished page just before it is shipped out, equations included
+    \RequirePackage{lualineno}
+    \newcounter{thesislineno}
+    \lualineno{
+        define = {
+            name = thesis
+            toks = {\stepcounter{thesislineno}}
+            left = {\normalfont\fontsize{6}{7}\selectfont\sffamily\color{black!45}\thethesislineno\kern4mm}
+        }
+        set = thesis
+    }
     \RequirePackage[firstpageonly=false]{draftwatermark}
     \DraftwatermarkOptions{text={DRAFT \textendash\ \today}, fontsize=8pt, angle=0, pos={0.5\paperwidth, 4mm}, color=black!60}
 \fi
@@ -238,7 +245,7 @@
 %% Break an inline formula across lines only when nothing else works (TeX's defaults allow it readily after
 %% =, < and after +, -); rewording is the better fix when it still happens.
 \relpenalty=9999 \binoppenalty=9999
-%% Give the Type 1 maths fonts a Unicode map, so maths can be copied and searched (PDF/A-2u).
+%% Give the Type 1 maths fonts a Unicode map, so maths can be copied and searched (PDF/A).
 \pdfvariable gentounicode = 1
 \protected\def\pdfglyphtounicode{\pdfextension glyphtounicode}
 \input{glyphtounicode}

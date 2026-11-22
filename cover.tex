@@ -14,9 +14,11 @@
 %%   5. Turn the guides off (\coverguidesfalse) and send cover.pdf.
 %% Many printers also have a cover template or calculator; check the result against it.
 %% =====================================================================
+%% Title and name, and the archival PDF (PDF/A-4f; set up before \documentclass)
+\input{_thesisinfo}
+\def\thesispdfsuffix{ (cover)}
+\input{_options/pdfa}
 \documentclass{article}
-%% PDF 1.4 without object streams, as pdfx and hyperref expect for PDF/A (see _options/pdfa.tex)
-\ifdefined\pdfvariable \pdfvariable majorversion=1 \pdfvariable minorversion=4 \pdfvariable objcompresslevel=0 \fi
 \usepackage{fix-cm} % maths fonts at any size (the large title)
 
 %% ---------------------------------------------------------------------
@@ -46,10 +48,6 @@
 %% today), 90 from bottom to top (traditional continental convention).
 \newcommand{\coverspinerotation}{-90}
 
-%% Title and name; archival PDF (before xcolor, which pdfx sets up)
-\input{_thesisinfo}
-\def\thesispdfsuffix{ (cover)}
-\input{_options/pdfa}
 \usepackage{xcolor}
 \input{_options/formatColor}
 %% Colours: the accent band on the back, spine and front, and the text on and off it
@@ -95,6 +93,7 @@
 \usepackage{tikz}
 \usepackage{graphicx}
 \usepackage[british]{babel}
+\usepackage[hidelinks]{hyperref} % for the PDF metadata (_options/pdfa.tex)
 
 %% Same fonts as the thesis
 \makeatletter

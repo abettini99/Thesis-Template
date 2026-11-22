@@ -7,7 +7,7 @@ check_pdf.py: check the compiled thesis before you hand it in or send it to the 
 
 It reports what a print shop or the TU Delft repository may reject:
 
-  archival PDF  PDF/A-2u, with veraPDF (https://verapdf.org) when it is installed and
+  archival PDF  PDF/A-4f, with veraPDF (https://verapdf.org) when it is installed and
                 the template's own basic checks otherwise
   fonts         every font embedded, no bitmap (Type 3) fonts, every font mapped to
                 Unicode (so text can be searched and copied); figure files with
@@ -39,33 +39,45 @@ def table(text: str, skip: int = 2) -> list[list[str]]:
 
 # --- archival PDF -------------------------------------------------------------
 
+PDFA = ("4", "F")                                   # the standard the class produces: PDF/A-4f
+PDFA_NAME = f"PDF/A-{PDFA[0]}{PDFA[1].lower()}"
+
+
 def check_pdfa(pdf: Path, r: Report) -> None:
-    r.section("Archival PDF (PDF/A-2u)")
+    r.section(f"Archival PDF ({PDFA_NAME})")
     verapdf = shutil.which("verapdf")
-    if verapdf:
-        out = run(verapdf, "--flavour", "2u", "--format", "text", "--verbose", str(pdf))
+    if verapdf:                     # veraPDF picks the standard the PDF declares
+        out = run(verapdf, "--format", "text", "--verbose", str(pdf))
         if re.search(r"^PASS\b", out, re.M):
-            r.ok("veraPDF: PDF/A-2u compliant")
+            r.ok(f"veraPDF: {PDFA_NAME} compliant")
         else:
             rules = [l.strip() for l in out.splitlines() if l.strip() and not l.startswith("FAIL ")][:40] \
                 or out.strip().splitlines()[-5:]
-            r.fail("veraPDF: not PDF/A-2u compliant", rules)
+            r.fail(f"veraPDF: not {PDFA_NAME} compliant", rules)
         return
-    data = pdf.read_bytes()
     xmp = run("pdfinfo", "-meta", str(pdf))
     part = re.search(r"pdfaid:part(?:>|=\")(\d)", xmp)
     conf = re.search(r"pdfaid:conformance(?:>|=\")([A-Za-z])", xmp)
-    if part and conf and (part.group(1), conf.group(1).upper()) == ("2", "U"):
-        r.ok("declares PDF/A-2u")
+    if part and conf and (part.group(1), conf.group(1).upper()) == PDFA:
+        r.ok(f"declares {PDFA_NAME}")
     else:
-        r.fail("does not declare PDF/A-2u (the class sets this up: check that the build finished)")
-    if b"/GTS_PDFA1" in data:
+        r.fail(f"does not declare {PDFA_NAME} (the class sets this up: check that the build finished)")
+    try:                            # (objects may sit in compressed streams: read them with pikepdf)
+        import pikepdf
+        doc = pikepdf.open(pdf)
+        intents = [str(oi.get("/S")) for oi in doc.Root.get("/OutputIntents", [])]
+        encrypted, javascript = doc.is_encrypted, "/JavaScript" in doc.Root.get("/Names", {})
+    except ImportError:
+        data = pdf.read_bytes()
+        intents = ["/GTS_PDFA1"] if b"/GTS_PDFA1" in data else []
+        encrypted, javascript = b"/Encrypt" in data, b"/JavaScript" in data
+    if "/GTS_PDFA1" in intents:
         r.ok("colour profile (output intent) present")
     else:
         r.fail("no PDF/A output intent (colour profile)")
-    if b"/Encrypt" in data:
+    if encrypted:
         r.fail("the PDF is encrypted; PDF/A does not allow that")
-    if b"/JavaScript" in data:
+    if javascript:
         r.fail("the PDF contains JavaScript; PDF/A does not allow that")
     print("        (basic checks only: install veraPDF for a full validation)")
 
@@ -88,7 +100,7 @@ def check_fonts(pdf: Path, r: Report) -> None:
         r.warn("Type 3 fonts, usually from a figure: some are bitmaps (blurry in print) and some printers "
                "refuse them. In matplotlib use the template's style file (pdf.fonttype 42)", sorted(set(type3)))
     if nouni:
-        r.fail("fonts without a Unicode map: text in them cannot be searched or copied (PDF/A-2u)",
+        r.fail("fonts without a Unicode map: text in them cannot be searched or copied (PDF/A)",
                sorted(set(nouni)))
     else:
         r.ok("all fonts map to Unicode")

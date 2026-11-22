@@ -1,7 +1,7 @@
 # Builds the thesis on every push, checks it, and keeps the PDF.
 #
 #   - The PDF (and its log) is kept for 30 days: Actions tab > the run > Artifacts.
-#   - It is checked with tools/check_pdf.py, with veraPDF for a full PDF/A-2u validation, and with
+#   - It is checked with tools/check_pdf.py, with veraPDF for a full PDF/A-4f validation, and with
 #     tools/check_figures.py. A run fails (red cross) if the PDF has something that must be fixed.
 #   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10) to publish the PDF as a
 #     release: a fixed link to send to your supervisors. In a private repository only people with
@@ -72,7 +72,7 @@ jobs:
         run: python3 tools/check_figures.py main.log
       - name: veraPDF report
         if: always()
-        run: verapdf --flavour 2u --format html main.pdf > verapdf-report.html || true
+        run: verapdf --format html main.pdf > verapdf-report.html || true
       - name: Keep the veraPDF report
         if: always()
         uses: actions/upload-artifact@v7

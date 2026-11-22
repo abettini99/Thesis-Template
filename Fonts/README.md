@@ -24,4 +24,4 @@ MathTime Professional 2 is licensed to you personally. The licence does not allo
 
 ## Accessibility
 
-With MathTime the PDF is PDF/A-2u, as with newtx: every character, maths included, maps to Unicode, so the PDF can be searched and copied. A fully accessible PDF (PDF/UA: tagged structure, maths as MathML) is a different matter: LaTeX's tagging project does not support the memoir class yet, whichever maths font is used.
+With MathTime the PDF is PDF/A-4f, as with newtx: every character, maths included, maps to Unicode, so the PDF can be searched and copied. A fully accessible PDF (PDF/UA: tagged structure, maths as MathML) is a different matter: LaTeX's tagging project does not support the memoir class yet, whichever maths font is used.

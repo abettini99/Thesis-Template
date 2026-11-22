@@ -4,12 +4,12 @@ A LaTeX template for a TU Delft PhD dissertation, built on the `memoir` class. I
 
 ## Compiling
 
-Compile with **LuaLaTeX**. In Overleaf: *Menu → Settings → Compiler → LuaLaTeX*. Locally, `latexmk main.tex` does everything (the included `latexmkrc` selects LuaLaTeX).
+Compile with **LuaLaTeX** on **TeX Live 2026** or later. In Overleaf: *Menu → Settings → Compiler → LuaLaTeX*, and *TeX Live version → 2026*. Locally, `latexmk main.tex` does everything (the included `latexmkrc` selects LuaLaTeX).
 
 - LuaLaTeX lets `microtype` stretch letters very slightly, which halves the number of hyphenated lines and gives evener word spacing.
 - The bibliography uses **biblatex + biber**, which Overleaf runs automatically. The nomenclature needs no extra tool.
 - The first compile on a new machine (or a new Overleaf project) takes longer while LuaLaTeX builds its font cache.
-- LuaLaTeX only: the class stops with a message under pdfLaTeX or XeLaTeX.
+- LuaLaTeX only, TeX Live 2026 or later: the class stops with a message under pdfLaTeX or XeLaTeX, or with an older LaTeX.
 
 ## Faster compiling
 
@@ -23,11 +23,24 @@ A long thesis gets slow because every chapter, figure and plot is processed on e
 
 ## Archival PDF (PDF/A)
 
-The PDF is produced as **PDF/A-2u**, the archival standard: fonts are embedded, colours are defined against the sRGB colour profile, every character (maths included) maps to Unicode so text can be searched and copied reliably, and the file carries standard metadata. It will display the same in decades. This is set up in `_options/pdfa.tex` (with the `pdfx` package), which the class loads right after reading `_thesisinfo.tex`; the metadata (title, author, keywords, language) comes from `_thesisinfo.tex`, so there is nothing to edit there. (LaTeX's newer `\DocumentMetadata` is not used: it brings in tagging code that changes memoir's captions and headings.) The same PDF works for the printer and for the TU Delft repository.
+The PDF is produced as **PDF/A-4f**, the current archival standard (on PDF 2.0): fonts are embedded, colours are defined against the sRGB colour profile, every character (maths included) maps to Unicode so text can be searched and copied reliably, and the file carries standard metadata. It will display the same in decades. This is set up in `_options/pdfa.tex` with LaTeX's own PDF management, which the class loads right after reading `_thesisinfo.tex`; the metadata (title, author, keywords, language) comes from `_thesisinfo.tex`, so there is nothing to edit there. The same PDF works for the printer and for the TU Delft repository.
+
+The PDF standards, roughly from least to most demanding:
+
+| Standard | Year, base | What it guarantees on top of the row above |
+|---|---|---|
+| PDF/A-1b | 2005, PDF 1.4 | Looks the same for decades: fonts embedded, colours defined, nothing external |
+| PDF/A-2b | 2011, PDF 1.7 | Newer features allowed (transparency, layers, JPEG 2000) |
+| PDF/A-2u | 2011, PDF 1.7 | All text maps to Unicode, so it can be searched and copied |
+| PDF/A-3u | 2012, PDF 1.7 | Files of any kind may be attached (data, code) |
+| **PDF/A-4f** | 2020, PDF 2.0 | The same guarantees on PDF 2.0; Unicode always required; attachments allowed. **← this template** |
+| PDF/A-2a, -4 with tags | | Tagged: headings, lists, tables and figures marked up for screen readers |
+| PDF/UA-2 (with PDF/A-4f) | 2024, PDF 2.0 | Fully accessible: tagged, alt text, maths as MathML. Not possible yet (see below) |
 
 - **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A.
-- **Checking:** the template passes the standard PDF/A-2u checks. `python3 tools/check_pdf.py` checks your compiled PDF (see *Before sending it to the printer*); it runs [veraPDF](https://verapdf.org) (free) for a full validation when that is installed, otherwise have the final PDF validated once with veraPDF or Adobe Acrobat's preflight.
-- **Accessible (tagged) PDF**, the higher PDF/UA and PDF/A "a" levels, is not possible yet: the `memoir` class, the `caption` package and the `newtxmath` maths font are not yet compatible with LaTeX's tagging code, and several other packages have not been tested with it.
+- **Checking:** the template passes the PDF/A-4f checks. `python3 tools/check_pdf.py` checks your compiled PDF (see *Before sending it to the printer*); it runs [veraPDF](https://verapdf.org) (free) for a full validation when that is installed, otherwise have the final PDF validated once with veraPDF or Adobe Acrobat's preflight.
+- **Why not `\DocumentMetadata`:** LaTeX's documented route also loads its new tagging support code, which replaces parts of `memoir` (captions, headings, appendices) and changes the look. The class loads the PDF management on its own instead, which gives the same archival PDF.
+- **Accessible (tagged) PDF**, the PDF/UA level, is not possible yet: the `memoir` class and the `caption` package are not yet compatible with LaTeX's tagging code, and several other packages have not been tested with it.
 
 ## Class options
 
@@ -219,7 +232,7 @@ Both are separate documents that use the fonts and the details in `_thesisinfo.t
 5. **Overfull lines and hyphenation:** compile once with `draft`; a black bar in the margin marks every line that sticks out. Fix them by rewording or adding words to `_hyphenation.tex`. Then run `python3 tools/check_hyphenation.py`: it lists the words TeX hyphenated and points out words split across two pages, three or more hyphenated lines in a row, names and terms broken in a doubtful place, and breaks that leave two letters on a line (`--all` lists every hyphenated word).
 6. **Contents and bookmarks:** check the contents, the running heads (long titles get cut off or wrap) and the PDF bookmarks.
 7. **Figures:** run `python3 tools/check_figures.py`: every figure at its printed size and legible. If the printer charges for colour pages, run `python3 tools/greyscale_preview.py` on the print edition: it lists the pages with colour (the number to quote), writes `main-grey.pdf` to look through, and names figure colours that print as the same grey.
-8. **PDF/A:** the PDF should be PDF/A-2u with all fonts embedded (most printers check this; the check above, veraPDF or Adobe Acrobat's Preflight shows it).
+8. **PDF/A:** the PDF should be PDF/A-4f with all fonts embedded (most printers check this; the check above, veraPDF or Adobe Acrobat's Preflight shows it).
 9. **Page count and blank pages:** chapters start on a right-hand page, so blank left-hand pages are expected. Note the total page count.
 10. **Cover:** set the page count and the paper thickness in `cover.tex` (or the spine width from the printer), the bleed the printer asks for, turn off the guides with `\coverguidesfalse`, and compare with the printer's cover template.
 11. **Propositions:** compile `propositions.tex` separately; check the promotors' names and that the promotors have approved them.
@@ -241,7 +254,7 @@ Printers usually charge every page that contains any colour as a colour page. So
 
 This repository is synced with Overleaf (*Menu → GitHub*).
 
-**Every push builds the thesis** (`.github/workflows/build.yml`) on the latest TeX Live and checks it: `tools/check_pdf.py` with [veraPDF](https://verapdf.org) for a full PDF/A-2u validation, and `tools/check_figures.py`. A red cross in the *Actions* tab means the PDF has something to fix; the run's *Artifacts* hold the PDF, its log and the veraPDF report for 30 days. **Push a tag** (`git tag draft-2026-10 && git push origin draft-2026-10`) and the PDF is published as a release, a fixed link for your supervisors (in a private repository, only people with access can open it). These builds use newtx for the maths, as the MathTime fonts are never on GitHub.
+**Every push builds the thesis** (`.github/workflows/build.yml`) on the latest TeX Live and checks it: `tools/check_pdf.py` with [veraPDF](https://verapdf.org) for a full PDF/A-4f validation, and `tools/check_figures.py`. A red cross in the *Actions* tab means the PDF has something to fix; the run's *Artifacts* hold the PDF, its log and the veraPDF report for 30 days. **Push a tag** (`git tag draft-2026-10 && git push origin draft-2026-10`) and the PDF is published as a release, a fixed link for your supervisors (in a private repository, only people with access can open it). These builds use newtx for the maths, as the MathTime fonts are never on GitHub.
 
 On every push that changes the template, a second workflow (`.github/workflows/page-sizes.yml`) compiles it in all four page sizes on the latest TeX Live and updates the page-size image above; a failed run in the *Actions* tab means the template no longer compiles. When it updates the image it adds a commit, so pull in Overleaf afterwards.
 

@@ -60,13 +60,10 @@
 \else
     \hypersetup{colorlinks=true, linkcolor=link, citecolor=link, urlcolor=link}
 \fi
-%% Show the title (not the file name) in the PDF viewer's title bar. pdfx already does this for the
-%% archival PDF; asking hyperref as well would write the setting into the PDF twice.
-\makeatletter\@ifpackageloaded{pdfx}{}{\hypersetup{pdfdisplaydoctitle=true}}\makeatother
 %% Bookmarks: numbered ("2.1 Text"), and one level deeper than the contents (down to subsections),
 %% so the PDF can be navigated in more detail than the printed contents show.
 \bookmarksetup{numbered, depth=2}
-%% PDF metadata (title, author, keywords) is set by pdfx from _thesisinfo.tex (_options/pdfa.tex).
+%% PDF metadata (title, author, keywords) comes from _thesisinfo.tex (_options/pdfa.tex).
 
 %% Nomenclature (acronyms and symbols): glossaries-extra, must come after hyperref
 \input{_options/formatNomenclature}

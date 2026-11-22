@@ -32,7 +32,6 @@ _TEXT = r"""
 \usepackage{amsmath}
 \usepackage{luatex85}% \pdfgentounicode and friends, which newtx and glyphtounicode.tex use
 \pdfgentounicode=1
-\pdfminorversion=4 \pdfobjcompresslevel=0 % PDF 1.4, which the thesis's PDF/A output can include
 \input{glyphtounicode}
 """
 _NEWTX = r"""
