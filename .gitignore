@@ -44,12 +44,18 @@ mtpro2-glyphtounicode.tex
 umt2*.fd
 omslbm.fd
 EULA-MTPro2*
+# the OpenType conversion (mtpro2_otf.py): the fonts and its generated package, which holds metrics
+# and macros taken from mtpro2.sty
+MTPro2Math*
+mtpro2-otf*
+*mtpro2-otf-build*
 Fonts/*
 !Fonts/README.md
 __pycache__/
 # the converter and its table hold no font data: keep them
 !tools/mtpro2_unicode.py
 !tools/mtpro2_unicode_map.json
+!tools/mtpro2_otf.py
 
 # Build output (XeLaTeX and pdfx)
 main.pdf

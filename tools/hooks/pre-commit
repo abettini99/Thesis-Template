@@ -20,7 +20,7 @@ for f in $names; do
         fonts/*|*mtp2fonts/*|*mtp2lite/*|*mtpro2/*) blocked="$blocked$nl  $f"; continue ;;
     esac
     case "$base" in
-        *.pfb|*.pfm|*.afm|*.tfm|*.vf|*.otf|*.ttf|mt2*|mtpro2.sty|mtpro2.map|mtpro2-glyphtounicode.tex|umt2*.fd|omslbm.fd|eula-mtpro2*|mtp2*.zip|mtpro2*.zip)
+        *.pfb|*.pfm|*.afm|*.tfm|*.vf|*.otf|*.ttf|mt2*|mtpro2.sty|mtpro2.map|mtpro2-glyphtounicode.tex|umt2*.fd|omslbm.fd|eula-mtpro2*|mtp2*.zip|mtpro2*.zip|mtpro2math*|mtpro2-otf*|*mtpro2-otf-build*)
             blocked="$blocked$nl  $f" ;;
     esac
 done
