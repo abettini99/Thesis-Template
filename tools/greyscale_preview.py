@@ -19,7 +19,6 @@ poppler tools (pdftoppm, pdfinfo) and Pillow; the figure check needs pikepdf
 """
 from __future__ import annotations
 
-import argparse
 import itertools
 import re
 import shutil
@@ -30,7 +29,8 @@ from pathlib import Path
 
 from PIL import Image, ImageChops
 
-ROOT = Path(__file__).resolve().parent.parent
+from common import ROOT, operators, parser
+
 CHROMA = 40          # max-min of R, G, B above which a pixel counts as coloured (0-255)
 MIN_PIXELS = 12      # coloured pixels a page needs (ignores stray anti-aliasing)
 SAME_GREY = 8.0      # CIE L* difference below which two colours look the same in grey
@@ -50,43 +50,33 @@ def hexcol(rgb) -> str:
 def figure_colours(path: Path):
     """The distinct colours (as RGB 0..1) a figure strokes or fills with, black/grey/white left out."""
     import pikepdf
-    pdf = pikepdf.open(path)
-    cols = set()
-
-    def walk(stream, res, depth=0):
-        if depth > 8:
-            return
-        for operands, op in pikepdf.parse_content_stream(stream):
-            op = str(op)
-            vals = []
-            for v in operands:
-                try:
-                    vals.append(float(v))
-                except (TypeError, ValueError):
-                    pass
-            if op in ("rg", "RG") or (op in ("sc", "scn", "SC", "SCN") and len(vals) == 3):
-                rgb = tuple(vals[:3])
-            elif op in ("k", "K") and len(vals) == 4:
-                c, m, y, k = vals
-                rgb = ((1 - c) * (1 - k), (1 - m) * (1 - k), (1 - y) * (1 - k))
-            elif op == "Do" and res is not None:
-                xo = res.get("/XObject", {}).get(str(operands[0]))
-                if xo is not None and xo.get("/Subtype") == "/Form":
-                    walk(xo, xo.get("/Resources", res), depth + 1)
-                continue
-            else:
-                continue
-            if max(rgb) - min(rgb) > 0.06:                       # a colour, not a grey
-                cols.add(tuple(round(c, 3) for c in rgb))
-
-    page = pdf.pages[0]
-    walk(page, page.get("/Resources"))
+    pdf = pikepdf.open(path)                 # (kept: a page cannot outlive its document)
+    page, cols = pdf.pages[0], set()
+    for op, operands, _, _ in operators(page, page.get("/Resources")):
+        vals = []
+        for v in operands:
+            try:
+                vals.append(float(v))
+            except (TypeError, ValueError):
+                pass
+        if op in ("rg", "RG") or (op in ("sc", "scn", "SC", "SCN") and len(vals) == 3):
+            rgb = tuple(vals[:3])
+        elif op in ("k", "K") and len(vals) == 4:
+            c, m, y, k = vals
+            rgb = ((1 - c) * (1 - k), (1 - m) * (1 - k), (1 - y) * (1 - k))
+        else:
+            continue
+        if max(rgb) - min(rgb) > 0.06:                       # a colour, not a grey
+            cols.add(tuple(round(c, 3) for c in rgb))
     return sorted(cols)
 
 
+def pages_in_order(folder: Path, prefix: str):
+    return sorted(folder.glob(f"{prefix}-*.png"), key=lambda q: int(re.findall(r"\d+", q.stem)[-1]))
+
+
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[1].strip(),
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = parser(__doc__)
     ap.add_argument("pdf", nargs="?", type=Path, default=ROOT / "main.pdf", help="default: main.pdf")
     ap.add_argument("--dpi", type=int, default=150, help="resolution of the greyscale preview (default 150)")
     args = ap.parse_args(argv)
@@ -99,14 +89,14 @@ def main(argv=None) -> int:
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         subprocess.run(["pdftoppm", "-r", "40", "-png", str(args.pdf), str(tmp / "c")], check=True)
-        colour = []
-        for i, p in enumerate(sorted(tmp.glob("c-*.png"), key=lambda q: int(re.findall(r"\d+", q.stem)[-1]))):
+        colour, pages = [], pages_in_order(tmp, "c")
+        for i, p in enumerate(pages, 1):
             r, g, b = Image.open(p).convert("RGB").split()
             chroma = ImageChops.subtract(ImageChops.lighter(ImageChops.lighter(r, g), b),
                                          ImageChops.darker(ImageChops.darker(r, g), b))
             if chroma.point(lambda v: 255 if v > CHROMA else 0).histogram()[255] >= MIN_PIXELS:
-                colour.append(i + 1)
-        pages = len(list(tmp.glob("c-*.png")))
+                colour.append(i)
+        pages = len(pages)
         print(f"{args.pdf.name}: {pages} pages, {len(colour)} with colour")
         if colour:
             print("  colour pages: " + ", ".join(map(str, colour)))
@@ -114,8 +104,7 @@ def main(argv=None) -> int:
 
         out = args.pdf.with_name(args.pdf.stem + "-grey.pdf")
         subprocess.run(["pdftoppm", "-r", str(args.dpi), "-gray", "-png", str(args.pdf), str(tmp / "g")], check=True)
-        imgs = [Image.open(p).convert("L") for p in
-                sorted(tmp.glob("g-*.png"), key=lambda q: int(re.findall(r"\d+", q.stem)[-1]))]
+        imgs = [Image.open(p).convert("L") for p in pages_in_order(tmp, "g")]
         imgs[0].save(out, save_all=True, append_images=imgs[1:], resolution=args.dpi)
         print(f"greyscale preview: {out.name}\n")
 

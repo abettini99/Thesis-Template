@@ -61,26 +61,18 @@
     \expandafter\def\csname pgf@sh@pi@current page\endcsname{pgfpageorigin}}
 \AtBeginDocument{\pgfkeys{/tikz/overlay/.add code={}{\thesis@setpagenode}}}
 
-%% Draws the tab. #1: west (left, even page) or east (right, odd page).
-\def\thesis@west{west}
-\newcommand*{\thesis@thumb}[1]{%
+%% Draws the tab: from beyond the page edge (into the bleed) to \thumbhspace into the page, with the
+%% number at its inner end. #1: the page edge, west (left page) or east (right page); #2: the direction
+%% into the page, 1 or -1; #3: the side of the number its inner end is on.
+\newcommand*{\thesis@thumb}[3]{%
     \if@thumb\ifthesis@thumbson\ifnum\value{chapter}>0
         \begin{tikzpicture}[remember picture,overlay]
             \coordinate (top margin) at (0pt,1in+\topmargin+\headheight+\headsep);
             \coordinate (tab top) at ($(current page.north #1)-(top margin)-(0pt,\thesis@thumbpos\thumbvspace-\thumbvspace)$);
-            \def\thesis@side{#1}%
-            \ifx\thesis@side\thesis@west
-                %% left page: the tab runs from beyond the left edge (bleed) into the page
-                \fill[fill=thumb] ($(tab top)-(3*\thumbedge,0pt)$) rectangle ($(tab top)+(\thumbhspace,-\thesis@thumbtab)$);
-                \node at ($(tab top)+(\thumbhspace,-0.5\thesis@thumbtab)$)[anchor=east,inner sep=2\thumbedge]{%
-                    \headingfont\bfseries\color{thumbtext}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
-            \else
-                %% right page: mirror image
-                \fill[fill=thumb] ($(tab top)+(3*\thumbedge,0pt)$) rectangle ($(tab top)+(-\thumbhspace,-\thesis@thumbtab)$);
-                \node at ($(tab top)+(-\thumbhspace,-0.5\thesis@thumbtab)$)[anchor=west,inner sep=2\thumbedge]{%
-                    \headingfont\bfseries\color{thumbtext}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
-            \fi
+            \fill[fill=thumb] ($(tab top)-(#2*3*\thumbedge,0pt)$) rectangle ($(tab top)+(#2*\thumbhspace,-\thesis@thumbtab)$);
+            \node at ($(tab top)+(#2*\thumbhspace,-0.5\thesis@thumbtab)$)[anchor=#3,inner sep=2\thumbedge]{%
+                \headingfont\bfseries\color{thumbtext}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
         \end{tikzpicture}%
     \fi\fi\fi}
-\newcommand*{\lthumb}{\thesis@thumb{west}}
-\newcommand*{\rthumb}{\thesis@thumb{east}}
+\newcommand*{\lthumb}{\thesis@thumb{west}{1}{east}}
+\newcommand*{\rthumb}{\thesis@thumb{east}{-1}{west}}

@@ -46,12 +46,13 @@
 %% today), 90 from bottom to top (traditional continental convention).
 \newcommand{\coverspinerotation}{-90}
 
-%% Colours: the accent band on the back, spine and front.
+%% Title and name; archival PDF (before xcolor, which pdfx sets up)
 \input{_thesisinfo}
 \def\thesispdfsuffix{ (cover)}
-\input{_options/pdfa} % archival PDF; before xcolor, which pdfx sets up
+\input{_options/pdfa}
 \usepackage{xcolor}
 \input{_options/formatColor}
+%% Colours: the accent band on the back, spine and front, and the text on and off it
 \colorlet{coveraccent}{tudelft-cyan}
 \colorlet{covertext}{tudelft-black}
 \colorlet{coveraccenttext}{tudelft-white}
@@ -100,7 +101,6 @@
 \newcommand*{\thesis@fontscale}{1}
 \input{_options/fontText}
 \makeatother
-
 
 \pagestyle{empty}
 \setlength{\parindent}{0pt}

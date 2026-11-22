@@ -31,6 +31,9 @@
         {\large\bfseries \thesisauthorfirstnames\ \MakeUppercase{\thesisauthorlastname}}
     \end{center}
     \bigskip}
+%% the list, and the approval sentence at the foot of the page
+\newenvironment{propositionlist}{\begin{enumerate}\setlength{\itemsep}{0.6\baselineskip}}{\end{enumerate}}
+\newcommand{\approval}[1]{\vfill\begin{center}\small #1\end{center}}
 
 \begin{document}
 \pagestyle{empty}
@@ -41,20 +44,17 @@
 %% ---------------------------------------------------------------------
 \propositionshead{Propositions}{accompanying the dissertation}{by}
 
-\begin{enumerate}
-    \setlength{\itemsep}{0.6\baselineskip}
+\begin{propositionlist}
     \item A proposition about the main result of the thesis.
     \item A proposition about the method or a finding in one of the chapters.
     \item A proposition that follows from the thesis but goes beyond it.
     \item A proposition about the research field.
     \item A proposition on a topic outside the thesis, e.g. science, education or society.
     \item A proposition you can defend in a lively discussion.
-\end{enumerate}
+\end{propositionlist}
 
-\vfill
-\begin{center}
-    \small These propositions are regarded as opposable and defendable, and have been approved as such by \thesispromotors.
-\end{center}
+\approval{These propositions are regarded as opposable and defendable, and have been approved as such by
+    \thesispromotors.}
 
 %% ---------------------------------------------------------------------
 %% Nederlands
@@ -64,20 +64,17 @@
 \begin{otherlanguage}{dutch}
 \propositionshead{Stellingen}{behorende bij het proefschrift}{door}
 
-\begin{enumerate}
-    \setlength{\itemsep}{0.6\baselineskip}
+\begin{propositionlist}
     \item Een stelling over het belangrijkste resultaat van het proefschrift.
     \item Een stelling over de methode of een bevinding in een van de hoofdstukken.
     \item Een stelling die volgt uit het proefschrift, maar verder gaat.
     \item Een stelling over het onderzoeksveld.
     \item Een stelling over een onderwerp buiten het proefschrift, bijvoorbeeld wetenschap, onderwijs of samenleving.
     \item Een stelling die u in een levendige discussie kunt verdedigen.
-\end{enumerate}
+\end{propositionlist}
 
-\vfill
-\begin{center}
-    \small Deze stellingen worden opponeerbaar en verdedigbaar geacht en zijn als zodanig goedgekeurd door \thesispromotorsdutch.
-\end{center}
+\approval{Deze stellingen worden opponeerbaar en verdedigbaar geacht en zijn als zodanig goedgekeurd door
+    \thesispromotorsdutch.}
 \end{otherlanguage}
 \fi
 

@@ -6,9 +6,8 @@
 %% output is called "output"). It is written here from _thesisinfo.tex on every compile, so there is
 %% nothing to edit in it: change _thesisinfo.tex instead.
 %%
-%% Why not \DocumentMetadata: since 2025, \DocumentMetadata always loads LaTeX's new tagging code,
-%% which replaces parts of memoir (captions, section headings, appendices). pdfx gives the same
-%% PDF/A-2u without it, identically on every TeX Live version.
+%% Not \DocumentMetadata: since 2025 it always loads LaTeX's tagging code, which replaces parts of
+%% memoir (captions, section headings, appendices). pdfx gives the same PDF/A-2u without it.
 %% Needs: _thesisinfo.tex loaded first. Optional: \thesispdfsuffix (e.g. " (cover)") for the title.
 %% =====================================================================
 \chardef\thesisatcatcode=\catcode`\@ % restored at the end (this file is read inside the class too)
@@ -17,13 +16,14 @@
 \providecommand*{\thesis@bcp}{en-GB}
 \newwrite\thesis@xmpfile
 \immediate\openout\thesis@xmpfile=\jobname.xmpdata
-\immediate\write\thesis@xmpfile{\string\Title{\thesispdftitle\thesispdfsuffix}}
-\immediate\write\thesis@xmpfile{\string\Author{\thesisauthorfirstnames\space\thesisauthorlastname}}
-\immediate\write\thesis@xmpfile{\string\Subject{Doctoral dissertation, Delft University of Technology}}
-\immediate\write\thesis@xmpfile{\string\Keywords{\thesiskeywords}}
-\immediate\write\thesis@xmpfile{\string\Language{\thesis@bcp}}
-\immediate\write\thesis@xmpfile{\string\Publisher{Delft University of Technology}}
-\immediate\write\thesis@xmpfile{\string\Copyright{Copyright \the\year\space\thesisauthorfirstnames\space\thesisauthorlastname}}
+\def\thesis@xmp#1#2{\immediate\write\thesis@xmpfile{\string#1{#2}}}
+\thesis@xmp\Title{\thesispdftitle\thesispdfsuffix}
+\thesis@xmp\Author{\thesisauthorfirstnames\space\thesisauthorlastname}
+\thesis@xmp\Subject{Doctoral dissertation, Delft University of Technology}
+\thesis@xmp\Keywords{\thesiskeywords}
+\thesis@xmp\Language{\thesis@bcp}
+\thesis@xmp\Publisher{Delft University of Technology}
+\thesis@xmp\Copyright{Copyright \the\year\space\thesisauthorfirstnames\space\thesisauthorlastname}
 \immediate\closeout\thesis@xmpfile
 %% pdfx loads xcolor with an option ("hyperref") that newer xcolor versions declare obsolete and warn
 %% about; remove just that option when xcolor loads.
@@ -44,9 +44,7 @@
     \__thesis_drop_option:nn { @raw@opt@xcolor.sty } { hyperref }
   }
 \ExplSyntaxOff
-%% PDF version 1.4 (allowed by PDF/A-2): hyperref's PDF/A mode, which pdfx switches on, expects it.
-%% XeLaTeX (not the default engine) can't set the creation date the way PDF/A wants; pdfx then
-%% warns instead of stopping.
+%% XeLaTeX can't set the creation date the way PDF/A wants: pdfx then warns instead of stopping.
 \ifdefined\XeTeXrevision \PassOptionsToPackage{noerr}{pdfx}\fi
 %% pdfx adds the font-map entry "dummy-space", which TeX Live's map already has; under LuaTeX it cannot hide
 %% the resulting "duplicate entry" warning, so skip that one line while pdfx loads. (pdfx may load
@@ -58,18 +56,14 @@
     \AddToHook{package/luatex85/after}{\thesis@filtermapline}
     \AddToHook{package/pdfx/after}{\let\pdfmapline\thesis@pdfmapline}
 \fi
-
-
 %% Newer pdfx reports "Setting all color commands to rgb" on every PDF/A compile. The template's colours
 %% are all RGB or grey already, so that message is only information: show it as such in the log.
+\def\thesis@colourinfo#1#2#3{% #1: the original warning command
+    \in@{Setting all color commands}{#3}\ifin@ \PackageInfo{#2}{#3}\else #1{#2}{#3}\fi}
 \let\thesis@PackageWarning\PackageWarning
-\def\PackageWarning#1#2{%
-    \in@{Setting all color commands}{#2}%
-    \ifin@ \PackageInfo{#1}{#2}\else \thesis@PackageWarning{#1}{#2}\fi}
 \let\thesis@PackageWarningNoLine\PackageWarningNoLine
-\def\PackageWarningNoLine#1#2{%
-    \in@{Setting all color commands}{#2}%
-    \ifin@ \PackageInfo{#1}{#2}\else \thesis@PackageWarningNoLine{#1}{#2}\fi}
+\def\PackageWarning{\thesis@colourinfo\thesis@PackageWarning}
+\def\PackageWarningNoLine{\thesis@colourinfo\thesis@PackageWarningNoLine}
 \RequirePackage[a-2u, pdf14]{pdfx}
 \let\PackageWarning\thesis@PackageWarning
 \let\PackageWarningNoLine\thesis@PackageWarningNoLine

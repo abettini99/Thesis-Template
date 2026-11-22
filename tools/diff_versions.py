@@ -15,7 +15,6 @@ The result, main-diff.tex and main-diff.pdf, is ignored by git.
 """
 from __future__ import annotations
 
-import argparse
 import io
 import shutil
 import subprocess
@@ -24,12 +23,11 @@ import tarfile
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from common import ROOT, parser
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[1].strip(),
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = parser(__doc__)
     ap.add_argument("old", help="earlier version: a git tag, commit or branch")
     ap.add_argument("--main", default="main.tex", help="main file (default main.tex)")
     ap.add_argument("--no-compile", action="store_true", help="only write main-diff.tex")

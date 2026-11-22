@@ -5,19 +5,17 @@
 %%              Graduate School's current template before printing)
 %%   page iv  : doctoral committee and colophon
 %%   page v   : dedication (optional; \thesisdedication in _thesisinfo.tex)
+\makeatletter
+%% Centred text starting at the height of the chapter titles
+\newcommand{\thesis@titleblock}[1]{\begingroup \parskip\z@ \parindent\z@
+    \chapterheadstart\thesis@chapterlabelspace \centering #1\endgroup}
 
 %% ---------------------------------------------------------------------
-%% Page i: half-title (the title alone, without the subtitle, which waits for the title page; smaller than on the title page, at the height of the chapter titles)
+%% Page i: half-title: the title alone (the subtitle waits for the title page), smaller than there
 %% ---------------------------------------------------------------------
 \thispagestyle{empty}
-\makeatletter
-\begingroup
-    \parskip\z@ \parindent\z@
-    \chapterheadstart\thesis@chapterlabelspace
-    \centering
-    {\fontsize{0.75\dimexpr\chaptertitlesize\relax}{1.15\dimexpr\chaptertitlesize\relax}\headingfont\thesistitle\par}
-\endgroup
-\makeatother
+\thesis@titleblock{\fontsize{0.75\dimexpr\chaptertitlesize\relax}{1.15\dimexpr\chaptertitlesize\relax}\headingfont
+    \thesistitle\par}
 
 %% ---------------------------------------------------------------------
 %% Page ii: blank
@@ -28,15 +26,10 @@
 %% Page iii: official title page
 %% ---------------------------------------------------------------------
 \thispagestyle{empty}
-\makeatletter
-\begingroup
-    \parskip\z@ \parindent\z@
-    \chapterheadstart\thesis@chapterlabelspace
-    \centering
+\thesis@titleblock{%
     {\fontsize{\chaptertitlesize}{1.15\dimexpr\chaptertitlesize\relax}\headingfont\thesistitle\par}
     \bigskip
-    {\sffamily\Large\thesissubtitle\par}
-\endgroup
+    {\sffamily\Large\thesissubtitle\par}}
 \vfill
 \begin{center}
     {\runningheadcaps DISSERTATION}
@@ -68,7 +61,6 @@
 
     \vspace*{2\bigskipamount}
 \end{center}
-\makeatother
 
 %% ---------------------------------------------------------------------
 %% Page iv: doctoral committee and colophon
@@ -125,13 +117,8 @@
 %% ---------------------------------------------------------------------
 %% Page v (optional): dedication, at the height of the half-title, with a blank page behind it
 %% ---------------------------------------------------------------------
-\makeatletter
 \IfThesisEmpty{\thesisdedication}{}{%
     \thispagestyle{empty}%
-    \begingroup
-        \parskip\z@ \parindent\z@
-        \chapterheadstart\thesis@chapterlabelspace
-        \centering\itshape\thesisdedication\par
-    \endgroup
+    \thesis@titleblock{\itshape\thesisdedication\par}%
     \cleardoublepage}
 \makeatother

@@ -50,8 +50,6 @@
 %% (The first paragraph after a heading is not indented, as usual.)
 \setlength{\parindent}{1.5em}
 \setlength{\parskip}{0pt plus 1pt} % a tiny stretch, so a page that breaks early spreads the gap over all paragraphs
-%% Tables are set in \small, matching the captions.
-\AddToHook{env/table/begin}{\small}
 
 %% Hyperlinks and PDF bookmarks
 \usepackage{bookmark}           % https://ctan.org/pkg/bookmark %% PDF bookmarks (loads hyperref)
@@ -98,11 +96,10 @@
 \renewcommand\fs@ruled{\def\@fs@cfont{}\let\@fs@capt\floatc@ruled
     \def\@fs@pre{}\def\@fs@post{\kern2pt\hrule\relax}%
     \def\@fs@mid{\kern3pt\hrule\kern3pt}\let\@fs@iftopcapt\iftrue}
-\makeatother
-\floatstyle{ruled}\restylefloat{algorithm}
-\makeatletter % every algorithm numbers its lines from 1: give the links unique names (no duplicates)
+%% every algorithm numbers its lines from 1: give their link targets unique names
 \renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
 \makeatother
+\floatstyle{ruled}\restylefloat{algorithm}
 \DeclareCaptionStyle{ruled}{font=small, labelfont={sc,bf}, labelsep=quad}
 \algrenewcommand\algorithmicrequire{\textbf{Input:}}
 \algrenewcommand\algorithmicensure{\textbf{Output:}}

@@ -23,46 +23,14 @@ the poppler tools pdfinfo, pdffonts and pdfimages (part of TeX Live on Windows;
 """
 from __future__ import annotations
 
-import argparse
 import re
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from common import ROOT, Report, font_name, notdef_count, operators, parser, run, shown_bytes
+
 PRINT_PPI, MIN_PPI = 300, 150
-
-
-class Report:
-    def __init__(self):
-        self.errors = self.warnings = 0
-
-    def section(self, title):
-        print(f"\n{title}")
-
-    def ok(self, msg):
-        print(f"  OK    {msg}")
-
-    def warn(self, msg, details=()):
-        self.warnings += 1
-        print(f"  WARN  {msg}")
-        for d in list(details)[:12]:
-            print(f"          {d}")
-        if len(details) > 12:
-            print(f"          ... and {len(details) - 12} more")
-
-    def fail(self, msg, details=()):
-        self.errors += 1
-        print(f"  FAIL  {msg}")
-        for d in list(details)[:12]:
-            print(f"          {d}")
-        if len(details) > 12:
-            print(f"          ... and {len(details) - 12} more")
-
-
-def run(*cmd) -> str:
-    return subprocess.run(cmd, capture_output=True, text=True, errors="replace").stdout
 
 
 def table(text: str, skip: int = 2) -> list[list[str]]:
@@ -152,47 +120,16 @@ def check_fonts(pdf: Path, r: Report) -> None:
 
 
 def missing_glyphs(pdf: Path):
-    """Pages that show the .notdef (missing) glyph, which PDF/A forbids; needs pikepdf."""
+    """{page: font names} of the pages that show the .notdef (missing) glyph; needs pikepdf."""
     import pikepdf
-    hits = {}
-    doc = pikepdf.open(pdf)
-
-    def scan(stream, res, page, depth=0):
-        if res is None or depth > 6:
-            return
-        fonts, cur = res.get("/Font", {}) or {}, None
-        for operands, op in pikepdf.parse_content_stream(stream):
-            op = str(op)
+    hits, doc = {}, pikepdf.open(pdf)
+    for n, page in enumerate(doc.pages, 1):
+        font = None
+        for op, operands, res, _ in operators(page, page.get("/Resources")):
             if op == "Tf":
-                cur = fonts.get(str(operands[0]))
-            elif op in ("Tj", "TJ", "'", '"') and cur is not None:
-                items = operands[0] if op == "TJ" else [operands[-1]]
-                data = b"".join(bytes(x) for x in items if isinstance(x, pikepdf.String))
-                bad = False
-                if cur.get("/Subtype") == "/Type0":
-                    bad = any(data[i:i + 2] == b"\0\0" for i in range(0, len(data) - 1, 2))
-                else:
-                    enc = cur.get("/Encoding")
-                    if isinstance(enc, pikepdf.Dictionary) and "/Differences" in enc:
-                        code, notdef = 0, set()
-                        for x in enc.Differences:
-                            if isinstance(x, int):
-                                code = int(x)
-                            else:
-                                if str(x) == "/.notdef":
-                                    notdef.add(code)
-                                code += 1
-                        bad = any(b in notdef for b in data)
-                if bad:
-                    name = str(cur.get("/BaseFont", "?")).lstrip("/").split("+")[-1]
-                    hits.setdefault(page, set()).add(name)
-            elif op == "Do":
-                xo = res.get("/XObject", {}).get(str(operands[0]))
-                if xo is not None and xo.get("/Subtype") == "/Form":
-                    scan(xo, xo.get("/Resources", res), page, depth + 1)
-
-    for i, page in enumerate(doc.pages):
-        scan(page, page.get("/Resources"), i + 1)
+                font = (res.get("/Font", {}) if res is not None else {}).get(str(operands[0]))
+            elif (data := shown_bytes(op, operands)) is not None and notdef_count(font, data):
+                hits.setdefault(n, set()).add(font_name(font))
     return hits
 
 
@@ -287,8 +224,7 @@ def check_log(log: Path, r: Report) -> None:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[1].strip(),
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = parser(__doc__)
     ap.add_argument("pdf", nargs="?", type=Path, default=ROOT / "main.pdf", help="default: main.pdf")
     args = ap.parse_args(argv)
     for tool in ("pdfinfo", "pdffonts", "pdfimages"):

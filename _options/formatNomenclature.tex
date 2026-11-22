@@ -45,9 +45,7 @@
 %% superscripts keep the order in which you define them.
 %% ---------------------------------------------------------------------
 %% \nomacronym[sort]{label}{SHORT}{long form}
-\newcommand{\nomacronym}[4][]{%
-    \ifx\relax#1\relax \edef\thesis@sort{\thesis@sortkey{#3}}\else \edef\thesis@sort{\thesis@sortkey{#1}}\fi
-    \expandafter\thesis@nomacronym\expandafter{\thesis@sort}{#2}{#3}{#4}}
+\newcommand{\nomacronym}[4][]{\thesis@withsort{#1}{#3}\thesis@nomacronym{#2}{#3}{#4}}
 \newcommand{\thesis@nomacronym}[4]{\newabbreviation[type=acronyms, category=acronym, sort={#1}]{#2}{#3}{#4}}
 %% \nomdimless[sort]{label}{symbol}{description}{definition}       (symbol and definition: maths, U/a)
 \newcommand{\nomdimless}[5][]{\thesis@nomentry{dimless}{#1}{#2}{#3}{#4}{definition={\thesis@definition{#5}}}}
@@ -61,11 +59,15 @@
 \newcommand{\nomsub}[4][]{\thesis@nomentry{sub}{#1}{#2}{#3}{#4}{}}
 
 %% #1 type, #2 sort key (may be empty: then the label), #3 label, #4 symbol, #5 description, #6 extra keys
-\newcommand{\thesis@nomentry}[6]{%
-    \ifx\relax#2\relax \edef\thesis@sort{\thesis@sortkey{#3}}\else \edef\thesis@sort{\thesis@sortkey{#2}}\fi
-    \expandafter\thesis@nomentry@\expandafter{\thesis@sort}{#1}{#3}{#4}{#5}{#6}}
+\newcommand{\thesis@nomentry}[6]{\thesis@withsort{#2}{#3}\thesis@nomentry@{#1}{#3}{#4}{#5}{#6}}
 \newcommand{\thesis@nomentry@}[6]{%
     \newglossaryentry{#3}{type=#2, sort={#1}, name={\ensuremath{#4}}, description={#5}, #6}}
+%% \thesis@withsort{sort key}{label}\cmd: calls \cmd{key}, the key made (expanded) from the sort key
+%% given, or from the label when that is empty.
+\newcommand{\thesis@withsort}[2]{%
+    \ifx\relax#1\relax \edef\thesis@sort{\thesis@sortkey{#2}}\else \edef\thesis@sort{\thesis@sortkey{#1}}\fi
+    \expandafter\thesis@withsort@\expandafter{\thesis@sort}}
+\newcommand{\thesis@withsort@}[2]{#2{#1}}
 %% Sort keys ignore case, and a lower-case letter comes before the same capital (f before F, t before T),
 %% the order of a dictionary. The key is made explicit, "f" -> "f!0" and "F" -> "f!1", so the order does
 %% not depend on how the TeX installation breaks ties (TeX Live versions differ, Overleaf included).
@@ -75,9 +77,8 @@
 \cs_new:Npn \__thesis_caseflag:N #1
   { \str_if_eq:eeTF {#1} { \str_lowercase:n {#1} } { 0 } { 1 } }
 \ExplSyntaxOff
-%% Definitions are set in full-size (display-style) maths, with room above and below so fractions
-%% do not touch the next row.
-\newcommand{\thesis@definition}[1]{\ensuremath{#1}} % in-line: write U/a, not \frac{U}{a}, so rows stay even
+%% Definitions are set in-line: write U/a, not \frac{U}{a}, so the rows stay even.
+\newcommand{\thesis@definition}[1]{\ensuremath{#1}}
 %% Dimensions are given in maths ("\Lunit\Tunit^{-1}"); "--" gives an en dash for dimensionless quantities.
 \newcommand{\thesis@dims}[1]{%
     \def\thesis@arg{#1}\def\thesis@dash{--}%
@@ -90,7 +91,7 @@
 \newcommand{\Qunit}{\Theta}       % temperature (ISQ dimension symbol)
 
 %% ---------------------------------------------------------------------
-%% Layout of the lists: same columns as before.
+%% Layout of the lists
 %% ---------------------------------------------------------------------
 %% A hairline (0.3 pt, like the rule under the running heads) separates the column headers.
 %% Narrow symbol, dimensions and units columns and 4 pt column gaps leave the description as much
@@ -99,7 +100,6 @@
 \newlength\dimensionswidth  \setlength\dimensionswidth{5em}
 \newlength\unitswidth       \setlength\unitswidth{5.5em}
 \newlength\descriptionwidth
-\newlength\definitionwidth
 
 \newcommand{\nomheader}[1]{{\sffamily\mbox{#1}}} % Source Sans Regular; \mbox: no hyphenation in narrow columns
 %% List titles look like section headings: semibold, 1.15 x text size, the same space around them;
@@ -146,40 +146,33 @@
     \renewcommand*{\glsgroupskip}{}%
     \renewcommand*{\subglossentry}[3]{\glossentry{##2}{##3}}}
 
-%% Symbol | Description          (acronyms: description starts with a capital)
-\newglossarystyle{nom-plain}{%
-    \thesis@nomtablesetup
-    \renewenvironment{theglossary}{}{%
-        \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-2\tabcolsep\relax}%
-        \thesis@nomtable{@{}p{\symbolwidth}>{\raggedright\arraybackslash}p{\descriptionwidth}@{}}
-            {\nomheader{Symbol} & \nomheader{Description}}}%
-    \renewcommand*{\glossentry}[2]{%
-        \thesis@nomrow{\glstarget{##1}{\glossentryname{##1}} & \glossentrydesc{##1}}}}
+%% \thesis@newnomstyle{name}{width of the columns after Description, with their gaps}{their column spec}
+%%                    {their headers}{\cs taking the entry label and giving their cells}
+%% Every list starts with Symbol | Description; the description takes the width that is left.
+\newcommand{\thesis@newnomstyle}[5]{%
+    \newglossarystyle{#1}{%
+        \thesis@nomtablesetup
+        \renewenvironment{theglossary}{}{%
+            \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-2\tabcolsep-(#2)\relax}%
+            \thesis@nomtable{@{}p{\symbolwidth}>{\raggedright\arraybackslash}p{\descriptionwidth}#3@{}}
+                {\nomheader{Symbol} & \nomheader{Description}#4}}%
+        \renewcommand*{\glossentry}[2]{%
+            \thesis@nomrow{\glstarget{####1}{\glossentryname{####1}} & \glossentrydesc{####1}#5{####1}}}}}
+%% Symbol | Description
+\thesis@newnomstyle{nom-plain}{0pt}{}{}{\@gobble}
+%% Symbol | Description, the description being the acronym's long form
 \newglossarystyle{nom-acronyms}{%
     \setglossarystyle{nom-plain}%
     \renewcommand*{\glossentry}[2]{%
         \thesis@nomrow{\glstarget{##1}{\glossentryname{##1}} & \Glsxtrlong{##1}}}}
-
-%% Symbol | Description | Definition
-\newglossarystyle{nom-definition}{%
-    \thesis@nomtablesetup
-    \renewenvironment{theglossary}{}{%
-        \setlength\definitionwidth{\dimexpr\dimensionswidth+\unitswidth+2\tabcolsep\relax}%
-        \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-\definitionwidth-4\tabcolsep\relax}%
-        \thesis@nomtable{@{}p{\symbolwidth}>{\raggedright\arraybackslash}p{\descriptionwidth}p{\definitionwidth}@{}}
-            {\nomheader{Symbol} & \nomheader{Description} & \nomheader{Definition}}}%
-    \renewcommand*{\glossentry}[2]{%
-        \thesis@nomrow{\glstarget{##1}{\glossentryname{##1}} & \glossentrydesc{##1} & \glsentrydefinition{##1}}}}
-
+%% Symbol | Description | Definition   (as wide as Dimensions and Units together)
+\thesis@newnomstyle{nom-definition}{\dimensionswidth+\unitswidth+4\tabcolsep}
+    {p{\dimexpr\dimensionswidth+\unitswidth+2\tabcolsep}}{ & \nomheader{Definition}}{\thesis@nomdefinition}
+\newcommand{\thesis@nomdefinition}[1]{ & \glsentrydefinition{#1}}
 %% Symbol | Description | Dimensions | Units
-\newglossarystyle{nom-dimensions}{%
-    \thesis@nomtablesetup
-    \renewenvironment{theglossary}{}{%
-        \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-\dimensionswidth-\unitswidth-6\tabcolsep\relax}%
-        \thesis@nomtable{@{}p{\symbolwidth}>{\raggedright\arraybackslash}p{\descriptionwidth}p{\dimensionswidth}p{\unitswidth}@{}}
-            {\nomheader{Symbol} & \nomheader{Description} & \nomheader{Dimensions} & \nomheader{Units}}}%
-    \renewcommand*{\glossentry}[2]{%
-        \thesis@nomrow{\glstarget{##1}{\glossentryname{##1}} & \glossentrydesc{##1} & \glsentrydimensions{##1} & \glsentryunits{##1}}}}
+\thesis@newnomstyle{nom-dimensions}{\dimensionswidth+\unitswidth+4\tabcolsep}
+    {p{\dimensionswidth}p{\unitswidth}}{ & \nomheader{Dimensions} & \nomheader{Units}}{\thesis@nomdimensions}
+\newcommand{\thesis@nomdimensions}[1]{ & \glsentrydimensions{#1} & \glsentryunits{#1}}
 
 %% \printnom{type}{title}{style}{sort}: prints one list with its title.
 \newcommand{\printnom}[4]{%

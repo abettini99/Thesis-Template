@@ -22,14 +22,13 @@ Fix a wrong break by adding the word to _hyphenation.tex, with the right breaks 
 """
 from __future__ import annotations
 
-import argparse
 import re
 import sys
 import unicodedata
 from collections import defaultdict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from common import ROOT, parser
 
 
 def read(log: Path):
@@ -69,8 +68,7 @@ def clean(s: str) -> str:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[1].strip(),
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = parser(__doc__)
     ap.add_argument("log", nargs="?", type=Path, default=ROOT / "main.log", help="default: main.log")
     ap.add_argument("--all", action="store_true", help="list every hyphenated word")
     args = ap.parse_args(argv)

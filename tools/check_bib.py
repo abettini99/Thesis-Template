@@ -23,7 +23,6 @@ Needs only Python 3.8+.
 """
 from __future__ import annotations
 
-import argparse
 import difflib
 import json
 import re
@@ -34,7 +33,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from common import ROOT, parser
 
 REQUIRED = {
     "article": [("author",), ("title",), ("journal", "journaltitle"), ("year", "date")],
@@ -158,8 +157,7 @@ def crossref_doi(e):
 # --- report -----------------------------------------------------------------------
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[1].strip(),
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = parser(__doc__)
     ap.add_argument("bib", nargs="?", type=Path, default=ROOT / "references.bib")
     ap.add_argument("--bcf", type=Path, default=ROOT / "main.bcf", help="biblatex control file (default main.bcf)")
     ap.add_argument("--doi", action="store_true", help="look up missing DOIs on Crossref")

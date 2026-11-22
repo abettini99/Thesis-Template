@@ -24,14 +24,14 @@ the text sizes and fonts of PDF figures need pikepdf (pip install -r requirement
 """
 from __future__ import annotations
 
-import argparse
 import math
 import re
 import struct
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from common import IDENTITY, ROOT, Report, font_name, glyph_count, mul, notdef_count, operators, parser, shown_bytes
+
 PT_PER_MM = 72.27 / 25.4
 TIMES = re.compile(r"Times|Termes|NimbusRom|Nimbus Roman|STIX|NewTX|ntx|tx(mia|sys|exa|sy|ex)|Tinos|Liberation ?Serif|"
                    r"MT2|MTPro|TeXGyreTermes|Symbol", re.I)
@@ -76,62 +76,33 @@ def read_log(log: Path):
 
 # --- inside a PDF figure ---------------------------------------------------------
 
-def mul(a, b):
-    return [a[0] * b[0] + a[1] * b[2], a[0] * b[1] + a[1] * b[3],
-            a[2] * b[0] + a[3] * b[2], a[2] * b[1] + a[3] * b[3],
-            a[4] * b[0] + a[5] * b[2] + b[4], a[4] * b[1] + a[5] * b[3] + b[5]]
-
-
 def text_sizes(path: Path):
-    """Font sizes (in the figure's own points) of all text, the font names, and the number of
-    missing glyphs (.notdef) of page 1."""
-    pdf = pikepdf.open(path)
+    """Font size of every glyph on page 1 (in the figure's own points), the font names, and the
+    number of missing glyphs (.notdef)."""
+    pdf = pikepdf.open(path)                 # (kept: a page cannot outlive its document)
     page = pdf.pages[0]
-    sizes, fonts, missing = [], set(), [0]
-
-    def walk(stream, resources, ctm, depth=0):
-        if depth > 8:
-            return
-        stack, tm, tlm, size, font = [], [1, 0, 0, 1, 0, 0], [1, 0, 0, 1, 0, 0], 0, None
-        for operands, op in pikepdf.parse_content_stream(stream):
-            op = str(op)
-            if op == "q":
-                stack.append(ctm)
-            elif op == "Q" and stack:
-                ctm = stack.pop()
-            elif op == "cm":
-                ctm = mul([float(x) for x in operands], ctm)
-            elif op == "BT":
-                tm = tlm = [1, 0, 0, 1, 0, 0]
-            elif op == "Tf":
-                size = float(operands[1])
-                font = resources.get("/Font", {}).get(str(operands[0])) if resources else None
-                if font is not None:
-                    fonts.add(str(font.get("/BaseFont", "")).lstrip("/").split("+")[-1])
-            elif op == "Tm":
-                tm = tlm = [float(x) for x in operands]
-            elif op in ("Td", "TD"):
-                tlm = mul([1, 0, 0, 1, float(operands[0]), float(operands[1])], tlm)
-                tm = tlm
-            elif op in ("Tj", "TJ", "'", '"') and size:
-                m = mul(tm, ctm)
-                items = operands[0] if op == "TJ" else [operands[-1]]
-                data = b"".join(bytes(x) for x in items if isinstance(x, pikepdf.String))
-                type0 = font is not None and font.get("/Subtype") == "/Type0"
-                # one entry per glyph, so "most of the text" counts characters, not text pieces
-                # (TeX sets an exponent as a piece of its own)
-                nglyphs = max(1, len(data) // 2 if type0 else len(data))
-                sizes.extend([abs(size) * math.sqrt(abs(m[0] * m[3] - m[1] * m[2]))] * nglyphs)
-                if type0:
-                    missing[0] += sum(1 for i in range(0, len(data) - 1, 2) if data[i:i + 2] == b"\0\0")
-            elif op == "Do" and resources is not None:
-                xo = resources.get("/XObject", {}).get(str(operands[0]))
-                if xo is not None and xo.get("/Subtype") == "/Form":
-                    m = [float(x) for x in xo.get("/Matrix", [1, 0, 0, 1, 0, 0])]
-                    walk(xo, xo.get("/Resources", resources), mul(m, ctm), depth + 1)
-
-    walk(page, page.get("/Resources"), [1, 0, 0, 1, 0, 0])
-    return sizes, fonts, missing[0]
+    sizes, fonts, missing = [], set(), 0
+    tm = tlm = IDENTITY
+    size, font = 0, None
+    for op, operands, res, ctm in operators(page, page.get("/Resources")):
+        if op == "BT":
+            tm = tlm = IDENTITY
+        elif op == "Tf":
+            size = float(operands[1])
+            font = (res.get("/Font", {}) if res is not None else {}).get(str(operands[0]))
+            if font is not None:
+                fonts.add(font_name(font))
+        elif op == "Tm":
+            tm = tlm = [float(x) for x in operands]
+        elif op in ("Td", "TD"):
+            tm = tlm = mul([1, 0, 0, 1, float(operands[0]), float(operands[1])], tlm)
+        elif (data := shown_bytes(op, operands)) is not None and size:
+            m = mul(tm, ctm)
+            # one entry per glyph, so "most of the text" counts characters, not text pieces
+            # (TeX sets an exponent as a piece of its own)
+            sizes += [abs(size) * math.sqrt(abs(m[0] * m[3] - m[1] * m[2]))] * max(1, glyph_count(font, data))
+            missing += notdef_count(font, data)
+    return sizes, fonts, missing
 
 
 def raster_pixels(path: Path):
@@ -155,15 +126,14 @@ def raster_pixels(path: Path):
 # --- report ----------------------------------------------------------------------
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[1].strip(),
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = parser(__doc__)
     ap.add_argument("log", nargs="?", type=Path, default=ROOT / "main.log", help="default: main.log")
     args = ap.parse_args(argv)
     if not args.log.exists():
         sys.exit(f"{args.log} not found: compile first (on Overleaf, download the log)")
     textwidth, caption, figs = read_log(args.log)
     print(f"Text width {mm(textwidth)}, caption text {caption:.1f} pt; {len(figs)} figure inclusions\n")
-    problems, seen_files = 0, set()
+    r, seen_files = Report(), set()
     for name, nw, nh, pw, ph, page in figs:
         path = (ROOT / name) if (ROOT / name).exists() else Path(name)
         seen_files.add(path.resolve())
@@ -218,13 +188,7 @@ def main(argv=None) -> int:
         else:
             notes_text = ""
         head = f"{name} (page {page}): {mm(pw)} wide" + (f", {notes_text}" if notes_text else "")
-        if notes:
-            problems += 1
-            print(f"  WARN  {head}")
-            for n in notes:
-                print(f"          {n}")
-        else:
-            print(f"  OK    {head}")
+        r.warn(head, notes) if notes else r.ok(head)
     images = ROOT / "Images"
     if images.is_dir():
         unused = sorted(p.relative_to(ROOT) for p in images.rglob("*")
@@ -233,7 +197,7 @@ def main(argv=None) -> int:
                         and "_cover" not in str(p))
         if unused:
             print(f"\nNot used in this build ({len(unused)}): " + ", ".join(str(u) for u in unused))
-    print(f"\n{problems} figure(s) to look at.")
+    print(f"\n{r.warnings} figure(s) to look at.")
     return 0
 
 
