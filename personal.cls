@@ -220,18 +220,16 @@
 %%% MATHS: mathtools (loads amsmath); the maths font is set in fontMath.tex
 \RequirePackage{mathtools}
 
-%%% MATHS FONT CHOICE (see Fonts/README.md): MathTime Professional 2, as prepared by
-%% tools/mtpro2_unicode.py (Fonts/mtpro2.sty + Fonts/mtpro2-glyphtounicode.tex), Complete
-%% if its bold fonts are there, else Lite. Otherwise newtx. \ifthesismathtime follows this choice.
+%%% MATHS FONT CHOICE (see Fonts/README.md): MathTime Professional 2 as OpenType maths fonts, as
+%% tools/mtpro2_otf.py writes them into Fonts/ (MTPro2Math.otf and the mtpro2-otf package), Complete or
+%% Lite, whichever the files were made from. Otherwise newtx. \ifthesismathtime follows this choice.
 \newif\ifthesismathtime
-\def\thesismathtimeedition{}
-\IfFileExists{Fonts/mtpro2-glyphtounicode.tex}{\IfFileExists{Fonts/mtpro2.sty}{%
-    %% the fonts are found through the search path that latexmkrc adds (Overleaf runs latexmk)
-    \IfFileExists{mtpro2-glyphtounicode.tex}{\thesismathtimetrue
-        \IfFileExists{Fonts/mt2bmit.pfb}{\def\thesismathtimeedition{Complete}}{\def\thesismathtimeedition{Lite}}}%
+\IfFileExists{Fonts/mtpro2-otf.sty}{%
+    %% the files are found through the search path that latexmkrc adds (Overleaf runs latexmk)
+    \IfFileExists{mtpro2-otf.sty}{\thesismathtimetrue}%
       {\ClassWarningNoLine{personal}{MathTime fonts found in Fonts/, but TeX cannot see that folder.\MessageBreak
         Compile with latexmk, which reads the template's latexmkrc (Overleaf does this).\MessageBreak
-        Using newtx for now}}}{}}{}
+        Using newtx for now}}}{}
 
 %%% TEXT FONTS
 %% Loaded through fontspec.

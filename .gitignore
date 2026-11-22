@@ -25,7 +25,7 @@ _pagesizes_*
 *-grey.pdf
 
 # MathTime Professional 2 (optional maths fonts): licensed to you alone. The originals, the zips and
-# everything tools/mtpro2_unicode.py writes into Fonts/ must never be committed. See Fonts/README.md.
+# everything tools/mtpro2_otf.py writes into Fonts/ must never be committed. See Fonts/README.md.
 *mtp2*/
 *mtpro2*/
 *mtp2*.zip
@@ -43,17 +43,15 @@ mtpro2-glyphtounicode.tex
 umt2*.fd
 omslbm.fd
 EULA-MTPro2*
-# the OpenType conversion (mtpro2_otf.py): the fonts and its generated package, which holds metrics
-# and macros taken from mtpro2.sty
+# the converter's output: the fonts and its generated package, which holds metrics and macros taken
+# from mtpro2.sty (the names above are the older Type 1 files, kept out too)
 MTPro2Math*
 mtpro2-otf*
 *mtpro2-otf-build*
 Fonts/*
 !Fonts/README.md
 __pycache__/
-# the converter and its table hold no font data: keep them
-!tools/mtpro2_unicode.py
-!tools/mtpro2_unicode_map.json
+# the converter holds no font data: keep it
 !tools/mtpro2_otf.py
 
 # Build output

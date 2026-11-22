@@ -91,7 +91,7 @@ The print editions are set for paper: links invisible (they still work in the PD
 | `personal.cls` | The class: page layout, options, core packages. |
 | `_options/` | Fonts, heading styles, page styles, colours, extra packages, custom commands. |
 | `Fonts/` | Optional: MathTime Professional 2 for the maths (see `Fonts/README.md`). Never put it in a public repository. |
-| `tools/` | `check_pdf.py` checks the compiled PDF before submission; `check_figures.py` checks each figure's printed size, text size and fonts; `check_bib.py` tidies `references.bib`; `check_hyphenation.py` lists the hyphenated words to review; `greyscale_preview.py` counts colour pages and shows the thesis in greyscale; `diff_versions.py` makes a PDF with the changes since an earlier version marked; `mtpro2_unicode.py` and its table prepare MathTime Professional 2 (see `Fonts/README.md`); `hooks/pre-commit` refuses commits with MathTime files; `common.py` holds the code the checks share. |
+| `tools/` | `check_pdf.py` checks the compiled PDF before submission; `check_figures.py` checks each figure's printed size, text size and fonts; `check_bib.py` tidies `references.bib`; `check_hyphenation.py` lists the hyphenated words to review; `greyscale_preview.py` counts colour pages and shows the thesis in greyscale; `diff_versions.py` makes a PDF with the changes since an earlier version marked; `mtpro2_otf.py` converts MathTime Professional 2 into OpenType maths fonts (see `Fonts/README.md`); `hooks/pre-commit` refuses commits with MathTime files; `common.py` holds the code the checks share. |
 | `requirements.txt` | Python packages for the scripts and plots: `pip install -r requirements.txt`. |
 | `latexmkrc` | latexmk settings: LuaLaTeX, and the `Fonts/` folder on TeX's search paths. |
 | `propositions.tex` | The propositions (stellingen), a separate document. |
@@ -99,7 +99,7 @@ The print editions are set for paper: links invisible (they still work in the PD
 
 ## Starting your thesis
 
-1. **Your own copy.** Make a new, private repository for the thesis from this template (on GitHub: *Use this template*, or duplicate the repository) and link it to a new Overleaf project. Keep the template repository as it is, so fixes can be copied over later. In your local clone, the first `latexmk` build (or `tools/mtpro2_unicode.py`) installs a pre-commit hook: git then refuses any commit that contains MathTime font files (see *Maths font* below). By hand: `cp tools/hooks/pre-commit .git/hooks/ && chmod +x .git/hooks/pre-commit`. (A copy in `.git/hooks`, because Overleaf's GitHub synchronisation drops the executable flag of the file in `tools/hooks`, and git then skips it.)
+1. **Your own copy.** Make a new, private repository for the thesis from this template (on GitHub: *Use this template*, or duplicate the repository) and link it to a new Overleaf project. Keep the template repository as it is, so fixes can be copied over later. In your local clone, the first `latexmk` build installs a pre-commit hook: git then refuses any commit that contains MathTime font files (see *Maths font* below). By hand: `cp tools/hooks/pre-commit .git/hooks/ && chmod +x .git/hooks/pre-commit`. (A copy in `.git/hooks`, because Overleaf's GitHub synchronisation drops the executable flag of the file in `tools/hooks`, and git then skips it.)
 2. **Details.** Fill in `_thesisinfo.tex`: title, names, committee, defence date, keywords, licence, ORCID, data availability. Check the class options at the top of `main.tex` (page size, edition, language).
 3. **Front and back matter.** Replace the placeholder text in `Chapters/00Summary.tex` (summary and samenvatting), `00Preface.tex`, `Z_Acknowledgements.tex`, `Z_CurriculumVitae.tex` and `Z_ListOfPublications.tex`.
 4. **Remove the examples.** In `main.tex`, delete the lines `\include{Chapters/02Examples}` and `\include{Chapters/03InfSup}` (keep the files for reference), the references they use from `references.bib`, and, once no chapter uses `\lipsum` any more, the `lipsum` line. Replace the example appendix `A_Appendix.tex` with your own or remove its `\include`.
@@ -172,11 +172,11 @@ Every symbol also goes in `_nomenclature.tex`, so the nomenclature doubles as a 
 
 Maths is set in newtx, a Times-style maths font included with TeX Live and Overleaf. If you own MathTime Professional 2 (Lite is free from [CTAN](https://mirrors.ctan.org/fonts/mtp2lite.zip), Complete is sold by [PCTeX](https://www.pctex.com/mtpro2.html)), the template uses it instead:
 
-1. Put the MathTime zip (`mtp2lite.zip` or `mtp2fonts.zip`) in the main folder, as it is or unpacked.
-2. Run `python3 tools/mtpro2_unicode.py`. It writes a copy of the fonts into `Fonts/` with Unicode glyph names, so the maths copies correctly and the PDF stays PDF/A.
+1. Unpack the MathTime zip (`mtp2lite.zip` or `mtp2fonts.zip`).
+2. Run `python3 tools/mtpro2_otf.py path/to/the/unpacked/folder Fonts` (needs `pip install fonttools`). It converts the fonts into OpenType maths fonts in `Fonts/`, with a package that places every symbol exactly as the classic fonts do; maths copies correctly and the PDF stays PDF/A-4f.
 3. Compile with LuaLaTeX through latexmk (Overleaf does this); `latexmkrc` lets TeX find the fonts in `Fonts/`.
 
-All of the `mtpro2` package's macros then work (`\xl`…`\XXXL` operators, `\SQRT`, `\widearc`, `\bm`, `\hm`), with Complete preferred if both editions are there and Lite's missing alphabets filled in from newtx, the AMS fonts and Euler. Details are in [`Fonts/README.md`](Fonts/README.md).
+All of the `mtpro2` package's macros then work (`\xl`…`\XXXL` operators, `\SQRT`, `\widearc`, `\bm`, `\hm`), Complete or Lite, whichever the files were made from, with Lite's missing alphabets filled in from newtx, the AMS fonts and Euler. Details are in [`Fonts/README.md`](Fonts/README.md).
 
 How the three compare, symbol by symbol (regenerate locally with `.github/scripts/math_fonts.py`, which needs both MathTime editions):
 
@@ -203,7 +203,7 @@ thesis_fonts.setup()                      # figure text in the thesis's own font
 thesis_fonts.save(fig, "Images/my_figure.pdf")
 ```
 
-The style sets text at about the caption size (7.5–8.5 pt for the Dover default; add 0.5 pt for A5 and Royal, 1.5 pt for TU Delft), a default size of 91.5 mm wide, and colour-blind-safe colours each with its own line style (so lines stay apart in greyscale). `thesis_fonts` has matplotlib set every label with LuaLaTeX, in the fonts of the text: Times, with MathTime maths when `tools/mtpro2_unicode.py` has prepared it in `Fonts/`, otherwise newtx. So `$\alpha$` or `$\Vert\nabla\boldsymbol{e}\Vert$` in a figure is the same glyph as in the text, and the PDF stays PDF/A-ready. `setup("newtx")` forces newtx; the figures that come with the template are made that way. Without LuaLaTeX it falls back to matplotlib's own maths in Times New Roman (or in STIX, its Times-like font, where Times New Roman is not installed). Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
+The style sets text at about the caption size (7.5–8.5 pt for the Dover default; add 0.5 pt for A5 and Royal, 1.5 pt for TU Delft), a default size of 91.5 mm wide, and colour-blind-safe colours each with its own line style (so lines stay apart in greyscale). `thesis_fonts` has matplotlib set every label with LuaLaTeX, in the fonts of the text: Times, with MathTime maths when `tools/mtpro2_otf.py` has converted it into `Fonts/`, otherwise newtx. So `$\alpha$` or `$\Vert\nabla\boldsymbol{e}\Vert$` in a figure is the same glyph as in the text, and the PDF stays PDF/A-ready. `setup("newtx")` forces newtx; the figures that come with the template are made that way. Without LuaLaTeX it falls back to matplotlib's own maths in Times New Roman (or in STIX, its Times-like font, where Times New Roman is not installed). Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
 
 | Page size | Full text width | Half width (two side by side) |
 |---|---|---|

@@ -1,54 +1,40 @@
 %% Maths font, as chosen by the class (see personal.cls and Fonts/README.md): MathTime Professional 2
-%% when tools/mtpro2_unicode.py has prepared it in the Fonts folder, otherwise newtx, the Times-style
-%% maths that ships with TeX Live.
+%% when tools/mtpro2_otf.py has written its OpenType fonts into the Fonts folder, otherwise newtx, the
+%% Times-style maths that ships with TeX Live.
 \ifthesismathtime
 %% ---------------------------------------------------------------------------------------------
-%% MathTime Professional 2, classic Type 1 fonts through mtpro2.sty (LuaLaTeX), as prepared by
-%% tools/mtpro2_unicode.py: every glyph carries a Unicode name, so maths copies correctly and the PDF/A
-%% check passes. All of mtpro2's macros work: \xl..\XXXL operators, \SQRT, \widearc, \bm, \hm, ...
-%% ---------------------------------------------------------------------------------------------
-\input{mtpro2-glyphtounicode}        % Unicode for the renamed glyphs (variants, sizes)
-\pdfextension mapfile{+mtpro2.map}  % which .pfb file belongs to which font
-%% The Dover size sets the text at 95 %: scale the MathTime fonts with it (mtpro2.sty has no option).
-\ifdim\thesis@fontscale pt<1pt
-\directlua{
-    local scale = \thesis@fontscale
-    local define = luatexbase.remove_from_callback("define_font", "luaotfload.define_font")
-    luatexbase.add_to_callback("define_font", function(name, size, id)
-        if size > 0 and name:match("^mt2") then size = math.floor(size * scale + 0.5) end
-        return define(name, size, id)
-    end, "thesis.mtpro2-scale")
-}
+%% MathTime Professional 2 as OpenType maths fonts (mtpro2-otf, with unicode-math): placed exactly as
+%% the classic Type 1 fonts are, every glyph maps to Unicode, and all of mtpro2's macros work (\xl..
+%% \XXXL operators, \SQRT, \widearc, \bm, \hm, ...). Complete or Lite, whichever the files were made
+%% from; Lite takes the AMS symbols, blackboard bold, Euler script and Fraktur, and newtx bold for \bm,
+%% as the Type 1 set-up does. The package's options (Fonts/README.md) go in the list below.
+%%   ntxcal: \mathcal from newtx (the simpler V and W)
+%%   textsf: \mathsf (matrices \mathsf{A}, operators \mathsf{Res}) in Source Sans, the document's sans
+%%   scale:  the maths at the size of the text (95 % for the Dover size)
+%% (unicode-math replaces four of mathtools' colon symbols by characters MathTime does not have: keep
+%% mathtools' own, built from : and =, as with the Type 1 fonts; and its brackets, without the notes)
+\ExplSyntaxOn
+\msg_redirect_name:nnn { unicode-math } { mathtools-colon } { none }
+\msg_redirect_name:nnn { unicode-math } { mathtools-overbracket } { none }
+\ExplSyntaxOff
+\@for\thesis@tmp:={dblcolon,coloneqq,Coloneqq,eqqcolon}\do{%
+    \expandafter\let\csname thesis@\thesis@tmp\expandafter\endcsname\csname\thesis@tmp\endcsname}
+\edef\thesis@tmp{\noexpand\RequirePackage[ntxcal, textsf, scale=\thesis@fontscale]{mtpro2-otf}}\thesis@tmp
+\@for\thesis@tmp:={dblcolon,coloneqq,Coloneqq,eqqcolon}\do{%
+    \expandafter\let\csname\thesis@tmp\expandafter\endcsname\csname thesis@\thesis@tmp\endcsname}
+%% Characters of siunitx's units that MathTime has no glyph for (°, µ, Å, Ω): from the text font
+\DeclareSymbolFont{thesistext}{TU}{\rmdefault}{m}{n}
+\SetSymbolFont{thesistext}{bold}{TU}{\rmdefault}{\bfdefault}{n}
+\AddToHook{begindocument/end}{\Umathcode"B0=0 \symthesistext "B0 \Umathcode"B5=0 \symthesistext "B5
+    \Umathcode"C5=0 \symthesistext "C5 \Umathcode"2126=0 \symthesistext "2126 }
+%% (Lite has no bold MathTime: under \bm, NFSS looks for a bold shape of the maths font and warns that there
+%% is none. Say that the regular one stands in, which is what happens anyway.)
+\def\thesis@tmp{Lite}\ifx\MTPOTFedition\thesis@tmp
+    \DeclareFontShape{TU}{MTPro2Math.otf(1)}{b}{n}{<->ssub*MTPro2Math.otf(1)/m/n}{}
 \fi
-%% Complete: MathTime's own blackboard bold, script, Fraktur and AMS symbols. Lite has none of these: AMS
-%% symbols and blackboard bold, Euler script and Fraktur (all in TeX Live) instead.
-\def\thesis@tmp{Complete}\ifx\thesismathtimeedition\thesis@tmp
-    \RequirePackage[complete, mtpbb, mtpscr, mtpfrak, nofontinfo]{mtpro2}
-    \newcommand{\thesisboldmath}{\bm} % real bold (bm is loaded in packages.tex)
-\else
-    \RequirePackage{amssymb} % the AMS symbols Lite lacks (\varnothing, \nleq, ...), before mtpro2
-    \RequirePackage[lite, nofontinfo]{mtpro2} % \mathbb and \mathfrak stay amssymb's (AMS, Euler)
-    \DeclareMathAlphabet{\mathscr}{U}{eus}{m}{n} % script: Euler (Lite has none)
-    %% Lite has no bold maths: bold Latin letters (vectors, tensors) from newtx, scaled like the text
-    \edef\ntxmath@scaled{s*[\thesis@fontscale]}
-    \DeclareMathAlphabet{\thesis@ntxbfit}{OML}{ntxmi}{b}{it}
-    \ExplSyntaxOn
-    \cs_new_protected:Npn \thesisboldmath #1
-      {
-        \bool_lazy_and:nnTF { \tl_if_single_token_p:n {#1} } { \token_if_letter_p:N #1 }
-          { \thesis@ntxbfit {#1} } { \bm {#1} }
-      }
-    \ExplSyntaxOff
-\fi
-%% Calligraphic letters from newtx (the simpler V and W), scaled like the text.
-\edef\ntxmath@scaled{s*[\thesis@fontscale]}
-\DeclareFontEncoding{LMS}{}{}\DeclareFontSubstitution{LMS}{ntxsy}{m}{n} % newtx's symbol encoding
-\DeclareMathAlphabet{\thesis@ntxcal}{LMS}{ntxsy}{m}{n}
-\AddToHook{begindocument/end}{\let\mathcal\thesis@ntxcal}
-%% \mathsf (matrices \mathsf{A}, operators \mathsf{Res}) in Source Sans, the document's sans-serif font.
-\DeclareMathAlphabet{\mathsf}{TU}{\sfdefault}{m}{n}
-\SetMathAlphabet{\mathsf}{bold}{TU}{\sfdefault}{\bfdefault}{n}
-\ClassInfo{personal}{Maths font: MathTime Professional 2 \thesismathtimeedition\space (Fonts/)}
+\newcommand{\thesisboldmath}{\bm} % mtpro2-otf's \bm (Lite: newtx bold letters)
+\edef\thesismathtimeedition{\MTPOTFedition}
+\ClassInfo{personal}{Maths font: MathTime Professional 2 \MTPOTFedition\space (OpenType, Fonts/)}
 \else
 %% ---------------------------------------------------------------------------------------------
 %% newtx

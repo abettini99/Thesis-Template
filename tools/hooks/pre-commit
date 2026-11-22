@@ -1,7 +1,7 @@
 #!/bin/sh
 # Refuse commits that contain MathTime Professional 2 font files (licensed to you alone),
-# even ones forced past .gitignore with "git add -f". A local latexmk build (latexmkrc) and
-# tools/mtpro2_unicode.py install it, and keep it up to date; by hand:
+# even ones forced past .gitignore with "git add -f". A local latexmk build (latexmkrc) installs it,
+# and keeps it up to date; by hand:
 #     cp tools/hooks/pre-commit .git/hooks/ && chmod +x .git/hooks/pre-commit
 # A copy, because Overleaf's GitHub synchronisation drops the executable flag of this file, and git
 # skips a hook that is not executable. (Overleaf itself does not run hooks.)

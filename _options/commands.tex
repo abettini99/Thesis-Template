@@ -15,13 +15,16 @@
 
 \newcommand\transpose{^\textsf{T}}              % places in a transpose symbol
 
+%% A command that LaTeX or the maths font already has (\div, \Re, \vec, ...) is redefined at the start
+%% of the document (\AtBeginDocument): with MathTime, unicode-math sets these up only then, and would
+%% undo a redefinition made earlier. Do the same for redefinitions of your own.
 \newcommand{\grad}{\nabla}                     % gradient
-\renewcommand{\div}{\nabla\cdot}               % divergence
+\AtBeginDocument{\renewcommand{\div}{\nabla\cdot}} % divergence
 \newcommand{\curl}{\nabla\times}               % curl
 
 %% Dimensionless numbers of fluid mechanics and heat transfer
-\renewcommand{\Pr}{\mathrm{Pr}}                 % Prandtl number
-\renewcommand{\Re}{\mathrm{Re}}                 % Reynolds number
+\AtBeginDocument{\renewcommand{\Pr}{\mathrm{Pr}}} % Prandtl number
+\AtBeginDocument{\renewcommand{\Re}{\mathrm{Re}}} % Reynolds number
 \newcommand{\Fr}{\mathrm{Fr}}                   % Froude number
 \newcommand{\Eu}{\mathrm{Eu}}                   % Euler number
 \newcommand{\St}{\mathrm{St}}                   % Strouhal number
@@ -41,11 +44,12 @@
 
 %% inf, max, min, lim and lim inf get the depth of a descender, as sup and lim sup have from their p, so
 %% the limits under operators side by side line up: \inf_{q} \sup_{v} puts q and v on one baseline.
-\renewcommand{\inf}{\operatorname*{inf\vphantom{p}}}
-\renewcommand{\max}{\operatorname*{max\vphantom{p}}}
-\renewcommand{\min}{\operatorname*{min\vphantom{p}}}
-\renewcommand{\lim}{\operatorname*{lim\vphantom{p}}}
-\renewcommand{\liminf}{\operatorname*{lim\,inf\vphantom{p}}}
+\AtBeginDocument{%
+    \renewcommand{\inf}{\operatorname*{inf\vphantom{p}}}%
+    \renewcommand{\max}{\operatorname*{max\vphantom{p}}}%
+    \renewcommand{\min}{\operatorname*{min\vphantom{p}}}%
+    \renewcommand{\lim}{\operatorname*{lim\vphantom{p}}}%
+    \renewcommand{\liminf}{\operatorname*{lim\,inf\vphantom{p}}}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
@@ -63,7 +67,7 @@
 %% e.g. the test function v from the viscosity nu. Change these two lines to switch notation everywhere:
 %% plain italics: {#1}, arrow: {\vv{#1}} (package esvect), underline: {\underline{#1}}.
 %% (\thesisboldmath is the bold italic of the maths font, set in fontMath.tex.)
-\renewcommand{\vec}[1]{\thesisboldmath{#1}}     % vector:  \vec{u}
+\AtBeginDocument{\renewcommand{\vec}[1]{\thesisboldmath{#1}}} % vector:  \vec{u}
 \newcommand{\tensor}[1]{\thesisboldmath{#1}}    % tensor:  \tensor{\tau}
 
 %% Lists: dashes as bullets, no extra space between items (a list reads as part of the paragraph),

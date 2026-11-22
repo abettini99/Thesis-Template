@@ -1,5 +1,5 @@
 """Figure text in the thesis's own fonts: TeX Gyre Termes for text, and for maths MathTime Professional 2
-when tools/mtpro2_unicode.py has prepared it in Fonts/ (as the class does), otherwise newtx.
+when tools/mtpro2_otf.py has written it into Fonts/ (as the class does), otherwise newtx.
 
 Matplotlib typesets each label with LuaLaTeX (its pgf backend), so a figure's $\\alpha$, $C_L$ and
 $\\Vert\\nabla\\boldsymbol{e}\\Vert$ are the same glyphs as in the text. Without LuaLaTeX it falls back to
@@ -41,42 +41,19 @@ _NEWTX = r"""
 \usepackage{bm}
 """
 _MATHTIME = r"""
-\input{mtpro2-glyphtounicode}
-\pdfextension mapfile{+mtpro2.map}
-%% MathTime has three designs: small (below 7 pt), script (7-9 pt) and text (9 pt and up). Labels in a
-%% figure (7-8.5 pt) are its main text, set in Times, which has one design: give their maths the text
-%% design too, which matches Times in width and weight. Exponents and indices keep the small design.
-\directlua{
-    local define = luatexbase.remove_from_callback("define_font", "luaotfload.define_font")
-    luatexbase.add_to_callback("define_font", function(name, size, id)
-        if size >= 7 * 65536 and name:match("^mt2.+s$") then
-            local t = name:sub(1, -2) .. "t"
-            if kpse.find_file(t, "tfm") then name = t end
-        end
-        return define(name, size, id)
-    end, "thesis.mtpro2-design")
-}
-%s
-\DeclareFontEncoding{LMS}{}{}\DeclareFontSubstitution{LMS}{ntxsy}{m}{n}
-\DeclareMathAlphabet{\mathcal}{LMS}{ntxsy}{m}{n}
-"""
-_COMPLETE = r"""\usepackage[complete, mtpbb, mtpscr, mtpfrak, nofontinfo]{mtpro2}
-\usepackage{bm}
+\usepackage[ntxcal]{mtpro2-otf}
 \let\boldsymbol\bm
-"""
-_LITE = r"""\usepackage{amssymb}
-\usepackage[lite, nofontinfo]{mtpro2}
-\DeclareMathAlphabet{\mathscr}{U}{eus}{m}{n}
-\DeclareMathAlphabet{\thesisbfit}{OML}{ntxmi}{b}{it}
-\usepackage{bm}
-\renewcommand{\boldsymbol}[1]{\thesisbfit{#1}}
+%% (matplotlib loads underscore.sty, which makes _ active; mtpro2's macros give the active _ a meaning of
+%% their own: give it back to underscore.sty)
+\AddToHook{begindocument/end}{\ifdefined\normalUnderscoreDef\normalUnderscoreDef\fi}
 """
 
 
 def mathtime_edition():
-    """'Complete', 'Lite' or None, as the class decides."""
-    if (FONTS / "mtpro2-glyphtounicode.tex").exists() and (FONTS / "mtpro2.sty").exists():
-        return "Complete" if (FONTS / "mt2bmit.pfb").exists() else "Lite"
+    """'Complete', 'Lite' or None, as the class decides (from what tools/mtpro2_otf.py wrote)."""
+    sty = FONTS / "mtpro2-otf.sty"
+    if sty.exists() and (FONTS / "MTPro2Math.otf").exists():
+        return "Lite" if "\\def\\MTPOTFedition{Lite}" in sty.read_text(encoding="latin-1") else "Complete"
     return None
 
 
@@ -87,12 +64,12 @@ def setup(maths="auto"):
         return _fallback()
     edition = mathtime_edition() if maths in ("auto", "mathtime") else None
     if maths == "mathtime" and edition is None:
-        raise FileNotFoundError("No MathTime fonts in Fonts/: run tools/mtpro2_unicode.py first")
+        raise FileNotFoundError("No MathTime fonts in Fonts/: run tools/mtpro2_otf.py first (Fonts/README.md)")
     if edition:
-        # LuaLaTeX finds the prepared fonts in Fonts/ (latexmkrc does the same for the thesis)
-        for var in ("TEXINPUTS", "TFMFONTS", "T1FONTS", "TEXFONTMAPS", "ENCFONTS"):
-            os.environ[var] = str(FONTS) + "//" + os.pathsep + os.environ.get(var, "")
-        preamble = _TEXT + _MATHTIME % (_COMPLETE if edition == "Complete" else _LITE)
+        # LuaLaTeX finds the fonts and the package in Fonts/ (latexmkrc does the same for the thesis)
+        for var in ("TEXINPUTS", "OPENTYPEFONTS", "LUAINPUTS"):
+            os.environ[var] = str(FONTS) + os.pathsep + os.environ.get(var, "")
+        preamble = _TEXT + _MATHTIME
         name = f"MathTime {edition}"
     else:
         preamble = _TEXT + _NEWTX

@@ -10,16 +10,18 @@ Unlike page_sizes.py this cannot run on GitHub: it needs both MathTime editions,
 which are licensed and never committed. Run it locally from the template folder:
 
   python3 .github/scripts/math_fonts.py path/to/mtp2lite.zip path/to/mtp2fonts.zip
+  (zips or unpacked folders)
 
-It prepares both editions with tools/mtpro2_unicode.py in a temporary folder and
+It converts both editions with tools/mtpro2_otf.py in a temporary folder and
 loads the maths exactly as the class does (_options/fontText.tex and fontMath.tex).
-Needs LuaLaTeX, pdftoppm (poppler) and Pillow. The images are pictures of the
+Needs LuaLaTeX, pdftoppm (poppler), Pillow and fonttools. The images are pictures of the
 typeset result, like a page of a PDF, and contain no font data.
 """
 import os
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -94,12 +96,11 @@ PREAMBLE = r"""\documentclass[border=0pt,multi=minipage]{standalone}
 \makeatletter
 \def\thesis@fontscale{1}
 \newif\ifthesismathtime %(mt)s
-\def\thesismathtimeedition{%(edition)s}
 \input{_options/fontText}
 \input{_options/fontMath}
 \makeatother
-\usepackage{bm}
-\renewcommand{\vec}[1]{\thesisboldmath{#1}}
+\ifthesismathtime\else\usepackage{bm}\fi
+\AtBeginDocument{\renewcommand{\vec}[1]{\thesisboldmath{#1}}}
 \providecommand{\xl}{}\providecommand{\XL}{}\providecommand{\XXL}{}
 \newcommand{\na}{\text{\normalfont\footnotesize n/a}}
 \newcommand{\cell}[3]{\parbox[c][#2][c]{#1}{\centering\large$#3$}}
@@ -130,13 +131,13 @@ def build(name, edition, fonts_dir, work):
     mt = "\\thesismathtimetrue" if edition else "\\thesismathtimefalse"
     pages = [grid(g, edition is None) for g in GROUPS]
     eq = "\\begin{minipage}{150mm}\\[\\begin{gathered}%s\\end{gathered}\\]\\end{minipage}" % EQUATION
-    src = (PREAMBLE % {"mt": mt, "edition": edition or "", "nameh": NAME_H}
+    src = (PREAMBLE % {"mt": mt, "nameh": NAME_H}
            + "\n".join(pages + [eq]) + "\n\\end{document}\n")
     job = name.replace(" ", "_")
     (work / f"{job}.tex").write_text(src)
     env = dict(os.environ)
     if fonts_dir:
-        for var in ("TEXINPUTS", "TFMFONTS", "T1FONTS", "TEXFONTMAPS"):
+        for var in ("TEXINPUTS", "OPENTYPEFONTS", "LUAINPUTS"):
             env[var] = f"{fonts_dir}{os.pathsep}{env.get(var, '')}"
     r = subprocess.run(["lualatex", "-interaction=nonstopmode", "-halt-on-error",
                         f"-output-directory={work}", str(work / f"{job}.tex")],
@@ -163,9 +164,13 @@ def main():
     lite, full = (Path(a).resolve() for a in sys.argv[1:])
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
-        tool = ROOT / "tools" / "mtpro2_unicode.py"
+        tool = ROOT / "tools" / "mtpro2_otf.py"
         for src, ed in ((lite, "Lite"), (full, "Complete")):
-            subprocess.run([sys.executable, str(tool), str(src), "-o", str(tmp / ed)], check=True,
+            if src.suffix.lower() == ".zip":            # the converter reads an unpacked folder
+                with zipfile.ZipFile(src) as z:
+                    z.extractall(tmp / f"{ed}-src")
+                src = tmp / f"{ed}-src"
+            subprocess.run([sys.executable, str(tool), str(src), str(tmp / ed)], check=True,
                            stdout=subprocess.DEVNULL)
         shots = {name: [Image.open(p).convert("L") for p in
                         build(name, ed, tmp / ed if ed else None, tmp)] for name, ed in FONTS}
