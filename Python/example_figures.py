@@ -88,7 +88,8 @@ ax1.plot(xn, burgers(xn, t), marker="o", label="$N = 16$")
 ax1.set_xlabel(r"$x$")
 ax1.set_ylabel(r"$u$")
 ax1.set_xlim(-1, 1)
-ax1.legend(loc="upper right", handlelength=1.2, borderaxespad=0.2)
+ax1.legend(loc="lower left", handlelength=1.0, handletextpad=0.4, borderpad=0.2,
+           borderaxespad=0.1)  # the empty corner, left of the shock
 
 N = np.array([8, 16, 32, 64, 128])                         # the errors of Table 2.2
 e0 = np.array([3.41e-3, 8.80e-4, 2.23e-4, 5.62e-5, 1.41e-5])
@@ -155,5 +156,5 @@ ax.set_xlabel(r"Angle of attack $\alpha$ (deg)")
 ax.set_ylabel(r"Lift coefficient $C_L$")
 ax.set_xlim(-4, 20)
 ax.set_ylim(-0.5, 2.2)
-ax.legend(loc="lower right", ncols=2)
+ax.legend(loc="upper left")  # the empty corner: the curves start low
 save(fig, "example_plot.pdf")

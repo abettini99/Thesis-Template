@@ -2,7 +2,9 @@
 %% (\runningheadtext and \runningheadfolio in fontText.tex). New page styles have empty heads and feet.
 %%   mainmatter     : chapter title on left pages, section on right pages, thumb tabs
 %%   chapteronly    : chapter title on both pages (chapters without sections, the references)
-%%   appendix       : "Appendix A - title" on both pages, thumb tabs
+%%   appendix       : "Appendix A - title" on both pages, thumb tabs. With "Appendix A - " in front, a long
+%%                    title runs into the page number: give it a short one for the head,
+%%                    \chapter[title in the contents][title in the head]{title}
 %%   chapteropening : chapter opening pages: only the thumb tab
 %%   frontmatter    : page number centred at the bottom
 \makepagestyle{mainmatter}
