@@ -27,10 +27,10 @@ _pagesizes_*
 
 # MathTime Professional 2 (optional maths fonts): licensed to you alone. The originals, the zips and
 # everything tools/mtpro2_unicode.py writes into Fonts/ must never be committed. See Fonts/README.md.
-mtp2*/
-mtpro2*/
-mtp2*.zip
-mtpro2*.zip
+*mtp2*/
+*mtpro2*/
+*mtp2*.zip
+*mtpro2*.zip
 *.pfb
 *.pfm
 *.afm

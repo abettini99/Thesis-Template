@@ -115,10 +115,11 @@ k = np.arange(0, 9)
 for step, rate in ((1, 0.18), (10, 0.32), (40, 0.45)):    # illustrative contraction rates
     ax.semilogy(k, rate ** k, marker="o", markersize=2.5)
     ax.text(8.6, rate ** 8, f"step {step}", va="center", fontsize=7)
-ax.axhline(1e-6, color="0.4", linewidth=0.6, linestyle="-")
+ax.axhline(1e-7, color="0.4", linewidth=0.6, linestyle="-")   # tolerance, below the curves
 ax.set_xlabel("iteration")
 ax.set_ylabel("residual")
-ax.set_ylim(1e-7, 2)
+ax.set_ylim(1e-8, 2)
+ax.set_yticks([1, 1e-2, 1e-4, 1e-6])
 ax.set_xlim(-0.5, 13)
 ax.set_xticks([0, 4, 8])
 ax.minorticks_off()

@@ -213,6 +213,9 @@
 
 %%% MATH FONT
 \input{_options/fontMath}
+%% Space around relations (=, <, \to) may stretch only a little in justified lines (TeX allows it to
+%% double); the word spaces take up the slack instead.
+\AtBeginDocument{\thickmuskip=5mu plus 2mu\relax}
 %% LuaLaTeX: give the Type 1 maths fonts a Unicode map, so maths can be copied and searched
 %% (and PDF/A "u" levels are possible). XeLaTeX does this by itself.
 \ifdefined\directlua
@@ -223,7 +226,10 @@
 
 %%% CAPTIONS (figures, tables and equations are numbered per chapter by memoir: 2.1, 2.2, ...)
 \RequirePackage[tableposition=top]{caption}
-\captionsetup*{font={small}, labelfont={sc, bf}, labelsep=quad}
+%% Captions narrower than 60 mm (figures side by side) are set ragged-right without hyphens: justified,
+%% such a narrow measure gives uneven word spaces and hyphens. Wider captions stay justified.
+\DeclareCaptionJustification{thesis}{\ifdim\hsize<60mm \thesis@raggednohyphen\fi}
+\captionsetup*{font={small}, labelfont={sc, bf}, labelsep=quad, justification=thesis}
 \renewcommand{\arraystretch}{1.2}
 
 %% Bibliography: numbered in order of citation, compressed ([2-4]), \citet/\citep available (natbib=true).
@@ -243,7 +249,10 @@
 %% Set ragged right: references are full of long names, journal titles and DOIs, which in justified
 %% text leave wide gaps.
 \RequirePackage{ragged2e}
-\renewcommand*{\bibfont}{\RaggedRight}
+%% Ragged-right lines need no hyphens: forbid them, and let the right edge vary a little more instead.
+\newcommand*{\thesis@raggednohyphen}{\setlength{\RaggedRightRightskip}{0pt plus 4em}\RaggedRight
+    \hyphenpenalty=10000 \tolerance=9999 \hbadness=10000 }
+\renewcommand*{\bibfont}{\thesis@raggednohyphen}
 
 %% Line breaks in URLs and DOIs (typewriter), in the text and the references alike. Never a hyphen;
 %% preferably where the Chicago Manual of Style puts them, so a character at the end of a line is
