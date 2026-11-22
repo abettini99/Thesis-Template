@@ -40,6 +40,8 @@
 
 %% Text and code
 \usepackage{listings}           % https://ctan.org/pkg/listings %% code listings
+\input{_options/tagging}        % tagged PDF: what LaTeX's tagging code does not cover yet (listings; before
+                                %  their style, which it would reset)
 \input{_options/formatCode}     % their style: colour on screen, black and white in print
 
 %% Todo notes while writing: \todo{...} in the margin, \todo[inline]{...} in the text,
@@ -104,7 +106,7 @@
 \renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
 \makeatother
 \floatstyle{ruled}\restylefloat{algorithm}
-\makeatletter\renewcommand\floatc@ruled[2]{{\parindent\z@\thesis@capcentrefalse\leavevmode\thesis@captionbox{#1}{#2}\par}\@minipagefalse}\makeatother
+\makeatletter\renewcommand\floatc@ruled[2]{{\parindent\z@\thesis@capcentrefalse\thesis@tagparaoff\leavevmode\thesis@captionbox{#1}{#2}\par\thesis@tagparaon}\@minipagefalse}\makeatother
 \algrenewcommand\algorithmicrequire{\textbf{Input:}}
 \algrenewcommand\algorithmicensure{\textbf{Output:}}
 \algrenewcommand\algorithmiccomment[1]{\hfill\textcolor{black!60}{\(\triangleright\) \textit{#1}}}

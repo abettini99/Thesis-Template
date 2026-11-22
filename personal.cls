@@ -160,7 +160,8 @@
     \newcommand*{\thesis@trimcross}{\begin{picture}(0,0)\unitlength 1cm\thinlines
         \put(-2,0){\line(1,0){4}}\put(0,-2){\line(0,1){4}}\end{picture}}
     \newcommand*{\thesis@trimmid}[4]{\begin{picture}(0,0)\unitlength 1mm\thinlines\put(#1,#2){\line(#3,#4){10}}\end{picture}}
-    \AddToHook{shipout/background}{\put(0,0){\vbox to \z@{%
+    \AddToHook{shipout/background}{\UseName{tag_suspend:n}{crop marks}% not part of the content (tagged PDF)
+        \put(0,0){\vbox to \z@{%
         \vskip\trimtop
         \hb@xt@\z@{%
             \ifodd\c@page \hskip\dimexpr\stockwidth-\trimedge-\paperwidth\relax \else \hskip\trimedge \fi
@@ -171,7 +172,7 @@
                 \vfil
                 \hb@xt@\paperwidth{\thesis@trimcross\hfil\thesis@trimmid{0}{-12}{0}{1}\hfil\thesis@trimcross}}%
             \hss}%
-        \vss}}}
+        \vss}}\UseName{tag_resume:n}{crop marks}}
 \fi
 
 %% A chapter starts on a right-hand page; the empty left-hand page before it has no running head.
@@ -479,9 +480,13 @@
 \newif\ifthesis@captop
 \newcommand*{\thesis@capstrut}{\vrule\@height\ht\strutbox\@width\z@}% (the first line as high as a strut)
 \newif\ifthesis@capcentre \thesis@capcentretrue % (the captions of algorithms are not centred)
+%% (tagged PDF: the caption is one paragraph, the one inside the box; the paragraph around the box only
+%% places it)
+\def\thesis@tagparaoff{\ifdefined\tagpdfparaOff\tagpdfparaOff\fi}
+\def\thesis@tagparaon{\ifdefined\tagpdfparaOn\tagpdfparaOn\fi}
 \newcommand{\thesis@captionbox}[2]{% label, text: the caption, as a box the width of the line
     \sbox\@tempboxa{\small{\captionlabelfont #1}\quad #2}%
-    \vbox{\small\parindent\z@
+    \vbox{\thesis@tagparaon\small\parindent\z@
         \ifdim\wd\@tempboxa>\hsize
             \parfillskip\z@\@plus1fil \ifdim\hsize<60mm \thesis@raggednohyphen\fi
         \else\ifthesis@capcentre
@@ -496,12 +501,13 @@
     \AssignTaggingSocketPlug{parbox/after}{noop}%
     \hbox to\z@{\hss\parbox[t]\linewidth{\reset@font\normalsize
       \vskip-\ht\strutbox
-      {\parindent\z@ \leavevmode
-       \cs_if_eq:NNTF #1 \@gobble {\thesis@captionnolabel{#3}} {\thesis@captionbox{#2}{#3}}\par}%
+      {\parindent\z@ \thesis@tagparaoff \leavevmode
+       \cs_if_eq:NNTF #1 \@gobble {\thesis@captionnolabel{#3}} {\thesis@captionbox{#2}{#3}}\par
+       \thesis@tagparaon}%
       \vskip\dimexpr\abovecaptionskip\relax \hrule\@height\z@}%
     \hss}}}
 \ExplSyntaxOff
-\newcommand{\thesis@captionnolabel}[1]{\vbox{\small\parindent\z@
+\newcommand{\thesis@captionnolabel}[1]{\vbox{\thesis@tagparaon\small\parindent\z@
     \leftskip\@flushglue \rightskip\@flushglue \parfillskip\z@skip \thesis@capstrut#1\@finalstrut\strutbox\par}}
 \AddToHook{begindocument}{\@ifpackageloaded{longtable}{\let\LT@makecaption\thesis@LTmakecaption}{}}
 %% (and spaces after \caption in a long table are ignored, as with the caption package)
@@ -528,8 +534,7 @@
         \ifthesis@captop \vskip\belowcaptionskip \else \hrule\@height\z@ \vskip\abovecaptionskip \fi
         \UseHookWithArguments{cmd/@makecaption/before}{2}{#1}{#2}%
         \UseTaggingSocket{caption/begin}{\@current@float@struct}%
-        \UseTaggingSocket{para/begin}%
-        {\parindent\z@ \leavevmode \thesis@captionbox{#1}{#2}\par}%
+        {\parindent\z@ \thesis@tagparaoff\leavevmode \thesis@captionbox{#1}{#2}\par\thesis@tagparaon}%
         \@minipagefalse % (as a paragraph did: the material below the caption is spaced as in the text)
         \UseTaggingSocket{caption/end}%
         \ifthesis@captop \vskip\dimexpr\abovecaptionskip\relax

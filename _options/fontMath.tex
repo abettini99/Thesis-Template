@@ -47,6 +47,12 @@
 %% substituted a default font (warning "Font shape OT1/SourceSans3/m/n undefined").
 \DeclareMathAlphabet{\mathsf}{TU}{\sfdefault}{m}{n}
 \SetMathAlphabet{\mathsf}{bold}{TU}{\sfdefault}{\bfdefault}{n}
+
+%% Tagged PDF: the MathML that goes with each formula needs a Unicode maths font (the MathTime fonts),
+%% and luamml stops the build with newtx. Here the formulas are tagged without MathML.
+\ExplSyntaxOn
+\tag_if_active:T { \tagpdfsetup { math/mathml/luamml/load = false } }
+\ExplSyntaxOff
 \fi
 
 %% In PDF bookmarks (maths in a heading), the alphabets and bold commands just pass their letters on
