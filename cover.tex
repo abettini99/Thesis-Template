@@ -156,10 +156,10 @@
 \newsavebox{\covertitlebox}
 \newsavebox{\coverspinebox}
 \newlength{\coverspinemax}
-\newcommand{\spinetitlebox}[1]{% the spine title at #1 pt, scaled down to 60 % of the page height if longer
-    \sbox{\coverspinebox}{\coverfont\fontsize{#1}{#1}\selectfont\covertrack{5}%
+\newcommand{\spinetitlebox}[1]{% the spine title at #1 pt, scaled down to 65 % of the page height if longer
+    \sbox{\coverspinebox}{\coverfont\fontsize{#1}{#1}\selectfont\covertrack{-3}% tight, like the front title
         \ifx\coverleadin\empty\else\coverspineleadin\ \fi\textbf{\coverspinetitle}}%
-    \setlength{\coverspinemax}{0.6\dimexpr\coverpageheight mm\relax}%
+    \setlength{\coverspinemax}{0.65\dimexpr\coverpageheight mm\relax}%
     \ifdim\wd\coverspinebox>\coverspinemax \resizebox{\coverspinemax}{!}{\usebox{\coverspinebox}}\else\usebox{\coverspinebox}\fi}
 \begin{document}
 \ExplSyntaxOn % the title in capitals, its \\ kept
@@ -210,14 +210,14 @@
     \ifnum\pgfmathresult=1
         \pgfmathsetmacro{\spinefont}{min(10, 0.55*\coverspine/0.3528)}   % pt, at most 10 pt
         \pgfmathsetmacro{\spinemarkfont}{0.7*\spinefont}
-        \pgfmathsetmacro{\spinetitlefont}{min(20, 0.45*\coverspine/(0.702*0.3528))} % pt: capitals 45 % of the spine width, at most 20 pt
+        \pgfmathsetmacro{\spinetitlefont}{min(22, 0.48*\coverspine/(0.702*0.3528))} % pt: capitals 48 % of the spine width, at most 22 pt
         \pgfmathsetmacro{\spinex}{(\coverspineleft + \coverspineright)/2}
         \ifnum\coverspinerotation<0 \def\spinestart{west}\def\spineend{east}\else\def\spinestart{east}\def\spineend{west}\fi
         \begin{scope}[every node/.style={rotate=\coverspinerotation, text=covertext, inner sep=0}]
             \node[anchor=\spinestart] at (\spinex, \covertop - \coversafe - 8)
                 {\coverfont\bfseries\fontsize{\spinefont}{\spinefont}\selectfont \MakeUppercase{\thesisauthorlastname}};
             \node[anchor=center] at (\spinex, \coverbottom + 0.5*\coverpageheight)
-                {\spinetitlebox{\spinetitlefont}}; % a long title is made smaller, to 60 % of the height
+                {\spinetitlebox{\spinetitlefont}}; % a long title is made smaller, to 65 % of the height
             \if\relax\detokenize\expandafter{\coverspinelogo}\relax
                 \node[anchor=\spineend] at (\spinex, \coverbottom + \coversafe + 8)
                     {\coverfont\covertrack{20}\fontsize{\spinemarkfont}{\spinefont}\selectfont \MakeUppercase{\coverspinemark}};
