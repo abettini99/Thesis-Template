@@ -93,8 +93,8 @@
 \def\thesisspacing{1.1} % line spacing of the main text (\begin{Spacing} in main.tex)
 %% The four sizes are standard book sizes: metric demy octavo, A5, metric royal octavo and TU Delft's.
 \@namedef{thesis@size@demy}   {\thesis@size{138mm}{216mm}{92mm} {171mm}{26mm}  {20mm}  {28pt}\def\thesisspacing{1.0416667}}
-\@namedef{thesis@size@a5}     {\thesis@size{148mm}{210mm}{100mm}{165mm}{27.3mm}{20mm}  {30pt}}
-\@namedef{thesis@size@royal}  {\thesis@size{156mm}{234mm}{105mm}{180mm}{29.3mm}{25mm}  {33pt}}
+\@namedef{thesis@size@a5}     {\thesis@size{148mm}{210mm}{100mm}{165mm}{27.3mm}{20mm}  {30pt}\def\thesisspacing{1.0416667}}
+\@namedef{thesis@size@royal}  {\thesis@size{156mm}{234mm}{105mm}{180mm}{29.3mm}{25mm}  {33pt}\def\thesisspacing{1.0625}}
 \@namedef{thesis@size@tudelft}{\thesis@size{170mm}{240mm}{113mm}{192mm}{33.4mm}{23.9mm}{36pt}\def\thesis@ptsize{11pt}}
 \@nameuse{thesis@size@\thesis@pagesize}
 \edef\thesis@tmp{\noexpand\LoadClass[\thesis@ptsize,twoside,openright]{book}}\thesis@tmp

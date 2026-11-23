@@ -13,7 +13,7 @@ Using the vector identity
 \end{equation}
 with the vorticity $\vec{\omega} = \curl \vec{u}$, and taking the curl of the momentum equation, the pressure term vanishes because the curl of a gradient is zero. What remains is
 \begin{equation}
-    \pderiv{\vec{\omega}}{t} - \curl \left( \vec{u} \times \vec{\omega} \right) = \nu \nabla^2 \vec{\omega}.
+    \pdv{\vec{\omega}}{t} - \curl \left( \vec{u} \times \vec{\omega} \right) = \nu \nabla^2 \vec{\omega}.
     \label{eq:vorticity-intermediate}
 \end{equation}
 
@@ -21,7 +21,7 @@ with the vorticity $\vec{\omega} = \curl \vec{u}$, and taking the curl of the mo
 
 For an incompressible flow, $\div \vec{u} = 0$, and $\div \vec{\omega} = 0$ always holds. Expanding the second term of \cref{eq:vorticity-intermediate} then gives the vorticity equation,
 \begin{equation}
-    \sderiv{\vec{\omega}}{t} = \left( \vec{\omega} \cdot \grad \right) \vec{u} + \nu \nabla^2 \vec{\omega},
+    \mdv{\vec{\omega}}{t} = \left( \vec{\omega} \cdot \grad \right) \vec{u} + \nu \nabla^2 \vec{\omega},
     \label{eq:vorticity}
 \end{equation}
 in which the first term on the right-hand side describes vortex stretching and tilting, and the second the diffusion of vorticity by viscosity. \Cref{tab:appendix} summarises the terms.

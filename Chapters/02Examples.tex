@@ -70,24 +70,25 @@ Citations use numbered references~\cite{Allen2002}, several at once~\cite{Sinnig
 Inline maths such as $\Re = \rho U L / \mu$ uses the same Times letters as the text. Vectors and tensors are set in bold, as in the velocity $\vec{u}$ and the stress tensor $\tensor{\tau}$; writing them with \verb|\vec| and \verb|\tensor| lets you change that notation everywhere with a single change. For an incompressible flow, mass and momentum conservation read
 \begin{align}
     \div \vec{u} &= 0, \label{eq:continuity} \\
-    \sderiv{\vec{u}}{t} &= -\frac{1}{\rho} \grad p + \nu \nabla^2 \vec{u}, \label{eq:navier-stokes}
+    \mdv{\vec{u}}{t} &= -\frac{1}{\rho} \grad p + \nu \nabla^2 \vec{u}, \label{eq:navier-stokes}
 \end{align}
 where the material derivative is
 \begin{equation}
-    \sderiv{\vec{u}}{t} = \pderiv{\vec{u}}{t} + \left( \vec{u} \cdot \grad \right) \vec{u}.
+    \mdv{\vec{u}}{t} = \pdv{\vec{u}}{t} + \left( \vec{u} \cdot \grad \right) \vec{u}.
 \end{equation}
 
 A derivation over several lines numbers only its result:
 \begin{align}
-    \oint_{\Gamma} \vec{u} \cdot \diff{\vec{l}}
-        &= \iint_{S} \left( \curl \vec{u} \right) \cdot \vec{n} \, \diff{S} \notag \\
-        &= \iint_{S} \vec{\omega} \cdot \vec{n} \, \diff{S}. \label{eq:circulation}
+    \oint_{\Gamma} \vec{u} \cdot \odif{\vec{l}}
+        &= \iint_{S} \left( \curl \vec{u} \right) \cdot \vec{n} \odif{S} \notag \\
+        &= \iint_{S} \vec{\omega} \cdot \vec{n} \odif{S}. \label{eq:circulation}
 \end{align}
 
-Derivatives of any order, and their compact forms:
-\begin{equation*}
-    \deriv{y}{x}, \quad \deriv[2]{y}{x}, \quad \pderiv[2]{\phi}{x}, \quad \cpderiv{\phi}{x}, \quad \vec{A}\transpose \vec{B}, \quad \tensor{\sigma} \cddot \tensor{\varepsilon}.
-\end{equation*}
+Derivatives of any order, mixed and compact, and brackets that grow with their contents (\verb|\norm*|, \verb|\abs*|, \verb|\Set*|; or a fixed size, \verb|\norm[\big]|):
+\begin{gather*}
+    \odv{y}{x}, \quad \odv[2]{y}{x}, \quad \pdv[order={2,1}]{\phi}{x,y}, \quad \cpdv{\phi}{x}, \quad \vec{A}\transpose \vec{B}, \quad \tensor{\sigma} \cddot \tensor{\varepsilon}, \\
+    \norm*{\frac{\vec{u}}{U}}_2, \quad \abs{z} = \abs{\e^{\i\omega t}} = 1, \quad \Set*{\vec{x} \in \R^3}{\norm{\vec{x}} \leq \frac{1}{2}}, \quad \tr \tensor{\tau} = 0.
+\end{gather*}
 
 Piecewise definitions, matrices and operators:
 \begin{gather}
@@ -101,7 +102,7 @@ Piecewise definitions, matrices and operators:
         \cos\theta & -\sin\theta \\
         \sin\theta & \cos\theta
     \end{bmatrix}, \\
-    \hat{\vec{x}} = \argmin_{\vec{x}} \, \lVert \tensor{A} \vec{x} - \vec{b} \rVert_2^2 .
+    \hat{\vec{x}} = \argmin_{\vec{x}} \, \norm{\tensor{A} \vec{x} - \vec{b}}_2^2 .
 \end{gather}
 Dimensionless numbers are upright: $\Re$, $\Ma$, $\Pr$, $\St$ and $\Fr$.
 
@@ -144,8 +145,8 @@ Braces can mark parts of a matrix, and matrices can be given the same column wid
 
 On a narrow page, an equation that would fit on A4 often does not. Break it at an operator, and say where it continues. A single long expression is set with \texttt{multline}: the first line starts at the left, the last line ends at the right.
 \begin{multline}
-    \rho \left( \pderiv{u}{t} + u \pderiv{u}{x} + v \pderiv{u}{y} + w \pderiv{u}{z} \right) \\
-    = -\pderiv{p}{x} + \mu \left( \pderiv[2]{u}{x} + \pderiv[2]{u}{y} + \pderiv[2]{u}{z} \right) + \rho g_x
+    \rho \left( \pdv{u}{t} + u \pdv{u}{x} + v \pdv{u}{y} + w \pdv{u}{z} \right) \\
+    = -\pdv{p}{x} + \mu \left( \pdv[2]{u}{x} + \pdv[2]{u}{y} + \pdv[2]{u}{z} \right) + \rho g_x
     \label{eq:x-momentum}
 \end{multline}
 When the continuation should line up with an equals sign, \texttt{split} inside an equation gives one number for the whole:
@@ -158,13 +159,13 @@ When the continuation should line up with an equals sign, \texttt{split} inside 
 \end{equation}
 Break before an operator ($+$, $-$, $=$), not after it, so the new line shows at once that it continues the previous one.
 
-A weak form, as in a finite element method, consists of many inner products. Write them compactly: $\inner{\cdot}{\cdot}_D$ for the $L^2$ inner product over a domain $D$, with the domain as subscript, and time derivatives as $\cpderiv{\vec{u}^h}{t}$ rather than a fraction. Give the parts of the boundary short names, so the subscripts stay one level deep. A \texttt{formulation} environment sets the statement apart, as in \cref{form:burgers}; \texttt{subequations} numbers its equations (\ref{eq:fem-momentum})--(\ref{eq:fem-wall}) and lets the set be referred to as a whole, \cref{eq:fem}.
+A weak form, as in a finite element method, consists of many inner products. Write them compactly: $\inner{\cdot}{\cdot}_D$ for the $L^2$ inner product over a domain $D$, with the domain as subscript, and time derivatives as $\cpdv{\vec{u}^h}{t}$ rather than a fraction. Give the parts of the boundary short names, so the subscripts stay one level deep. A \texttt{formulation} environment sets the statement apart, as in \cref{form:burgers}; \texttt{subequations} numbers its equations (\ref{eq:fem-momentum})--(\ref{eq:fem-wall}) and lets the set be referred to as a whole, \cref{eq:fem}.
 
 \begin{formulation}[Weak form of the viscous Burgers equation]\label{form:burgers}
 Let the boundary consist of an inflow part and a wall, $\partial\Omega = \Gamma_\mathrm{in} \cup \Gamma_\mathrm{wall}$. Find $\vec{u}^h \in \mathcal{V}^h(\Omega)$ for $0 < t \leq T$, given an initial condition $\vec{u}_0$, such that for all $\vec{v} \in \mathcal{W}^h(\Omega)$, $\vec{\sigma} \in \mathcal{W}^h(\Gamma_\mathrm{in})$ and $\vec{\zeta} \in \mathcal{W}^h(\Gamma_\mathrm{wall})$:
 \begin{subequations}\label{eq:fem}
 \begin{gather}
-    \inner[\big]{\vec{v}}{\cpderiv{\vec{u}^h}{t}}_\Omega
+    \inner[\big]{\vec{v}}{\cpdv{\vec{u}^h}{t}}_\Omega
     + \inner[\big]{\vec{v}}{\vec{u}^h \cdot \grad\vec{u}^h}_\Omega
     + \inner[\big]{\grad\vec{v}}{\nu \grad\vec{u}^h}_\Omega
     = \inner[\big]{\vec{v}}{\vec{f}}_\Omega ,                                 \label{eq:fem-momentum} \\
@@ -186,7 +187,7 @@ When the same terms come back in later chapters, name them once, keeping the tes
 \end{equation*}
 so that \cref{eq:fem-momentum} becomes
 \begin{equation*}
-    \inner[\big]{\vec{v}}{\cpderiv{\vec{u}^h}{t}}_\Omega + c(\vec{u}^h; \vec{v}, \vec{u}^h) + a(\vec{v}, \vec{u}^h) = \inner[\big]{\vec{v}}{\vec{f}}_\Omega .
+    \inner[\big]{\vec{v}}{\cpdv{\vec{u}^h}{t}}_\Omega + c(\vec{u}^h; \vec{v}, \vec{u}^h) + a(\vec{v}, \vec{u}^h) = \inner[\big]{\vec{v}}{\vec{f}}_\Omega .
 \end{equation*}
 The diffusive form $a$ is bilinear; the convective form $c$ is linear in $\vec{v}$ and $\vec{u}$ but depends on the velocity $\vec{w}$ as well, which is why it is written with a semicolon.
 
@@ -195,22 +196,22 @@ The diffusive form $a$ is bilinear; the convective form $c$ is linear in $\vec{v
 Definitions, lemmas, theorems and corollaries share one counter, so \cref{def:energy-norm} is followed by \cref{lem:coercivity}; a remark is unnumbered. All are set upright, which reads better than the usual italics when a statement is mostly maths.
 
 \begin{definition}[Energy norm]\label{def:energy-norm}
-For $\nu > 0$, the energy norm on $\mathcal{W}^h(\Omega)$ is $\lVert \vec{v} \rVert_a \coloneqq a(\vec{v}, \vec{v})^{1/2}$.
+For $\nu > 0$, the energy norm on $\mathcal{W}^h(\Omega)$ is $\norm{\vec{v}}_a \coloneqq a(\vec{v}, \vec{v})^{1/2}$.
 \end{definition}
 
 \begin{lemma}[Coercivity]\label{lem:coercivity}
-For constant $\nu > 0$ and all $\vec{v} \in \mathcal{W}^h(\Omega)$, the form is non-negative: $a(\vec{v}, \vec{v}) = \nu \lVert \grad\vec{v} \rVert_\Omega^2 \geq 0$.
+For constant $\nu > 0$ and all $\vec{v} \in \mathcal{W}^h(\Omega)$, the form is non-negative: $a(\vec{v}, \vec{v}) = \nu \norm{\grad\vec{v}}_\Omega^2 \geq 0$.
 \end{lemma}
 
 \begin{proof}
 With $\nu$ constant, it can be taken out of the inner product:
 \begin{equation*}
-    a(\vec{v}, \vec{v}) = \inner[\big]{\grad\vec{v}}{\nu \grad\vec{v}}_\Omega = \nu \inner[\big]{\grad\vec{v}}{\grad\vec{v}}_\Omega = \nu \lVert \grad\vec{v} \rVert_\Omega^2 \geq 0 . \qedhere
+    a(\vec{v}, \vec{v}) = \inner[\big]{\grad\vec{v}}{\nu \grad\vec{v}}_\Omega = \nu \inner[\big]{\grad\vec{v}}{\grad\vec{v}}_\Omega = \nu \norm{\grad\vec{v}}_\Omega^2 \geq 0 . \qedhere
 \end{equation*}
 \end{proof}
 
 \begin{remark}
-For $\vec{v} = \vec{0}$ on the boundary, $c(\vec{w}; \vec{v}, \vec{v}) = -\tfrac{1}{2} \inner{\grad\cdot\vec{w}}{\lvert\vec{v}\rvert^2}_\Omega$, which vanishes only if $\vec{w}$ is divergence free. The velocity of the Burgers equation is not divergence free, so stability analyses use the skew-symmetric form
+For $\vec{v} = \vec{0}$ on the boundary, $c(\vec{w}; \vec{v}, \vec{v}) = -\tfrac{1}{2} \inner{\grad\cdot\vec{w}}{\abs{\vec{v}}^2}_\Omega$, which vanishes only if $\vec{w}$ is divergence free. The velocity of the Burgers equation is not divergence free, so stability analyses use the skew-symmetric form
 \begin{equation*}
     \tilde{c}(\vec{w}; \vec{v}, \vec{u}) \coloneqq c(\vec{w}; \vec{v}, \vec{u}) + \tfrac{1}{2} \inner[\big]{\vec{v}}{(\grad\cdot\vec{w})\, \vec{u}}_\Omega ,
 \end{equation*}
@@ -231,7 +232,7 @@ Algorithms are floats like figures, with the caption on top (\cref{alg:picard}).
         \Repeat
             \State assemble $\mathsf{A}(\vec{w})$ and $\mathsf{b}$ from $c(\vec{w}; \cdot, \cdot)$ and $a$
             \State solve $\mathsf{A}(\vec{w})\, \vec{u}^\ast = \mathsf{b}$ \label{alg:picard-solve}
-            \State $\delta \gets \lVert \vec{u}^\ast - \vec{w} \rVert_\Omega$
+            \State $\delta \gets \norm{\vec{u}^\ast - \vec{w}}_\Omega$
             \State $\vec{w} \gets \vec{u}^\ast$
         \Until{$\delta < \varepsilon$}
         \State \Return $\vec{u}^{n+1} \gets \vec{w}$
@@ -389,7 +390,7 @@ A convergence study is a table of errors against mesh size, with the observed or
     \label{tab:convergence}
     \begin{tabular}{@{}S[table-format=3.0] S[table-format=1.2e-1] S[table-format=1.2] S[table-format=1.2e-1] S[table-format=1.2]@{}}
         \toprule
-        {$N$} & {$\lVert \vec{e} \rVert_\Omega$} & {Order} & {$\lVert \grad\vec{e} \rVert_\Omega$} & {Order} \\
+        {$N$} & {$\norm{\vec{e}}_\Omega$} & {Order} & {$\norm{\grad\vec{e}}_\Omega$} & {Order} \\
         \midrule
           8   & 3.41e-3 & {--} & 1.08e-1 & {--} \\
          16   & 8.80e-4 & 1.96 & 5.46e-2 & 0.99 \\

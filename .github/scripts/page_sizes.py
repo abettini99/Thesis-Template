@@ -98,7 +98,7 @@ def main():
             panels.append(dict(
                 img=img, label=label, option=size,
                 lines=[f"{round(w_mm)} × {round(h_mm)} mm",
-                       f"{nice(m['size'])} pt on {m['leading']:.1f}".rstrip("0").rstrip(".") + f" pt, {round(m['textheight'] / m['leading'])} lines",
+                       f"{nice(m['size'])} pt on " + f"{round(m['leading'] * 4) / 4:.2f}".rstrip("0").rstrip(".") + f" pt, {round(m['textheight'] / m['leading'])} lines",
                        f"text {round(m['textwidth'] / MM)} × {round(m['textheight'] / MM)} mm, "
                        f"≈ {chars_per_line(pages[page - 1])} characters per line"]))
             print(f"{size}: page {page}, {panels[-1]['lines']}")

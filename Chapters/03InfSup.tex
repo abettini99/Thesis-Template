@@ -30,10 +30,10 @@ Of the two unknowns of incompressible flow, only the velocity has an equation of
 
 \subsection{From Navier--Stokes to Stokes}
 
-The incompressible Navier--Stokes equations on a bounded domain $\Omega \subset \mathbb{R}^d$, with the velocity prescribed on the whole boundary, read
+The incompressible Navier--Stokes equations on a bounded domain $\Omega \subset \R^d$, with the velocity prescribed on the whole boundary, read
 \begin{subequations}\label{eq:infsup-ns}
 \begin{gather}
-    \cpderiv{\vec{u}}{t} + \vec{u} \cdot \grad\vec{u} - \nu \nabla^2 \vec{u} + \grad p = \vec{f}
+    \cpdv{\vec{u}}{t} + \vec{u} \cdot \grad\vec{u} - \nu \nabla^2 \vec{u} + \grad p = \vec{f}
     \quad \text{in } \Omega , \label{eq:infsup-ns-momentum} \\
     \div\vec{u} = 0 \quad \text{in } \Omega , \qquad \vec{u} = \vec{0} \quad \text{on } \partial\Omega , \label{eq:infsup-ns-mass}
 \end{gather}
@@ -66,7 +66,7 @@ Find $\vec{u} \in \mathcal{V}$ and $p \in \mathcal{Q}$ such that
 
 The form $b$ defines two operators that are each other's adjoints: the divergence $B \colon \mathcal{V} \to \mathcal{Q}'$ and the gradient $B' \colon \mathcal{Q} \to \mathcal{V}'$, through
 \begin{equation*}
-    \langle B\vec{v}, q \rangle = b(\vec{v}, q) = \langle B' q, \vec{v} \rangle
+    \dual{B\vec{v}}{q} = b(\vec{v}, q) = \dual{B' q}{\vec{v}}
     \qquad \forall\, \vec{v} \in \mathcal{V} ,\ q \in \mathcal{Q} .
 \end{equation*}
 The null space of $B$ is the space of divergence-free velocities, where the solution lives. The null space of $B'$ contains the pressures that \cref{eq:infsup-stokes-momentum} cannot see: adding such a pressure to a solution gives another solution. On $L^2(\Omega)$, these are the pressures with a vanishing gradient,
@@ -81,11 +81,11 @@ Injectivity alone is not enough in infinite dimensions; the gradient also has to
 There is a constant $\beta > 0$, depending only on $\Omega$, such that
 \begin{equation}\label{eq:infsup-continuous}
     \inf_{q \in \mathcal{Q} \setminus \{0\}} \ \sup_{\vec{v} \in \mathcal{V} \setminus \{\vec{0}\}}
-    \frac{b(\vec{v}, q)}{\lVert \grad\vec{v} \rVert_\Omega \, \lVert q \rVert_\Omega} \geq \beta .
+    \frac{b(\vec{v}, q)}{\norm{\grad\vec{v}}_\Omega \, \norm{q}_\Omega} \geq \beta .
 \end{equation}
 \end{theorem}
 
-Equivalently, the divergence maps $\mathcal{V}$ onto $L^2_0(\Omega)$: every zero-mean function is the divergence of a velocity field that vanishes on the boundary, with a bounded norm. Together with the coercivity of $a$, $a(\vec{v}, \vec{v}) = \nu \lVert \grad\vec{v} \rVert_\Omega^2$, \cref{eq:infsup-continuous} gives existence, uniqueness and stability of the solution of \cref{form:infsup-stokes}: this is the theory of saddle-point problems of \textcite{Babuska1973} and \textcite{Brezzi1974}, set out in full by \textcite{Boffi2013}.
+Equivalently, the divergence maps $\mathcal{V}$ onto $L^2_0(\Omega)$: every zero-mean function is the divergence of a velocity field that vanishes on the boundary, with a bounded norm. Together with the coercivity of $a$, $a(\vec{v}, \vec{v}) = \nu \norm{\grad\vec{v}}_\Omega^2$, \cref{eq:infsup-continuous} gives existence, uniqueness and stability of the solution of \cref{form:infsup-stokes}: this is the theory of saddle-point problems of \textcite{Babuska1973} and \textcite{Brezzi1974}, set out in full by \textcite{Boffi2013}.
 
 %% =====================================================================
 \section{Discretisation enlarges the null space}\label{sec:infsup-discrete}
@@ -115,7 +115,7 @@ $\{ \text{constants} \} \cap \mathcal{Q}^h \subseteq \mathcal{N}^h$.
 If $q^h \in \mathcal{Q}^h$ is constant, then $b(\vec{v}, q^h) = 0$ for all $\vec{v} \in \mathcal{V}$, by \cref{eq:infsup-kernel-continuous}, and in particular for all $\vec{v}^h \in \mathcal{V}^h \subset \mathcal{V}$.
 \end{proof}
 
-The inclusion is in general strict. A pressure $q^\ast \in \mathcal{N}^h$ that is not constant is a \emph{spurious pressure mode}: it is not in the null space of the continuous gradient, but the discrete gradient maps it to zero. If $(\vec{u}^h, p^h)$ solves the discrete problem, so does $(\vec{u}^h, p^h + c\, q^\ast)$ for every $c \in \mathbb{R}$. The matrix in \cref{eq:infsup-matrix} is singular, the pressure is not determined, and an iterative solver returns a pressure polluted by an arbitrary multiple of $q^\ast$. The velocity is not affected, as $q^\ast$ does not enter the momentum equation, which is why such discretisations produce, in the words of \textcite{Sani1981}, spurious pressures together with ostensibly acceptable velocities.
+The inclusion is in general strict. A pressure $q^\ast \in \mathcal{N}^h$ that is not constant is a \emph{spurious pressure mode}: it is not in the null space of the continuous gradient, but the discrete gradient maps it to zero. If $(\vec{u}^h, p^h)$ solves the discrete problem, so does $(\vec{u}^h, p^h + c\, q^\ast)$ for every $c \in \R$. The matrix in \cref{eq:infsup-matrix} is singular, the pressure is not determined, and an iterative solver returns a pressure polluted by an arbitrary multiple of $q^\ast$. The velocity is not affected, as $q^\ast$ does not enter the momentum equation, which is why such discretisations produce, in the words of \textcite{Sani1981}, spurious pressures together with ostensibly acceptable velocities.
 
 \subsection{The checkerboard mode}\label{sec:infsup-checkerboard}
 
@@ -166,7 +166,7 @@ The discrete counterpart of \cref{eq:infsup-continuous} is
 \begin{equation}\label{eq:infsup-discrete}
     \beta_h \coloneqq
     \inf_{q^h \in \mathcal{Q}^h_0 \setminus \{0\}} \ \sup_{\vec{v}^h \in \mathcal{V}^h \setminus \{\vec{0}\}}
-    \frac{b(\vec{v}^h, q^h)}{\lVert \grad\vec{v}^h \rVert_\Omega \, \lVert q^h \rVert_\Omega} ,
+    \frac{b(\vec{v}^h, q^h)}{\norm{\grad\vec{v}^h}_\Omega \, \norm{q^h}_\Omega} ,
 \end{equation}
 with $\mathcal{Q}^h_0 \coloneqq \mathcal{Q}^h \cap L^2_0(\Omega)$: the discrete pressures with the continuous null space removed, exactly as $\mathcal{Q} = L^2_0(\Omega)$ removes it from the continuous problem.
 
@@ -183,9 +183,9 @@ On a fixed mesh, then, the inf-sup condition says no more than that the discreti
 For a sequence of meshes the requirement is stronger, because $\beta_h$ enters the error estimate. If $\beta_h \geq \beta_0 > 0$ for all $h$, the discrete solution is quasi-optimal,
 \begin{equation}\label{eq:infsup-error}
 \begin{split}
-    \lVert \grad(\vec{u} - \vec{u}^h) \rVert_\Omega &+ \lVert p - p^h \rVert_\Omega \\
-    &\leq C(\beta_0) \Bigl( \inf_{\vec{v}^h \in \mathcal{V}^h} \lVert \grad(\vec{u} - \vec{v}^h) \rVert_\Omega \\
-    &\qquad\qquad + \inf_{q^h \in \mathcal{Q}^h_0} \lVert p - q^h \rVert_\Omega \Bigr) ,
+    \norm{\grad(\vec{u} - \vec{u}^h)}_\Omega &+ \norm{p - p^h}_\Omega \\
+    &\leq C(\beta_0) \Bigl( \inf_{\vec{v}^h \in \mathcal{V}^h} \norm{\grad(\vec{u} - \vec{v}^h)}_\Omega \\
+    &\qquad\qquad + \inf_{q^h \in \mathcal{Q}^h_0} \norm{p - q^h}_\Omega \Bigr) ,
 \end{split}
 \end{equation}
 with a constant that grows as $\beta_0$ decreases \parencite{Brezzi1974,Boffi2013}. A discretisation whose null space is correct on every mesh but with $\beta_h \to 0$ has pressures that come ever closer to the null space: modes the velocity space can detect only faintly, which are amplified in the pressure solution. The $Q_1$--$P_0$ element is the standard example once more: with the checkerboard filtered out, $\beta_h > 0$ on every mesh, but $\beta_h$ decreases in proportion to $h$.
@@ -194,7 +194,7 @@ with a constant that grows as $\beta_0$ decreases \parencite{Brezzi1974,Boffi201
 The condition is therefore twofold. The discrete null space must coincide with the continuous one on every mesh, and it must do so robustly: no family of discrete pressures may approach the null space as the mesh is refined.
 \end{remark}
 
-In matrix form, with $\mathsf{A}_1$ the matrix of $\inner{\grad\vec{v}^h}{\grad\vec{u}^h}_\Omega$ and $\mathsf{M}$ the pressure mass matrix, the supremum over the velocities can be evaluated, $\sup_{\mathsf{v}} \mathsf{q}\transpose\mathsf{B}\mathsf{v} / \lVert \mathsf{v} \rVert_{\mathsf{A}_1} = \lVert \mathsf{A}_1^{-1/2} \mathsf{B}\transpose \mathsf{q} \rVert$. So $\beta_h^2$ is the smallest eigenvalue $\lambda$ of the generalised eigenvalue problem
+In matrix form, with $\mathsf{A}_1$ the matrix of $\inner{\grad\vec{v}^h}{\grad\vec{u}^h}_\Omega$ and $\mathsf{M}$ the pressure mass matrix, the supremum over the velocities can be evaluated, $\sup_{\mathsf{v}} \mathsf{q}\transpose\mathsf{B}\mathsf{v} / \norm{\mathsf{v}}_{\mathsf{A}_1} = \norm{\mathsf{A}_1^{-1/2} \mathsf{B}\transpose \mathsf{q}}$. So $\beta_h^2$ is the smallest eigenvalue $\lambda$ of the generalised eigenvalue problem
 \begin{equation}\label{eq:infsup-eigen}
     \mathsf{B} \mathsf{A}_1^{-1} \mathsf{B}\transpose \mathsf{q} = \lambda\, \mathsf{M} \mathsf{q}
 \end{equation}
@@ -227,7 +227,7 @@ The practical tool for proving \cref{eq:infsup-discrete} uniformly is a Fortin o
 \begin{theorem}[Fortin criterion]\label{thm:infsup-fortin}
 Let $\Pi_h \colon \mathcal{V} \to \mathcal{V}^h$ be an operator such that, for all $\vec{v} \in \mathcal{V}$ and $q^h \in \mathcal{Q}^h$,
 \[
-    b(\vec{v} - \Pi_h\vec{v}, q^h) = 0, \qquad \lVert \grad \Pi_h\vec{v} \rVert_\Omega \leq C_\Pi \lVert \grad\vec{v} \rVert_\Omega,
+    b(\vec{v} - \Pi_h\vec{v}, q^h) = 0, \qquad \norm{\grad \Pi_h\vec{v}}_\Omega \leq C_\Pi \norm{\grad\vec{v}}_\Omega,
 \]
 with $C_\Pi$ independent of $h$. Then $\beta_h \geq \beta / C_\Pi$.
 \end{theorem}
@@ -235,13 +235,13 @@ with $C_\Pi$ independent of $h$. Then $\beta_h \geq \beta / C_\Pi$.
 \begin{proof}
 Let $q^h \in \mathcal{Q}^h_0 \subset \mathcal{Q}$. For every $\vec{v} \in \mathcal{V}$ with $b(\vec{v}, q^h) > 0$, also $\Pi_h\vec{v} \neq \vec{0}$, and
 \begin{equation*}
-    \frac{b(\Pi_h\vec{v}, q^h)}{\lVert \grad \Pi_h\vec{v} \rVert_\Omega}
-    \geq \frac{b(\vec{v}, q^h)}{C_\Pi \lVert \grad\vec{v} \rVert_\Omega} ;
+    \frac{b(\Pi_h\vec{v}, q^h)}{\norm{\grad \Pi_h\vec{v}}_\Omega}
+    \geq \frac{b(\vec{v}, q^h)}{C_\Pi \norm{\grad\vec{v}}_\Omega} ;
 \end{equation*}
 the other velocities do not contribute to the supremum in \cref{eq:infsup-continuous}. Taking the supremum over $\vec{v}$ and using \cref{eq:infsup-continuous} gives
 \begin{equation*}
-    \sup_{\vec{v}^h \in \mathcal{V}^h \setminus \{\vec{0}\}} \frac{b(\vec{v}^h, q^h)}{\lVert \grad\vec{v}^h \rVert_\Omega}
-    \geq \frac{\beta}{C_\Pi} \lVert q^h \rVert_\Omega . \qedhere
+    \sup_{\vec{v}^h \in \mathcal{V}^h \setminus \{\vec{0}\}} \frac{b(\vec{v}^h, q^h)}{\norm{\grad\vec{v}^h}_\Omega}
+    \geq \frac{\beta}{C_\Pi} \norm{q^h}_\Omega . \qedhere
 \end{equation*}
 \end{proof}
 
@@ -273,7 +273,7 @@ A Fortin operator is easiest to find when the discretisation is built so that th
     b(\vec{v} - \Pi_h\vec{v}, q^h) = -\inner[\big]{\div\vec{v} - \pi_h \div\vec{v}}{q^h}_\Omega = 0
     \qquad \forall\, q^h \in \mathcal{Q}^h ,
 \end{equation*}
-by the definition of the $L^2$ projection, so a bounded commuting projection is a Fortin operator. The discrete divergence then inherits the range of the continuous one, and the discrete gradient its null space: nothing beyond the constants. This is the structure of the de Rham complex, which finite element exterior calculus \parencite{Arnold2006} and mimetic methods carry over to the discrete level. It brings a second benefit: as $\div\vec{u}^h \in \mathcal{Q}^h$, choosing $q^h = \div\vec{u}^h$ in the discrete mass equation gives $\lVert \div\vec{u}^h \rVert_\Omega = 0$, a velocity that is divergence free pointwise, not only in a weak sense. The mixed mimetic spectral element method of \textcite{Kreeft2013} obtains this for Stokes flow in a vorticity--velocity--pressure formulation, whose three unknowns fit the spaces of the complex directly.
+by the definition of the $L^2$ projection, so a bounded commuting projection is a Fortin operator. The discrete divergence then inherits the range of the continuous one, and the discrete gradient its null space: nothing beyond the constants. This is the structure of the de Rham complex, which finite element exterior calculus \parencite{Arnold2006} and mimetic methods carry over to the discrete level. It brings a second benefit: as $\div\vec{u}^h \in \mathcal{Q}^h$, choosing $q^h = \div\vec{u}^h$ in the discrete mass equation gives $\norm{\div\vec{u}^h}_\Omega = 0$, a velocity that is divergence free pointwise, not only in a weak sense. The mixed mimetic spectral element method of \textcite{Kreeft2013} obtains this for Stokes flow in a vorticity--velocity--pressure formulation, whose three unknowns fit the spaces of the complex directly.
 
 \subsection{Stabilisation}
 

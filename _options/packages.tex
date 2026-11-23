@@ -7,6 +7,7 @@
 %% Maths and units
 \ifthesisotfmath\else\usepackage{bm}\fi % https://ctan.org/pkg/bm %% bold symbols (\vec, \tensor); the OpenType maths fonts have their own \bm (MathTime also \hm, heavy)
 \usepackage{siunitx}            % https://ctan.org/pkg/siunitx %% quantities and units: \qty{}{}, \num{}, \unit{}
+\usepackage{derivative}         % https://ctan.org/pkg/derivative %% derivatives and differentials: \odv{y}{x}, \pdv{u}{t}, \odif{x} (see commands.tex)
 \input{_options/cancel}         % crossing out terms: \cancel{a}, \bcancel, \xcancel, \cancelto{0}{x}
 \input{_options/nicematrix}     % matrices with labels outside, blocks, braces: pNiceMatrix etc.
 

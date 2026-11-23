@@ -21,7 +21,7 @@ xtick.labelsize:    8
 ytick.labelsize:    8
 legend.fontsize:    8
 
-## --- Size: full text width of the Dover book (91.5 mm); A5 99.5 mm, Royal 104.5 mm, TU Delft 112.5 mm --
+## --- Size: full text width of the demy book (91.5 mm); A5 99.5 mm, Royal 104.5 mm, TU Delft 112.5 mm --
 ## Change the width per figure with plt.figure(figsize=(width_in, height_in)).
 figure.figsize:     3.60, 2.23      # inches: 91.5 mm wide, golden-ratio height
 figure.dpi:         150
