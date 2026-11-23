@@ -1,4 +1,4 @@
-"""Example figures made with thesis.mplstyle, at the size they are printed (Dover text width).
+"""Example figures made with thesis.mplstyle, at the size they are printed (demy text width).
 
 Produces, in Images/:
     example_burgers.pdf    full width   viscous Burgers solution at four times
@@ -31,8 +31,8 @@ parser.add_argument("--maths", choices=("auto", "mathtime", "newtx"), default="a
 print("figure fonts:", thesis_fonts.setup(parser.parse_args().maths))
 
 # Text widths of the book (mm), slightly under the nominal sizes because the class rounds the
-# text width to whole points: Dover 91.5, A5 99.5, Royal 104.5, TU Delft 112.5. Half width (two
-# figures side by side): Dover 44, A5 48, Royal 50, TU Delft 54. These examples use the Dover
+# text width to whole points: demy 91.5, A5 99.5, Royal 104.5, TU Delft 112.5. Half width (two
+# figures side by side): demy 44, A5 48, Royal 50, TU Delft 54. These examples use the demy
 # sizes, the narrowest, so they fit every page size.
 FULL_MM, HALF_MM = 91.5, 44.0
 MM = 1 / 25.4
@@ -113,7 +113,7 @@ for e, order in ((e1, 1), (e0, 2)):                        # slope triangles, be
     y0 = e[1] * 0.45
     y1 = y0 * (n0 / n1) ** order
     ax2.plot([n0, n1, n0, n0], [y0, y1, y1, y0], color="0.4", linewidth=0.6, linestyle="-")
-    ax2.text(n0 / 1.08, np.sqrt(y0 * y1), str(order), ha="right", va="center", fontsize=7)
+    ax2.text(n0 / 1.08, np.sqrt(y0 * y1), str(order), ha="right", va="center", fontsize=8)
 ax2.set_xlabel(r"$N$")
 ax2.set_ylabel("error")
 ax2.set_xticks(N, [str(n) for n in N])
@@ -129,7 +129,7 @@ plot_margins(fig)
 k = np.arange(0, 9)
 for step, rate in ((1, 0.18), (10, 0.32), (40, 0.45)):    # illustrative contraction rates
     ax.semilogy(k, rate ** k, marker="o", markersize=2.5)
-    ax.text(8.6, rate ** 8, f"step {step}", va="center", fontsize=7)
+    ax.text(8.6, rate ** 8, f"step {step}", va="center", fontsize=8)
 ax.axhline(1e-7, color="0.4", linewidth=0.6, linestyle="-")   # tolerance, below the curves
 ax.set_xlabel("iteration")
 ax.set_ylabel("residual")
@@ -147,7 +147,7 @@ xq = np.linspace(-1, 1, 4001)
 energy = [0.5 * np.trapezoid(burgers(xq, t) ** 2, xq) for t in tt]
 ax.plot(tt, energy)
 ax.axvline(1 / np.pi, color="0.4", linewidth=0.6, linestyle="--")
-ax.text(1 / np.pi + 0.03, 0.22, "shock", fontsize=7)
+ax.text(1 / np.pi + 0.03, 0.22, "shock", fontsize=8)
 ax.set_xlabel(r"$t$")
 ax.set_ylabel(r"$E$")
 ax.set_xlim(0, 1)

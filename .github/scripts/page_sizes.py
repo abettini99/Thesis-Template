@@ -19,7 +19,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / ".github" / "readme" / "page-sizes.png"
-SIZES = [("dover", "Dover (default)"), ("a5", "A5"), ("royal", "Royal"), ("tudelft", "TU Delft")]
+SIZES = [("demy", "Demy (default)"), ("a5", "A5"), ("royal", "Royal"), ("tudelft", "TU Delft")]
 PAGE_TEXT = "Of the two unknowns"    # the page shown: the first text page of the sample chapter
 PX_PER_MM = 4                        # scale of the image
 GAP_MM, MARGIN_MM = 14, 10
@@ -53,7 +53,7 @@ def build(size, outdir):
     log = Path(outdir, f"{job}.log").read_text(errors="replace")
     m = re.search(r"THESIS-METRICS:([\d.]+)pt;([\d.]+)pt;([\d.]+);([\d.]+)pt;([\d.]+)", log)
     tw, th, fsize, lead, scale = (float(x) for x in m.groups())
-    # the class sets fonts at their nominal size and scales them (Dover: 95 %)
+    # the class sets fonts at their nominal size and scales them by \thesis@fontscale (1 for all sizes)
     return Path(outdir, f"{job}.pdf"), dict(textwidth=tw, textheight=th, size=fsize * scale, leading=lead)
 
 

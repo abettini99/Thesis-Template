@@ -5,12 +5,12 @@
 %% size files). memoir's code is unchanged in memoir; the adapted copies here carry other names or
 %% replace memoir's only inside this class.
 
-%% Options. Language: british (default) or american. Page size: dover (default), a5, royal or tudelft.
+%% Options. Language: british (default) or american. Page size: demy (default), a5, royal or tudelft.
 \newcommand*{\thesis@language}{british}
 \DeclareOption{british}{\renewcommand*{\thesis@language}{british}}
 \DeclareOption{american}{\renewcommand*{\thesis@language}{american}}
-\newcommand*{\thesis@pagesize}{dover}
-\DeclareOption{dover}{\renewcommand*{\thesis@pagesize}{dover}}
+\newcommand*{\thesis@pagesize}{demy}
+\DeclareOption{demy}{\renewcommand*{\thesis@pagesize}{demy}}
 \DeclareOption{a5}{\renewcommand*{\thesis@pagesize}{a5}}
 \DeclareOption{royal}{\renewcommand*{\thesis@pagesize}{royal}}
 \DeclareOption{tudelft}{\renewcommand*{\thesis@pagesize}{tudelft}}
@@ -75,10 +75,11 @@
 \ifdefstring{\thesis@edition}{digital}{}{\printversiontrue}
 
 %% Page sizes. Per size: trimmed page, type block, fore-edge and top margins, chapter-title size.
-%% The fore-edge margin is (2/3) x (page width - binding - text width); text widths give 70-77
-%% characters per line. Type: 10 pt on 13.2 pt leading; Dover 9.5 pt (all fonts, maths included,
-%% scaled to 95 %) on 12 pt; TU Delft 11 pt on 15 pt, as its wider lines would otherwise have over 80
-%% characters. The chapter-title size follows the page, so "Acknowledgements" still fits on a line.
+%% The fore-edge margin is (2/3) x (page width - binding - text width); text widths give 65-77
+%% characters per line. Type: 10 pt on 12.5 pt leading (demy) or 13.2 pt (A5, royal); TU Delft 11 pt on
+%% 15 pt, as its wider lines would otherwise have over 80 characters. The chapter-title size follows
+%% the page, so "Acknowledgements" still fits on a line. (\thesis@fontscale scales every font, maths
+%% included, should a size need it; none does now.)
 \newlength{\thesis@pagewidth}   \newlength{\thesis@pageheight}  % trimmed (final) book page
 \newlength{\thesis@textwidth}   \newlength{\thesis@textheight}  % type block (where you write)
 \newlength{\thesis@foremargin}  \newlength{\thesis@topmargin}   % outer and top margins
@@ -90,7 +91,8 @@
 \def\thesis@ptsize{10pt}
 \def\thesis@fontscale{1}
 \def\thesisspacing{1.1} % line spacing of the main text (\begin{Spacing} in main.tex)
-\@namedef{thesis@size@dover}  {\thesis@size{137mm}{213mm}{92mm} {168mm}{25.3mm}{20mm}  {28pt}\def\thesis@fontscale{0.95}\def\thesisspacing{1}}
+%% The four sizes are standard book sizes: metric demy octavo, A5, metric royal octavo and TU Delft's.
+\@namedef{thesis@size@demy}   {\thesis@size{138mm}{216mm}{92mm} {171mm}{26mm}  {20mm}  {28pt}\def\thesisspacing{1.0416667}}
 \@namedef{thesis@size@a5}     {\thesis@size{148mm}{210mm}{100mm}{165mm}{27.3mm}{20mm}  {30pt}}
 \@namedef{thesis@size@royal}  {\thesis@size{156mm}{234mm}{105mm}{180mm}{29.3mm}{25mm}  {33pt}}
 \@namedef{thesis@size@tudelft}{\thesis@size{170mm}{240mm}{113mm}{192mm}{33.4mm}{23.9mm}{36pt}\def\thesis@ptsize{11pt}}
@@ -129,14 +131,17 @@
 \ifdefstring{\thesis@paper}{trimmed}{%
     \setlength{\stockwidth}{\paperwidth}\setlength{\stockheight}{\paperheight}%
     \setlength{\trimtop}{0pt}\setlength{\trimedge}{0pt}}{}
-%% The type block: the given width, and the height rounded down to whole lines. The spine margin is
+%% The type block: the given width, and the height rounded down to whole lines of the main text's
+%% leading (\baselineskip x \thesisspacing), so the last line sits on the same baseline on every page
+%% and facing pages line up. The spine margin is
 %% what the fore-edge margin and the text leave (it includes 7 mm for the binding: the glue and the
 %% curve into the spine; increase the fore-edge margin's share for very thick books, 500+ pages).
 \setlength{\textwidth}{\thesis@textwidth}
 \setlength{\foremargin}{\thesis@foremargin}
 \setlength{\spinemargin}{\dimexpr\paperwidth-\textwidth-\foremargin}
-\@tempdima=\thesis@textheight \divide\@tempdima\baselineskip \@tempcnta=\@tempdima
-\setlength{\textheight}{\dimexpr\@tempcnta\baselineskip+\topskip}
+\@tempdimb=\thesisspacing\baselineskip % the leading of the main text
+\@tempdima=\dimexpr\thesis@textheight-\topskip\relax \divide\@tempdima\@tempdimb \@tempcnta=\@tempdima
+\setlength{\textheight}{\dimexpr\@tempcnta\@tempdimb+\topskip}
 \setlength{\uppermargin}{\thesis@topmargin}
 \setlength{\lowermargin}{\dimexpr\paperheight-\textheight-\uppermargin}
 \setlength{\headheight}{\onelineskip}   \setlength{\headsep}{2\onelineskip}

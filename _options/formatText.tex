@@ -171,12 +171,16 @@
 %% list in the small size, as memoir's list gave.
 %% A \\[...] after a quotation adds more.)
 \newif\ifthesis@firstqitem
+\newcommand{\thesis@episkip}[1][\z@]{\par\vspace{#1}}
 \newcommand{\qitem}[2]{\par\ifthesis@firstqitem\global\thesis@firstqitemfalse\else{\@listi\vskip\itemsep\vskip\parsep}\fi
     \noindent\begin{minipage}{\epigraphwidth}
     \leavevmode\thesis@epitext{#1}\\ \thesis@episource{#2}\end{minipage}}
+%% (between quotations, \\[...] is vertical space only: a line break before the next quotation's \par
+%% would leave an empty, underfull line)
 \newenvironment{epigraphs}
     {\vspace{\beforeepigraphskip}\begin{flushright}\small
-     \begin{minipage}{\epigraphwidth}\global\thesis@firstqitemtrue}
+     \begin{minipage}{\epigraphwidth}\global\thesis@firstqitemtrue
+     \def\\{\@ifstar{\thesis@episkip}{\thesis@episkip}}}
     {\par\end{minipage}\end{flushright}\vspace{\afterepigraphskip}}
 
 %%% CONTENTS AND LISTS

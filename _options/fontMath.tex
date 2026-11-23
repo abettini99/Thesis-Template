@@ -22,7 +22,7 @@
 %%   (add slantedGreek for italic capital Greek, as ISO 80000-2 has it for variables; here, as in most
 %%   books set in TeX, they are upright)
 %%   textsf: \mathsf (matrices \mathsf{A}, operators \mathsf{Res}) in Source Sans, the document's sans
-%%   scale:  the maths at the size of the text (95 % for the Dover size)
+%%   scale:  the maths at the size of the text (1 for every page size)
 \edef\thesis@tmp{\noexpand\RequirePackage[ntxcal, textsf, scale=\thesis@fontscale]{mtpro2-otf}}\thesis@tmp
 %% (mtpro2-otf keeps the composite symbols of the Type 1 set-up itself: mathtools' colons and brackets,
 %% amsmath's \iiiint and slanted \varTheta; the units' °, µ, Å and Ω are in its fonts)
@@ -35,7 +35,7 @@
 %% set exactly as with the classic newtxmath below, but the maths copies from the PDF as Unicode, and the
 %% tagged PDF gets MathML for each formula. Same options as below:
 %%   textsf: \mathsf in Source Sans, the document's sans
-%%   scale:  the maths at the size of the text (95 % for the Dover size)
+%%   scale:  the maths at the size of the text (1 for every page size)
 %% (\rmdefault is newtx's Times while it loads, as for the classic newtxmath below: microtype then gives
 %% digits and operator names its Times settings, as there)
 \let\thesis@rmdefault\rmdefault
@@ -52,7 +52,7 @@
 %% newtxmath takes digits, \mathrm, \mathbf, \mathit and operator names (sin, log, ...) from the current
 %% roman font. Under fontspec that font has no math encoding, so it would fall back to Computer Modern.
 %% Temporarily point it at newtx's own Times while loading, then restore the fontspec main font.
-%% Scaled like the text (95 % for the Dover size): maths fonts via newtxmath's option, digits and
+%% Scaled like the text (1 for every page size): maths fonts via newtxmath's option, digits and
 %% operator names via newtx's text-font scaling.
 \edef\ntx@scaled{s*[\thesis@fontscale]}
 \let\thesis@rmdefault\rmdefault
