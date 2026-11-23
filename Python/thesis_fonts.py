@@ -21,6 +21,7 @@ import matplotlib.text
 
 ROOT = Path(__file__).resolve().parent.parent
 FONTS = ROOT / "Fonts"
+NTXOTF = ROOT / "_options" / "ntxmath-otf"   # newtx as OpenType maths fonts, part of the template
 _state = {"pgf": False}
 
 # The same choices as _options/fontText.tex and _options/fontMath.tex (fonts at their nominal size:
@@ -39,6 +40,11 @@ _NEWTX = r"""
 \usepackage{newtxmath}
 \let\rmdefault\thesisrm
 \usepackage{bm}
+"""
+_NTXOTF = r"""
+\usepackage{ntxmath-otf}
+\let\boldsymbol\bm
+\AddToHook{begindocument/end}{\ifdefined\normalUnderscoreDef\normalUnderscoreDef\fi}
 """
 _MATHTIME = r"""
 \usepackage[ntxcal]{mtpro2-otf}
@@ -71,6 +77,12 @@ def setup(maths="auto"):
             os.environ[var] = str(FONTS) + os.pathsep + os.environ.get(var, "")
         preamble = _TEXT + _MATHTIME
         name = f"MathTime {edition}"
+    elif (NTXOTF / "ntxmath-otf.sty").exists():
+        # the same glyphs as classic newtxmath, as in the thesis (latexmkrc adds the folder there)
+        for var in ("TEXINPUTS", "OPENTYPEFONTS", "LUAINPUTS"):
+            os.environ[var] = str(NTXOTF) + os.pathsep + os.environ.get(var, "")
+        preamble = _TEXT + _NTXOTF
+        name = "newtx"
     else:
         preamble = _TEXT + _NEWTX
         name = "newtx"

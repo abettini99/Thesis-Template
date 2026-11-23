@@ -25,4 +25,7 @@
     pdfpublisher = {Delft University of Technology},
     pdfcopyright = {Copyright \the\year\space\thesisauthorfirstnames\space\thesisauthorlastname},
     pdfdisplaydoctitle = true}}
+%% The metadata goes in through hyperref: a document that does not load it (propositions.tex) loads it
+%% here, as the title is required (PDF/UA).
+\AddToHook{begindocument/before}{\@ifpackageloaded{hyperref}{}{\RequirePackage[hidelinks]{hyperref}}}
 \catcode`\@=\thesisatcatcode
