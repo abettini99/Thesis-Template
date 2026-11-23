@@ -34,7 +34,7 @@
             \rlap{\parbox[b]{\textwidth}{\raggedright\@nameuse{#1psstrut}\@nameuse{#1#2#3l}\@nameuse{#1psstrut}}}\hfill
             \parbox[b]{\textwidth}{\centering\@nameuse{#1psstrut}\@nameuse{#1#2#3c}\@nameuse{#1psstrut}}\hfill
             \llap{\parbox[b]{\textwidth}{\raggedleft\@nameuse{#1psstrut}\@nameuse{#1#2#3r}\@nameuse{#1psstrut}}}}%
-          \def\thesis@tmp{#3}\def\thesis@tmpb{head}\ifx\thesis@tmp\thesis@tmpb\@nameuse{#1headrule}\fi}}}
+          \def\thesis@tmp{#3}\def\thesis@tmpb{head}\ifx\thesis@tmp\thesis@tmpb\@nameuse{#1headrule}\fi}\hss}}% (\hss: an empty head or foot is no underfull box)
 \makepagestyle{empty}
 \makepagestyle{plain}
 \aliaspagestyle{chapter}{plain}  % chapter opening pages (main.tex chooses the style)

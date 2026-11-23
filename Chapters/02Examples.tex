@@ -14,6 +14,8 @@ Body text is set in Times with indented paragraphs. Use \emph{emphasis} sparingl
 Notes to yourself go in the margin\todo{Check this value against the measurements.} or, for longer remarks, in the text:
 \todo[inline]{Rewrite this paragraph once the results are in. Todo notes disappear when the class option \texttt{final} is used.}
 
+Changes for a supervisor to review are marked as such: a word \added{newly} added, one \deleted{wrongly} deleted, one \replaced{replaced}{changed}, each with its own colour, and a list of all of them with \verb|\listofchanges|. With the class option \texttt{final} only the new text remains.
+
 \subsection{Lists}
 
 An unordered list:
@@ -27,6 +29,11 @@ An ordered list:
     \item pre-processing,
     \item simulation,
     \item post-processing.
+\end{enumerate}
+Lists can be adjusted one at a time, for example with roman numerals in brackets for conditions:
+\begin{enumerate}[label=(\roman*), leftmargin=2.1em]
+    \item the flow is incompressible,
+    \item the viscosity is constant.
 \end{enumerate}
 A description list:
 \begin{description}
@@ -97,6 +104,11 @@ Piecewise definitions, matrices and operators:
     \hat{\vec{x}} = \argmin_{\vec{x}} \, \lVert \tensor{A} \vec{x} - \vec{b} \rVert_2^2 .
 \end{gather}
 Dimensionless numbers are upright: $\Re$, $\Ma$, $\Pr$, $\St$ and $\Fr$.
+
+Terms that cancel can be struck through, here in the ratio of inertial to viscous forces:
+\begin{equation*}
+    \frac{\cancel{\rho} \, U^2 / L}{\cancel{\rho} \, \nu U / L^2} = \frac{U L}{\nu} = \Re .
+\end{equation*}
 
 \subsection{Long equations}
 
@@ -248,6 +260,28 @@ Two separate figures can also sit side by side, each with its own number, as \cr
     \end{minipage}
 \end{figure}
 
+\subsection{Sub-figures}
+
+Figures that belong together share one number and one caption, each with a sub-caption of its own: \cref{fig:sub} combines the two plots above, and its parts are referred to as \cref{fig:sub-residual} or, inside a sentence about the figure, as part~\subref{fig:sub-energy}. Sub-tables work the same way, with \texttt{subtable}. To keep figures from drifting past a point in the text, such as the start of the next section, put \verb|\FloatBarrier| there.
+
+\begin{figure}[tbp]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[scale=1, alt={Residual against iteration number on a logarithmic axis for time steps 1, 10 and 40: each falls along a straight line, more slowly in later time steps}]{Images/example_residual.pdf}
+        \caption{Residual of the Picard iteration.}
+        \label{fig:sub-residual}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[scale=1, alt={Kinetic energy against time: it stays near 0.5 until the shock forms at t = 1 over pi, then falls to about 0.18 at t = 1}]{Images/example_energy.pdf}
+        \caption{Kinetic energy.}
+        \label{fig:sub-energy}
+    \end{subfigure}
+    \caption[Picard residual and kinetic energy]{Convergence and energy of the Burgers solution (illustrative).}
+    \label{fig:sub}
+\end{figure}
+
 \subsection{Plots}
 
 Plots are made in Python and included as PDF, at the width they were made for (\cref{fig:plot}). The style file \file{thesis.mplstyle} in the \texttt{Python} folder uses Times, sizes the text just below the caption size, and draws each line in a colour that is safe for colour-blind readers and with its own line style, so the lines stay apart when printed in greyscale. The script \file{example_figures.py} in the same folder makes all the plots in this chapter, each at the size it is printed, so they are included without scaling.
@@ -334,6 +368,30 @@ A convergence study is a table of errors against mesh size, with the observed or
         128   & 1.41e-5 & 2.00 & 6.87e-3 & 1.00 \\
         \bottomrule
     \end{tabular}
+\end{table}
+
+\subsection{Merged cells and table notes}
+
+A cell can span several rows with \verb|\multirow|, a header can break over two lines with \verb|\makecell|, and notes go below the table, marked with \verb|\tnote| (\cref{tab:testmatrix}). The notes take the width of the table.
+
+\begin{table}[tbp]
+    \centering
+    \caption[Wind-tunnel test matrix]{Wind-tunnel test matrix (illustrative).}
+    \label{tab:testmatrix}
+    \begin{tabular}{@{}l l S[table-format=2.0] S[table-format=1.1]@{}}
+        \toprule
+        Configuration & Propeller & {\makecell{Speed\\(\unit{\metre\per\second})}} & {\makecell{Thrust\\coefficient}} \\
+        \midrule
+        \multirow{2}{*}{Wing alone}     & off         & 40 & {--} \\
+                                        & on\tnote{a} & 40 & 0.1  \\
+        \multirow{2}{*}{Wing with flap} & off         & 30 & {--} \\
+                                        & on          & 30 & {\num{0.3}\tnote{b}} \\
+        \bottomrule
+    \end{tabular}
+    \begin{tablenotes}
+        \item[a] Propeller at the wing tip, turning inboard-up.
+        \item[b] The highest thrust the motor allowed.
+    \end{tablenotes}
 \end{table}
 
 \subsection{Tables with wrapping text}

@@ -40,7 +40,7 @@
 \newif\if@draft
 \DeclareOption{draft}{\@drafttrue \PassOptionsToPackage{draft}{graphicx} \PassOptionsToClass{draft}{book}}
 %% final: the version for the printer and the repository; hides all \todo notes.
-\DeclareOption{final}{\PassOptionsToPackage{disable}{todonotes}}
+\DeclareOption{final}{\PassOptionsToPackage{disable}{todonotes}\PassOptionsToPackage{final}{changes}}
 %% backreferences: each reference lists the pages it is cited on. (Not called "backref": that name
 %% would also switch on hyperref's own back-references.)
 \newif\if@backref
@@ -493,14 +493,15 @@
 \def\thesis@tagparaoff{\ifdefined\tagpdfparaOff\tagpdfparaOff\fi}
 \def\thesis@tagparaon{\ifdefined\tagpdfparaOn\tagpdfparaOn\fi}
 \newcommand{\thesis@captionbox}[2]{% label, text: the caption, as a box the width of the line
-    \sbox\@tempboxa{\small{\captionlabelfont #1}\quad #2}%
+    \sbox\@tempboxa{\small{\captionlabelfont #1}\thesis@capsep #2}%
     \vbox{\thesis@tagparaon\small\parindent\z@
         \ifdim\wd\@tempboxa>\hsize
             \parfillskip\z@\@plus1fil \ifdim\hsize<60mm \thesis@raggednohyphen\fi
         \else\ifthesis@capcentre
             \leftskip\@flushglue \rightskip\@flushglue \parfillskip\z@skip
         \fi\fi
-        {\captionlabelfont #1}\thesis@capstrut\quad #2\@finalstrut\strutbox\par}}
+        {\captionlabelfont #1}\thesis@capstrut\thesis@capsep #2\@finalstrut\strutbox\par}}
+\newcommand*{\thesis@capsep}{\quad}
 %% Long tables: the caption the width of the line, centred on the table, 6pt above the table.
 \ExplSyntaxOn
 \def\thesis@LTmakecaption#1#2#3{% \@gobble for \caption*, label, text
@@ -549,6 +550,74 @@
             \def\@tempa{lstlisting}\ifx\@tempa\@captype\else\hrule\@height\z@\fi
         \else \vskip\belowcaptionskip \fi}}
 \renewcommand{\arraystretch}{1.2}
+
+%% Sub-figures and sub-tables, as with the subcaption package (which brings the caption package):
+%%   \begin{figure} \centering
+%%     \begin{subfigure}[t]{0.48\textwidth} \centering \includegraphics{...} \caption{Left}  \label{fig:a} \end{subfigure}\hfill
+%%     \begin{subfigure}[t]{0.48\textwidth} \centering \includegraphics{...} \caption{Right} \label{fig:b} \end{subfigure}
+%%     \caption{Both}
+%%   \end{figure}
+%% The sub-captions read "(a) Left", below a sub-figure and above a sub-table; \cref{fig:a} gives
+%% "Figure 2.3a", \subref{fig:a} just "(a)". Sub-captions are not in the list of figures.
+%% (tagged PDF: each sub-figure is a section (Sect) of the figure with its own caption; a Div would not do,
+%% as PDF 2.0 sees through it and the figure would then have several captions)
+\newcounter{subfigure}[figure] \renewcommand*{\thesubfigure}{\alph{subfigure}}
+\newcounter{subtable}[table]   \renewcommand*{\thesubtable}{\alph{subtable}}
+\renewcommand*{\p@subfigure}{\thesis@subprefix} \renewcommand*{\p@subtable}{\thesis@subprefix}
+\renewcommand*{\theHsubfigure}{\thesis@subprefix.\arabic{subfigure}} \renewcommand*{\theHsubtable}{\thesis@subprefix.\arabic{subtable}}
+\newcommand*{\subcaptionlabelfont}{\normalfont}
+\ExplSyntaxOn
+\tl_new:N \l__thesis_subfloat_struct_tl
+\cs_new_protected:Npn \__thesis_subfloat:nnn #1#2#3 % sub-counter, position, width
+  {
+    \RenewDocumentCommand \caption { o m } { \__thesis_subcaption:nn {#1} {##2} }
+    \minipage [#2] {#3}
+    \tag_if_active:T
+      {
+        \tag_struct_begin:n { tag = Sect }
+        \tl_set:Ne \l__thesis_subfloat_struct_tl { \tag_get:n { struct_num } }
+      }
+    \cs_set_eq:NN \__thesis_label:n \label
+    \cs_set_protected:Npn \label ##1
+      { \__thesis_label:n {##1} \group_begin: \cs_set:Npe \@currentlabel { \use:c { the#1 } } \__thesis_label:n { sub@##1 } \group_end: }
+  }
+\bool_new:N \g__thesis_float_captioned_bool
+\AddToHook{cmd/@floatboxreset/after}{ \bool_gset_false:N \g__thesis_float_captioned_bool }
+\AddToHook{cmd/caption/before}{ \bool_gset_true:N \g__thesis_float_captioned_bool }
+%% (the float's number in "2.3a": a figure's caption, which steps its counter, usually comes after the
+%% sub-figures, so then the number it will get)
+\cs_new_protected:Npn \__thesis_subprefix:n #1
+  {
+    \group_begin:
+      \bool_if:NF \g__thesis_float_captioned_bool { \advance \use:c { c@ \@captype } \@ne }
+      \cs_gset:Npe \thesis@subprefix { \use:c { the \@captype } }
+    \group_end:
+  }
+\cs_new_protected:Npn \__thesis_endsubfloat:
+  { \par \tag_if_active:T { \tag_struct_end: } \endminipage }
+\cs_new_protected:Npn \__thesis_subcaption:nn #1#2 % sub-counter, text
+  {
+    \par
+    \__thesis_subprefix:n {#1}
+    \refstepcounter {#1}
+    \exp_args:NNe \clist_if_in:NnTF \thesis@captiontop { \@captype }
+      { \bool_set_true:N \l_tmpa_bool } { \bool_set_false:N \l_tmpa_bool }
+    \bool_if:NF \l_tmpa_bool { \vskip \abovecaptionskip }
+    \UseTaggingSocket { caption / begin } { \l__thesis_subfloat_struct_tl }
+    \group_begin:
+      \parindent \z@ \thesis@tagparaoff \leavevmode
+      \cs_set_eq:NN \captionlabelfont \subcaptionlabelfont
+      \cs_set:Npn \thesis@capsep { \nobreakspace }
+      \thesis@captionbox { ( \use:c { the#1 } ) } {#2} \par
+      \thesis@tagparaon
+    \group_end:
+    \UseTaggingSocket { caption / end }
+    \bool_if:NT \l_tmpa_bool { \vskip \abovecaptionskip }
+  }
+\ExplSyntaxOff
+\newenvironment{subfigure}[2][c]{\csname __thesis_subfloat:nnn\endcsname{subfigure}{#1}{#2}}{\csname __thesis_endsubfloat:\endcsname}
+\newenvironment{subtable}[2][c]{\csname __thesis_subfloat:nnn\endcsname{subtable}{#1}{#2}}{\csname __thesis_endsubfloat:\endcsname}
+\newcommand*{\subref}[1]{\hyperref[sub@#1]{(\ref*{sub@#1})}}
 
 %% Bibliography: numbered in order of citation, compressed ([2-4]), \citet/\citep available (natbib=true).
 \RequirePackage[

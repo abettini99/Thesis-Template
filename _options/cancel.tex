@@ -1,0 +1,99 @@
+%% =====================================================================
+%% Crossing out terms in equations: \cancel{a}, \bcancel{a}, \xcancel{a}, \cancelto{0}{x}
+%% (cancel package), made fit for a tagged PDF:
+%% - the lines are drawn by pict2e as lines, not with the LaTeX line font that cancel uses
+%%   (its characters have no Unicode meaning, which PDF/UA does not allow); the look is the same;
+%% - the MathML says what is crossed out: <menclose notation="updiagonalstrike"> around the term
+%%   (without this the term would be lost for screen readers), and for \cancelto an arrow with
+%%   the value as a superscript.
+%% =====================================================================
+\usepackage{pict2e}             % https://ctan.org/pkg/pict2e
+\usepackage{cancel}             % https://ctan.org/pkg/cancel
+\makeatletter
+\let\OriginalPictureCmds\relax  % cancel's lines from pict2e (pict2e loaded first would make cancel use the font)
+
+%% The crossed-out term (and the \cancelto value) is saved for the MathML at the end of the small
+%% formula in which cancel sets it.
+\patchcmd\@cancel{$#2{#3}$}{$#2{#3}\thesis@cancelsave#2$}{}
+    {\PackageWarning{thesis}{Could not patch \string\cancel}}
+\patchcmd\@cancelto{$#3{#4}$}{$#3{#4}\thesis@cancelsave#3$}{}
+    {\PackageWarning{thesis}{Could not patch \string\cancelto}}
+\patchcmd\canto@vector{$#7{#8}\m@th$}{$#7{#8}\thesis@canceltosave#7\m@th$}{}
+    {\PackageWarning{thesis}{Could not patch \string\cancelto}}
+
+\ExplSyntaxOn
+%% Without MathML (untagged editions) nothing is saved or added.
+\cs_new_protected:Npn \__thesis_cancel_save:nN #1#2 { }
+\cs_new_protected:Npn \__thesis_cancel_mathml:nn #1#2 { #2 }
+\AddToHook{begindocument}
+  {
+    \IfPackageLoadedT{luamml}
+      {
+        %% save the formula's MathML under a label (not in text mode, where cancel uses \hbox); it is
+        %% only a part of the MathML of the formula around it, so it gets no structure of its own
+        \cs_set_protected:Npn \__thesis_cancel_save:nN #1#2
+          {
+            \token_if_eq_meaning:NNF #2 \hbox
+              {
+                \luamml_save:nNn {#1} #2 { mrow }
+                \int_set:Nn \l__luamml_flag_int
+                  { \l__luamml_flag_int - 8 * \int_mod:nn { \int_div_truncate:nn { \l__luamml_flag_int } { 8 } } { 2 } }
+              }
+          }
+        %% #1: the MathML (a Lua table) that replaces what #2 sets
+        \cs_set_protected:Npn \__thesis_cancel_mathml:nn #1#2
+          { \luamml_annotate:nen { 1 } { nucleus = true, mathml = {#1} } {#2} }
+      }
+  }
+\cs_new_protected:Npn \thesis@cancelsave { \__thesis_cancel_save:nN { thesiscancel } }
+\cs_new_protected:Npn \thesis@canceltosave { \__thesis_cancel_save:nN { thesiscancelto } }
+
+%% #1 MathML notation, #2 cancel's lines, #3 maths style, #4 the term
+\cs_new_protected:Npn \__thesis_cancel:nnNn #1#2#3#4
+  {
+    \__thesis_cancel_mathml:nn { [0] = 'menclose', notation = '#1', consume_label'thesiscancel' }
+      { \@cancel {#2} #3 {#4} }
+  }
+\DeclareRobustCommand \cancel [1]
+  {
+    \mode_if_math:TF
+      { \mathpalette { \__thesis_cancel:nnNn { updiagonalstrike } { \@can@slash { } } } {#1} }
+      { \@cancel { \@can@slash { } } \hbox {#1} }
+  }
+\DeclareRobustCommand \bcancel [1]
+  {
+    \mode_if_math:TF
+      { \mathpalette { \__thesis_cancel:nnNn { downdiagonalstrike } { \@can@slash { - } } } {#1} }
+      { \@cancel { \@can@slash { - } } \hbox {#1} }
+  }
+\DeclareRobustCommand \xcancel [1]
+  {
+    \mode_if_math:TF
+      {
+        \mathpalette
+          { \__thesis_cancel:nnNn { updiagonalstrike~downdiagonalstrike } { \@can@slash { + } \@can@slash { - } } }
+          {#1}
+      }
+      { \@cancel { \@can@slash { + } \@can@slash { - } } \hbox {#1} }
+  }
+%% \cancelto{value}{term}: #1 style of the value, #2 value, #3 style of the term, #4 term
+\cs_new_protected:Npn \__thesis_cancelto:NnNn #1#2#3#4
+  {
+    \__thesis_cancel_mathml:nn
+      {
+        [0] = 'msup',
+        { [0] = 'menclose', notation = 'updiagonalarrow', consume_label'thesiscancel' },
+        consume_label'thesiscancelto'
+      }
+      { \@cancelto #1 {#2} #3 {#4} }
+  }
+\cs_set:Npn \cancelto #1#2 % the value one size smaller, as cancel does by default
+  {
+    \mathchoice
+      { \__thesis_cancelto:NnNn \textstyle {#1} \displaystyle {#2} }
+      { \__thesis_cancelto:NnNn \scriptstyle {#1} \textstyle {#2} }
+      { \__thesis_cancelto:NnNn \scriptscriptstyle {#1} \scriptstyle {#2} }
+      { \__thesis_cancelto:NnNn \scriptscriptstyle {#1} \scriptscriptstyle {#2} }
+  }
+\ExplSyntaxOff
+\makeatother
