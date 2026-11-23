@@ -116,7 +116,17 @@
 \renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
 \makeatother
 \floatstyle{ruled}\restylefloat{algorithm}
-\makeatletter\renewcommand\floatc@ruled[2]{{\parindent\z@\thesis@capcentrefalse\thesis@tagparaoff\leavevmode\thesis@captionbox{#1}{#2}\par\thesis@tagparaon}\@minipagefalse}\makeatother
+%% (with LaTeX's tagging code of November 2026, float.sty's caption ends the caption structure itself:
+%% then it is begun here too)
+\makeatletter
+\ExplSyntaxOn
+\exp_args:Nee \str_if_in:nnTF { \token_to_meaning:N \float@caption } { \tl_to_str:n { caption/end } }
+  { \def\thesis@floatcapbegin{\UseTaggingSocket{caption/begin}{\@current@float@struct}} }
+  { \let\thesis@floatcapbegin\relax }
+\ExplSyntaxOff
+\renewcommand\floatc@ruled[2]{\thesis@floatcapbegin
+    {\parindent\z@\thesis@capcentrefalse\thesis@tagparaoff\leavevmode\thesis@captionbox{#1}{#2}\par\thesis@tagparaon}\@minipagefalse}
+\makeatother
 \algrenewcommand\algorithmicrequire{\textbf{Input:}}
 \algrenewcommand\algorithmicensure{\textbf{Output:}}
 \algrenewcommand\algorithmiccomment[1]{\hfill\textcolor{black!60}{\(\triangleright\) \textit{#1}}}
@@ -146,7 +156,8 @@
     \EditInstance{block}{thm-thesis-1}{begin-extra-vspace = 0pt, begin-vspace = \thesistheoremsep - \parskip, end-vspace = \thesistheoremsep}%
     \EditInstance{block}{thm-thesis-2}{begin-extra-vspace = 0pt, begin-vspace = \thesistheoremsep - \parskip, end-vspace = \thesistheoremsep}%
     \EditInstance{block}{thm-remark-1}{begin-vspace = \thesisremarksep - \parskip, end-vspace = \thesisremarksep}%
-    \EditInstance{block}{thm-remark-2}{begin-vspace = \thesisremarksep - \parskip, end-vspace = \thesisremarksep}}
+    \EditInstance{block}{thm-remark-2}{begin-vspace = \thesisremarksep - \parskip, end-vspace = \thesisremarksep}%
+    \EditInstance{thmstyle}{remark}{title-format = #1}}% (as amsthm: no italic correction after "Remark", which LaTeX adds from November 2026)
 \theoremstyle{thesis}
 \newtheorem{formulation}{Formulation}[chapter]
 \newtheorem{definition}{Definition}[chapter]

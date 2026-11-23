@@ -6,13 +6,17 @@
 %% Code listings (listings): set as a code block (tag Code lines in a verbatim structure), with the
 %% line numbers as labels, and the caption as the listing's caption. Adapted from the LaTeX team's own
 %% set-up for the tagpdf documentation (tagpdfdocu-patches.sty, 2026-08-21, LaTeX Project Public
-%% License); without it, every listing closed the section around it in the tagged structure.
+%% License); without it, every listing closed the section around it in the tagged structure. LaTeX's
+%% release of November 2026 brings the same code (latex-lab-listings): then only the spacing is set here.
 %%
 %% Numbered equations (MathML): multline gets a structure for its equation number, as equation
 %% does, and an equation with split keeps its number in the MathML (see below and tagging.lua).
 %% =====================================================================
 \ExplSyntaxOn
 \tag_if_active:T
+  {
+    % (LaTeX's own listings support, from November 2026, does the same: then only the spacing below)
+    \IfPackageLoadedTF { latex-lab-listings } { \cs_gset:Npn \thesislablistings {} }
   {
     \NewTaggingSocket{listings/number}{2}
     \NewTaggingSocketPlug{listings/number}{default}
@@ -40,6 +44,7 @@
                                    {\UseStructureName{block/verbatim/codeline}}\ignorespaces,
         tagging-suppress-paras = true
       }
+  }
     \DeclareInstance{block}{lstlisting-1}{std}
       {
         left-margin = 0pt, para-vspace = 0pt, begin-vspace = 0pt, end-vspace = 0pt,
@@ -52,7 +57,7 @@
     \DeclareInstanceCopy{block}{lstlisting-4}{lstlisting-1}
     \DeclareInstanceCopy{block}{lstlisting-5}{lstlisting-1}
     \DeclareInstanceCopy{block}{lstlisting-6}{lstlisting-1}
-    \tagpdfsetup{float/new=lstlisting}
+    \cs_if_exist:NF \thesislablistings { \tagpdfsetup{float/new=lstlisting} }
     % multline: luamml leaves multline out of the environments whose equation number gets its
     % own structure, but still refers to that structure when it writes the MathML, which gives
     % "structure with label 0 is unknown". Treat multline like equation and gather.
@@ -172,6 +177,7 @@
 \ExplSyntaxOff
 \ifdefined\thesistagging
 \makeatletter
+\ifdefined\thesislablistings\else
 \lst@Key{numbers}{none}{%
     \let\lst@PlaceNumber\@empty
     \lstKV@SwitchCases{#1}%
@@ -182,6 +188,7 @@
                 \kern\linewidth \kern\lst@numbersep
                 \UseTaggingSocket{listings/number}{}{\lst@numberstyle{\thelstnumber}}}}%
     }{\PackageError{Listings}{value `#1' for keyword `numbers' not supported}\@ehc}}
+\fi
 \def\lst@EveryDisplay{%
     \MathCollectFalse
     \parskip\z@skip % no extra stretch above the listing (the block adds the paragraph skip)
@@ -192,6 +199,7 @@
     \ifvmode\ifnum\lastnodetype=11 \ifdim\lastskip=\z@ \ifdim\gluestretch\lastskip=\z@
     \ifdim\glueshrink\lastskip=\z@ \unskip\let\thesis@next\thesis@unskipzero\fi\fi\fi\fi\fi
     \thesis@next}
+\ifdefined\thesislablistings\else
 \lst@AddToHook{PreInit}{\ifhmode \UseTaggingSocket{inline/begin}{tag=\UseStructureName{text/verb}}\fi}
 \lst@AddToHook{DeInit}{\ifhmode \UseTaggingSocket{inline/end}%
     \else \edef\@current@float@struct{\UseName{tag_get:n}{struct_num}}\BlockEnvEnd \fi}
@@ -202,5 +210,6 @@
     \AssignTaggingSocketPlug{caption/label/end}{noop}%
     \AssignSocketPlug{caption/label}{noop}%
     \@makecaption\lst@title@dropdelim}
+\fi
 \makeatother
 \fi

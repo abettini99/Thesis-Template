@@ -66,14 +66,17 @@
   { }
   {
     \group_begin:
-    \UseTaggingSocket{sec/title/begin}{{\int_use:N\l__head_level_int}{#4}}
+    % (the heading's structure: opened here with LaTeX's code of June 2026; from November 2026 the
+    % heading template opens it, and the text goes in without paragraphs of its own)
+    \thesis@ifnewheadings { \tagpdfparaOff }
+      { \UseTaggingSocket{sec/title/begin}{{\int_use:N\l__head_level_int}{#4}} }
       \normalfont \parskip \z@ \parindent \z@ \interlinepenalty \@M
       \bool_if:NTF \l__head_unnumbered_bool
         { \MakeLinkTarget[\l__head_name_tl]{} \thesis@chapterlabel{} }
         { \MakeLinkTarget{\l__head_name_tl} \thesis@chapterlabel{\MakeUppercase{\@chapapp}\space #3} }
       \par \nobreak \vskip \midchapskip
       \raggedleft \chaptitlefont #4 \par
-    \UseTaggingSocket{sec/title/end}
+    \thesis@ifnewheadings { } { \UseTaggingSocket{sec/title/end} }
     \group_end:
   }
 \ExplSyntaxOff
