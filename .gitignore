@@ -58,6 +58,7 @@ __pycache__/
 !_options/ntxmath-otf/
 !_options/ntxmath-otf/NewTXMath.otf
 !_options/ntxmath-otf/NewTXMath-Bold.otf
+!_options/josefin/JosefinSans-VF.ttf
 
 # Build output
 main.pdf

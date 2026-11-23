@@ -18,6 +18,7 @@ for f in $names; do
     case "$lower" in
         fonts/readme.md) continue ;;
         _options/ntxmath-otf/newtxmath.otf|_options/ntxmath-otf/newtxmath-bold.otf) continue ;; # free: newtx (LPPL)
+        _options/josefin/josefinsans-vf.ttf) continue ;; # free: Josefin Sans (SIL OFL), the cover font
         fonts/*|*mtp2fonts/*|*mtp2lite/*|*mtpro2/*) blocked="$blocked$nl  $f"; continue ;;
     esac
     case "$base" in

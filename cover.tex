@@ -50,25 +50,54 @@
 
 \usepackage{xcolor}
 \input{_options/formatColor}
-%% Colours: the accent band on the back, spine and front, and the text on and off it
-\colorlet{coveraccent}{tudelft-cyan}
-\colorlet{covertext}{tudelft-black}
-\colorlet{coveraccenttext}{tudelft-white}
+%% Colours: one solid colour over back, spine and front, the text, and the drawing on the front
+\definecolor{coverback}{HTML}{CFE6E6}   % pale teal
+\definecolor{covertext}{HTML}{161616}
+\definecolor{covermotifcolour}{HTML}{2C6B70}
 
-%% Optional image on the front (filling the front panel up to the bleed). Leave empty for none.
-\newcommand{\coverimage}{}   % e.g. Images/cover.jpg
+%% Front: the title in capitals, with your own line breaks (\\); the subtitle and a small line under the
+%% name. The title is made smaller automatically when its longest line is too wide.
+\newcommand{\coverleadin}{Title of the}  % a short lead-in line above the title, smaller: e.g. Adjoint-based; {} for none
+\newcommand{\covertitle}{Dissertation}   % the rest of the title, large: e.g. Inflow\\ Modelling (or \thesistitle)
+\newcommand{\coversubtitle}{}            % a line under the title, smaller: e.g. \thesissubtitle; {} for none
+\newcommand{\coversmallprint}{Doctoral thesis\quad·\quad TU Delft}
+\newcommand{\coverspinemark}{TU Delft}   % small, at the foot of the spine: TU Delft, the year, ...; {} for none
+%% Or a logo at the foot of the spine instead, turned with the spine text: an image file, best a vector PDF
+%% in black on a transparent background. Its height is measured across the spine. Leave empty to print
+%% \coverspinemark instead.
+\newcommand{\coverspinelogo}{}        % e.g. Images/_title_images/logo_black.pdf, the TU Delft logo of the title page
+\newcommand{\coverspinelogoheight}{6.5} % mm (at most 60 % of the spine width)
+
+%% The drawing in the middle of the front: TikZ code (lengths in mm, centred on (0,0), about 40 mm across),
+%% or an image: \renewcommand{\covermotif}{\node {\includegraphics[width=45mm]{Images/motif.pdf}};}
+%% The default is a patch of a triangular mesh.
+\newcommand{\covermotif}{%
+    \begin{scope}[x={(9mm,0)}, y={(4.5mm,7.794mm)}, line width=0.5pt, line join=round]
+        \foreach \i in {-2,...,2} \foreach \j in {-2,...,2} {
+            \pgfmathtruncatemacro\inside{abs(\i+\j) <= 2}
+            \ifnum\inside=1
+                \pgfmathtruncatemacro\right{\i < 2 && abs(\i+\j+1) <= 2}
+                \pgfmathtruncatemacro\up{\j < 2 && abs(\i+\j+1) <= 2}
+                \pgfmathtruncatemacro\down{\i < 2 && \j > -2}
+                \ifnum\right=1 \draw (\i,\j) -- (\i+1,\j); \fi
+                \ifnum\up=1 \draw (\i,\j) -- (\i,\j+1); \fi
+                \ifnum\down=1 \draw (\i,\j) -- (\i+1,\j-1); \fi
+                \fill (\i,\j) circle (0.9mm);
+            \fi}
+    \end{scope}}
 
 %% ISBN barcode on the back: an image file from the printer or an online barcode generator (vector PDF
 %% or EPS is best). Leave empty to keep a white box, where the printer places the barcode.
 \newcommand{\coverbarcode}{}   % e.g. Images/barcode.pdf
 
-%% Text on the back.
-\newcommand{\coverblurb}{%
+%% Text on the back: the summary (paragraphs separated by \par\medskip), then a small spaced heading,
+%% ABOUT THE AUTHOR, and a short biography.
+\newcommand{\coversummary}{%
     A short summary of the thesis for the back cover, in two or three paragraphs: what the problem is,
-    what was done and what was found. Write it for an interested reader who is not a specialist.
-
-    The back cover is also a good place for a short biography of the author.
-}
+    what was done and what was found.\par\medskip
+    Write it for an interested reader who is not a specialist.}
+\newcommand{\coverbio}{%
+    A short biography of the author.}
 
 %% ---------------------------------------------------------------------
 %% Geometry (no changes needed below this line)
@@ -101,55 +130,114 @@
 \input{_options/fontText}
 \makeatother
 
+%% Cover font: Josefin Sans (SIL Open Font License, in _options/josefin), a variable font: regular at weight
+%% 350, bold at 500. Set other weights (100 to 700) here.
+\newfontfamily{\coverfont}{JosefinSans-VF.ttf}[
+    Path            = _options/josefin/,
+    Renderer        = HarfBuzz,
+    BoldFont        = JosefinSans-VF.ttf,
+    UprightFeatures = {RawFeature={axis={wght=350}}},
+    BoldFeatures    = {RawFeature={axis={wght=500}}},
+]
+\newcommand{\covertrack}[1]{\addfontfeatures{LetterSpace=#1}} % tracking, in 1/100 em: negative is tighter
+
+%% Back-cover text block: the summary in the book's serif at 10.5 on 13.5 pt, then a small spaced
+%% heading in the cover font and the biography.
+\newcommand{\backcovertext}[2]{%
+    \fontsize{10.5}{13.5}\selectfont
+    #1\par\bigskip
+    {\coverfont\fontsize{8}{10}\selectfont\covertrack{20}ABOUT THE AUTHOR}\par\smallskip
+    #2}
+
 \pagestyle{empty}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.6\baselineskip}
 
+\newsavebox{\covertitlebox}
+\newsavebox{\coverspinebox}
+\newlength{\coverspinemax}
+\newcommand{\spinetitlebox}[1]{% the spine title at #1 pt, scaled down to 60 % of the page height if longer
+    \sbox{\coverspinebox}{\coverfont\fontsize{#1}{#1}\selectfont\covertrack{5}%
+        \ifx\coverleadin\empty\else\coverspineleadin\ \fi\textbf{\coverspinetitle}}%
+    \setlength{\coverspinemax}{0.6\dimexpr\coverpageheight mm\relax}%
+    \ifdim\wd\coverspinebox>\coverspinemax \resizebox{\coverspinemax}{!}{\usebox{\coverspinebox}}\else\usebox{\coverspinebox}\fi}
 \begin{document}
+\ExplSyntaxOn % the title in capitals, its \\ kept
+\tl_gset:Ne \g_tmpa_tl { \text_uppercase:n { \covertitle } }
+\tl_gset:Ne \g_tmpb_tl { \text_uppercase:n { \covertitle } } % the spine title in capitals, on one line
+\tl_greplace_all:Nnn \g_tmpb_tl { \\ } { \unskip \space \ignorespaces }
+\cs_gset:Npe \coverspinetitle { \exp_not:V \g_tmpb_tl }
+\cs_gset:Npe \coverspineleadin { \text_uppercase:n { \coverleadin } }
+\sbox{\covertitlebox}{\coverfont\bfseries\covertrack{-8}\fontsize{56}{54}\selectfont
+    \begin{tabular}{@{}c@{}}\g_tmpa_tl\end{tabular}}
+\ExplSyntaxOff
 \begin{tikzpicture}[remember picture, overlay, x=1mm, y=1mm, shift={(current page.south west)}]
-    \pgfmathsetmacro{\bandheight}{0.17*\coverpageheight}   % accent band at the bottom
     \pgfmathsetmacro{\frontcentre}{(\coverspineright + \coverfrontright)/2}
     \pgfmathsetmacro{\backcentre}{(\coverbackleft + \coverspineleft)/2}
     \pgfmathsetmacro{\covertextwidth}{\coverpagewidth - 2*\coversafe - 6}
 
-    %% Front image
-    \if\relax\detokenize\expandafter{\coverimage}\relax\else
-        \begin{scope}
-            \clip (\coverspineright, 0) rectangle (\coversheetwidth, \coversheetheight);
-            \node[anchor=center, inner sep=0] at (\frontcentre + \coverbleed/2, \coversheetheight/2)
-                {\includegraphics[width=\coverpagewidth mm + \coverbleed mm, height=\coversheetheight mm, keepaspectratio=false]{\coverimage}};
-        \end{scope}
+    %% One colour over the whole sheet, bleed included
+    \fill[coverback] (0, 0) rectangle (\coversheetwidth, \coversheetheight);
+
+    %% Front: title and subtitle at the top, the drawing in the middle, name and small print at the bottom
+    \coordinate (titletop) at (\frontcentre, \covertop - 0.12*\coverpageheight);
+    \if\relax\detokenize\expandafter{\coverleadin}\relax\else
+        \node[anchor=north, align=center, text width=\covertextwidth mm, text=covertext, inner sep=0,
+              font={\coverfont\covertrack{-4}\fontsize{27}{30}\selectfont}]
+            (leadin) at (titletop) {\MakeUppercase{\coverleadin}};
+        \coordinate (titletop) at ([yshift=-1.5mm]leadin.south);
     \fi
+    \node[anchor=north, inner sep=0, text=covertext] (title) at (titletop)
+        {\resizebox{\ifdim\wd\covertitlebox>\covertextwidth mm \covertextwidth mm\else\wd\covertitlebox\fi}{!}{\usebox\covertitlebox}};
+    \if\relax\detokenize\expandafter{\coversubtitle}\relax\else
+        \node[anchor=north, align=center, text width=\covertextwidth mm, text=covertext, inner sep=0,
+              font={\coverfont\covertrack{-2}\fontsize{15}{19}\selectfont}]
+            at ([yshift=-7mm]title.south) {\MakeUppercase{\coversubtitle}};
+    \fi
+    \begin{scope}[shift={(\frontcentre, \coverbottom + 0.46*\coverpageheight)}, covermotifcolour, x=1mm, y=1mm]
+        \covermotif
+    \end{scope}
+    \node[anchor=south, align=center, text width=\covertextwidth mm, text=covertext, inner sep=0,
+          font={\coverfont\covertrack{-6}\fontsize{30}{34}\selectfont}]
+        at (\frontcentre, \coverbottom + 24) {\thesisauthorfirstnames\ \thesisauthorlastname};
+    \node[anchor=south, text=covertext!75, inner sep=0, font={\coverfont\covertrack{20}\fontsize{6.5}{8}\selectfont}]
+        at (\frontcentre, \coverbottom + 14) {\MakeUppercase{\coversmallprint}};
 
-    %% Accent: band along the bottom of back and front, and the whole spine
-    \fill[coveraccent] (0, 0) rectangle (\coversheetwidth, \coverbottom + \bandheight);
-    \fill[coveraccent] (\coverspineleft, 0) rectangle (\coverspineright, \coversheetheight);
-
-    %% Front: title and subtitle in the upper part, name in the band
-    \node[anchor=north, align=center, text width=\covertextwidth mm, text=covertext, inner sep=0]
-        at (\frontcentre, \covertop - 0.2*\coverpageheight)
-        {\headingfont\fontsize{28}{33}\selectfont \thesistitle\par
-         \vspace{4mm}\fontsize{14}{17}\selectfont\color{covertext!75}\thesissubtitle};
-    \node[anchor=center, align=center, text width=\covertextwidth mm, text=coveraccenttext, inner sep=0]
-        at (\frontcentre, \coverbottom + \bandheight/2)
-        {\headingfont\fontsize{14}{17}\selectfont \thesisauthorfirstnames\ \thesisauthorlastname};
-
-    %% Spine: name and title, if the spine is wide enough for text
+    %% Spine, if it is wide enough for text: the name near the top, the title in the middle (the lead-in
+    %% at weight 350 and the title at 500, as on the front), a small mark
+    %% near the bottom (\coverspinemark)
     \pgfmathparse{\coverspine >= 6 ? 1 : 0}
     \ifnum\pgfmathresult=1
         \pgfmathsetmacro{\spinefont}{min(10, 0.55*\coverspine/0.3528)}   % pt, at most 10 pt
-        \node[rotate=\coverspinerotation, anchor=center, text=coveraccenttext, inner sep=0]
-            at ({(\coverspineleft + \coverspineright)/2}, \coversheetheight/2)
-            {\headingfont\fontsize{\spinefont}{\spinefont}\selectfont
-             \textbf{\thesisauthorlastname}\hspace{3em}\thesistitle};
+        \pgfmathsetmacro{\spinemarkfont}{0.7*\spinefont}
+        \pgfmathsetmacro{\spinetitlefont}{min(20, 0.45*\coverspine/(0.702*0.3528))} % pt: capitals 45 % of the spine width, at most 20 pt
+        \pgfmathsetmacro{\spinex}{(\coverspineleft + \coverspineright)/2}
+        \ifnum\coverspinerotation<0 \def\spinestart{west}\def\spineend{east}\else\def\spinestart{east}\def\spineend{west}\fi
+        \begin{scope}[every node/.style={rotate=\coverspinerotation, text=covertext, inner sep=0}]
+            \node[anchor=\spinestart] at (\spinex, \covertop - \coversafe - 8)
+                {\coverfont\bfseries\fontsize{\spinefont}{\spinefont}\selectfont \MakeUppercase{\thesisauthorlastname}};
+            \node[anchor=center] at (\spinex, \coverbottom + 0.5*\coverpageheight)
+                {\spinetitlebox{\spinetitlefont}}; % a long title is made smaller, to 60 % of the height
+            \if\relax\detokenize\expandafter{\coverspinelogo}\relax
+                \node[anchor=\spineend] at (\spinex, \coverbottom + \coversafe + 8)
+                    {\coverfont\covertrack{20}\fontsize{\spinemarkfont}{\spinefont}\selectfont \MakeUppercase{\coverspinemark}};
+            \else
+                \pgfmathsetmacro{\spinelogoheight}{min(\coverspinelogoheight, 0.6*\coverspine)}
+                \node[anchor=\spineend] at (\spinex, \coverbottom + \coversafe + 8)
+                    {\includegraphics[height=\spinelogoheight mm, trim=3.9bp 3.5bp 10.5bp 3.6bp, clip]{\coverspinelogo}}; % trimmed to the logo itself (TU Delft file)
+            \fi
+        \end{scope}
     \else
         \typeout{Cover: the spine is narrower than 6 mm, so no text is printed on it.}
     \fi
 
-    %% Back: blurb, and space for the ISBN barcode in the band
-    \node[anchor=north west, text width=\covertextwidth mm, text=covertext, inner sep=0, font=\normalsize]
-        at (\backcentre - \covertextwidth/2, \covertop - \coversafe - 10)
-        {\setlength{\parskip}{0.6\baselineskip}\coverblurb};
+    %% Back: the summary in the text font of the book at 10.5 pt, its top level with the front title, at a
+    %% comfortable line length, then the biography; space for the ISBN barcode at the bottom
+    \pgfmathsetmacro{\blurbwidth}{min(\covertextwidth, 100)}
+    \node[anchor=north, text width=\blurbwidth mm, text=covertext, inner sep=0,
+          font=\rmfamily]
+        at (\backcentre, \covertop - 0.12*\coverpageheight)
+        {\setlength{\parindent}{0pt}\backcovertext{\coversummary}{\coverbio}};
     \begin{scope}[shift={(\coverspineleft - \coversafe - 40, \coverbottom + \coversafe)}]
         \fill[white] (0, 0) rectangle (40, 22);
         \if\relax\detokenize\expandafter{\coverbarcode}\relax
