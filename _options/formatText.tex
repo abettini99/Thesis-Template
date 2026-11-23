@@ -7,6 +7,38 @@
 %% running heads, but not in cross-references, so \cref gives "Section 2.1" rather than "Section 2.1.".
 \setcounter{secnumdepth}{2}
 
+%% LaTeX renamed some keys of its heading templates in its release of November 2026: the instances below
+%% are edited with the name each key has in the LaTeX that runs (new name if the template has it).
+%%   \thesis@editkey{type}{instance}{template}{new key}{old key}{value}
+\ExplSyntaxOn
+\cs_new_protected:Npn \thesis@editkey #1#2#3#4#5#6
+  {
+    \prop_if_exist:cTF { \c__template_keytypes_root_tl #1 / #3 }
+      {
+        \prop_if_in:cnTF { \c__template_keytypes_root_tl #1 / #3 } {#4}
+          { \EditInstance {#1} {#2} { #4 = {#6} } }
+          { \EditInstance {#1} {#2} { #5 = {#6} } }
+      }
+      { \EditInstance {#1} {#2} { #5 = {#6} } }
+  }
+%%   \thesis@ifnewheadings{true}{false}: the templates of November 2026 or later
+\cs_new:Npn \thesis@ifnewheadings
+  {
+    \bool_lazy_and:nnTF
+      { \prop_if_exist_p:c { \c__template_keytypes_root_tl heading / display } }
+      { \prop_if_in_p:cn { \c__template_keytypes_root_tl heading / display } { placement-start-code } }
+  }
+%%   \thesis@editkeyvv{type}{instance}{template}{new key}{old key}{new value}{old value}
+\cs_new_protected:Npn \thesis@editkeyvv #1#2#3#4#5#6#7
+  {
+    \bool_lazy_and:nnTF
+      { \prop_if_exist_p:c { \c__template_keytypes_root_tl #1 / #3 } }
+      { \prop_if_in_p:cn { \c__template_keytypes_root_tl #1 / #3 } {#4} }
+      { \EditInstance {#1} {#2} { #4 = {#6} } }
+      { \EditInstance {#1} {#2} { #5 = {#7} } }
+  }
+\ExplSyntaxOff
+
 %%% CHAPTER OPENINGS
 %% Chapters start on a right-hand page, in every edition, so all editions have the same page numbers.
 %% One style for every chapter-level heading (front matter, chapters, references, appendices, back
@@ -46,9 +78,10 @@
   }
 \ExplSyntaxOff
 \DeclareInstance{headformat}{thesischapter}{thesischapter}{}
+\thesis@editkey{heading}{chapter}{display}{placement-start-code}{start-code}
+    {\cleardoublepage\thispagestyle{chapter}\global\@topnum\z@}
 \EditInstance{heading}{chapter}{
-    , start-code           = \cleardoublepage\thispagestyle{chapter}\global\@topnum\z@
-    , after-penalty-vspace = \beforechapskip
+    , after-penalty-vspace = \beforechapskip\thesis@ifnewheadings{+\topskip}{}
     , after-vspace         = \afterchapskip
     , headformat-instance  = thesischapter
 }
@@ -86,37 +119,42 @@
 %%   subsection     semibold, text size, 1 line above, a quarter line below
 %%   subsubsection  italic text font (not bold), text size, unnumbered, half a line above, a quarter line below
 %% The first paragraph after a heading is not indented, as usual in books.
+%% The number sits in a box, where microtype cannot reach its first character: the margin kern it
+%% would get at the start of the line (the A of A.1, as with the earlier class) is put in by hand.
+\def\thesis@numprotrude#1{\begingroup\edef\thesis@tmp{#1}\expandafter\thesis@numprotrude@\thesis@tmp\relax\endgroup}
+\def\thesis@numprotrude@#1#2\relax{\ifnum\lpcode\font`#1>\z@
+    \kern-\dimexpr\fontdimen6\font*\lpcode\font`#1/1000\relax\fi}
 \newcommand{\thesis@secsize}{\fontsize{\dimexpr 1.15\dimexpr\f@size pt\relax\relax}{\dimexpr 1.38\dimexpr\f@size pt\relax\relax}\selectfont}
 \EditInstance{heading}{section}{
     , before-vspace = 1.5\onelineskip plus 0.5\onelineskip minus 0.2\onelineskip
     , after-vspace  = 0.5\onelineskip - \parskip
     , heading-decls = \thesis@secsize\bfseries\headingfont
-    , number-format = \thesection.
+    , number-format = \thesis@numprotrude{\thesection}\thesection.
 }
 \EditInstance{heading}{subsection}{
     , before-vspace = 1\onelineskip plus 0.3\onelineskip minus 0.1\onelineskip
     , after-vspace  = 0.25\onelineskip - \parskip
     , heading-decls = \bfseries\headingfont
-    , number-format = \thesubsection.
+    , number-format = \thesis@numprotrude{\thesubsection}\thesubsection.
 }
 \EditInstance{heading}{subsubsection}{
     , before-vspace = 0.5\onelineskip plus 0.2\onelineskip minus 0.1\onelineskip
     , after-vspace  = 0.25\onelineskip - \parskip
     , heading-decls = \itshape
 }
-\EditInstance{headformat}{section}{number-title-sep = 1em}
-\EditInstance{headformat}{subsection}{number-title-sep = 1em}
+\thesis@editkeyvv{headformat}{section}{hang}{separator-b}{number-title-sep}{\hspace{1em}}{1em}
+\thesis@editkeyvv{headformat}{subsection}{hang}{separator-b}{number-title-sep}{\hspace{1em}}{1em}
 %% Paragraph and subparagraph headings: bold, run into the text, 1.5 em before the text
 \EditInstance{heading}{paragraph}{
     , before-vspace = 1\onelineskip
-    , after-vspace  = 1.5em
     , heading-decls = \bfseries\headingfont
 }
+\thesis@editkey{heading}{paragraph}{runin}{after-hspace}{after-vspace}{1.5em}
 \EditInstance{heading}{subparagraph}{
     , before-vspace = 1\onelineskip
-    , after-vspace  = 1.5em
     , heading-decls = \bfseries\headingfont
 }
+\thesis@editkey{heading}{subparagraph}{runin}{after-hspace}{after-vspace}{1.5em}
 \EditInstance{headformat}{subparagraph}{heading-indent = 1.5em}
 
 %%% EPIGRAPHS: on the right, 60 % of the line, the source below the quotation
@@ -172,7 +210,8 @@
 %% Contents and lists of figures and tables: titled like the unnumbered chapters, but they start on the
 %% next page, left or right. \tableofcontents* leaves the contents themselves out of the contents.
 \DeclareInstanceCopy{heading}{thesislist}{chapter}
-\EditInstance{heading}{thesislist}{start-code = \thispagestyle{chapter}, contents-extra = {}, mark-cmd = \markboth{#1}{#1}}
+\EditInstance{heading}{thesislist}{contents-extra = {}, mark-cmd = \markboth{#1}{#1}}
+\thesis@editkey{heading}{thesislist}{display}{placement-start-code}{start-code}{\thispagestyle{chapter}}
 \newcommand{\thesis@list}[4]{% starred?, file, title, mark
     \par\begingroup
     \IfBooleanF{#1}{\MakeLinkTarget[chapter]{}\addcontentsline{toc}{chapter}{#3}}%

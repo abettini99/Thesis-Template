@@ -88,6 +88,9 @@
     % which the tagging needs, but it changes the look: text straight after was indented, and a
     % theorem, proof or list straight after got \partopsep more space above it. Here the look
     % stays as in the untagged editions, while the tagging code still sees what it expects.
+    % (LaTeX's code as of June 2026, with the socket block/endpe; the November 2026 code is handled below)
+    \socket_if_exist:nT { block/endpe }
+      {
     \bool_new:N \g__thesis_block_endpe_bool   % a block on its own has just ended
     \bool_new:N \l__thesis_block_pre_bool
     \bool_new:N \l__thesis_block_space_bool
@@ -144,6 +147,7 @@
               }
           }
         \AssignTaggingSocketPlug { block/recipe } { thesis }
+      }
       }
     % Figures side by side (a minipage each, with its own caption, in one figure): a figure may
     % have only one caption in a tagged PDF, so each minipage after the first starts a figure of its

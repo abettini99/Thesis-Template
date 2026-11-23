@@ -96,6 +96,16 @@
 %% List of algorithms: \listofalgorithms in main.tex (commented out there).
 \usepackage[chapter]{algorithm}
 \usepackage{algpseudocode}
+%% A \label after \State refers to the line number. LaTeX's list code (November 2026) makes the label of an
+%% item given in brackets the current label, so \Require, \Ensure and \Statex (\item[...]) would take
+%% it over; algorithmicx sets the line number as the label only once. Set again after every item.
+\makeatletter
+\algrenewcommand\ALG@beginalgorithmic{%
+    \let\thesis@algitem\item
+    \def\thesis@alglabel{\def\@currentlabel{\theALG@line}}%
+    \def\thesis@algitem@opt[##1]{\thesis@algitem[##1]\thesis@alglabel}%
+    \def\item{\@ifnextchar[\thesis@algitem@opt{\thesis@algitem\thesis@alglabel}}}
+\makeatother
 %% Same look as code listings and tables: caption above (small, label in bold small capitals), then a
 %% thin rule, the steps, and a thin rule.
 \makeatletter
