@@ -8,6 +8,7 @@
 \ifthesisotfmath\else\usepackage{bm}\fi % https://ctan.org/pkg/bm %% bold symbols (\vec, \tensor); the OpenType maths fonts have their own \bm (MathTime also \hm, heavy)
 \usepackage{siunitx}            % https://ctan.org/pkg/siunitx %% quantities and units: \qty{}{}, \num{}, \unit{}
 \input{_options/cancel}         % crossing out terms: \cancel{a}, \bcancel, \xcancel, \cancelto{0}{x}
+\input{_options/nicematrix}     % matrices with labels outside, blocks, braces: pNiceMatrix etc.
 
 %% Figures and tables
 \usepackage{array}              % https://ctan.org/pkg/array %% extra column types for tables
@@ -217,6 +218,5 @@
 % \usepackage{pgfplotstable}    % https://ctan.org/pkg/pgfplotstable %% tables from data files: \pgfplotstabletypeset{data.csv}
 % \usepackage{csvsimple}        % https://ctan.org/pkg/csvsimple %% simple tables from CSV files: \csvautobooktabular{data.csv}
 %% Not usable in a tagged PDF (they break the tagging or the MathML), so left out: wrapfig, arydshln,
-%% tabularray, chemformula, tensor, qrcode, threeparttable (use tablenotes above), and nicematrix
-%% (its matrices are empty for screen readers and its tables break the tagging; amsmath's pmatrix,
-%% bmatrix etc. with \cdots, \vdots, \ddots do the same job).
+%% tabularray, chemformula, tensor, qrcode, threeparttable (use tablenotes above), and nicematrix's
+%% NiceArray and NiceTabular (its matrix environments are fine: see nicematrix.tex).
