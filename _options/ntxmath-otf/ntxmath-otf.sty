@@ -3,11 +3,11 @@
 %% Loads NewTXMath(-Bold).otf with unicode-math, with the layout of classic newtxmath:
 %% every newtxmath symbol command, its alphabets, TeX's metrics and optical sizes.
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{ntxmath-otf}[2026/11/23 v1.0 newtxmath as OpenType]
+\ProvidesPackage{ntxmath-otf}[2026/11/23 v1.1 newtxmath as OpenType]
 \RequirePackage{iftex}
 \RequireLuaTeX
 % the version (for classes that choose fallbacks)
-\def\NTXOTFversion{1.0}
+\def\NTXOTFversion{1.1}
 \newif\ifMTP@lite
 % packages that clash: ntxmath-otf provides their commands
 \newif\ifMTP@ownload
@@ -17,8 +17,18 @@
   \AddToHook{package/#1/before}{\ifMTP@ownload\else\MTP@clash{#1}{its commands}\fi}}
 \@for\MTP@o:=newtxmath,bm,amssymb,amsfonts\do{\expandafter\MTP@addclash\expandafter{\MTP@o}}
 \def\MTP@features{}
-% newtxmath's options: scale (or scaled); the plain Times set-up is its default and
-% the only one converted, so other newtxmath options are ignored, with a warning
+% newtxmath's options: scale (or scaled), slantedGreek and uprightGreek (the default); the
+% plain Times set-up is its default and the only one converted, so other newtxmath options
+% are ignored, with a warning. ISO: the same as slantedGreek (unicode-math's math-style=ISO:
+% italic capital Greek; \upGamma, \uppi, \mathrm{e} stay upright)
+\DeclareOption{upint}{\AddToHook{begindocument/end}{\ifdefined\smallintup\let\smallint\smallintup\fi\ifdefined\smalliintup\let\smalliint\smalliintup\fi\ifdefined\smalliiintup\let\smalliiint\smalliiintup\fi\ifdefined\smallointup\let\smalloint\smallointup\fi\ifdefined\smalloiintup\let\smalloiint\smalloiintup\fi\ifdefined\smalloiiintup\let\smalloiiint\smalloiiintup\fi\ifdefined\smallvarointclockwiseup\let\smallvarointclockwise\smallvarointclockwiseup\fi\ifdefined\smallointctrclockwiseup\let\smallointctrclockwise\smallointctrclockwiseup\fi\ifdefined\smallsumintup\let\smallsumint\smallsumintup\fi\ifdefined\smalliiiintup\let\smalliiiint\smalliiiintup\fi\ifdefined\smallfintup\let\smallfint\smallfintup\fi\ifdefined\smallsqintup\let\smallsqint\smallsqintup\fi\ifdefined\intupop\let\intop\intupop\fi\ifdefined\iintupop\let\iintop\iintupop\fi\ifdefined\iiintupop\let\iiintop\iiintupop\fi\ifdefined\ointupop\let\ointop\ointupop\fi\ifdefined\oiintupop\let\oiintop\oiintupop\fi\ifdefined\oiiintupop\let\oiiintop\oiiintupop\fi\ifdefined\varointclockwiseupop\let\varointclockwiseop\varointclockwiseupop\fi\ifdefined\ointctrclockwiseupop\let\ointctrclockwiseop\ointctrclockwiseupop\fi\ifdefined\sumintupop\let\sumintop\sumintupop\fi\ifdefined\iiiintupop\let\iiiintop\iiiintupop\fi\ifdefined\fintupop\let\fintop\fintupop\fi\ifdefined\sqintupop\let\sqintop\sqintupop\fi}}
+\DeclareOption{frenchmath}{\PassOptionsToPackage{math-style=french}{unicode-math}\AddToHook{begindocument/end}{\ifdefined\alphaup\let\alpha\alphaup\fi\ifdefined\betaup\let\beta\betaup\fi\ifdefined\gammaup\let\gamma\gammaup\fi\ifdefined\deltaup\let\delta\deltaup\fi\ifdefined\epsilonup\let\epsilon\epsilonup\fi\ifdefined\zetaup\let\zeta\zetaup\fi\ifdefined\etaup\let\eta\etaup\fi\ifdefined\thetaup\let\theta\thetaup\fi\ifdefined\iotaup\let\iota\iotaup\fi\ifdefined\kappaup\let\kappa\kappaup\fi\ifdefined\lambdaup\let\lambda\lambdaup\fi\ifdefined\muup\let\mu\muup\fi\ifdefined\nuup\let\nu\nuup\fi\ifdefined\xiup\let\xi\xiup\fi\ifdefined\piup\let\pi\piup\fi\ifdefined\rhoup\let\rho\rhoup\fi\ifdefined\sigmaup\let\sigma\sigmaup\fi\ifdefined\tauup\let\tau\tauup\fi\ifdefined\upsilonup\let\upsilon\upsilonup\fi\ifdefined\phiup\let\phi\phiup\fi\ifdefined\chiup\let\chi\chiup\fi\ifdefined\psiup\let\psi\psiup\fi\ifdefined\omegaup\let\omega\omegaup\fi\ifdefined\varepsilonup\let\varepsilon\varepsilonup\fi\ifdefined\varthetaup\let\vartheta\varthetaup\fi\ifdefined\varpiup\let\varpi\varpiup\fi\ifdefined\varrhoup\let\varrho\varrhoup\fi\ifdefined\varsigmaup\let\varsigma\varsigmaup\fi\ifdefined\varphiup\let\varphi\varphiup\fi\ifdefined\varkappaup\let\varkappa\varkappaup\fi}}
+\DeclareOption{vvarbb}{\AddToHook{begindocument/end}{\let\mathbb\vvmathbb}}
+\DeclareOption{varbb}{\AddToHook{begindocument/end}{\let\mathbb\vmathbb}}
+\DeclareOption{cmintegrals}{}
+\DeclareOption{uprightGreek}{}
+\DeclareOption{slantedGreek}{\PassOptionsToPackage{math-style=ISO}{unicode-math}}
+\DeclareOption{ISO}{\PassOptionsToPackage{math-style=ISO}{unicode-math}}
 \def\MTP@cal{v}\def\MTP@scr{x}\def\MTP@frak{x}\def\MTP@bb{x}\def\MTP@br{c}
 \newif\ifMTP@slops \newif\ifMTP@zswash \newif\ifMTP@sbcorr \newif\ifMTP@textsf
 \DeclareOption{textsf}{\MTP@textsftrue}
@@ -52,8 +62,16 @@
     \csname\MTP@o\expandafter\endcsname\csname MTP@ams@\MTP@o\endcsname}}%
 \fi
 \directlua{ntxmathotf.savemissing()}% (definitions of commands whose character MTPro2 lacks)
+% the Type 1 set-up's operators font (newtxmath: {\tx@enc}{\rmdefaultB}, m/n and bold b/n)
+\def\MTP@mt@enc{OT1}\def\MTP@mt@fam{minntx}\def\MTP@mt@bold{b}\def\MTP@mt@heavy{m}
 \RequirePackage{unicode-math}
 \unimathsetup{mathrm=sym}% (\mathrm, operator names: newtxmath's operators font, as glyphs of the maths font)
+% unicode-math ends a delimiter command's number with \scan_stop: (\lbrace is \Udelimiter 4
+% \symoperators "0007B\scan_stop:); \abovewithdelims (amsmath's \genfrac) then takes that \relax
+% for its thickness. The Type 1 set-up ends it with a space (\delimiter"4266308 ), as here.
+\ExplSyntaxOn
+\cs_set:Nn \__um_delimiter:Nnn { \Udelimiter \mathchar@type#1 \csname sym#2\endcsname #3 ~ }
+\ExplSyntaxOff
 \edef\MTP@path{\directlua{ntxmathotf.fontdir("NewTXMath.otf")}}% (found like any TeX file)
 \edef\MTP@load{\noexpand\setmathfont{NewTXMath.otf}[Path=\MTP@path,RawFeature={\MTP@features},script-features={},sscript-features={}]}\MTP@load
 \IfFileExists{NewTXMath-Bold.otf}{%
@@ -85,7 +103,8 @@
   \DeclareSymbolFont{MTP#2}{#3}{#4}{m}{n}\SetSymbolFont{MTP#2}{bold}{#3}{#4}{b}{n}%
   \DeclareSymbolFontAlphabet{#1}{MTP#2}}
 % alphabets the options can choose from fonts that are not MTPro2 (as mtpro2.sty does)
-\edef\MTP@s{s*[\MTP@scale]}% (scaled like the MTPro2 fonts)
+\edef\MTP@s{s*[\MTP@scale]}% (scaled like the maths font)
+\let\ntxmath@scaled\MTP@s % newtxmath's text alphabets (its .fd files) scale with it
 \if c\MTP@cal \DeclareFontFamily{OMS}{MTPcmsy}{\skewchar\font48}%
   \DeclareFontShape{OMS}{MTPcmsy}{m}{n}{<-6>\MTP@s cmsy5<6-7>\MTP@s cmsy6<7-8>\MTP@s cmsy7%
     <8-9>\MTP@s cmsy8<9-10>\MTP@s cmsy9<10->\MTP@s cmsy10}{}%
@@ -127,6 +146,8 @@
   \else\ensuremath{\bm{#1}}\fi}
 \protected\def\hm#1{\relax\ifmmode\MTP@bmsize\begingroup\MTP@bmattr=2 #1\endgroup
   \else\ensuremath{\hm{#1}}\fi}
+% (as bm.sty: \boldsymbol is \bm, \heavysymbol \hm; amsbsy's would box the symbol)
+\AddToHook{begindocument/end}{\let\boldsymbol\bm \let\heavysymbol\hm}
 % (the bold fonts in the extra families, for the current size: as NFSS sets a math alphabet)
 \let\MTP@bmfams\@empty \def\MTP@bmat{}
 \def\MTP@bmsize{\ifx\MTP@bmat\tf@size\else\directlua{ntxmathotf.mathparams(true)}\MTP@bmfams
@@ -173,6 +194,11 @@
     \DeclareSymbolFont{MTPbmrm}{TU}{\rmdefault}{\bfdefault}{n}%
     \directlua{ntxmathotf.setlitebm{\MTP@bmletters rm=\number\symMTPbmrm}}}%
   \let\hm\bm
+  % (\boldmath: the version a formula starts in, as LaTeX chooses its fonts then)
+  \newattribute\MTP@litebold \def\MTP@boldname{bold}
+  \AddToHook{begindocument/end}{%
+    \everymath\expandafter{\the\everymath\ifx\math@version\MTP@boldname\MTP@litebold=1 \else\unsetattribute\MTP@litebold\fi}%
+    \everydisplay\expandafter{\the\everydisplay\ifx\math@version\MTP@boldname\MTP@litebold=1 \else\unsetattribute\MTP@litebold\fi}}
 \fi
 
 % alphabets and alternate letters (per use)
@@ -1109,6 +1135,68 @@
   (U+#2) is not in the NewTX Math font}{newtxmath has no glyph for this character;
   with its Type 1 fonts the command is not defined either.}}
 \AddToHook{begindocument/end}{\directlua{ntxmathotf.nochar()}}
+% a formula nested in an alphabet switch starts with the document's letters, as with the
+% Type 1 fonts, where the switch is \fam and TeX resets it at the start of every formula
+% (\operatorname{inf\vphantom{p}}, \mathbb{x\phantom{y}}, \mathrm{x\text{$p$}}). unicode-math
+% switches by changing mathcodes; the flag is set only for switches inside maths (unicode-math
+% also switches outside), so packages that set mathcodes themselves (url) are left alone.
+% (No ~ and no Lua comments here: babel makes ~ active, and newlines become spaces.)
+\newcount\MTP@inalpha
+\ExplSyntaxOn
+\cs_set_protected:Nn \__um_switch_to:n { \tl_use:c {g__um_switchto_#1_tl} \ifmmode \MTP@inalpha=\@ne \fi }
+\ExplSyntaxOff
+\def\MTP@resetmc{\ifnum\MTP@inalpha>\z@ \MTP@inalpha=\z@ \directlua{ntxmathotf.resetmc()}\fi}
+\AddToHook{begindocument/end}{\directlua{
+  local L, S = {}, {}
+  for _, r in ipairs({{48, 57}, {65, 90}, {97, 122}, {913, 937}, {945, 969}, {977, 982}, {1008, 1013}, {8706, 8706}, {8711, 8711}}) do
+    for c = r[1], r[2] do table.insert(L, c) S[c] = tex.getmathcode(c) end
+  end
+  function ntxmathotf.resetmc()
+    for _, d in ipairs(L) do
+      local m, s = tex.getmathcode(d), S[d]
+      if not (m[1] == s[1] and m[2] == s[2] and m[3] == s[3]) then tex.setmathcode(d, s) end
+    end
+  end}%
+  \everymath\expandafter{\the\everymath\MTP@resetmc}%
+  \everydisplay\expandafter{\the\everydisplay\MTP@resetmc}%
+  \def\MTP@tmp#1#2#3{\hbox{{\everymath{#1}\let\f@size#2\selectfont#3}}}% amsmath's \text sets \everymath
+  \ifx\textdef@\MTP@tmp\def\textdef@#1#2#3{\hbox{{\everymath{#1\MTP@resetmc}\let\f@size#2\selectfont#3}}}\fi}
+% microtype: the glyphs the Type 1 set-up takes from its operators font (a text font: digits,
+% \mathrm letters, operator names, ...) get what microtype gives that font, protrusion and
+% expansion included; the other glyphs get none, as with the Type 1 maths fonts. microtype is
+% shown that font's name (encoding, family, series) for the maths fonts, so its settings and
+% the document's \SetProtrusion/\SetExpansion apply as they would to the Type 1 font.
+\directlua{ntxmathotf.mttext = {[33]=33,[34]=34,[36]=36,[48]=48,[49]=49,[50]=50,[51]=51,[52]=52,[53]=53,[54]=54,[55]=55,[56]=56,[57]=57,[59]=59,[63]=63,[64]=64,[65]=65,[66]=66,[67]=67,[68]=68,[69]=69,[70]=70,[71]=71,[72]=72,[73]=73,[74]=74,[75]=75,[76]=76,[77]=77,[78]=78,[79]=79,[80]=80,[81]=81,[82]=82,[83]=83,[84]=84,[85]=85,[86]=86,[87]=87,[88]=88,[89]=89,[90]=90,[96]=96,[97]=97,[98]=98,[99]=99,[100]=100,[101]=101,[102]=102,[103]=103,[104]=104,[105]=105,[106]=106,[107]=107,[108]=108,[109]=109,[110]=110,[111]=111,[112]=112,[113]=113,[114]=114,[115]=115,[116]=116,[117]=117,[118]=118,[119]=119,[120]=120,[121]=121,[122]=122,[8758]=58}}
+\def\MTP@mt@name#1/#2/#3/#4/#5/#6\@nil{%
+  \in@{NewTXMath}{#2}%
+  \ifin@
+    \in@{-Bold}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@bold \else
+    \in@{-Heavy}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@heavy \else \def\MTP@mt@ser{m}\fi\fi
+    \edef\MTP@tmp{\noexpand\MTP@MT@split@name\MTP@mt@enc/\MTP@mt@fam/\MTP@mt@ser/#4/#5/#6\noexpand\@nil}%
+  \else \def\MTP@tmp{\MTP@MT@split@name#1/#2/#3/#4/#5/#6\@nil}\fi
+  \MTP@tmp}
+\AddToHook{begindocument/before}{\@ifpackageloaded{microtype}{%
+  \let\MTP@MT@split@name\MT@split@name \let\MT@split@name\MTP@mt@name
+  \g@addto@macro\MT@setupfont{\directlua{ntxmathotf.mtfix()}}%
+  \directlua{
+    local done, T = {}, ntxmathotf.mttext
+    function ntxmathotf.mtfix()
+      local id = font.current()
+      if done[id] then return end
+      done[id] = true
+      local f = font.getfont(id)
+      if not (f and f.name and f.name:find("NewTXMath", 1, true)) then return end
+      local L, R, E = "\string\\lpcode\string\\font", "\string\\rpcode\string\\font", "\string\\efcode\string\\font"
+      local function set(c, v) return L .. c .. "=" .. v .. R .. c .. "=" .. v .. E .. c .. "=" .. v .. " " end
+      local a, b = {}, {}
+      for c, v in pairs(T) do
+        if not (c == v) then table.insert(a, L .. c .. "=" .. L .. v .. " " .. R .. c .. "=" .. R .. v .. " " .. E .. c .. "=" .. E .. v .. " ") end
+      end
+      for c in pairs(f.characters) do
+        if not T[c] then table.insert(b, set(c, 0)) end
+      end
+      tex.sprint(table.concat(a) .. table.concat(b))
+    end}}{}}
 % newtxmath's classes of the ASCII symbols
 \AddToHook{begindocument/end}{\directlua{for c, k in pairs({[33]=5,[34]=0,[35]=0,[36]=0,[37]=0,[38]=0,[40]=4,[41]=5,[42]=2,[43]=2,[44]=6,[45]=2,[46]=0,[47]=4,[58]=3,[59]=6,[60]=3,[61]=3,[62]=3,[63]=5,[64]=0,[91]=4,[92]=0,[93]=5,[94]=0,[96]=0,[123]=0,[124]=0,[125]=0,[126]=0}) do
   local m = tex.getmathcode(c)
@@ -1201,7 +1289,8 @@ end}}
   \MTP@composite{doteq}{2250}\MTP@composite{bowtie}{22C8}\MTP@composite{models}{22A7}%
   \MTP@composite{dblcolon}{2237}\MTP@composite{coloneqq}{2254}%
   \MTP@composite{Coloneqq}{2A74}\MTP@composite{eqqcolon}{2255}%
-  \@ifpackageloaded{amsmath}{}{\MTP@composite{cdots}{22EF}}\MTP@composite{@cdots}{22EF}\MTP@composite{mathellipsis}{2026}}
+  \@ifpackageloaded{amsmath}{}{\MTP@composite{cdots}{22EF}}\MTP@composite{@cdots}{22EF}\MTP@composite{mathellipsis}{2026}%
+  \MTP@composite{vdots}{22EE}\MTP@composite{ddots}{22F1}\MTP@composite{adots}{22F0}}
 
 % \sqrt[n]{...}: TeX's placement of the degree (raised by 0.6 of the radical's height
 % minus depth; OpenType's percentage counts height plus depth)
@@ -1253,12 +1342,13 @@ end}}
       \csname l__luamml_flag_int\endcsname=1 }%
   \fi}
 % mtpro2.sty's own macros (\widehat, \overcbrace, \PARENS, \SQRT, \xl, ...), verbatim
-\AddToHook{begindocument/end}{\makeatletter\input{ntxmath-otf-macros.tex}\makeatother}
+\AddToHook{begindocument/end}{\makeatletter\input{ntxmath-otf-macros.tex}\makeatother\MTP@composite{vdots}{22EE}\MTP@composite{ddots}{22F1}\MTP@composite{adots}{22F0}}
 
 % newtxmath's \mathcal: its calligraphic capitals (unicode-math's script letters are
 % \mathscr's)
 \AtBeginDocument{%
   \protected\def\mathcal#1{\MTP@galpha{cal}{#1}}%
+  \protected\def\vvmathbb#1{\MTP@galpha{vvbb}{#1}}\protected\def\vmathbb#1{\MTP@galpha{vbb}{#1}}%
   \ifMTP@textsf \let\mathsf\MTP@textsf \fi}
 % the alphabets that are math alphabets with newtxmath (\mathrm, \mathbb, \mathfrak; its
 % \mathscr sets each letter on its own): a group, so that \mathrm{xy}_i is a box with a
@@ -1268,4 +1358,10 @@ end}}
     \expandafter\let\csname MTP@u@\MTP@o\expandafter\endcsname\csname\MTP@o\endcsname
     \expandafter\protected\expandafter\edef\csname\MTP@o\endcsname#1{{\expandafter\noexpand
       \csname MTP@u@\MTP@o\endcsname{#1}}}}}
+% \mathrm of a capital Greek letter: newtxmath's operators font, an OT1 font with the eleven
+% capitals in slots 0-10 (the maths font's upright Greek is newtx's other design)
+\DeclareSymbolFont{MTPops}{OT1}{minntx}{m}{n}\SetSymbolFont{MTPops}{bold}{OT1}{minntx}{b}{n}
+\newattribute\MTP@rmattr
+\AddToHook{begindocument/end}{\directlua{ntxmathotf.rmgreekfam = \number\symMTPops}%
+  \let\MTP@rm@outer\mathrm \protected\def\mathrm#1{\MTP@rm@outer{\MTP@rmattr=1 #1}}}
 \endinput

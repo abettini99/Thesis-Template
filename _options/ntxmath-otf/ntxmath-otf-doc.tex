@@ -6,10 +6,10 @@
 \usepackage[hidelinks]{hyperref}
 \newcommand\pkg{\textsf{ntxmath-otf}}
 \newcommand\cs[1]{\texttt{\char`\\#1}}
-\title{\pkg: newtxmath as an OpenType maths font\\[2pt]\large version 1.0}
+\title{\pkg: newtxmath as an OpenType maths font\\[2pt]\large version 1.1}
 \author{built by \texttt{ntxmath\_otf.py}}
 \date{2026/11/23}
-\begin{document}
+\begin{document}\emergencystretch=3em
 \maketitle
 
 \section{What it is}
@@ -42,9 +42,35 @@ Lua\LaTeX, and replace \verb|\usepackage{newtxmath}| with
 \usepackage{ntxmath-otf}      % loads unicode-math
 \end{verbatim}
 Do not load \textsf{newtxmath}, \textsf{bm}, \textsf{amssymb} or \textsf{amsfonts} as
-well: \pkg\ provides their commands. The options \texttt{scale=}\textit{factor} (or \texttt{scaled})
-and \texttt{textsf} (\cs{mathsf} in the document's sans-serif) are supported; other
-\textsf{newtxmath} options are ignored, with a warning.
+well: \pkg\ provides their commands. Options:
+\begin{itemize}
+\item \texttt{scale=}\textit{factor} (or \texttt{scaled}): all maths at that size, as with
+  \textsf{newtxmath}, the \cs{mathbf}, \cs{mathit} and \cs{mathsf} fonts included;
+\item \texttt{slantedGreek}: italic capital Greek (\textsf{newtxmath}'s option), and
+  \texttt{uprightGreek}, the default; \texttt{ISO} is the same as \texttt{slantedGreek}
+  (\textsf{unicode-math}'s \texttt{math-style=ISO}), for ISO~80000-2: all variables italic,
+  \cs{bm} of a capital Greek letter bold italic, and the constants upright with
+  \cs{uppi}, \cs{upGamma}, \ldots, \cs{mathrm\{e\}}, \cs{mathrm\{i\}} (they copy as π, Γ, e);
+\item \texttt{frenchmath} (upright capitals and Greek, French style), \texttt{upint}
+  (upright integrals), \texttt{vvarbb} and \texttt{varbb} (\cs{mathbb} as \cs{vvmathbb} or
+  \cs{vmathbb}), as with \textsf{newtxmath}; \texttt{cmintegrals} is accepted and, as in
+  \textsf{newtxmath}, has no effect;
+\item \texttt{textsf}: \cs{mathsf} in the document's sans-serif.
+\end{itemize}
+Other \textsf{newtxmath} options are ignored, with a warning (\texttt{smallerops} among
+them: it needs other operator sizes in the font).
+
+\textbf{Text font.} Load \textsf{newtxtext} (under Lua\LaTeX\ it loads TeX Gyre Termes~X
+with \textsf{fontspec}). \pkg\ always takes digits, \cs{mathrm} and operator names from
+\textsf{newtx}'s Times. (Classic \textsf{newtxmath} after another \textsf{fontspec} font,
+without \textsf{newtxtext}, looks for its operators font in OT1 in that family, which does not
+exist, and falls back to Computer Modern.)
+
+\textbf{microtype.} The glyphs that classic \textsf{newtxmath} takes from its operators font,
+a text font (digits, \cs{mathrm} letters, operator names, \texttt{! ? ; :}), get what
+\textsf{microtype} gives that font, protrusion and expansion included, and the
+document's own \cs{SetProtrusion}/\cs{SetExpansion} settings for it apply. Every other maths
+glyph gets neither, as with the Type~1 symbol fonts. No settings of your own are needed.
 
 Everything you type stays as it was: all of \textsf{newtxmath}'s symbol commands, its
 alphabets (\cs{mathbb}, \cs{mathcal}, \cs{mathscr}, \cs{mathfrak}, \cs{vvmathbb}),
@@ -78,24 +104,34 @@ The package then sets formulas as \TeX\ does with the Type~1 fonts:
 
 \section{Tests}
 \texttt{ntxmath\_otf.py selftest} typesets formulas with classic \textsf{newtxmath} (Type~1)
-and with \pkg\ and compares where \TeX\ put every glyph and rule. On \TeX\ Live 2026:
+and with \pkg\ and compares where \TeX\ put every glyph and rule, with the same options for
+both (\texttt{--options}, e.g.\ \texttt{slantedGreek,scale=0.95}). With
+\texttt{--document} it also typesets a thesis-like document with both: tagged PDF/UA-2 with
+MathML, \textsf{babel} (British), \textsf{newtxtext}, \textsf{microtype} (protrusion and
+expansion), \textsf{siunitx}, \textsf{hyperref}, maths at the ends of lines and in headings,
+and compares where every text glyph lands. On \TeX\ Live 2026:
 \begin{itemize}
+\item \textbf{Document:} identical (all 7071 text glyphs within 0.01\,pt), with no options
+  and with \texttt{ISO,scale=0.95}; no errors, one tagging warning (classic: three).
+\item \textbf{Greek} (capital and lowercase, \cs{mathrm}, \cs{mathbf}, \cs{bm}, accents,
+  \cs{upGamma}, \cs{uppi}, \cs{mathrm\{e\}}): identical with \texttt{uprightGreek} and
+  \texttt{slantedGreek}.
 \item \textbf{Stress test} (\texttt{--stress}: all $\sim$1150 symbol commands, scripts,
-  accents, operators, delimiters, radicals, fractions, alphabets, \cs{bm}): 4225 of 4260
-  formulas identical within 0.01\,pt at 10\,pt; the same at 6, 8 and 12\,pt.
+  accents, operators, delimiters, radicals, fractions, alphabets, \cs{bm}, Greek): 4241 of
+  4272 formulas identical within 0.01\,pt at 10\,pt (\cs{bm}: all 103); the same at 8\,pt.
 \item \textbf{Whole documents:} \textsf{amsmath}'s \texttt{testmath.tex} (39 pages) and its
   user's guide \texttt{amsldoc.tex} (42 pages) have the same line and page breaks, every text
   glyph in place.
-\item \textbf{Copy-paste:} 878 of 995 \textsf{unicode-math} symbol commands copy as their
-  own character; the rest share a glyph with another character.
+\item \textbf{Copy-paste:} 879 of 995 \textsf{unicode-math} symbol commands copy as their
+  own character (and \cs{vdots}, \cs{ddots}); most of the rest are \textsf{unicode-math}'s
+  own style rules (with \texttt{math-style=TeX}, \cs{mbfitA} is set as an upright bold~A).
 \item \textbf{Tagged PDF/UA-2:} no errors or warnings; MathML for every formula.
 \end{itemize}
 Most remaining differences are bookkeeping only: the boxes are identical, but where \TeX\
 adds an italic correction or a delimiter piece as a separate item, the OpenType glyph holds
 it. The real ones:
 \begin{itemize}
-\item \cs{bm} on \cs{widehat}, on \cs{tilde} over some letters, and on upright capital Greek
-  with a script (\textsf{bm} boxes the symbol there);
+\item \cs{bm\{\cs{tilde}\{n\}\}}: the accent 0.08\,pt to the right;
 \item on purpose: \cs{mathbb} and \cs{mathcal} of a letter the classic alphabet does not
   have (\cs{mathbb\{x\}}, \cs{mathcal\{z\}}) give a real letter, where classic
   \textsf{newtxmath} prints whatever glyph is in that slot.
@@ -105,8 +141,46 @@ it. The real ones:
 \begin{verbatim}
 python3 ntxmath_otf.py build <folder>        (about 20 s)
 python3 ntxmath_otf.py selftest [--stress] [--size PT] [--fonts <folder>]
+                                 [--options LIST] [--document]
 \end{verbatim}
 It needs \TeX\ Live 2026 with \textsf{newtx}, Python~3 and \textsf{fontTools}, and
 \texttt{mtpro2\_otf.py} in the same folder (the shared engine; no MathTime fonts are
 needed).
+
+\section{Changes}
+\textbf{1.1} (2026/11/23, from testing in a thesis template; the fonts are unchanged):
+\begin{itemize}
+\item \texttt{slantedGreek}, \texttt{uprightGreek} and \texttt{ISO} options.
+\item \textsf{microtype}: protrusion and expansion as for classic \textsf{newtxmath} (above).
+  Before, the whole maths font was treated as text: a leading \cs{\{} protruded into the
+  margin. A template that switched \textsf{microtype} off for the families
+  \texttt{NewTXMath.otf} and \texttt{NewTXMath-Bold.otf} can drop that.
+\item \textsf{babel}: \textsf{newtxmath}'s classes of the ASCII symbols (\texttt{/} an opening
+  symbol) were lost with \textsf{babel}, whose active \verb|~| broke a Lua line.
+\item \cs{phantom}, \cs{vphantom}, \cs{smash} and \cs{text} inside \cs{operatorname},
+  \cs{mathrm}, \cs{mathbf}, \cs{mathbb}, \cs{mathfrak} get the normal letters, as with the Type~1
+  fonts (\cs{operatorname*\{inf\cs{vphantom}\{p\}\}} was 0.07\,pt deeper).
+\item \texttt{scale}: also \cs{mathbf}, \cs{mathit}, \cs{mathsf} and the text-mode symbols
+  (they were not scaled).
+\item \cs{boldsymbol} is \cs{bm}, as with \textsf{bm} (it boxed the symbol: subscripts and
+  italic corrections were off).
+\item \cs{bm}: \cs{widehat} and \cs{widetilde} took a far too wide accent; a symbol that
+  \textsf{bm} sets in a box (upright capital Greek, the AMS symbols) is boxed too, so its scripts
+  sit where they do with the Type~1 fonts (\cs{bm\{\cs{Gamma}\}\^{}2}).
+\item \cs{mathrm} of capital Greek: the operators font's Greek, as with \textsf{newtxmath}.
+\item \cs{genfrac} with \cs{\{}, \cs{\}} or other delimiter commands (its thickness argument was
+  lost: a \textsf{unicode-math} issue).
+\item \cs{sqrt} over tall material (a sign built from pieces): the rule as with the Type~1
+  fonts (it was as thick as the top piece, the sign up to 2.4\,pt higher).
+\item Options \texttt{frenchmath}, \texttt{upint}, \texttt{vvarbb}, \texttt{varbb} (and
+  \texttt{cmintegrals}, without effect as in \textsf{newtxmath}); \cs{vvmathbb} and
+  \cs{vmathbb} as alphabets (they were missing).
+\item Copy-paste: \cs{setminus} copies as ∖ (it shared its glyph with the backslash),
+  \cs{vdots}, \cs{ddots}, \cs{adots} as ⋮ ⋱ ⋰.
+\item \texttt{selftest}: \texttt{--options}, \texttt{--document} (with PDF/A-4f and PDF/UA-2
+  validation when veraPDF is installed) and Greek formulas. \texttt{build\_all.py} builds
+  both packages, runs the tests and writes the bundle with checksums;
+  \texttt{overleaf\_test.py} makes an Overleaf test project and compares its logs with a
+  local run.
+\end{itemize}
 \end{document}

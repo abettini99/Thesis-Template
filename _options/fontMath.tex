@@ -19,6 +19,8 @@
 %% from; Lite takes the AMS symbols, blackboard bold, Euler script and Fraktur, and newtx bold for \bm,
 %% as the Type 1 set-up does. The package's options (Fonts/README.md) go in the list below.
 %%   ntxcal: \mathcal from newtx (the simpler V and W)
+%%   (add slantedGreek for italic capital Greek, as ISO 80000-2 has it for variables; here, as in most
+%%   books set in TeX, they are upright)
 %%   textsf: \mathsf (matrices \mathsf{A}, operators \mathsf{Res}) in Source Sans, the document's sans
 %%   scale:  the maths at the size of the text (95 % for the Dover size)
 \edef\thesis@tmp{\noexpand\RequirePackage[ntxcal, textsf, scale=\thesis@fontscale]{mtpro2-otf}}\thesis@tmp
@@ -65,16 +67,6 @@
 \tag_if_active:T { \tagpdfsetup { math/mathml/luamml/load = false } }
 \ExplSyntaxOff
 \fi\fi
-
-%% The OpenType maths fonts are TU-encoded, so microtype took them for text fonts: maths at the start or
-%% end of a line protruded into the margin, and maths glyphs stretched with the line (font expansion).
-%% With the classic maths fonts it does neither; nor here, so the pages stay as with those.
-\ifthesisotfmath
-    \@for\thesis@mf:=NewTXMath,NewTXMath-Bold,MTPro2Math,MTPro2Math-Bold,MTPro2Math-Heavy\do{%
-        \edef\thesis@tmp{\noexpand\SetProtrusion[name=thesis-\thesis@mf]{encoding=TU, family=\thesis@mf.otf}{}%
-            \noexpand\SetExpansion[name=thesis-\thesis@mf, stretch=0, shrink=0]{encoding=TU, family=\thesis@mf.otf}{}}%
-        \thesis@tmp}
-\fi
 
 %% In PDF bookmarks (maths in a heading), the alphabets and bold commands just pass their letters on
 %% (bm's \bm would stop the build there).

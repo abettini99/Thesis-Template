@@ -826,6 +826,8 @@ class NtxBuild(_build_base()):
         P, PB = self.probe, self.probe_bold
         self.alphabet("bb", P, "mathbb")
         self.alphabet("bb", P, "vvmathbb", force=False)   # (lower case and digits: newtx's other bb)
+        self.alphabet("bb", P, "vvmathbb", setname="vvbb")  # (\\vvmathbb, \\vmathbb as alphabets of
+        self.alphabet("bb", P, "vmathbb", setname="vbb")    # their own: the options vvarbb, varbb)
         self.alphabet("script", P, "mathscr")
         self.alphabet("frak", P, "mathfrak")
         self.alphabet("script", P, "mathcal", setname="cal")
@@ -869,7 +871,7 @@ NTX_WEIGHTS = {"normal": ("NewTX Math", "NewTXMath.otf"), "bold": ("NewTX Math B
 NTX_DONORS = {"normal": "texgyretermes-regular.otf", "bold": "texgyretermes-bold.otf"}
 NTX_COPYRIGHT = ("Converted from the newtx fonts (Michael Sharpe) and txfonts (Young Ryu); "
                  "LaTeX Project Public License 1.3")
-NTX_VERSION = "1.0"
+NTX_VERSION = "1.1"
 NTX_DATE = "2026/11/23"
 LEGACY_FAMS = ("letters", "symbols", "largesymbols")
 
@@ -1022,6 +1024,40 @@ def ntx_macros_tex(info: dict, B) -> str:
     return "\n".join(out) + "\n"
 
 
+def option_lets() -> str:
+    """newtxmath's options that switch between commands it defines anyway, read from it:
+    upint (upright integrals), frenchmath (upright Greek, and upright capitals through
+    unicode-math's math-style=french), vvarbb/varbb (\\mathbb as \\vvmathbb/\\vmathbb); cmintegrals
+    has no effect in newtxmath either (its code is commented out)."""
+    sty = kpse("newtxmath.sty").read_text(encoding="latin-1")
+    sty = "\n".join(l.split("%")[0] for l in sty.splitlines())
+
+    def lets(flag):                             # (every \\iftx@<flag> block's first branch)
+        return [p for m in re.finditer(r"(?<!newif)\\iftx@" + flag + r"(?![A-Za-z@])", sty)
+                for p in block(m.end())]
+
+    def block(k):
+        depth, end = 0, len(sty)
+        for m in re.finditer(r"\\(if[A-Za-z@]*|else|fi)(?![A-Za-z@])", sty[k:]):
+            w = m.group(1)
+            if w.startswith("if"):
+                depth += 1
+            elif depth == 0:                    # (\\else or \\fi of this \\iftx@...)
+                end = k + m.start()
+                break
+            elif w == "fi":
+                depth -= 1
+        return re.findall(r"\\let\\(\w+)\s*=?\s*\\(\w+)", sty[k:end])
+    out = []
+    for opt, flag, extra in (("upint", "upint", ""), ("frenchmath", "frenchm", "\\PassOptionsToPackage{math-style=french}{unicode-math}")):
+        body = "".join(f"\\ifdefined\\{b}\\let\\{a}\\{b}\\fi" for a, b in lets(flag))
+        out.append(f"\\DeclareOption{{{opt}}}{{{extra}\\AddToHook{{begindocument/end}}{{{body}}}}}\n")
+    out.append("\\DeclareOption{vvarbb}{\\AddToHook{begindocument/end}{\\let\\mathbb\\vvmathbb}}\n"
+               "\\DeclareOption{varbb}{\\AddToHook{begindocument/end}{\\let\\mathbb\\vmathbb}}\n"
+               "\\DeclareOption{cmintegrals}{}\n")
+    return "".join(out)
+
+
 def _cut(text, start, end, new, inclusive=True):
     i = text.index(start)
     j = text.index(end, i) + (len(end) if inclusive else 0)
@@ -1045,8 +1081,14 @@ def ntx_sty(reg) -> str:
     t = t.replace("\\@for\\MTP@o:=mtpro2,bm,amssymb,amsfonts\\do",
                   "\\@for\\MTP@o:=newtxmath,bm,amssymb,amsfonts\\do")
     t = _cut(t, "% mtpro2.sty's options (same names, same defaults)", "\\ProcessOptions\\relax\n",
-             "% newtxmath's options: scale (or scaled); the plain Times set-up is its default and\n"
-             "% the only one converted, so other newtxmath options are ignored, with a warning\n"
+             "% newtxmath's options: scale (or scaled), slantedGreek and uprightGreek (the default); the\n"
+             "% plain Times set-up is its default and the only one converted, so other newtxmath options\n"
+             "% are ignored, with a warning. ISO: the same as slantedGreek (unicode-math's math-style=ISO:\n"
+             "% italic capital Greek; \\upGamma, \\uppi, \\mathrm{e} stay upright)\n"
+             + option_lets() +
+             "\\DeclareOption{uprightGreek}{}\n"
+             "\\DeclareOption{slantedGreek}{\\PassOptionsToPackage{math-style=ISO}{unicode-math}}\n"
+             "\\DeclareOption{ISO}{\\PassOptionsToPackage{math-style=ISO}{unicode-math}}\n"
              "\\def\\MTP@cal{v}\\def\\MTP@scr{x}\\def\\MTP@frak{x}\\def\\MTP@bb{x}\\def\\MTP@br{c}\n"
              "\\newif\\ifMTP@slops \\newif\\ifMTP@zswash \\newif\\ifMTP@sbcorr \\newif\\ifMTP@textsf\n"
              "\\DeclareOption{textsf}{\\MTP@textsftrue}\n"
@@ -1090,6 +1132,18 @@ def ntx_sty(reg) -> str:
              "% (newtxmath's text-mode symbols, \\openbox and \\AmS, use its fonts as text fonts)\n"
              "\\DeclareFontEncoding{LMS}{}{}\\DeclareFontSubstitution{LMS}{ntxsy}{m}{n}\n"
              )
+    # (\mathrm is the maths font's own operators glyphs here, bold ones in the bold version, as
+    # with newtxmath: no text-font \mathrm for the bold version)
+    t = _cut(t, "% (mtpro2.sty) \\mathrm and operator names", "% (end mtpro2.sty)\n", "")
+    # microtype: newtxmath's operators font, \DeclareSymbolFont{operators}{\tx@enc}{\rmdefaultB}{m}{n}
+    # and {\bold@wt}{n} in the bold version
+    a = "\\edef\\MTP@mt@enc{\\encodingdefault}\\edef\\MTP@mt@fam{\\rmdefault}\\def\\MTP@mt@bold{b}"
+    assert a in t
+    t = t.replace("% the Type 1 set-up's operators font (mtpro2.sty: {\\encodingdefault}{\\rmdefault}, b/n in the bold\n"
+                  "% version, m/n in the heavy one), as when the package loads\n",
+                  "% the Type 1 set-up's operators font (newtxmath: {\\tx@enc}{\\rmdefaultB}, m/n and bold b/n)\n", 1)
+    t = t.replace(a, f"\\def\\MTP@mt@enc{{{enc}}}\\def\\MTP@mt@fam{{{v.get('rmdefaultB') or 'minntx'}}}"
+                  f"\\def\\MTP@mt@bold{{{v.get('bold@wt') or 'b'}}}", 1)
     # newtxmath's classes for the ASCII symbols (unicode-math has its own: / is an opening
     # symbol with newtxmath, an ordinary one with unicode-math)
     cls = {int(c): int(v.split(",")[0]) for c, v in reg.info["mathcodes"].items()
@@ -1100,6 +1154,12 @@ def ntx_sty(reg) -> str:
                   "  local m = tex.getmathcode(c)\n"
                   "  if type(m) == 'table' and m[1] < 8 and not (m[1] == k) then tex.setmathcode(c, {k, m[2], m[3]}) end\n"
                   "end}}\n% hyperref: headings with maths", 1)
+    # newtxmath's text alphabets (\mathbf, \mathit, \mathsf: its .fd files) and legacy symbol
+    # fonts scale with \ntxmath@scaled, which newtxmath always sets from its scale option
+    a = "\\edef\\MTP@s{s*[\\MTP@scale]}% (scaled like the MTPro2 fonts)\n"
+    assert a in t
+    t = t.replace(a, "\\edef\\MTP@s{s*[\\MTP@scale]}% (scaled like the maths font)\n"
+                  "\\let\\ntxmath@scaled\\MTP@s % newtxmath's text alphabets (its .fd files) scale with it\n", 1)
     import mtpro2_otf as M2
     delims = "%\n".join(f"  \\DeclareRobustCommand\\{c}{{\\MTP@delim{{ntx}}{{{c}}}{{{M2.CLASSES.get(reg.variants['delimclass'][c], 0)}}}}}"
                          for c in sorted(reg.variants.get("delim:ntx", {})))
@@ -1111,6 +1171,7 @@ def ntx_sty(reg) -> str:
              "% \\mathscr's)\n"
              "\\AtBeginDocument{%\n"
              "  \\protected\\def\\mathcal#1{\\MTP@galpha{cal}{#1}}%\n"
+             "  \\protected\\def\\vvmathbb#1{\\MTP@galpha{vvbb}{#1}}\\protected\\def\\vmathbb#1{\\MTP@galpha{vbb}{#1}}%\n"
              "  \\ifMTP@textsf \\let\\mathsf\\MTP@textsf \\fi}\n"
              "% the alphabets that are math alphabets with newtxmath (\\mathrm, \\mathbb, \\mathfrak; its\n"
              "% \\mathscr sets each letter on its own): a group, so that \\mathrm{xy}_i is a box with a\n"
@@ -1120,12 +1181,20 @@ def ntx_sty(reg) -> str:
              "    \\expandafter\\let\\csname MTP@u@\\MTP@o\\expandafter\\endcsname\\csname\\MTP@o\\endcsname\n"
              "    \\expandafter\\protected\\expandafter\\edef\\csname\\MTP@o\\endcsname#1{{\\expandafter\\noexpand\n"
              "      \\csname MTP@u@\\MTP@o\\endcsname{#1}}}}}\n"
+             "% \\mathrm of a capital Greek letter: newtxmath's operators font, an OT1 font with the eleven\n"
+             "% capitals in slots 0-10 (the maths font's upright Greek is newtx's other design)\n"
+             f"\\DeclareSymbolFont{{MTPops}}{{{enc}}}{{{rmB}}}{{m}}{{n}}\\SetSymbolFont{{MTPops}}{{bold}}{{{enc}}}{{{rmB}}}{{{v.get('bold@wt') or 'b'}}}{{n}}\n"
+             "\\newattribute\\MTP@rmattr\n"
+             "\\AddToHook{begindocument/end}{\\directlua{ntxmathotf.rmgreekfam = \\number\\symMTPops}%\n"
+             "  \\let\\MTP@rm@outer\\mathrm \\protected\\def\\mathrm#1{\\MTP@rm@outer{\\MTP@rmattr=1 #1}}}\n"
              "\\endinput\n")
     # newtxmath's macros replace unicode-math's definitions: after its set-up (which ends the
     # begin-document hook)
     old = "\\AtBeginDocument{\\makeatletter\\input{mtpro2-otf-macros.tex}\\makeatother}"
     assert old in t
-    t = t.replace(old, "\\AddToHook{begindocument/end}{\\makeatletter\\input{mtpro2-otf-macros.tex}\\makeatother}")
+    # (newtxmath's \\vdots, \\ddots come with its macros: their copy-paste spans after them)
+    t = t.replace(old, "\\AddToHook{begindocument/end}{\\makeatletter\\input{mtpro2-otf-macros.tex}\\makeatother"
+                  "\\MTP@composite{vdots}{22EE}\\MTP@composite{ddots}{22F1}\\MTP@composite{adots}{22F0}}")
     # operator names (\\sin, \\operatorname) and \\mathrm: the maths font's upright letters,
     # newtxmath's operators font (unicode-math's default: the text font)
     t = t.replace("\\RequirePackage{unicode-math}\n",
@@ -1178,7 +1247,7 @@ MTPRO2_ONLY = re.compile(r"\\(xl|XL|XXL|XXXL|PARENS|LEFTRIGHT|SQRT|ROOT|ccases|o
 
 
 def selftest(work: Path | None = None, stress: bool = False, size: float | None = None,
-             fonts: Path | None = None) -> int:
+             fonts: Path | None = None, options: str = "", document: bool = False) -> int:
     import mtpro2_otf as M
     import os
     work = Path(work or tempfile.mkdtemp(prefix="ntx-selftest-")).resolve()
@@ -1188,7 +1257,13 @@ def selftest(work: Path | None = None, stress: bool = False, size: float | None 
         build_package(work / "Fonts", quiet=True)
         fonts = work / "Fonts"
     formulas = [f for f in M.SELFTEST_FORMULAS if not MTPRO2_ONLY.search(f)]
-    family = {f: "basic" for f in formulas}
+    formulas += [f for f in M.GREEK_FORMULAS if f not in formulas]
+    family = {f: "greek" if f in M.GREEK_FORMULAS else "basic" for f in formulas}
+    # the same options for classic newtxmath (ISO is ours: newtxmath's slantedGreek)
+    otf_opts = ",".join(o for o in options.split(",") if o)
+    t1_opts = ",".join("slantedGreek" if o == "ISO" else o.replace("scale=", "scaled=") for o in options.split(",") if o)
+    t1_pkg = r"\usepackage%s{newtxmath}\usepackage{bm}" % (f"[{t1_opts}]" if t1_opts else "")
+    otf_pkg = r"\usepackage%s{ntxmath-otf}" % (f"[{otf_opts}]" if otf_opts else "")
     if stress:
         info = json.loads((work / "info.json").read_text()) if (work / "info.json").exists() else None
         if info is None:
@@ -1209,8 +1284,8 @@ def selftest(work: Path | None = None, stress: bool = False, size: float | None 
     assert "selftestmark" in lua
     (work / "selftest-dump.lua").write_text(lua)
     doc = M.SELFTEST_DOC.replace("\\usepackage{fontspec}\\setmainfont{TeX Gyre Termes}", "\\usepackage{newtxtext}")
-    (work / "st_t1.tex").write_text(doc % (r"\usepackage{newtxmath}\usepackage{bm}", body))
-    (work / "st_otf.tex").write_text(doc % (r"\usepackage{ntxmath-otf}", body))
+    (work / "st_t1.tex").write_text(doc % (t1_pkg, body))
+    (work / "st_otf.tex").write_text(doc % (otf_pkg, body))
     env = dict(os.environ, TEXINPUTS=f"{fonts}:.:")
     skipped = set()
     for job in ("st_t1", "st_otf"):
@@ -1253,6 +1328,11 @@ def selftest(work: Path | None = None, stress: bool = False, size: float | None 
     if skipped:
         print(f"  ({len(skipped)} formulas skipped: TeX errors: "
               + ", ".join(formulas[i] for i in sorted(skipped)[:8]) + (", ..." if len(skipped) > 8 else "") + ")")
+    if document:
+        # (newtxtext, which loads its fonts with fontspec: with another fontspec font, classic
+        # newtxmath's operators font would be OT1 in that family, i.e. cmr10)
+        return M.doctest(work, t1_pkg, otf_pkg, env, f"options {otf_opts or '(none)'}",
+                         text=r"\usepackage{newtxtext}")
     return 0
 
 
@@ -1318,9 +1398,13 @@ def main(argv=None) -> int:
     t.add_argument("--fonts", type=Path, help="use these built files instead of building")
     t.add_argument("--stress", action="store_true")
     t.add_argument("--size", type=float)
+    t.add_argument("--options", default="", help="package options for both, e.g. slantedGreek,scale=0.95 "
+                   "(ISO is newtxmath's slantedGreek; scale= is passed to newtxmath as scaled=)")
+    t.add_argument("--document", action="store_true", help="also a thesis-like document (tagged PDF/UA-2, "
+                   "babel, fontspec, microtype, siunitx, hyperref)")
     a = ap.parse_args(argv)
     if a.cmd == "selftest":
-        return selftest(a.work, a.stress, a.size, a.fonts)
+        return selftest(a.work, a.stress, a.size, a.fonts, a.options, a.document)
     if a.cmd == "build":
         build_package(a.out)
         return 0

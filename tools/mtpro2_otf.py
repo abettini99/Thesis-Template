@@ -68,8 +68,8 @@ from fontTools.ttLib import TTFont, newTable
 from fontTools.ttLib.tables import otTables as ot
 
 UPM = 1000
-PACKAGE_DATE = "2026/11/22"
-PACKAGE_VERSION = "1.5"
+PACKAGE_DATE = "2026/11/23"
+PACKAGE_VERSION = "1.6"
 # Fixed font timestamp (mtpro2.sty v2.3, 2009-04-27): identical input -> byte-identical fonts.
 BUILD_TIME = int(datetime.datetime(2009, 4, 27, tzinfo=datetime.timezone.utc).timestamp()) + 2082844800
 
@@ -869,7 +869,8 @@ class MathFontBuild:
         self.ssty: dict[str, list[str]] = {}             # glyph -> [script, scriptscript]
         self.vvar: dict[str, list[str]] = {}             # vertical size variants
         self.hvar: dict[str, list[str]] = {}             # horizontal size variants
-        self.vasm: dict[str, list] = {}                  # vertical assemblies
+        self.vasm: dict[str, list] = {}
+        self.radtop = {}   # radical top piece -> its TeX height (font units)                  # vertical assemblies
         self.commands: dict[str, tuple[str, str]] = {}   # mtpro2.sty command -> (class, glyph)
         self.cmd_src: dict[str, tuple[str, int]] = {}
         self.glyph_cls: dict[str, str] = {}
@@ -1041,7 +1042,8 @@ class MathFontBuild:
         (U+27C2): the second character gets a copy of its own (same outline,
         box, kerns, script sizes and delimiter sizes), so each copies as itself."""
         import copy
-        for keep, other in ((0x22C5, 0xB7), (0x2225, 0x2016), (0x2223, 0x7C), (0x22A5, 0x27C2)):
+        # (and \\setminus, U+2216, with \\backslash, U+005C, whose larger sizes it then gets)
+        for keep, other in ((0x22C5, 0xB7), (0x2225, 0x2016), (0x2223, 0x7C), (0x22A5, 0x27C2), (0x2216, 0x5C)):
             g = self.cmap.get(other)
             new = gname(other)
             if not g or g != self.cmap.get(keep) or new in self.glyphs or self.glyphs[g].ref is None:
@@ -1223,6 +1225,10 @@ class MathFontBuild:
                 return (self.add(Ref(font, slot, scale), name), int(role == "rep"),
                         (ch.height + ch.depth) * UPM * scale)
             rp = piece(rep, "rep")
+            if top:                                     # (TeX's radical rule over a sign built
+                tp = piece(top, "top")                  # from pieces: its top piece's height)
+                if tp[0]:
+                    self.radtop[tp[0]] = tf.chars[top].height * UPM * scale
             if not (top or mid or bot):
                 parts = [(rp[0], 0, rp[2]), rp]          # OpenType needs one fixed part
             else:
@@ -1786,6 +1792,18 @@ def variants_lua(B: MathFontBuild) -> str:
     out.append("  missing={" + ",".join(f"{c}={cp}" for c, cp in miss) + "},")
     if getattr(B, "accent_xheight", None):          # (accents placed by their own fonts' x-heights)
         out.append("  accentxh=true,")
+    # bm.sty finds bold families only for LaTeX's four preset ones (operators, letters,
+    # symbols, largesymbols; no families are left for more): a symbol from any other family it sets in a box, with
+    # \boldmath, which places scripts differently (\bm{\Gamma}^2 with newtx, \bm{\sum}_i)
+    direct = {"operators", "operatorsX", "letters", "symbols", "largesymbols"}   # (LaTeX's four preset families)
+    boxed, plain = set(), set()
+    for d in B.inp.decls:
+        if d.kind == "symbol" and len(d.cmd) > 1:
+            cp = B.inp.uni.for_command(d.cmd, d.slot, d.fam)
+            if cp:
+                (plain if d.fam in direct else boxed).add(cp)
+    out.append("  radtop={" + ",".join(f"[{lua_str(k)}]={v:.4f}" for k, v in sorted(getattr(B, "radtop", {}).items())) + "},")
+    out.append("  bmbox={" + ",".join(f"[{cp}]=true" for cp in sorted(boxed - plain)) + "},")
     if B.tex_params:
         lua = lambda v: "{" + ",".join(f"{x:.7f}" for x in v) + "}" if isinstance(v, list) else f"{v:.7f}"
         out.append("  texparams={" + ",".join(f"{k}={lua(v)}" for k, v in sorted(B.tex_params.items())) + "},")
@@ -2367,6 +2385,13 @@ do
     for _, r in ipairs(BOLDCP) do if c >= r[1] and c <= r[2] then return true end end
   end
   local FENCE, FRAC2 = node.id("fence"), node.id("fraction")
+  local function glyphname(code)                -- (a private code's glyph name in the main font)
+    local n = mtpro2otf.byslot[code]
+    if n then return n end
+    local tf = fonts and fonts.hashes and fonts.hashes.identifiers[node.family_font(fam(), 0)]
+    local d = tf and tf.shared and tf.shared.rawdata and tf.shared.rawdata.descriptions
+    return d and d[code] and d[code].name
+  end
   local function bold(nc, s, subtype)           -- a math_char under \\bm: the field's new value
     if not (nc and nc.id == MCHAR) then return nc end
     local a = node.has_attribute(nc, LB.attr)
@@ -2383,7 +2408,7 @@ do
     local f = not (nb and nb[nc.char]) and LB.fams[a] and LB.fams[a][nc.fam]
     if f and main and nc.char >= 0xF0000 then       -- a glyph set by name (private code):
       local z = size(s)                             -- the same name in the bold font
-      local name = mtpro2otf.byslot[nc.char]
+      local name = glyphname(nc.char)
       local ok, slot = pcall(luaotfload.aux.slot_of_name, node.family_font(f, 0), name or "")
       if name and ok and slot then nc.fam, nc.char = f, slot; return nc end
       f = nil
@@ -2402,7 +2427,17 @@ do
   local function lite(n, s)
     local id = n.id
     if id == NOAD then
+      local o = n.nucleus
+      local box = o and o.id == MCHAR and o.fam == fam() and node.has_attribute(o, LB.attr) and V.bmbox and V.bmbox[o.char]
       n.nucleus = bold(n.nucleus, s, (n.subtype >= 1 and n.subtype <= 3) and n.subtype or 0)
+      if box and n.nucleus and n.nucleus.id == MCHAR then
+        -- (bm.sty: \hbox{\boldmath$...$} in the noad's class, in the current style)
+        local q = node.new("noad", n.subtype)
+        q.attr, q.nucleus = n.attr, n.nucleus
+        local sb = node.new("sub_box")
+        sb.attr, sb.head = n.attr, node.hpack(node.mlist_to_hlist(q, snames[s], false))
+        n.nucleus = sb
+      end
     elseif id == ACC or id == RAD then
       n.nucleus = bold(n.nucleus, s | 1)
       local t = fams(n)
@@ -2411,7 +2446,7 @@ do
           local ok, c = pcall(function() return n[k] end)
           if ok and c and c.fam and t[c.fam] then
             if c.fam == fam() and c.char and c.char >= 0xF0000 then   -- (set by name: the same
-              local name = mtpro2otf.byslot[c.char]                    -- name in the bold font)
+              local name = glyphname(c.char)                           -- name in the bold font)
               local ok2, sl = pcall(luaotfload.aux.slot_of_name, node.family_font(t[c.fam], 0), name or "")
               if name and ok2 and sl then c.char = sl end
             end
@@ -2457,6 +2492,22 @@ do
       end
     end
   end
+  -- (a sign built from pieces, a vlist of them, keeps the default rule thickness, as TeX
+  -- with the Type 1 fonts: the rule follows the sign's height only for a single character)
+  local function assembled(h)
+    for x in node.traverse(h) do
+      if x.id == GLYPH then return false end
+      if x.id == VLIST then
+        local k = 0
+        for y in node.traverse(x.head) do if y.id == HLIST and firstglyph(y.head) then k = k + 1 end end
+        if k >= 2 then return true end
+      end
+      if (x.id == HLIST or x.id == VLIST) and x.head then
+        local r = assembled(x.head)
+        if r ~= nil then return r end
+      end
+    end
+  end
   local function exactradical(n, s, force)
     list(n.nucleus, s | 1); list(n.degree, 6)
     local trial = node.hpack(node.mlist_to_hlist(node.copy(n), snames[s], false))
@@ -2464,9 +2515,20 @@ do
     local f = g and font.getfont(g.font)
     local chars = f and f.characters or (g and mtpro2otf.vfchars[g.font])
     local c = chars and chars[g.char]
+    local pieces = assembled(trial.head)
+    local top
+    if pieces and g then                         -- (the top piece's TeX height)
+      local tf = fonts and fonts.hashes and fonts.hashes.identifiers[g.font]
+      local d = tf and tf.shared and tf.shared.rawdata and tf.shared.rawdata.descriptions
+      local nm = d and d[g.char] and d[g.char].name
+      local u = nm and V.radtop and V.radtop[nm]
+      if u and f and f.size then top = math.floor(u * f.size / 1000 + 0.5) end
+    end
     node.flush_list(trial)
     local old = tex.getmath("radicalrule", snames[s])
     local h = c and c.height
+    -- (the legacy virtual fonts have TeX's own boxes: there the top glyph's height is it)
+    if pieces then h = top or (not (f and f.characters) and h) or old end
     if not h or h <= 0 or (h == old and not force) then return n end
     local sub, sup = n.sub, n.sup
     n.sub, n.sup = nil, nil
@@ -2626,11 +2688,25 @@ do
     if nxt then nxt.prev = ord; ord.next = nxt end
     return ord
   end
+  -- Lite has no bold maths font: under \\boldmath, letters, Greek and digits from newtx's
+  -- bold, as under \\bm (symbols stay regular, as LaTeX's bold version falls back to them)
+  local function liteboldver(n)
+    if not (LB and LB.map and n.id == NOAD) then return end
+    if not node.has_attribute(n, luatexbase.attributes["MTP@litebold"] or -1) then return end
+    for _, k in ipairs({ "nucleus", "sub", "sup" }) do
+      local nc = n[k]
+      if nc and nc.id == MCHAR and nc.fam == fam() then
+        local m = LB.map[nc.char]
+        if m and LB[m[1]] then nc.fam, nc.char = LB[m[1]], m[2] end
+      end
+    end
+  end
   walk = function(head, s)
     local n = head
     while n do
       local id = n.id
       if LB and LB.attr then lite(n, s) end
+      liteboldver(n)
       if id == STYLE then
         s = num(n.style)
       elseif id == ACC and ((s >= 4 or mtpro2otf.design(mtpro2otf.fontsize[node.family_font(fam(), size(s))]) > 1)
@@ -2760,7 +2836,14 @@ do
       for _, fld in ipairs({ "nucleus", "sub", "sup", "num", "denom", "degree" }) do
         local ok, k = pcall(function() return n[fld] end)
         if ok and k then
-          if k.id == MCH and k.fam ~= mainfam then
+          local rg = k.id == MCH and k.fam == mainfam and mtpro2otf.rmgreekfam
+          if rg and k.char >= 0x391 and k.char <= 0x3A9
+              and node.has_attribute(k, luatexbase.attributes["MTP@rmattr"] or -1) then
+            -- (\\mathrm of a capital Greek letter: the OT1 operators font, slots 0-10)
+            local ot1 = ({ [2] = 0, [3] = 1, [7] = 2, [10] = 3, [13] = 4, [15] = 5, [18] = 6,
+              [20] = 7, [21] = 8, [23] = 9, [24] = 10 })[k.char - 0x391]
+            if ot1 then k.fam, k.char = rg, ot1 end
+          elseif k.id == MCH and k.fam ~= mainfam then
             local fid = fontof(k.fam)
             local ch = fid and hasc[fid]
             local c0 = k.char
@@ -2959,8 +3042,10 @@ function mtpro2otf.setlitebm(t)
   local m = {}
   for i = 0, 25 do
     m[0x1D434 + i] = { "it", 0x41 + i }; m[0x1D44E + i] = { "it", 0x61 + i }
-    m[0x30 + (i % 10)] = { "rm", 0x30 + (i % 10) }
+    m[0x30 + (i % 10)] = { "it", 0x30 + (i % 10) }
   end
+  -- (mtpro2.sty's letters family has the digits and . , / too: bold, newtx's letters font)
+  m[0x2E], m[0x2C], m[0x2F] = { "it", 0x3A }, { "it", 0x3B }, { "it", 0x3D }
   m[0x1D455], m[0x210E] = nil, { "it", 0x68 }    -- (italic h is U+210E)
   -- Greek in TeX's OML order (classic \\epsilon, \\phi are the lunate/straight forms)
   local lc = { 0x0B, 0x0C, 0x0D, 0x0E, 0x22, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
@@ -3513,7 +3598,16 @@ STY = r'''%% mtpro2-otf.sty -- MathTime Pro 2 as OpenType (built by mtpro2_otf.p
     \csname\MTP@o\expandafter\endcsname\csname MTP@ams@\MTP@o\endcsname}}%
 \fi
 \directlua{mtpro2otf.savemissing()}% (definitions of commands whose character MTPro2 lacks)
+% the Type 1 set-up's operators font (mtpro2.sty: {\encodingdefault}{\rmdefault}, b/n in the bold
+% version, m/n in the heavy one), as when the package loads
+\edef\MTP@mt@enc{\encodingdefault}\edef\MTP@mt@fam{\rmdefault}\def\MTP@mt@bold{b}\def\MTP@mt@heavy{m}
 \RequirePackage{unicode-math}
+% unicode-math ends a delimiter command's number with \scan_stop: (\lbrace is \Udelimiter 4
+% \symoperators "0007B\scan_stop:); \abovewithdelims (amsmath's \genfrac) then takes that \relax
+% for its thickness. The Type 1 set-up ends it with a space (\delimiter"4266308 ), as here.
+\ExplSyntaxOn
+\cs_set:Nn \__um_delimiter:Nnn { \Udelimiter \mathchar@type#1 \csname sym#2\endcsname #3 ~ }
+\ExplSyntaxOff
 \edef\MTP@path{\directlua{mtpro2otf.fontdir("MTPro2Math.otf")}}% (found like any TeX file)
 \edef\MTP@load{\noexpand\setmathfont{MTPro2Math.otf}[Path=\MTP@path,RawFeature={\MTP@features},script-features={},sscript-features={}]}\MTP@load
 \IfFileExists{MTPro2Math-Bold.otf}{%
@@ -3522,6 +3616,15 @@ STY = r'''%% mtpro2-otf.sty -- MathTime Pro 2 as OpenType (built by mtpro2_otf.p
 \IfFileExists{MTPro2Math-Heavy.otf}{%
   \edef\MTP@load{\noexpand\setmathfont{MTPro2Math-Heavy.otf}[Path=\MTP@path,version=heavy,RawFeature={\MTP@features},script-features={},sscript-features={}]}\MTP@load
   \def\MTP@heavyver{heavy}}{\let\MTP@heavyver\MTP@boldver}
+% (mtpro2.sty) \mathrm and operator names (unicode-math: \setoperatorfont{\mathrm}) in the bold
+% and heavy versions: its operators font, the text font (unicode-math would take the bold maths
+% font; its symbol font `operators' is the maths font itself and stays)
+% (LaTeX's bold version always, the heavy one when the Heavy font made it; Lite too: mtpro2.sty
+% leaves bold \mathrm regular there, but the bold text font needs no MTPro2 fonts)
+\SetMathAlphabet{\mathrm}{bold}{\MTP@mt@enc}{\MTP@mt@fam}{\MTP@mt@bold}{n}
+\def\MTP@tmp{heavy}\ifx\MTP@heavyver\MTP@tmp
+  \SetMathAlphabet{\mathrm}{heavy}{\MTP@mt@enc}{\MTP@mt@fam}{\MTP@mt@heavy}{n}\fi
+% (end mtpro2.sty)
 % mtpro2.sty's script and scriptscript sizes (unicode-math declares one, from the font)
 @@MATHSIZES@@
 % LaTeX's symbol families (letters, symbols, largesymbols) on TFM-exact virtual MTPro2 fonts
@@ -3573,6 +3676,8 @@ STY = r'''%% mtpro2-otf.sty -- MathTime Pro 2 as OpenType (built by mtpro2_otf.p
   \else\ensuremath{\bm{#1}}\fi}
 \protected\def\hm#1{\relax\ifmmode\MTP@bmsize\begingroup\MTP@bmattr=2 #1\endgroup
   \else\ensuremath{\hm{#1}}\fi}
+% (as bm.sty: \boldsymbol is \bm, \heavysymbol \hm; amsbsy's would box the symbol)
+\AddToHook{begindocument/end}{\let\boldsymbol\bm \let\heavysymbol\hm}
 % (the bold fonts in the extra families, for the current size: as NFSS sets a math alphabet)
 \let\MTP@bmfams\@empty \def\MTP@bmat{}
 \def\MTP@bmsize{\ifx\MTP@bmat\tf@size\else\directlua{mtpro2otf.mathparams(true)}\MTP@bmfams
@@ -3619,6 +3724,11 @@ STY = r'''%% mtpro2-otf.sty -- MathTime Pro 2 as OpenType (built by mtpro2_otf.p
     \DeclareSymbolFont{MTPbmrm}{TU}{\rmdefault}{\bfdefault}{n}%
     \directlua{mtpro2otf.setlitebm{\MTP@bmletters rm=\number\symMTPbmrm}}}%
   \let\hm\bm
+  % (\boldmath: the version a formula starts in, as LaTeX chooses its fonts then)
+  \newattribute\MTP@litebold \def\MTP@boldname{bold}
+  \AddToHook{begindocument/end}{%
+    \everymath\expandafter{\the\everymath\ifx\math@version\MTP@boldname\MTP@litebold=1 \else\unsetattribute\MTP@litebold\fi}%
+    \everydisplay\expandafter{\the\everydisplay\ifx\math@version\MTP@boldname\MTP@litebold=1 \else\unsetattribute\MTP@litebold\fi}}
 \fi
 
 % alphabets and alternate letters (per use)
@@ -3678,6 +3788,68 @@ STY = r'''%% mtpro2-otf.sty -- MathTime Pro 2 as OpenType (built by mtpro2_otf.p
   (U+#2) is not in the MathTime Pro 2 fonts}{MathTime Pro 2 has no glyph for this character;
   with its Type 1 fonts the command is not defined either.}}
 \AddToHook{begindocument/end}{\directlua{mtpro2otf.nochar()}}
+% a formula nested in an alphabet switch starts with the document's letters, as with the
+% Type 1 fonts, where the switch is \fam and TeX resets it at the start of every formula
+% (\operatorname{inf\vphantom{p}}, \mathbb{x\phantom{y}}, \mathrm{x\text{$p$}}). unicode-math
+% switches by changing mathcodes; the flag is set only for switches inside maths (unicode-math
+% also switches outside), so packages that set mathcodes themselves (url) are left alone.
+% (No ~ and no Lua comments here: babel makes ~ active, and newlines become spaces.)
+\newcount\MTP@inalpha
+\ExplSyntaxOn
+\cs_set_protected:Nn \__um_switch_to:n { \tl_use:c {g__um_switchto_#1_tl} \ifmmode \MTP@inalpha=\@ne \fi }
+\ExplSyntaxOff
+\def\MTP@resetmc{\ifnum\MTP@inalpha>\z@ \MTP@inalpha=\z@ \directlua{mtpro2otf.resetmc()}\fi}
+\AddToHook{begindocument/end}{\directlua{
+  local L, S = {}, {}
+  for _, r in ipairs({{48, 57}, {65, 90}, {97, 122}, {913, 937}, {945, 969}, {977, 982}, {1008, 1013}, {8706, 8706}, {8711, 8711}}) do
+    for c = r[1], r[2] do table.insert(L, c) S[c] = tex.getmathcode(c) end
+  end
+  function mtpro2otf.resetmc()
+    for _, d in ipairs(L) do
+      local m, s = tex.getmathcode(d), S[d]
+      if not (m[1] == s[1] and m[2] == s[2] and m[3] == s[3]) then tex.setmathcode(d, s) end
+    end
+  end}%
+  \everymath\expandafter{\the\everymath\MTP@resetmc}%
+  \everydisplay\expandafter{\the\everydisplay\MTP@resetmc}%
+  \def\MTP@tmp#1#2#3{\hbox{{\everymath{#1}\let\f@size#2\selectfont#3}}}% amsmath's \text sets \everymath
+  \ifx\textdef@\MTP@tmp\def\textdef@#1#2#3{\hbox{{\everymath{#1\MTP@resetmc}\let\f@size#2\selectfont#3}}}\fi}
+% microtype: the glyphs the Type 1 set-up takes from its operators font (a text font: digits,
+% \mathrm letters, operator names, ...) get what microtype gives that font, protrusion and
+% expansion included; the other glyphs get none, as with the Type 1 maths fonts. microtype is
+% shown that font's name (encoding, family, series) for the maths fonts, so its settings and
+% the document's \SetProtrusion/\SetExpansion apply as they would to the Type 1 font.
+\directlua{mtpro2otf.mttext = {@@MTTEXT@@}}
+\def\MTP@mt@name#1/#2/#3/#4/#5/#6\@nil{%
+  \in@{MTPro2Math}{#2}%
+  \ifin@
+    \in@{-Bold}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@bold \else
+    \in@{-Heavy}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@heavy \else \def\MTP@mt@ser{m}\fi\fi
+    \edef\MTP@tmp{\noexpand\MTP@MT@split@name\MTP@mt@enc/\MTP@mt@fam/\MTP@mt@ser/#4/#5/#6\noexpand\@nil}%
+  \else \def\MTP@tmp{\MTP@MT@split@name#1/#2/#3/#4/#5/#6\@nil}\fi
+  \MTP@tmp}
+\AddToHook{begindocument/before}{\@ifpackageloaded{microtype}{%
+  \let\MTP@MT@split@name\MT@split@name \let\MT@split@name\MTP@mt@name
+  \g@addto@macro\MT@setupfont{\directlua{mtpro2otf.mtfix()}}%
+  \directlua{
+    local done, T = {}, mtpro2otf.mttext
+    function mtpro2otf.mtfix()
+      local id = font.current()
+      if done[id] then return end
+      done[id] = true
+      local f = font.getfont(id)
+      if not (f and f.name and f.name:find("MTPro2Math", 1, true)) then return end
+      local L, R, E = "\string\\lpcode\string\\font", "\string\\rpcode\string\\font", "\string\\efcode\string\\font"
+      local function set(c, v) return L .. c .. "=" .. v .. R .. c .. "=" .. v .. E .. c .. "=" .. v .. " " end
+      local a, b = {}, {}
+      for c, v in pairs(T) do
+        if not (c == v) then table.insert(a, L .. c .. "=" .. L .. v .. " " .. R .. c .. "=" .. R .. v .. " " .. E .. c .. "=" .. E .. v .. " ") end
+      end
+      for c in pairs(f.characters) do
+        if not T[c] then table.insert(b, set(c, 0)) end
+      end
+      tex.sprint(table.concat(a) .. table.concat(b))
+    end}}{}}
 % hyperref: headings with maths give bookmarks with the symbols (Flow with 𝛼i and ∇f)
 \AddToHook{begindocument/end}{\@ifpackageloaded{hyperref}{\pdfstringdefDisableCommands{%
   \directlua{mtpro2otf.pdfstr()}%
@@ -3745,7 +3917,8 @@ STY = r'''%% mtpro2-otf.sty -- MathTime Pro 2 as OpenType (built by mtpro2_otf.p
   \MTP@composite{doteq}{2250}\MTP@composite{bowtie}{22C8}\MTP@composite{models}{22A7}%
   \MTP@composite{dblcolon}{2237}\MTP@composite{coloneqq}{2254}%
   \MTP@composite{Coloneqq}{2A74}\MTP@composite{eqqcolon}{2255}%
-  \@ifpackageloaded{amsmath}{}{\MTP@composite{cdots}{22EF}}\MTP@composite{@cdots}{22EF}\MTP@composite{mathellipsis}{2026}}
+  \@ifpackageloaded{amsmath}{}{\MTP@composite{cdots}{22EF}}\MTP@composite{@cdots}{22EF}\MTP@composite{mathellipsis}{2026}%
+  \MTP@composite{vdots}{22EE}\MTP@composite{ddots}{22F1}\MTP@composite{adots}{22F0}}
 
 % \sqrt[n]{...}: TeX's placement of the degree (raised by 0.6 of the radical's height
 % minus depth; OpenType's percentage counts height plus depth)
@@ -4073,6 +4246,30 @@ def colon_defs(B: MathFontBuild) -> str:
     return "\n".join("  " + o for o in out)
 
 
+def text_chars(B: MathFontBuild) -> dict[int, int]:
+    """Code points whose glyph the Type 1 set-up takes from its operators font, a text font
+    (digits, \\mathrm letters and operator names, the symbols declared in operators), and
+    their slot there: microtype treats that font as text, the other maths fonts not."""
+    # letters: \\mathrm and operator names (the operators font in both packages); digits unless
+    # declared in another font (mtpro2.sty: its letters font)
+    t = {c: c for c in [*range(65, 91), *range(97, 123)]}
+    t.update({c: c for c in range(48, 58) if not any(d.kind == "symbol" and d.cmd == chr(c) and d.fam not in
+                                                     ("operators", "operatorsX") for d in B.inp.decls)})
+    # code points other declarations use (\\lbrace: U+007B, whose default mathcode is operators)
+    ops = ("operators", "operatorsX")                   # (ntx: its operators font, renamed)
+    other = {cp for d in B.inp.decls if d.fam not in ops and len(d.cmd) > 1
+             for cp in [B.inp.uni.for_command(d.cmd, d.slot, d.fam)] if cp}
+    special = set(map(ord, "{}$&#^_%~\\"))              # never typeset through their mathcode
+    for d in B.inp.decls:
+        if d.kind == "symbol" and d.fam in ops and not (len(d.cmd) == 1 and ord(d.cmd) in special):
+            cp = B.inp.uni.for_command(d.cmd, d.slot, d.fam)
+            if cp and cp in B.cmap and cp not in t and cp not in other:
+                t[cp] = d.slot
+    # a code that is another one's source slot keeps its own place (no copy chains)
+    srcs = {s for c, s in t.items() if c != s}
+    return {c: s for c, s in sorted(t.items()) if c == s or c not in srcs}
+
+
 def make_sty(B: MathFontBuild, date: str) -> str:
     over, prov = command_defs(B)
     z = B.commands.get("mtp@@z", (None, ""))[1]
@@ -4082,6 +4279,7 @@ def make_sty(B: MathFontBuild, date: str) -> str:
             .replace("@@VERSION@@", PACKAGE_VERSION)
             .replace("@@AMSLIST@@", ",".join(ams_fallbacks(B)) if not B.inp.complete else "")
             .replace("@@CLASSIC@@", classic_defs(B))
+            .replace("@@MTTEXT@@", ",".join(f"[{c}]={v}" for c, v in text_chars(B).items()))
             .replace("@@COLONS@@", colon_defs(B))
             .replace("@@MATHSIZES@@", "\n".join(re.findall(r"^\\(?:def\\default\w*ratio\{[^}]*\}|DeclareMathSizes(?:\s*\{[^}]*\}){4})",
                                                        B.inp.sty, re.M)))
@@ -4650,8 +4848,153 @@ T1_SCALE = r"""\directlua{
   end, "selftest.mtpro2-scale")}"""
 
 
+# Greek in every style the packages' options choose (slantedGreek: italic capitals), with the
+# upright constants of ISO 80000-2 (\uppi, \mathrm{e}, \mathrm{i})
+GREEK_FORMULAS = [
+    r"\Gamma\Delta\Theta\Lambda\Xi\Pi\Sigma\Upsilon\Phi\Psi\Omega", r"\Gamma_i^2+\Omega^{n}_{k}",
+    r"x\Delta y\,\Delta t", r"\mathrm{\Gamma\Delta\Omega}", r"\mathbf{\Gamma\Omega}",
+    r"\bm{\Gamma}\bm{\Omega}_i", r"\bm{\Delta}x", r"\upGamma\upDelta\upOmega", r"\uppi r^2",
+    r"\mathrm{e}^{\mathrm{i}\uppi}+1=0", r"\alpha\beta\gamma\pi\omega", r"\bm{\alpha}\bm{\pi}",
+    r"\hat{\Gamma}\tilde{\Omega}_k", r"\dot{\Phi}(t)", r"\sum_{\Gamma}\Psi", r"f(\Lambda)\,d\Theta",
+]
+
+# A document like a thesis: tagged PDF/UA-2 with MathML, babel, fontspec, microtype (protrusion
+# and expansion), siunitx, hyperref; maths at the ends of lines, in headings, displays.
+DOCTEST_PRE = r"""\DocumentMetadata{lang=en-GB, pdfversion=2.0, pdfstandard={ua-2,a-4f}, tagging=on,
+  tagging-setup={math/setup={mathml-SE,mathml-AF}}}
+\documentclass[a4paper]{article}
+\usepackage[british]{babel}
+@@TEXT@@
+\usepackage{amsmath}
+%s
+\usepackage{microtype}
+\usepackage{siunitx}
+\usepackage{hyperref}
+\renewcommand{\inf}{\operatorname*{inf\vphantom{p}}}
+\directlua{dofile("doctest-dump.lua")}
+"""
+DOCTEST_BODY = r"""\begin{document}
+\title{Flow past a cylinder with $\Gamma$ and $\nabla p$}\author{A. Student}\maketitle
+\section{Results for $T=1$ and $\alpha\in[0,1]$}
+\def\filler{The quick brown fox jumps over the lazy dog while the committee deliberates the
+matter at considerable length and with remarkable patience. }
+\newcommand\para[1]{\par\noindent #1 \filler\filler\par\medskip \filler #1 \filler #1\par\medskip}
+\para{$1.342$ m}\para{$\{x\in X: x>0\}$}\para{$\sin x+\cos y$}\para{$\mathrm{Tr}\,A$}
+\para{\qty{1.342}{m}}\para{$(a,b)$ and $[c,d]$}\para{$x=0$; $y!$ and $z?$ and $a/b$}
+\para{$\Gamma\Delta$ $\alpha\beta$ $\mathbf{T}x$ $\mathit{AV}$ $\bm{u}$}
+\para{$\max_{i} a_i$ and $\lim_{n\to\infty} 1/n$}\para{$2^{10}=1024$, $\operatorname{Wo}(T)$}
+\para{\num{6.02e23} and \qty{9.81}{\metre\per\second\squared}}
+\para{\boldmath $1.342\,\mathrm{AT}\{x\}$\unboldmath}
+\subsection{Error estimate}
+\filler The error is bounded as in \eqref{eq:est}:
+\begin{equation}\label{eq:est}
+\begin{split}
+&\|\nabla(\bm u-\bm u^h)\|_\Omega+\|p-p^h\|_\Omega\\
+&\qquad\le C(\beta_0)\Bigl(\inf_{\bm v^h\in\mathcal V^h}\|\nabla(\bm u-\bm v^h)\|_\Omega
++\inf_{q^h\in Q^h_0}\|p-q^h\|_\Omega\Bigr),
+\end{split}
+\end{equation}
+\filler\filler where $\operatorname*{inf\phantom{p}}$ and $\mathrm{x\text{$p$}}$ appear in text.
+\begin{align}
+a&=\sum_{k=1}^{n}\frac{\uppi}{k^2}+\mathrm{e}^{\mathrm{i}\theta}, & b&=\int_0^1 f(x)\,\mathrm{d}x,\\
+\Phi&=\left(\frac{\partial u}{\partial x}\right)^{2}, & \Psi&=\sqrt{\frac{\Gamma}{\Omega}}.
+\end{align}
+\filler See \url{https://example.org/thesis} and \cite{x}\footnote{A note with $x^2$.}.
+\filler\filler $7$ \filler $\mathrm{W}$\filler\filler\filler
+\end{document}
+"""
+# every glyph outside maths on each page, where it lands: margin kerns (protrusion) and glyph
+# expansion included
+DOCTEST_LUA = r"""
+local out = io.open(tex.jobname .. ".doc", "w")
+local GL, HL, VL, RU, GLUE, KERN, MK, MATH = node.id("glyph"), node.id("hlist"), node.id("vlist"),
+  node.id("rule"), node.id("glue"), node.id("kern"), node.id("margin_kern"), node.id("math")
+local page = 0
+local function wd(n) return n.width + n.width * (n.expansion_factor or 0) // 1000000 end
+local function walk(head, x, y, vertical, inmath)
+  for n in node.traverse(head) do
+    local id = n.id
+    if vertical then
+      if id == HL or id == VL then
+        y = y + n.height
+        local sx = x + (n.shift or 0)
+        if id == HL then walk(n.head, sx, y, false, inmath) else walk(n.head, sx, y - n.height, true, inmath) end
+        y = y + n.depth
+      elseif id == RU then y = y + n.height + n.depth
+      elseif id == GLUE then y = y + node.effective_glue(n, head) // 1
+      elseif id == KERN then y = y + n.kern end
+    else
+      if id == GL then
+        if not inmath then out:write(string.format("%d %d %d %d\n", page, n.char, x, y - (n.yoffset or 0))) end
+        x = x + wd(n)
+      elseif id == HL or id == VL then
+        local sy = y + (n.shift or 0)
+        if id == HL then walk(n.head, x, sy, false, inmath) else walk(n.head, x, sy - n.height, true, inmath) end
+        x = x + n.width
+      elseif id == RU then x = x + (n.width > 0 and n.width or 0)
+      elseif id == GLUE then x = x + node.effective_glue(n, head) // 1
+      elseif id == KERN or id == MK then x = x + (n.kern or n.width or 0)
+      elseif id == MATH then x = x + (n.surround or 0); inmath = (n.subtype == 0) end
+    end
+  end
+end
+luatexbase.add_to_callback("pre_shipout_filter", function(box)
+  page = page + 1
+  walk(box.head, 0, 0, box.id == VL)
+  return true
+end, "doctest")
+"""
+
+
+def doctest(work: Path, t1: str, otf: str, env: dict, label: str,
+            text: str = r"\usepackage{fontspec}\setmainfont{TeX Gyre Termes}") -> int:
+    """Typeset DOCTEST_BODY with the Type 1 set-up (t1) and the OpenType one (otf): errors,
+    tagging warnings, pages, and where every glyph outside maths lands (within 0.01pt)."""
+    (work / "doctest-dump.lua").write_text(DOCTEST_LUA)
+    pre = DOCTEST_PRE.replace("@@TEXT@@", text)
+    (work / "doc_t1.tex").write_text(pre % t1 + DOCTEST_BODY)
+    (work / "doc_otf.tex").write_text(pre % otf + DOCTEST_BODY)
+    res = {}
+    for job in ("doc_t1", "doc_otf"):
+        for _ in range(2):
+            subprocess.run(["lualatex", "-interaction=nonstopmode", job + ".tex"], cwd=work, env=env,
+                           capture_output=True, text=True, timeout=1800)
+        log = (work / f"{job}.log").read_text(errors="replace") if (work / f"{job}.log").exists() else ""
+        dump = (work / f"{job}.doc").read_text().split("\n") if (work / f"{job}.doc").exists() else []
+        res[job] = {"errors": len(re.findall(r"^! ", log, re.M)),
+                    "tagwarn": len(re.findall(r"(?:Package|Module) (?:tagpdf|luamml|latex-lab)\S* Warning", log)),
+                    "glyphs": [tuple(map(int, l.split())) for l in dump if l]}
+    a, b = res["doc_t1"]["glyphs"], res["doc_otf"]["glyphs"]
+    pages = lambda g: max((x[0] for x in g), default=0)
+    moved = [(u, v) for u, v in zip(a, b) if u[1] != v[1] or u[0] != v[0] or abs(u[2] - v[2]) > 655 or abs(u[3] - v[3]) > 655]
+    worst = max([max(abs(u[2] - v[2]), abs(u[3] - v[3])) for u, v in zip(a, b)] or [0]) / 65536
+    ok = len(a) == len(b) and not moved and res["doc_otf"]["errors"] == 0
+    print(f"document ({label}): {'same' if ok else 'DIFFERENT'}: pages {pages(a)}/{pages(b)}, "
+          f"text glyphs {len(a)}/{len(b)}, moved {len(moved)} (max {worst:.3f}pt); "
+          f"errors {res['doc_t1']['errors']}/{res['doc_otf']['errors']}, "
+          f"tagging warnings {res['doc_t1']['tagwarn']}/{res['doc_otf']['tagwarn']} (Type 1/OpenType)")
+    for u, v in moved[:5]:
+        print(f"  page {u[0]} {chr(u[1])!r} at ({u[2] / 65536:.2f}, {u[3] / 65536:.2f}) -> ({v[2] / 65536:.2f}, {v[3] / 65536:.2f})")
+    # PDF/A-4f and PDF/UA-2 validation, when veraPDF is installed (https://verapdf.org)
+    vera = shutil.which("verapdf")
+    if vera:
+        res = []
+        for flavour, label in (("4f", "PDF/A-4f"), ("ua2", "PDF/UA-2")):
+            for job in ("doc_t1", "doc_otf"):
+                r = subprocess.run([vera, "--flavour", flavour, "--format", "text", f"{job}.pdf"], cwd=work,
+                                   capture_output=True, text=True, timeout=600)
+                verdict = "pass" if re.search(r"^PASS", r.stdout, re.M) else "FAIL" if re.search(r"^FAIL", r.stdout, re.M) else "?"
+                res.append(f"{label} {'Type 1' if job == 'doc_t1' else 'OpenType'} {verdict}")
+                ok = ok and not (job == "doc_otf" and verdict == "FAIL")
+        print("  veraPDF: " + ", ".join(res))
+    else:
+        print("  (veraPDF not installed: no PDF/A-4f or PDF/UA-2 validation)")
+    return 0 if ok else 1
+
+
 def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: str | None = None,
-             scale: float = 1.0, stress: bool = False, size: float | None = None) -> int:
+             scale: float = 1.0, stress: bool = False, size: float | None = None,
+             document: bool = False) -> int:
     """Build the fonts, typeset SELFTEST_FORMULAS with the Type 1 fonts (mtpro2.sty) and the
     OpenType fonts (mtpro2-otf.sty); compare where TeX placed every glyph and rule, and the
     rendered pages (which also differ where the rasteriser hints the Type 1 fonts)."""
@@ -4678,8 +5021,11 @@ def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: st
         pass
     complete = Inputs.load(folder).complete
     opts = f"[{options}]" if options else "[complete,mtpscr,mtpcal,mtpfrak,mtpbb]" if complete else "[lite]"
-    formulas = list(SELFTEST_FORMULAS)
-    family = {f: "basic" for f in formulas}
+    # (\\mathrm{\\Gamma}, \\mathbf{\\Gamma}: mtpro2.sty takes them from the text font's slots 0-10,
+    # which hold no Greek in TU or T1: no reference)
+    formulas = list(SELFTEST_FORMULAS) + [f for f in GREEK_FORMULAS if f not in SELFTEST_FORMULAS
+                                          and not re.match(r"\\math(rm|bf)\{\\[A-Z]", f)]
+    family = {f: "greek" if f in GREEK_FORMULAS else "basic" for f in formulas}
     if stress:                                  # (layout only: no pixel comparison)
         for fam, f in stress_formulas(Inputs.load(folder)):
             # (Lite: the Type 1 reference takes \\bm from newtx's math italic, whose slots
@@ -4717,7 +5063,8 @@ def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: st
         r"\SetMathAlphabet{\mathscr}{bold}{U}{eus}{b}{n}"
         r"\SetSymbolFont{letters}{bold}{OML}{ntxmi}{b}{it}"
         r"\SetSymbolFont{symbols}{bold}{LMP2}{mtt}{m}{n}"
-        r"\SetSymbolFont{largesymbols}{bold}{LMP3}{mtt}{m}{n}")
+        r"\SetSymbolFont{largesymbols}{bold}{LMP3}{mtt}{m}{n}"
+        r"\SetSymbolFont{operators}{bold}{\encodingdefault}{\rmdefault}{b}{n}")   # (bold \mathrm)
     (work / "st_t1.tex").write_text(SELFTEST_DOC % (t1_scale + r"\pdfextension mapfile{+mtpro2.map}" + lite_t1 +
                                                     r"\usepackage%s{mtpro2}" % opts + lite_t1b + r"\usepackage{bm}", body))
     (work / "st_otf.tex").write_text(SELFTEST_DOC % (r"\usepackage%s{mtpro2-otf}" % otf_opts, body))
@@ -4758,8 +5105,13 @@ def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: st
     if skipped:
         print(f"  ({len(skipped)} formulas skipped: TeX errors, e.g. commands your fonts lack: "
               + ", ".join(formulas[i] for i in sorted(skipped)[:3]) + (", ..." if len(skipped) > 3 else "") + ")")
+    doc_rc = 0
+    if document:
+        doc_rc = doctest(work, t1_scale + r"\pdfextension mapfile{+mtpro2.map}" + lite_t1 + r"\usepackage%s{mtpro2}" % opts
+                         + lite_t1b + r"\usepackage{bm}", r"\usepackage%s{mtpro2-otf}" % otf_opts, env,
+                         f"options {opts.strip('[]')}" + (f", scale {scale}" if scale != 1 else ""))
     if Image is None:
-        return 0 if all(m is None for m in layout.values()) else 1
+        return 0 if all(m is None for m in layout.values()) and not doc_rc else 1
     for job in ("st_t1", "st_otf"):
         for p in work.glob(f"{job}-*.png"):
             p.unlink()
@@ -4785,7 +5137,7 @@ def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: st
         print(f"  {f:55s} ink difference {d * 100:4.1f}%")
     if report:
         print(f"  overlays (red: Type 1 only, blue: OpenType only): {work}/diff-NN.png")
-    return 0 if all(m is None for m in layout.values()) else 1
+    return 0 if all(m is None for m in layout.values()) and not doc_rc else 1
 
 
 def cli(argv=None) -> int:
@@ -4803,9 +5155,12 @@ def cli(argv=None) -> int:
     ap.add_argument("--scale", type=float, default=1.0, help="--selftest with all maths fonts at this size factor")
     ap.add_argument("--stress", action="store_true", help="--selftest with about 3000 more generated formulas")
     ap.add_argument("--size", type=float, help="--selftest at this font size in pt (default: 10)")
+    ap.add_argument("--document", action="store_true", help="--selftest also with a thesis-like document (tagged "
+                    "PDF/UA-2, babel, fontspec, microtype, siunitx, hyperref)")
     a = ap.parse_args(argv)
     if a.selftest:
-        return selftest(a.mtpro2, a.work, options=a.options, scale=a.scale, stress=a.stress, size=a.size)
+        return selftest(a.mtpro2, a.work, options=a.options, scale=a.scale, stress=a.stress, size=a.size,
+                        document=a.document)
     if not a.output:
         ap.error("OUTPUT folder required")
     weights = tuple({"regular": "normal"}.get(w.strip(), w.strip()) for w in a.weights.split(","))

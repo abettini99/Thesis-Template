@@ -411,6 +411,13 @@ do
     for _, r in ipairs(BOLDCP) do if c >= r[1] and c <= r[2] then return true end end
   end
   local FENCE, FRAC2 = node.id("fence"), node.id("fraction")
+  local function glyphname(code)                -- (a private code's glyph name in the main font)
+    local n = ntxmathotf.byslot[code]
+    if n then return n end
+    local tf = fonts and fonts.hashes and fonts.hashes.identifiers[node.family_font(fam(), 0)]
+    local d = tf and tf.shared and tf.shared.rawdata and tf.shared.rawdata.descriptions
+    return d and d[code] and d[code].name
+  end
   local function bold(nc, s, subtype)           -- a math_char under \\bm: the field's new value
     if not (nc and nc.id == MCHAR) then return nc end
     local a = node.has_attribute(nc, LB.attr)
@@ -427,7 +434,7 @@ do
     local f = not (nb and nb[nc.char]) and LB.fams[a] and LB.fams[a][nc.fam]
     if f and main and nc.char >= 0xF0000 then       -- a glyph set by name (private code):
       local z = size(s)                             -- the same name in the bold font
-      local name = ntxmathotf.byslot[nc.char]
+      local name = glyphname(nc.char)
       local ok, slot = pcall(luaotfload.aux.slot_of_name, node.family_font(f, 0), name or "")
       if name and ok and slot then nc.fam, nc.char = f, slot; return nc end
       f = nil
@@ -446,7 +453,17 @@ do
   local function lite(n, s)
     local id = n.id
     if id == NOAD then
+      local o = n.nucleus
+      local box = o and o.id == MCHAR and o.fam == fam() and node.has_attribute(o, LB.attr) and V.bmbox and V.bmbox[o.char]
       n.nucleus = bold(n.nucleus, s, (n.subtype >= 1 and n.subtype <= 3) and n.subtype or 0)
+      if box and n.nucleus and n.nucleus.id == MCHAR then
+        -- (bm.sty: \hbox{\boldmath$...$} in the noad's class, in the current style)
+        local q = node.new("noad", n.subtype)
+        q.attr, q.nucleus = n.attr, n.nucleus
+        local sb = node.new("sub_box")
+        sb.attr, sb.head = n.attr, node.hpack(node.mlist_to_hlist(q, snames[s], false))
+        n.nucleus = sb
+      end
     elseif id == ACC or id == RAD then
       n.nucleus = bold(n.nucleus, s | 1)
       local t = fams(n)
@@ -455,7 +472,7 @@ do
           local ok, c = pcall(function() return n[k] end)
           if ok and c and c.fam and t[c.fam] then
             if c.fam == fam() and c.char and c.char >= 0xF0000 then   -- (set by name: the same
-              local name = ntxmathotf.byslot[c.char]                    -- name in the bold font)
+              local name = glyphname(c.char)                           -- name in the bold font)
               local ok2, sl = pcall(luaotfload.aux.slot_of_name, node.family_font(t[c.fam], 0), name or "")
               if name and ok2 and sl then c.char = sl end
             end
@@ -501,6 +518,22 @@ do
       end
     end
   end
+  -- (a sign built from pieces, a vlist of them, keeps the default rule thickness, as TeX
+  -- with the Type 1 fonts: the rule follows the sign's height only for a single character)
+  local function assembled(h)
+    for x in node.traverse(h) do
+      if x.id == GLYPH then return false end
+      if x.id == VLIST then
+        local k = 0
+        for y in node.traverse(x.head) do if y.id == HLIST and firstglyph(y.head) then k = k + 1 end end
+        if k >= 2 then return true end
+      end
+      if (x.id == HLIST or x.id == VLIST) and x.head then
+        local r = assembled(x.head)
+        if r ~= nil then return r end
+      end
+    end
+  end
   local function exactradical(n, s, force)
     list(n.nucleus, s | 1); list(n.degree, 6)
     local trial = node.hpack(node.mlist_to_hlist(node.copy(n), snames[s], false))
@@ -508,9 +541,20 @@ do
     local f = g and font.getfont(g.font)
     local chars = f and f.characters or (g and ntxmathotf.vfchars[g.font])
     local c = chars and chars[g.char]
+    local pieces = assembled(trial.head)
+    local top
+    if pieces and g then                         -- (the top piece's TeX height)
+      local tf = fonts and fonts.hashes and fonts.hashes.identifiers[g.font]
+      local d = tf and tf.shared and tf.shared.rawdata and tf.shared.rawdata.descriptions
+      local nm = d and d[g.char] and d[g.char].name
+      local u = nm and V.radtop and V.radtop[nm]
+      if u and f and f.size then top = math.floor(u * f.size / 1000 + 0.5) end
+    end
     node.flush_list(trial)
     local old = tex.getmath("radicalrule", snames[s])
     local h = c and c.height
+    -- (the legacy virtual fonts have TeX's own boxes: there the top glyph's height is it)
+    if pieces then h = top or (not (f and f.characters) and h) or old end
     if not h or h <= 0 or (h == old and not force) then return n end
     local sub, sup = n.sub, n.sup
     n.sub, n.sup = nil, nil
@@ -670,11 +714,25 @@ do
     if nxt then nxt.prev = ord; ord.next = nxt end
     return ord
   end
+  -- Lite has no bold maths font: under \\boldmath, letters, Greek and digits from newtx's
+  -- bold, as under \\bm (symbols stay regular, as LaTeX's bold version falls back to them)
+  local function liteboldver(n)
+    if not (LB and LB.map and n.id == NOAD) then return end
+    if not node.has_attribute(n, luatexbase.attributes["MTP@litebold"] or -1) then return end
+    for _, k in ipairs({ "nucleus", "sub", "sup" }) do
+      local nc = n[k]
+      if nc and nc.id == MCHAR and nc.fam == fam() then
+        local m = LB.map[nc.char]
+        if m and LB[m[1]] then nc.fam, nc.char = LB[m[1]], m[2] end
+      end
+    end
+  end
   walk = function(head, s)
     local n = head
     while n do
       local id = n.id
       if LB and LB.attr then lite(n, s) end
+      liteboldver(n)
       if id == STYLE then
         s = num(n.style)
       elseif id == ACC and ((s >= 4 or ntxmathotf.design(ntxmathotf.fontsize[node.family_font(fam(), size(s))]) > 1)
@@ -804,7 +862,14 @@ do
       for _, fld in ipairs({ "nucleus", "sub", "sup", "num", "denom", "degree" }) do
         local ok, k = pcall(function() return n[fld] end)
         if ok and k then
-          if k.id == MCH and k.fam ~= mainfam then
+          local rg = k.id == MCH and k.fam == mainfam and ntxmathotf.rmgreekfam
+          if rg and k.char >= 0x391 and k.char <= 0x3A9
+              and node.has_attribute(k, luatexbase.attributes["MTP@rmattr"] or -1) then
+            -- (\\mathrm of a capital Greek letter: the OT1 operators font, slots 0-10)
+            local ot1 = ({ [2] = 0, [3] = 1, [7] = 2, [10] = 3, [13] = 4, [15] = 5, [18] = 6,
+              [20] = 7, [21] = 8, [23] = 9, [24] = 10 })[k.char - 0x391]
+            if ot1 then k.fam, k.char = rg, ot1 end
+          elseif k.id == MCH and k.fam ~= mainfam then
             local fid = fontof(k.fam)
             local ch = fid and hasc[fid]
             local c0 = k.char
@@ -1003,8 +1068,10 @@ function ntxmathotf.setlitebm(t)
   local m = {}
   for i = 0, 25 do
     m[0x1D434 + i] = { "it", 0x41 + i }; m[0x1D44E + i] = { "it", 0x61 + i }
-    m[0x30 + (i % 10)] = { "rm", 0x30 + (i % 10) }
+    m[0x30 + (i % 10)] = { "it", 0x30 + (i % 10) }
   end
+  -- (mtpro2.sty's letters family has the digits and . , / too: bold, newtx's letters font)
+  m[0x2E], m[0x2C], m[0x2F] = { "it", 0x3A }, { "it", 0x3B }, { "it", 0x3D }
   m[0x1D455], m[0x210E] = nil, { "it", 0x68 }    -- (italic h is U+210E)
   -- Greek in TeX's OML order (classic \\epsilon, \\phi are the lunate/straight forms)
   local lc = { 0x0B, 0x0C, 0x0D, 0x0E, 0x22, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
