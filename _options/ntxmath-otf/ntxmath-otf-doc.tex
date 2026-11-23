@@ -1,0 +1,112 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{newtxtext}
+\usepackage{amsmath}
+\usepackage{ntxmath-otf}
+\usepackage[hidelinks]{hyperref}
+\newcommand\pkg{\textsf{ntxmath-otf}}
+\newcommand\cs[1]{\texttt{\char`\\#1}}
+\title{\pkg: newtxmath as an OpenType maths font\\[2pt]\large version 1.0}
+\author{built by \texttt{ntxmath\_otf.py}}
+\date{2026/11/23}
+\begin{document}
+\maketitle
+
+\section{What it is}
+\pkg\ is the maths of \textsf{newtxmath} (Michael Sharpe's Times maths, with outlines
+from Young Ryu's \textsf{txfonts}) as an OpenType maths font, \texttt{NewTXMath.otf} with
+\texttt{NewTXMath-Bold.otf}, and a package for Lua\LaTeX\ with \textsf{unicode-math}. It is
+the free counterpart of \textsf{mtpro2-otf}: the same aims, the same engine.
+\begin{itemize}
+\item \textbf{Layout:} every formula is set exactly as with classic \textsf{newtxmath}
+  (Type~1 fonts), glyph for glyph, within 0.01\,pt; whole documents keep their line and page
+  breaks.
+\item \textbf{Copy-paste:} the symbols copy as their Unicode characters.
+\item \textbf{Tagged PDF:} with \cs{DocumentMetadata} tagging (PDF/UA-2), every formula gets
+  its MathML.
+\end{itemize}
+Only the plain Times set-up is converted: \textsf{newtxmath} without options, next to
+\textsf{newtxtext}.
+
+The fonts and the package are under the \LaTeX\ Project Public License~1.3, like
+\textsf{newtx}: unlike the \textsf{mtpro2-otf} files, they may be passed on and put in a
+repository.
+
+\section{Use}
+Put the files in the document's folder or a subfolder found through \texttt{TEXINPUTS}
+(on Overleaf: a \texttt{latexmkrc} line, as for \textsf{mtpro2-otf}), compile with
+Lua\LaTeX, and replace \verb|\usepackage{newtxmath}| with
+\begin{verbatim}
+\usepackage{newtxtext}
+\usepackage{amsmath}
+\usepackage{ntxmath-otf}      % loads unicode-math
+\end{verbatim}
+Do not load \textsf{newtxmath}, \textsf{bm}, \textsf{amssymb} or \textsf{amsfonts} as
+well: \pkg\ provides their commands. The options \texttt{scale=}\textit{factor} (or \texttt{scaled})
+and \texttt{textsf} (\cs{mathsf} in the document's sans-serif) are supported; other
+\textsf{newtxmath} options are ignored, with a warning.
+
+Everything you type stays as it was: all of \textsf{newtxmath}'s symbol commands, its
+alphabets (\cs{mathbb}, \cs{mathcal}, \cs{mathscr}, \cs{mathfrak}, \cs{vvmathbb}),
+\cs{bm}, its extra delimiters (\cs{llbracket}, \cs{lbag}, \cs{smlbrace}, \ldots), its
+constructions (\cs{overgroup}, \cs{widebar}, \cs{vv}, \cs{Mapsto}, \cs{not}, the integral
+families) and its text symbols (\cs{openbox}, \cs{AmS}). For example:
+\[ \sum_{i=1}^n \frac{\partial f}{\partial x_i}\,\widehat{x_i}
+   = \oint_{\partial\Omega} \bm{F}\cdot d\bm{s},\qquad
+   \mathbb{R}\ \mathcal{L}\ \mathscr{L}\ \mathfrak{g},\qquad
+   \left\llbracket \frac{a}{b} \right\rrbracket \]
+
+\section{How it matches classic newtxmath}
+The converter asks Lua\LaTeX\ what \textsf{newtxmath} sets up (families, every command,
+mathcode and delcode, which glyph each alphabet letter uses, every macro it defines or
+changes) and takes each glyph through \textsf{newtx}'s virtual fonts from the Type~1 fonts.
+The package then sets formulas as \TeX\ does with the Type~1 fonts:
+\begin{itemize}
+\item glyph boxes, italic corrections, kerns and accent positions from the metric files, to
+  the sp at every size;
+\item \textsf{newtx}'s optical sizes as its \texttt{.fd} files choose them (below 6.3\,pt,
+  6.3--8.6\,pt, from 8.6\,pt) and its script sizes (10\,pt text: 7.3 and 5.5\,pt);
+\item each accent lowered by its own font's x-height (\cs{hat} from the Times text font,
+  \cs{dot} from the symbol font, \cs{widehat} from the extension font);
+\item operator names and \cs{mathrm} in \textsf{newtx}'s operators font, \cs{mathbf} and
+  \cs{mathit} as \textsf{newtxmath} declares them, and \textsf{newtxmath}'s classes for the
+  ASCII symbols (\texttt{/} is an opening symbol);
+\item extensible delimiters always built from pieces, as \TeX\ builds them;
+\item \textsf{newtxmath}'s own macros, read from it: \cs{joinrel} is $-2.5$\,mu,
+  \cs{vdots}, \cs{ddots} and the brace fills are its own, and so on.
+\end{itemize}
+
+\section{Tests}
+\texttt{ntxmath\_otf.py selftest} typesets formulas with classic \textsf{newtxmath} (Type~1)
+and with \pkg\ and compares where \TeX\ put every glyph and rule. On \TeX\ Live 2026:
+\begin{itemize}
+\item \textbf{Stress test} (\texttt{--stress}: all $\sim$1150 symbol commands, scripts,
+  accents, operators, delimiters, radicals, fractions, alphabets, \cs{bm}): 4225 of 4260
+  formulas identical within 0.01\,pt at 10\,pt; the same at 6, 8 and 12\,pt.
+\item \textbf{Whole documents:} \textsf{amsmath}'s \texttt{testmath.tex} (39 pages) and its
+  user's guide \texttt{amsldoc.tex} (42 pages) have the same line and page breaks, every text
+  glyph in place.
+\item \textbf{Copy-paste:} 878 of 995 \textsf{unicode-math} symbol commands copy as their
+  own character; the rest share a glyph with another character.
+\item \textbf{Tagged PDF/UA-2:} no errors or warnings; MathML for every formula.
+\end{itemize}
+Most remaining differences are bookkeeping only: the boxes are identical, but where \TeX\
+adds an italic correction or a delimiter piece as a separate item, the OpenType glyph holds
+it. The real ones:
+\begin{itemize}
+\item \cs{bm} on \cs{widehat}, on \cs{tilde} over some letters, and on upright capital Greek
+  with a script (\textsf{bm} boxes the symbol there);
+\item on purpose: \cs{mathbb} and \cs{mathcal} of a letter the classic alphabet does not
+  have (\cs{mathbb\{x\}}, \cs{mathcal\{z\}}) give a real letter, where classic
+  \textsf{newtxmath} prints whatever glyph is in that slot.
+\end{itemize}
+
+\section{Rebuilding}
+\begin{verbatim}
+python3 ntxmath_otf.py build <folder>        (about 20 s)
+python3 ntxmath_otf.py selftest [--stress] [--size PT] [--fonts <folder>]
+\end{verbatim}
+It needs \TeX\ Live 2026 with \textsf{newtx}, Python~3 and \textsf{fontTools}, and
+\texttt{mtpro2\_otf.py} in the same folder (the shared engine; no MathTime fonts are
+needed).
+\end{document}

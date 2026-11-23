@@ -51,8 +51,13 @@ mtpro2-otf*
 Fonts/*
 !Fonts/README.md
 __pycache__/
-# the converter holds no font data: keep it
+# the converters hold no font data: keep them
 !tools/mtpro2_otf.py
+!tools/ntxmath_otf.py
+# newtx maths as OpenType (ntxmath-otf): free (LaTeX Project Public License), part of the template
+!_options/ntxmath-otf/
+!_options/ntxmath-otf/NewTXMath.otf
+!_options/ntxmath-otf/NewTXMath-Bold.otf
 
 # Build output
 main.pdf

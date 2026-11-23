@@ -5,7 +5,7 @@
 %% =====================================================================
 
 %% Maths and units
-\ifthesismathtime\else\usepackage{bm}\fi % https://ctan.org/pkg/bm %% bold symbols (\vec, \tensor); MathTime has its own \bm and \hm (heavy)
+\ifthesismathtime\else\ifthesisntxotf\else\usepackage{bm}\fi\fi % https://ctan.org/pkg/bm %% bold symbols (\vec, \tensor); the OpenType maths fonts have their own \bm (MathTime also \hm, heavy)
 \usepackage{siunitx}            % https://ctan.org/pkg/siunitx %% quantities and units: \qty{}{}, \num{}, \unit{}
 
 %% Figures and tables

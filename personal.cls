@@ -449,6 +449,11 @@
       {\ClassWarningNoLine{personal}{MathTime fonts found in Fonts/, but TeX cannot see that folder.\MessageBreak
         Compile with latexmk, which reads the template's latexmkrc (Overleaf does this).\MessageBreak
         Using newtx for now}}}{}
+%% Without MathTime: newtx, as OpenType maths fonts (ntxmath-otf, in _options/ntxmath-otf, found through
+%% the search path that latexmkrc adds) when TeX can see them, otherwise the classic newtxmath. The same
+%% pages either way; the OpenType fonts add maths that copies as Unicode and MathML in the tagged PDF.
+\newif\ifthesisntxotf
+\ifthesismathtime\else\IfFileExists{ntxmath-otf.sty}{\thesisntxotftrue}{}\fi
 
 %%% TEXT FONTS
 %% Loaded through fontspec.

@@ -1,0 +1,1271 @@
+%% ntxmath-otf.sty -- newtxmath (Times-like maths) as OpenType, for LuaLaTeX
+%% (built by ntxmath_otf.py; fonts and package under the LaTeX Project Public License 1.3)
+%% Loads NewTXMath(-Bold).otf with unicode-math, with the layout of classic newtxmath:
+%% every newtxmath symbol command, its alphabets, TeX's metrics and optical sizes.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ntxmath-otf}[2026/11/23 v1.0 newtxmath as OpenType]
+\RequirePackage{iftex}
+\RequireLuaTeX
+% the version (for classes that choose fallbacks)
+\def\NTXOTFversion{1.0}
+\newif\ifMTP@lite
+% packages that clash: ntxmath-otf provides their commands
+\newif\ifMTP@ownload
+\def\MTP@clash#1#2{\PackageError{ntxmath-otf}{Do not load #1 together with ntxmath-otf}%
+  {ntxmath-otf provides #2. Remove \protect\usepackage{#1}.}}
+\def\MTP@addclash#1{\@ifpackageloaded{#1}{\MTP@clash{#1}{its commands}}{}%
+  \AddToHook{package/#1/before}{\ifMTP@ownload\else\MTP@clash{#1}{its commands}\fi}}
+\@for\MTP@o:=newtxmath,bm,amssymb,amsfonts\do{\expandafter\MTP@addclash\expandafter{\MTP@o}}
+\def\MTP@features{}
+% newtxmath's options: scale (or scaled); the plain Times set-up is its default and
+% the only one converted, so other newtxmath options are ignored, with a warning
+\def\MTP@cal{v}\def\MTP@scr{x}\def\MTP@frak{x}\def\MTP@bb{x}\def\MTP@br{c}
+\newif\ifMTP@slops \newif\ifMTP@zswash \newif\ifMTP@sbcorr \newif\ifMTP@textsf
+\DeclareOption{textsf}{\MTP@textsftrue}
+\def\MTP@scale{1}
+\def\MTP@opt#1=#2\@nil{\def\MTP@key{#1}\def\MTP@val{#2}}
+\DeclareOption*{\expandafter\MTP@opt\CurrentOption=\@nil
+  \def\MTP@tmp{scale}\ifx\MTP@key\MTP@tmp\else\def\MTP@tmp{scaled}\fi
+  \ifx\MTP@key\MTP@tmp
+    \expandafter\MTP@opt\CurrentOption\@nil\let\MTP@scale\MTP@val
+  \else
+    \PackageWarning{ntxmath-otf}{newtxmath option `\CurrentOption' is not supported
+      (only plain Times is converted); ignored}%
+  \fi}
+\ProcessOptions\relax
+\ifMTP@sbcorr\catcode`\_=12 \fi
+\directlua{ntxmathotf = ntxmathotf or {} ntxmathotf.scale = \MTP@scale\space
+  dofile(kpse.find_file("ntxmath-otf.lua", "lua") or kpse.find_file("ntxmath-otf.lua", "tex"))}% before the fonts load: registers the metrics fix
+\ifMTP@lite % Lite lacks the AMS symbols and blackboard bold: the AMS fonts' (scaled), kept for
+  % exactly the commands whose glyphs Lite does not have
+  \edef\MTP@s{s*[\MTP@scale]}%
+  \DeclareFontFamily{U}{msa}{}\DeclareFontShape{U}{msa}{m}{n}{<-6>\MTP@s msam5<6-8>\MTP@s msam7%
+    <8->\MTP@s msam10}{}%
+  \DeclareFontFamily{U}{msb}{}\DeclareFontShape{U}{msb}{m}{n}{<-6>\MTP@s msbm5<6-8>\MTP@s msbm7%
+    <8->\MTP@s msbm10}{}%
+  \MTP@ownloadtrue\RequirePackage{amssymb}\MTP@ownloadfalse
+  \let\MTP@amsbb\mathbb
+  \def\MTP@amslist{}%
+  \@for\MTP@o:=\MTP@amslist\do{\expandafter\let\csname MTP@ams@\MTP@o\expandafter\endcsname
+    \csname\MTP@o\endcsname}%
+  \AddToHook{begindocument/end}{\@for\MTP@o:=\MTP@amslist\do{\expandafter\let
+    \csname\MTP@o\expandafter\endcsname\csname MTP@ams@\MTP@o\endcsname}}%
+\fi
+\directlua{ntxmathotf.savemissing()}% (definitions of commands whose character MTPro2 lacks)
+\RequirePackage{unicode-math}
+\unimathsetup{mathrm=sym}% (\mathrm, operator names: newtxmath's operators font, as glyphs of the maths font)
+\edef\MTP@path{\directlua{ntxmathotf.fontdir("NewTXMath.otf")}}% (found like any TeX file)
+\edef\MTP@load{\noexpand\setmathfont{NewTXMath.otf}[Path=\MTP@path,RawFeature={\MTP@features},script-features={},sscript-features={}]}\MTP@load
+\IfFileExists{NewTXMath-Bold.otf}{%
+  \edef\MTP@load{\noexpand\setmathfont{NewTXMath-Bold.otf}[Path=\MTP@path,version=bold,RawFeature={\MTP@features},script-features={},sscript-features={}]}\MTP@load
+  \def\MTP@boldver{bold}}{\def\MTP@boldver{normal}}
+\IfFileExists{NewTXMath-Heavy.otf}{%
+  \edef\MTP@load{\noexpand\setmathfont{NewTXMath-Heavy.otf}[Path=\MTP@path,version=heavy,RawFeature={\MTP@features},script-features={},sscript-features={}]}\MTP@load
+  \def\MTP@heavyver{heavy}}{\let\MTP@heavyver\MTP@boldver}
+% mtpro2.sty's script and scriptscript sizes (unicode-math declares one, from the font)
+\def\defaultscriptratio{.73}
+\def\defaultscriptscriptratio{.55}
+\DeclareMathSizes{5}    {5.5}    {5.5}    {5.5}
+\DeclareMathSizes{6}    {6.5}    {5.5}    {5.5}
+\DeclareMathSizes{7}    {7.3}    {5.5}    {5.5}
+\DeclareMathSizes{8}    {8}    {6}    {5.5}
+\DeclareMathSizes{9}    {9}    {6.6}    {5.5}
+\DeclareMathSizes{10}   {10}   {7.3}  {5.5}
+\DeclareMathSizes{10.95}{10.95}{8}    {6.1}
+\DeclareMathSizes{11}   {10.95}{8}    {6.1}
+\DeclareMathSizes{12}   {12}   {8.8}    {6.6}
+\DeclareMathSizes{14.4} {14.4} {10.5}   {7.9}
+\DeclareMathSizes{17.28}{17.28}{12.5}   {9.4}
+\DeclareMathSizes{20.74}{20.74}{16.1} {11.4}
+\DeclareMathSizes{24.88}{24.88}{18.2}{13.7}
+% LaTeX's symbol families (letters, symbols, largesymbols) on TFM-exact virtual MTPro2 fonts
+\input{ntxmath-otf-legacy.tex}
+% (an alphabet with a bold font: a symbol font, so that \bm finds its bold)
+\def\MTP@alph#1#2#3#4{% alphabet, name, encoding, family (shapes m/n and b/n)
+  \DeclareSymbolFont{MTP#2}{#3}{#4}{m}{n}\SetSymbolFont{MTP#2}{bold}{#3}{#4}{b}{n}%
+  \DeclareSymbolFontAlphabet{#1}{MTP#2}}
+% alphabets the options can choose from fonts that are not MTPro2 (as mtpro2.sty does)
+\edef\MTP@s{s*[\MTP@scale]}% (scaled like the MTPro2 fonts)
+\if c\MTP@cal \DeclareFontFamily{OMS}{MTPcmsy}{\skewchar\font48}%
+  \DeclareFontShape{OMS}{MTPcmsy}{m}{n}{<-6>\MTP@s cmsy5<6-7>\MTP@s cmsy6<7-8>\MTP@s cmsy7%
+    <8-9>\MTP@s cmsy8<9-10>\MTP@s cmsy9<10->\MTP@s cmsy10}{}%
+  \DeclareFontShape{OMS}{MTPcmsy}{b}{n}{<-6>\MTP@s cmbsy5<6-7>\MTP@s cmbsy6<7-8>\MTP@s cmbsy7%
+    <8-9>\MTP@s cmbsy8<9-10>\MTP@s cmbsy9<10->\MTP@s cmbsy10}{}%
+  \MTP@alph\MTP@cmcal{cmcal}{OMS}{MTPcmsy}\fi
+\if n\MTP@cal \let\ntxmath@scaled\MTP@s
+  \DeclareFontEncoding{LMS}{}{}\DeclareFontSubstitution{LMS}{ntxsy}{m}{n}%
+  \MTP@alph\MTP@ntxcal{ntxcal}{LMS}{ntxsy}\fi
+\if e\MTP@cal \let\MTP@needeus\@empty\fi \if e\MTP@scr \let\MTP@needeus\@empty\fi
+\ifdefined\MTP@needeus \DeclareFontFamily{U}{eus}{\skewchar\font'60}%
+  \DeclareFontShape{U}{eus}{m}{n}{<-6>\MTP@s eusm5<6-8>\MTP@s eusm7<8->\MTP@s eusm10}{}%
+  \DeclareFontShape{U}{eus}{b}{n}{<-6>\MTP@s eusb5<6-8>\MTP@s eusb7<8->\MTP@s eusb10}{}%
+  \MTP@alph\MTP@eus{eus}{U}{eus}\fi
+\if e\MTP@frak \DeclareFontFamily{U}{euf}{}%
+  \DeclareFontShape{U}{euf}{m}{n}{<-6>\MTP@s eufm5<6-8>\MTP@s eufm7<8->\MTP@s eufm10}{}%
+  \DeclareFontShape{U}{euf}{b}{n}{<-6>\MTP@s eufb5<6-8>\MTP@s eufb7<8->\MTP@s eufb10}{}%
+  \MTP@alph\MTP@eufrak{eufrak}{U}{euf}\fi
+\ifMTP@lite\else\if y\MTP@bb \DeclareFontFamily{U}{msb}{}%
+  \DeclareFontShape{U}{msb}{m}{n}{<-6>\MTP@s msbm5<6-8>\MTP@s msbm7<8->\MTP@s msbm10}{}%
+  \DeclareMathAlphabet{\MTP@amsbb}{U}{msb}{m}{n}\fi\fi
+\ifMTP@textsf % \mathsf in the document's sans-serif font (MTPro2 has no sans letters)
+  \AddToHook{begindocument/before}{\DeclareMathAlphabet{\MTP@textsf}{TU}{\sfdefault}{m}{n}%
+    \SetMathAlphabet{\MTP@textsf}{bold}{TU}{\sfdefault}{\bfdefault}{n}}%
+\fi
+% TeX's per-style parameters, set at the start of every formula (follows size changes)
+\def\MTP@params{\directlua{ntxmathotf.texparams()}}
+\everymath\expandafter{\the\everymath\MTP@params}
+\everydisplay\expandafter{\the\everydisplay\MTP@params}
+
+% \bm and \hm as bm.sty does them, symbol by symbol: whatever is typeset under \bm gets an
+% attribute, and ntxmath-otf.lua moves each symbol to the bold font its family has in the bold
+% math version (the heavy one for \hm), or draws bm's poor man's bold where there is none;
+% so do the math alphabets. Every symbol keeps its class and its scripts.
+\providecommand\bm{}\providecommand\hm{}
+\newattribute\MTP@bmattr
+\newattribute\MTP@rootattr % (marks LaTeX's \root box, see ntxmath-otf.lua)
+\protected\def\bm#1{\relax\ifmmode\MTP@bmsize\begingroup\MTP@bmattr=1 #1\endgroup
+  \else\ensuremath{\bm{#1}}\fi}
+\protected\def\hm#1{\relax\ifmmode\MTP@bmsize\begingroup\MTP@bmattr=2 #1\endgroup
+  \else\ensuremath{\hm{#1}}\fi}
+% (the bold fonts in the extra families, for the current size: as NFSS sets a math alphabet)
+\let\MTP@bmfams\@empty \def\MTP@bmat{}
+\def\MTP@bmsize{\ifx\MTP@bmat\tf@size\else\directlua{ntxmathotf.mathparams(true)}\MTP@bmfams
+  \directlua{ntxmathotf.mathparams(false)}\global\let\MTP@bmat\tf@size\fi}
+\def\MTP@bmfam#1#2{\begingroup\escapechar\m@ne\let\math@fonts\@empty
+  \expandafter\MTP@bmfam@\csname#2\endcsname{#1}\globaldefs\@ne\math@fonts\endgroup}
+\def\MTP@bmfam@#1#2{\getanddefine@fonts{#2}#1}
+% (the fonts of each version, as LaTeX records them: \mv@normal, \mv@bold, \mv@heavy)
+% (symbol fonts before the document starts, alphabets once unicode-math has set its own)
+\def\MTP@bmread#1#2{\begingroup\escapechar\m@ne
+  \ifnum#2=0
+    \def\getanddefine@fonts##1##2{\directlua{ntxmathotf.bmfont("#1",\number##1,
+      "\luaescapestring{\string##2}")}}\let\install@mathalphabet\@gobbletwo
+  \else
+    \let\getanddefine@fonts\@gobbletwo\def\install@mathalphabet##1##2{\MTP@bmreadalph{#1}##2}%
+  \fi
+  \csname mv@#1\endcsname\endgroup}
+\def\MTP@bmreadalph#1\select@group#2#3#4{\directlua{ntxmathotf.bmalph("#1",
+  "\luaescapestring{\string#2}","\luaescapestring{\string#3}","\luaescapestring{\string#4}")}}
+\AddToHook{begindocument/before}{%
+  \MTP@bmread{normal}0\MTP@bmread{bold}0\ifdefined\mv@heavy\MTP@bmread{heavy}0\fi
+  \directlua{ntxmathotf.bmdeclare()}}
+\AddToHook{begindocument/end}{%
+  \MTP@bmread{normal}1\MTP@bmread{bold}1\ifdefined\mv@heavy\MTP@bmread{heavy}1\fi
+  \directlua{ntxmathotf.bmalphabets()}}
+\ifMTP@lite % no bold MTPro2 fonts: letters, Greek and digits in newtx bold (as the Type 1
+  % set-up does), digits in the text font's bold; \hm is \bm (no heavy fonts)
+  \ifnum\directlua{tex.sprint((kpse.find_file("ntxbmi.tfm", "tfm") and
+      kpse.find_file("ntx-Bold-tlf-ot1.tfm", "tfm")) and 1 or 0)}=1
+    \DeclareFontFamily{OML}{MTPntxbmi}{\skewchar\font=127 }%
+    \DeclareFontShape{OML}{MTPntxbmi}{b}{it}{<-6.3>\MTP@s ntxbmi5<6.3-8.6>\MTP@s ntxbmi7%
+      <8.6->\MTP@s ntxbmi}{}%
+    \DeclareFontFamily{OT1}{MTPntxb}{}%
+    \DeclareFontShape{OT1}{MTPntxb}{b}{n}{<->\MTP@s ntx-Bold-tlf-ot1}{}%
+    \DeclareSymbolFont{MTPbmit}{OML}{MTPntxbmi}{b}{it}%
+    \DeclareSymbolFont{MTPbmup}{OT1}{MTPntxb}{b}{n}%
+    \def\MTP@bmletters{it=\number\symMTPbmit, up=\number\symMTPbmup,}%
+  \else
+    \PackageWarningNoLine{ntxmath-otf}{newtx is not installed: \string\bm\space draws
+      letters\MessageBreak in poor man's bold too}%
+    \def\MTP@bmletters{}%
+  \fi
+  \AddToHook{begindocument/before}{%
+    \DeclareSymbolFont{MTPbmrm}{TU}{\rmdefault}{\bfdefault}{n}%
+    \directlua{ntxmathotf.setlitebm{\MTP@bmletters rm=\number\symMTPbmrm}}}%
+  \let\hm\bm
+\fi
+
+% alphabets and alternate letters (per use)
+\def\MTP@alpha#1#2{\directlua{ntxmathotf.alpha("#1","\luaescapestring{\detokenize{#2}}")}}
+\def\MTP@galpha#1#2{{\MTP@alpha{#1}{#2}}}% (a group, like a math alphabet)
+\def\MTP@altset{none}% (outside its alphabets mtpro2.sty's \altX is X, with a warning)
+\def\MTP@wrapalpha#1#2{\expandafter\let\csname MTP@orig\string#1\endcsname#1%
+  \protected\edef#1##1{{\def\noexpand\MTP@altset{#2}\expandafter\noexpand
+    \csname MTP@orig\string#1\endcsname{##1}}}}
+
+
+% every mtpro2.sty symbol command, by glyph name
+\def\MTP@dosym#1#2#3{\DeclareRobustCommand#1{\directlua{ntxmathotf.glyph("#2",#3)}}}
+\let\MTP@sym\MTP@dosym
+% (provide: unless unicode-math defines it; LaTeX's own \mathchardef'd symbols point to
+% the legacy Computer Modern families, so those are replaced too)
+\def\MTP@psym#1#2#3{\directlua{ntxmathotf.provide("\luaescapestring{\expandafter\@gobble\string#1}",#3)}%
+  \ifnum\MTP@def=1 \MTP@dosym#1{#2}{#3}\fi}
+\newcount\MTP@def
+\AtBeginDocument{%
+\MTP@sym\Bot{mtp.Bot}{0}%
+\MTP@sym\Box{mtp.Box}{0}%
+\MTP@sym\Colonapprox{mtp.Colonapprox}{3}%
+\MTP@sym\Colondash{mtp.Colondash}{3}%
+\MTP@sym\Colonsim{mtp.Colonsim}{3}%
+\MTP@sym\Dashcolon{mtp.Dashcolon}{3}%
+\MTP@sym\Deltait{mtp.Deltait}{0}%
+\MTP@sym\Deltaup{uni0394}{0}%
+\MTP@sym\Diamond{mtp.Diamond}{0}%
+\MTP@sym\DiamondLeft{mtp.DiamondLeft}{3}%
+\MTP@sym\DiamondRight{mtp.DiamondRight}{3}%
+\MTP@sym\Diamondblack{mtp.Diamondblack}{0}%
+\MTP@sym\Diamonddot{mtp.Diamonddot}{0}%
+\MTP@sym\DiamonddotLeft{mtp.DiamonddotLeft}{3}%
+\MTP@sym\DiamonddotRight{mtp.DiamonddotRight}{3}%
+\MTP@sym\Diamonddotleft{mtp.Diamonddotleft}{3}%
+\MTP@sym\Diamonddotright{mtp.Diamonddotright}{3}%
+\MTP@sym\Diamondleft{mtp.Diamondleft}{3}%
+\MTP@sym\Diamondright{mtp.Diamondright}{3}%
+\MTP@sym\Eqcolon{mtp.Eqcolon}{3}%
+\MTP@sym\Euler{mtp.Euler}{0}%
+\MTP@sym\Gammait{mtp._cclvi}{0}%
+\MTP@sym\Gammaup{uni0393}{0}%
+\MTP@sym\Join{uni2A1D}{3}%
+\MTP@sym\Lambdait{mtp.Lambdait}{0}%
+\MTP@sym\Lambdaup{uni039B}{0}%
+\MTP@sym\Lbag{mtp.Lbag}{4}%
+\MTP@sym\Mappedfromchar{mtp.Mappedfromchar}{3}%
+\MTP@sym\Mapstochar{uni2907.Mapstochar}{3}%
+\MTP@sym\Mmappedfromchar{mtp.Mmappedfromchar}{3}%
+\MTP@sym\Mmapstochar{mtp.Mmapstochar}{3}%
+\MTP@sym\Omegait{mtp.Omegait}{0}%
+\MTP@sym\Omegaup{uni03A9}{0}%
+\MTP@sym\Perp{mtp.Perp}{3}%
+\MTP@sym\Phiit{mtp.Phiit}{0}%
+\MTP@sym\Phiup{uni03A6}{0}%
+\MTP@sym\Piit{mtp.Piit}{0}%
+\MTP@sym\Piup{uni03A0}{0}%
+\MTP@sym\Psiit{mtp.Psiit}{0}%
+\MTP@sym\Psiup{uni03A8}{0}%
+\MTP@sym\Rbag{mtp.Rbag}{5}%
+\MTP@sym\Sigmait{mtp.Sigmait}{0}%
+\MTP@sym\Sigmaup{uni03A3}{0}%
+\MTP@sym\Thetait{mtp.Thetait}{0}%
+\MTP@sym\Thetaup{uni0398}{0}%
+\MTP@sym\Top{mtp.Top}{0}%
+\MTP@sym\Upsilonit{mtp.Upsilonit}{0}%
+\MTP@sym\Upsilonup{uni03A5}{0}%
+\MTP@sym\VvDash{mtp.VvDash}{3}%
+\MTP@sym\Wr{mtp.Wr}{2}%
+\MTP@sym\Xiit{mtp.Xiit}{0}%
+\MTP@sym\Xiup{uni039E}{0}%
+\MTP@sym\alphait{u1D6FC}{0}%
+\MTP@sym\alphaup{mtp.alphaup}{0}%
+\MTP@sym\backepsilon{uni03F6}{3}%
+\MTP@sym\bbdotlessi{mtp.bbdotlessi}{0}%
+\MTP@sym\bbdotlessj{mtp.bbdotlessj}{0}%
+\MTP@sym\because{uni2235}{3}%
+\MTP@sym\betait{u1D6FD}{0}%
+\MTP@sym\betaup{mtp.betaup}{0}%
+\MTP@sym\bigcapplusop{mtp.bigcapplusop}{1}%
+\MTP@sym\bigcirc{uni25CB}{2}%
+\MTP@sym\bigsqcapplusop{mtp.bigsqcapplusop}{1}%
+\MTP@sym\bigsqcupplusop{mtp.bigsqcupplusop}{1}%
+\MTP@sym\bigtriangledown{uni25BD}{2}%
+\MTP@sym\blacklozenge{mtp.blacklozenge}{0}%
+\MTP@sym\blacksquare{mtp.blacksquare}{0}%
+\MTP@sym\blacktriangleleft{uni25C0}{3}%
+\MTP@sym\blacktriangleright{uni25B6}{3}%
+\MTP@sym\boxLeft{mtp.boxLeft}{3}%
+\MTP@sym\boxRight{mtp.boxRight}{3}%
+\MTP@sym\boxdotLeft{mtp.boxdotLeft}{3}%
+\MTP@sym\boxdotRight{mtp.boxdotRight}{3}%
+\MTP@sym\boxdotleft{mtp.boxdotleft}{3}%
+\MTP@sym\boxdotright{mtp.boxdotright}{3}%
+\MTP@sym\boxleft{mtp.boxleft}{3}%
+\MTP@sym\boxright{mtp.boxright}{3}%
+\MTP@sym\boxslash{mtp.boxslash}{2}%
+\MTP@sym\braceld{mtp.braceld}{0}%
+\MTP@sym\bracelu{mtp.bracelu}{0}%
+\MTP@sym\bracerd{mtp.bracerd}{0}%
+\MTP@sym\braceru{mtp.braceru}{0}%
+\MTP@sym\bullet{uni2022}{2}%
+\MTP@sym\bulletS{mtp.bulletS}{0}%
+\MTP@sym\bulletSS{mtp.bulletSS}{0}%
+\MTP@sym\bulletSSS{mtp.bulletSSS}{0}%
+\MTP@sym\cdotB{mtp.cdotB}{0}%
+\MTP@sym\cdotBB{mtp.cdotBB}{0}%
+\MTP@sym\cdotp{uni22C5}{6}%
+\MTP@sym\centerdot{mtp.centerdot}{2}%
+\MTP@sym\chiit{u1D712}{0}%
+\MTP@sym\chiup{mtp.chiup}{0}%
+\MTP@sym\circ{uni2218}{2}%
+\MTP@sym\circS{mtp.circS}{0}%
+\MTP@sym\circlearrowleft{mtp.circlearrowleft}{3}%
+\MTP@sym\circlearrowright{mtp.circlearrowright}{3}%
+\MTP@sym\circledS{mtp.circledS}{0}%
+\MTP@sym\circledbar{mtp.circledbar}{2}%
+\MTP@sym\circledbslash{mtp.circledbslash}{2}%
+\MTP@sym\circleddot{mtp.circleddot}{2}%
+\MTP@sym\circleddotleft{mtp.circleddotleft}{3}%
+\MTP@sym\circleddotright{mtp.circleddotright}{3}%
+\MTP@sym\circledgtr{mtp.circledgtr}{3}%
+\MTP@sym\circledless{mtp.circledless}{3}%
+\MTP@sym\circledminus{mtp.circledminus}{2}%
+\MTP@sym\circledotleft{mtp.circleddotleft}{3}%
+\MTP@sym\circledotright{mtp.circleddotright}{3}%
+\MTP@sym\circledplus{mtp.circledplus}{2}%
+\MTP@sym\circledslash{mtp.circledslash}{2}%
+\MTP@sym\circledtimes{mtp.circledtimes}{2}%
+\MTP@sym\circledvee{mtp.circledvee}{2}%
+\MTP@sym\circledwedge{mtp.circledwedge}{2}%
+\MTP@sym\circleleft{mtp.circleleft}{3}%
+\MTP@sym\circleright{mtp.circleright}{3}%
+\MTP@sym\colonapprox{mtp.colonapprox}{3}%
+\MTP@sym\colondash{mtp.colondash}{3}%
+\MTP@sym\colonsim{mtp.colonsim}{3}%
+\MTP@sym\dAlembertian{mtp.dAlembertian}{0}%
+\MTP@sym\dasharrow{mtp.dasharrow}{3}%
+\MTP@sym\dashleftarrow{mtp.dashleftarrow}{3}%
+\MTP@sym\dashleftrightarrow{mtp.dashleftrightarrow}{3}%
+\MTP@sym\dashrightarrow{mtp.dasharrow}{3}%
+\MTP@sym\deltait{u1D6FF}{0}%
+\MTP@sym\deltaup{mtp.deltaup}{0}%
+\MTP@sym\diamond{uni22C4}{2}%
+\MTP@sym\digamma{uni03DD.digamma}{0}%
+\MTP@sym\doteqdot{uni2251}{3}%
+\MTP@sym\doublecap{uni22D2}{2}%
+\MTP@sym\doublecup{uni22D3}{2}%
+\MTP@sym\emptyset{uni2205}{0}%
+\MTP@sym\emptysetAlt{mtp.emptysetAlt}{0}%
+\MTP@sym\epsilonit{u1D716}{0}%
+\MTP@sym\epsilonup{mtp.epsilonup}{0}%
+\MTP@sym\etait{u1D702}{0}%
+\MTP@sym\etaup{mtp.etaup}{0}%
+\MTP@sym\eth{uni00F0}{0}%
+\MTP@sym\existsAlt{uni2203}{0}%
+\MTP@sym\fintslop{uni2A0F}{1}%
+\MTP@sym\fintupop{mtp.fintupop}{1}%
+\MTP@sym\forallAlt{uni2200}{0}%
+\MTP@sym\frakdotlessi{mtp.frakdotlessi}{0}%
+\MTP@sym\frakdotlessj{mtp.frakdotlessj}{0}%
+\MTP@sym\gammait{u1D6FE}{0}%
+\MTP@sym\gammaup{mtp.gammaup}{0}%
+\MTP@sym\gggtr{uni22D9}{3}%
+\MTP@sym\groupld{mtp.groupld}{0}%
+\MTP@sym\grouplda{mtp.grouplda}{0}%
+\MTP@sym\grouplu{mtp.grouplu}{0}%
+\MTP@sym\grouplua{mtp.grouplua}{0}%
+\MTP@sym\grouprd{mtp.grouprd}{0}%
+\MTP@sym\grouprda{mtp.grouprda}{0}%
+\MTP@sym\groupru{mtp.groupru}{0}%
+\MTP@sym\grouprua{mtp.grouprua}{0}%
+\MTP@sym\gtrdot{uni22D7}{2}%
+\MTP@sym\gvertneqq{uni2269.gvertneqq}{3}%
+\MTP@sym\hbar{uni210F}{0}%
+\MTP@sym\hermtransp{mtp.hermtransp}{0}%
+\MTP@sym\htransp{mtp.hermtransp}{0}%
+\MTP@sym\iiiintslop{uni2A0C}{1}%
+\MTP@sym\iiiintupop{mtp.iiiintupop}{1}%
+\MTP@sym\iiintslop{uni222D}{1}%
+\MTP@sym\iiintupop{mtp.iiintupop}{1}%
+\MTP@sym\iintslop{uni222C}{1}%
+\MTP@sym\iintupop{mtp.iintupop}{1}%
+\MTP@sym\imathbb{mtp.bbdotlessi}{0}%
+\MTP@sym\imathfrak{mtp.frakdotlessi}{0}%
+\MTP@sym\imathscr{mtp.imathscr}{0}%
+\MTP@sym\imathup{mtp.imathup}{0}%
+\MTP@sym\intslop{uni222B}{1}%
+\MTP@sym\intupop{mtp.intupop}{1}%
+\MTP@sym\invamp{mtp.invamp}{2}%
+\MTP@sym\iotait{u1D704}{0}%
+\MTP@sym\iotaup{mtp.iotaup}{0}%
+\MTP@sym\itDelta{mtp.Deltait}{0}%
+\MTP@sym\itGamma{mtp._cclvi}{0}%
+\MTP@sym\itLambda{mtp.Lambdait}{0}%
+\MTP@sym\itOmega{mtp.Omegait}{0}%
+\MTP@sym\itPhi{mtp.Phiit}{0}%
+\MTP@sym\itPi{mtp.Piit}{0}%
+\MTP@sym\itPsi{mtp.Psiit}{0}%
+\MTP@sym\itSigma{mtp.Sigmait}{0}%
+\MTP@sym\itTheta{mtp.Thetait}{0}%
+\MTP@sym\itUpsilon{mtp.Upsilonit}{0}%
+\MTP@sym\itXi{mtp.Xiit}{0}%
+\MTP@sym\italpha{u1D6FC}{0}%
+\MTP@sym\itbeta{u1D6FD}{0}%
+\MTP@sym\itchi{u1D712}{0}%
+\MTP@sym\itdelta{u1D6FF}{0}%
+\MTP@sym\itepsilon{u1D716}{0}%
+\MTP@sym\iteta{u1D702}{0}%
+\MTP@sym\itgamma{u1D6FE}{0}%
+\MTP@sym\itiota{u1D704}{0}%
+\MTP@sym\itkappa{mtp.itkappa}{0}%
+\MTP@sym\itlambda{mtp.itlambda}{0}%
+\MTP@sym\itmu{mtp.itmu}{0}%
+\MTP@sym\itnu{mtp.itnu}{0}%
+\MTP@sym\itomega{mtp.itomega}{0}%
+\MTP@sym\itphi{mtp.itphi}{0}%
+\MTP@sym\itpi{mtp.itpi}{0}%
+\MTP@sym\itpsi{mtp.itpsi}{0}%
+\MTP@sym\itrho{mtp.itrho}{0}%
+\MTP@sym\itsigma{mtp.itsigma}{0}%
+\MTP@sym\ittau{mtp.ittau}{0}%
+\MTP@sym\ittheta{mtp.ittheta}{0}%
+\MTP@sym\itupsilon{mtp.itupsilon}{0}%
+\MTP@sym\itvarepsilon{mtp.itvarepsilon}{0}%
+\MTP@sym\itvarkappa{mtp.itvarkappa}{0}%
+\MTP@sym\itvarphi{mtp.itvarphi}{0}%
+\MTP@sym\itvarpi{mtp.itvarpi}{0}%
+\MTP@sym\itvarrho{mtp.itvarrho}{0}%
+\MTP@sym\itvarsigma{mtp.itvarsigma}{0}%
+\MTP@sym\itvartheta{mtp.itvartheta}{0}%
+\MTP@sym\itxi{mtp.itxi}{0}%
+\MTP@sym\itzeta{mtp.itzeta}{0}%
+\MTP@sym\jmathbb{mtp.bbdotlessj}{0}%
+\MTP@sym\jmathfrak{mtp.frakdotlessj}{0}%
+\MTP@sym\jmathscr{mtp.jmathscr}{0}%
+\MTP@sym\jmathup{mtp.jmathup}{0}%
+\MTP@sym\kappait{mtp.itkappa}{0}%
+\MTP@sym\kappaup{mtp.kappaup}{0}%
+\MTP@sym\lJoin{mtp.lJoin}{3}%
+\MTP@sym\lambdabar{mtp.lambdabar}{0}%
+\MTP@sym\lambdait{mtp.itlambda}{0}%
+\MTP@sym\lambdaslash{mtp.lambdaslash}{0}%
+\MTP@sym\lambdaup{mtp.lambdaup}{0}%
+\MTP@sym\laplace{mtp.laplace}{0}%
+\MTP@sym\ldotp{mtp.ldotp}{6}%
+\MTP@sym\leadsto{mtp.leadsto}{3}%
+\MTP@sym\leadstoext{mtp.leadstoext}{3}%
+\MTP@sym\lessdot{uni22D6}{2}%
+\MTP@sym\lhd{mtp.lhd}{2}%
+\MTP@sym\lhook{mtp.lhook}{3}%
+\MTP@sym\llless{uni22D8}{3}%
+\MTP@sym\lozenge{mtp.lozenge}{0}%
+\MTP@sym\lrJoin{uni2A1D}{3}%
+\MTP@sym\lrtimes{mtp.lrtimes}{3}%
+\MTP@sym\lvertneqq{uni2268.lvertneqq}{3}%
+\MTP@sym\mappedfromchar{mtp.mappedfromchar}{3}%
+\MTP@sym\mapstochar{uni21A6.mapstochar}{3}%
+\MTP@sym\medbullet{mtp.medbullet}{2}%
+\MTP@sym\medcirc{mtp.medcirc}{2}%
+\MTP@sym\mmappedfromchar{mtp.mmappedfromchar}{3}%
+\MTP@sym\mmapstochar{mtp.mmapstochar}{3}%
+\MTP@sym\muit{mtp.itmu}{0}%
+\MTP@sym\multimapboth{mtp.multimapboth}{3}%
+\MTP@sym\multimapbothvert{mtp.multimapbothvert}{3}%
+\MTP@sym\multimapdot{mtp.multimapdot}{3}%
+\MTP@sym\multimapdotboth{mtp.multimapdotboth}{3}%
+\MTP@sym\multimapdotbothA{mtp.multimapdotbothA}{3}%
+\MTP@sym\multimapdotbothAvert{mtp.multimapdotbothAvert}{3}%
+\MTP@sym\multimapdotbothB{mtp.multimapdotbothB}{3}%
+\MTP@sym\multimapdotbothBvert{mtp.multimapdotbothBvert}{3}%
+\MTP@sym\multimapdotbothvert{mtp.multimapdotbothvert}{3}%
+\MTP@sym\multimapdotinv{mtp.multimapdotinv}{3}%
+\MTP@sym\muup{mtp.muup}{0}%
+\MTP@sym\nBumpeq{mtp.nBumpeq}{3}%
+\MTP@sym\nPerp{mtp.nPerp}{3}%
+\MTP@sym\nSubset{mtp.nSubset}{3}%
+\MTP@sym\nSupset{mtp.nSupset}{3}%
+\MTP@sym\napproxeq{mtp.napproxeq}{3}%
+\MTP@sym\nbacksim{mtp.nbacksim}{3}%
+\MTP@sym\nbacksimeq{mtp.nbacksimeq}{3}%
+\MTP@sym\nbumpeq{mtp.nbumpeq}{3}%
+\MTP@sym\nexistsAlt{uni2204}{0}%
+\MTP@sym\ngeqq{mtp.ngeqq}{3}%
+\MTP@sym\ngeqslant{uni2271.ngeqslant}{3}%
+\MTP@sym\ngg{mtp.ngg}{3}%
+\MTP@sym\ngtrapprox{mtp.ngtrapprox}{3}%
+\MTP@sym\nleqq{mtp.nleqq}{3}%
+\MTP@sym\nleqslant{uni2270.nleqslant}{3}%
+\MTP@sym\nlessapprox{mtp.nlessapprox}{3}%
+\MTP@sym\nll{mtp.nll}{3}%
+\MTP@sym\notni{uni220C}{3}%
+\MTP@sym\notowns{uni220C}{3}%
+\MTP@sym\nplus{mtp.nplus}{2}%
+\MTP@sym\nprecapprox{mtp.nprecapprox}{3}%
+\MTP@sym\npreceq{mtp.npreceq}{3}%
+\MTP@sym\npreceqq{mtp.npreceqq}{3}%
+\MTP@sym\nprecsim{mtp.nprecsim}{3}%
+\MTP@sym\nshortmid{mtp.nshortmid}{3}%
+\MTP@sym\nshortparallel{mtp.nshortparallel}{3}%
+\MTP@sym\nsqsubset{mtp.nsqsubset}{3}%
+\MTP@sym\nsqsupset{mtp.nsqsupset}{3}%
+\MTP@sym\nsubseteqq{mtp.nsubseteqq}{3}%
+\MTP@sym\nsuccapprox{mtp.nsuccapprox}{3}%
+\MTP@sym\nsucceq{mtp.nsucceq}{3}%
+\MTP@sym\nsucceqq{mtp.nsucceqq}{3}%
+\MTP@sym\nsuccsim{mtp.nsuccsim}{3}%
+\MTP@sym\nsupseteqq{mtp.nsupseteqq}{3}%
+\MTP@sym\nthickapprox{mtp.nthickapprox}{3}%
+\MTP@sym\ntriangleleft{mtp.ntriangleleft}{3}%
+\MTP@sym\ntriangleright{mtp.ntriangleright}{3}%
+\MTP@sym\ntwoheadleftarrow{mtp.ntwoheadleftarrow}{3}%
+\MTP@sym\ntwoheadrightarrow{mtp.ntwoheadrightarrow}{3}%
+\MTP@sym\nuit{mtp.itnu}{0}%
+\MTP@sym\nuup{mtp.nuup}{0}%
+\MTP@sym\nvarparallel{mtp.nvarparallel}{3}%
+\MTP@sym\nvarparallelinv{mtp.nvarparallelinv}{3}%
+\MTP@sym\oiiintslop{uni2230}{1}%
+\MTP@sym\oiiintupop{mtp.oiiintupop}{1}%
+\MTP@sym\oiintslop{uni222F}{1}%
+\MTP@sym\oiintupop{mtp.oiintupop}{1}%
+\MTP@sym\ointctrclockwiseslop{uni2233}{1}%
+\MTP@sym\ointctrclockwiseupop{mtp.ointctrclockwiseupop}{1}%
+\MTP@sym\ointslop{uni222E}{1}%
+\MTP@sym\ointupop{mtp.ointupop}{1}%
+\MTP@sym\omegait{mtp.itomega}{0}%
+\MTP@sym\omegaup{mtp.omegaup}{0}%
+\MTP@sym\openJoin{mtp.openJoin}{3}%
+\MTP@sym\opentimes{mtp.opentimes}{3}%
+\MTP@sym\perp{uni22A5}{3}%
+\MTP@sym\phiit{mtp.itphi}{0}%
+\MTP@sym\phiup{mtp.phiup}{0}%
+\MTP@sym\piit{mtp.itpi}{0}%
+\MTP@sym\piup{mtp.piup}{0}%
+\MTP@sym\primeS{mtp.primeS}{0}%
+\MTP@sym\psiit{mtp.itpsi}{0}%
+\MTP@sym\psiup{mtp.psiup}{0}%
+\MTP@sym\rJoin{mtp.rJoin}{3}%
+\MTP@sym\restriction{mtp.restriction}{3}%
+\MTP@sym\rhd{mtp.rhd}{2}%
+\MTP@sym\rhoit{mtp.itrho}{0}%
+\MTP@sym\rhook{mtp.rhook}{3}%
+\MTP@sym\rhoup{mtp.rhoup}{0}%
+\MTP@sym\scrdotlessi{mtp.imathscr}{0}%
+\MTP@sym\scrdotlessj{mtp.jmathscr}{0}%
+\MTP@sym\shortmid{uni2223.shortmid}{3}%
+\MTP@sym\shortparallel{uni2225.shortparallel}{3}%
+\MTP@sym\sigmait{mtp.itsigma}{0}%
+\MTP@sym\sigmaup{mtp.sigmaup}{0}%
+\MTP@sym\smallcoprod{uni2A3F.op}{1}%
+\MTP@sym\smallfint{uni2A0F.smallfint}{1}%
+\MTP@sym\smallfintsl{uni2A0F.smallfint}{1}%
+\MTP@sym\smallfintup{mtp.smallfintup}{1}%
+\MTP@sym\smallfrown{uni2322.smallfrown}{3}%
+\MTP@sym\smalliiiint{uni2A0C.smalliiiint}{1}%
+\MTP@sym\smalliiiintsl{uni2A0C.smalliiiint}{1}%
+\MTP@sym\smalliiiintup{mtp.smalliiiintup}{1}%
+\MTP@sym\smalliiint{uni222D.smalliiint}{1}%
+\MTP@sym\smalliiintsl{uni222D.smalliiint}{1}%
+\MTP@sym\smalliiintup{mtp.smalliiintup}{1}%
+\MTP@sym\smalliint{uni222C.smalliint}{1}%
+\MTP@sym\smalliintsl{uni222C.smalliint}{1}%
+\MTP@sym\smalliintup{mtp.smalliintup}{1}%
+\MTP@sym\smallint{uni222B.smallint}{1}%
+\MTP@sym\smallintsl{uni222B.smallint}{1}%
+\MTP@sym\smallintup{mtp.smallintup}{1}%
+\MTP@sym\smalloiiint{uni2230.smalloiiint}{1}%
+\MTP@sym\smalloiiintsl{uni2230.smalloiiint}{1}%
+\MTP@sym\smalloiiintup{mtp.smalloiiintup}{1}%
+\MTP@sym\smalloiint{uni222F.smalloiint}{1}%
+\MTP@sym\smalloiintsl{uni222F.smalloiint}{1}%
+\MTP@sym\smalloiintup{mtp.smalloiintup}{1}%
+\MTP@sym\smalloint{uni222E.smalloint}{1}%
+\MTP@sym\smallointctrclockwise{uni2233.smallointctrclockwise}{1}%
+\MTP@sym\smallointctrclockwisesl{uni2233.smallointctrclockwise}{1}%
+\MTP@sym\smallointctrclockwiseup{mtp.smallointctrclockwiseup}{1}%
+\MTP@sym\smallointsl{uni222E.smalloint}{1}%
+\MTP@sym\smallointup{mtp.smallointup}{1}%
+\MTP@sym\smallprod{uni220F.smallprod}{1}%
+\MTP@sym\smallsetminus{uni2216.smallsetminus}{2}%
+\MTP@sym\smallsmile{uni2323.smallsmile}{3}%
+\MTP@sym\smallsqint{uni2A16.smallsqint}{1}%
+\MTP@sym\smallsqintsl{uni2A16.smallsqint}{1}%
+\MTP@sym\smallsqintup{mtp.smallsqintup}{1}%
+\MTP@sym\smallsum{uni2211.smallsum}{1}%
+\MTP@sym\smallsumint{uni2A0B.smallsumint}{1}%
+\MTP@sym\smallsumintsl{uni2A0B.smallsumint}{1}%
+\MTP@sym\smallsumintup{mtp.smallsumintup}{1}%
+\MTP@sym\smallvarointclockwise{uni2232.smallvarointclockwise}{1}%
+\MTP@sym\smallvarointclockwisesl{uni2232.smallvarointclockwise}{1}%
+\MTP@sym\smallvarointclockwiseup{mtp.smallvarointclockwiseup}{1}%
+\MTP@sym\sqcapplus{mtp.sqcapplus}{2}%
+\MTP@sym\sqcupplus{mtp.sqcupplus}{2}%
+\MTP@sym\sqintslop{uni2A16}{1}%
+\MTP@sym\sqintupop{mtp.sqintupop}{1}%
+\MTP@sym\square{mtp.Box}{0}%
+\MTP@sym\strictfi{mtp.strictfi}{3}%
+\MTP@sym\strictif{mtp.strictif}{3}%
+\MTP@sym\strictiff{mtp.strictiff}{3}%
+\MTP@sym\sumintslop{uni2A0B}{1}%
+\MTP@sym\sumintupop{mtp.sumintupop}{1}%
+\MTP@sym\tauit{mtp.ittau}{0}%
+\MTP@sym\tauup{mtp.tauup}{0}%
+\MTP@sym\therefore{uni2234}{3}%
+\MTP@sym\thetait{mtp.ittheta}{0}%
+\MTP@sym\thetaup{mtp.thetaup}{0}%
+\MTP@sym\thickapprox{uni2248.thickapprox}{3}%
+\MTP@sym\thicksim{uni223C.thicksim}{3}%
+\MTP@sym\transp{mtp.transp}{0}%
+\MTP@sym\triangle{uni25B3}{0}%
+\MTP@sym\unlhd{uni22B4}{2}%
+\MTP@sym\unrhd{uni22B5}{2}%
+\MTP@sym\uppartial{uni2202.uppartial}{0}%
+\MTP@sym\upsilonit{mtp.itupsilon}{0}%
+\MTP@sym\upsilonup{mtp.upsilonup}{0}%
+\MTP@sym\varDelta{mtp.Deltait}{0}%
+\MTP@sym\varGamma{mtp._cclvi}{0}%
+\MTP@sym\varLambda{mtp.Lambdait}{0}%
+\MTP@sym\varOmega{mtp.Omegait}{0}%
+\MTP@sym\varPhi{mtp.Phiit}{0}%
+\MTP@sym\varPi{mtp.Piit}{0}%
+\MTP@sym\varPsi{mtp.Psiit}{0}%
+\MTP@sym\varSigma{mtp.Sigmait}{0}%
+\MTP@sym\varUpsilon{mtp.Upsilonit}{0}%
+\MTP@sym\varXi{mtp.Xiit}{0}%
+\MTP@sym\varbigtriangledown{uni25BD}{2}%
+\MTP@sym\varbigtriangleup{uni25B3}{2}%
+\MTP@sym\varepsilonit{mtp.itvarepsilon}{0}%
+\MTP@sym\varepsilonup{uni03B5}{0}%
+\MTP@sym\varg{mtp.varg}{0}%
+\MTP@sym\varkappait{mtp.itvarkappa}{0}%
+\MTP@sym\varkappaup{uni03F0}{0}%
+\MTP@sym\varointclockwiseslop{uni2232}{1}%
+\MTP@sym\varointclockwiseupop{mtp.varointclockwiseupop}{1}%
+\MTP@sym\varparallel{uni2225.varparallel}{3}%
+\MTP@sym\varparallelinv{mtp.varparallelinv}{3}%
+\MTP@sym\varphiit{mtp.itvarphi}{0}%
+\MTP@sym\varphiup{uni03C6}{0}%
+\MTP@sym\varpiit{mtp.itvarpi}{0}%
+\MTP@sym\varpiup{uni03D6}{0}%
+\MTP@sym\varpropto{uni221D.varpropto}{3}%
+\MTP@sym\varrhoit{mtp.itvarrho}{0}%
+\MTP@sym\varrhoup{uni03F1}{0}%
+\MTP@sym\varsigmait{mtp.itvarsigma}{0}%
+\MTP@sym\varsigmaup{uni03C2}{0}%
+\MTP@sym\varsubsetneq{uni228A.varsubsetneq}{3}%
+\MTP@sym\varsubsetneqq{uni2ACB.varsubsetneqq}{3}%
+\MTP@sym\varsupsetneq{uni228B.varsupsetneq}{3}%
+\MTP@sym\varsupsetneqq{uni2ACC.varsupsetneqq}{3}%
+\MTP@sym\varthetait{mtp.itvartheta}{0}%
+\MTP@sym\varthetaup{uni03D1}{0}%
+\MTP@sym\varv{mtp.varv}{0}%
+\MTP@sym\varw{mtp.varw}{0}%
+\MTP@sym\vary{mtp.vary}{0}%
+\MTP@sym\xiit{mtp.itxi}{0}%
+\MTP@sym\xiup{uni03BE}{0}%
+\MTP@sym\zetait{mtp.itzeta}{0}%
+\MTP@sym\zetaup{uni03B6}{0}%
+\let\MTP@sym\MTP@psym
+\MTP@sym\Angstrom{uni212B}{0}%
+\MTP@sym\Bumpeq{uni224E}{3}%
+\MTP@sym\Cap{uni22D2}{2}%
+\MTP@sym\Coloneq{uni2A74}{3}%
+\MTP@sym\Cup{uni22D3}{2}%
+\MTP@sym\Delta{uni0394}{0}%
+\MTP@sym\Doteq{uni2251}{3}%
+\MTP@sym\Finv{uni2132}{0}%
+\MTP@sym\Game{uni2141}{0}%
+\MTP@sym\Gamma{uni0393}{0}%
+\MTP@sym\Im{uni2111}{0}%
+\MTP@sym\Lambda{uni039B}{0}%
+\MTP@sym\Leftarrow{uni21D0}{3}%
+\MTP@sym\Leftrightarrow{uni21D4}{3}%
+\MTP@sym\Lleftarrow{uni21DA}{3}%
+\MTP@sym\Lsh{uni21B0}{3}%
+\MTP@sym\Nearrow{uni21D7}{3}%
+\MTP@sym\Nwarrow{uni21D6}{3}%
+\MTP@sym\Omega{uni03A9}{0}%
+\MTP@sym\Phi{uni03A6}{0}%
+\MTP@sym\Pi{uni03A0}{0}%
+\MTP@sym\Psi{uni03A8}{0}%
+\MTP@sym\Re{uni211C}{0}%
+\MTP@sym\Rightarrow{uni21D2}{3}%
+\MTP@sym\Rrightarrow{uni21DB}{3}%
+\MTP@sym\Rsh{uni21B1}{3}%
+\MTP@sym\Searrow{uni21D8}{3}%
+\MTP@sym\Sigma{uni03A3}{0}%
+\MTP@sym\Subset{uni22D0}{3}%
+\MTP@sym\Supset{uni22D1}{3}%
+\MTP@sym\Swarrow{uni21D9}{3}%
+\MTP@sym\Theta{uni0398}{0}%
+\MTP@sym\Upsilon{uni03A5}{0}%
+\MTP@sym\VDash{uni22AB}{3}%
+\MTP@sym\Vdash{uni22A9}{3}%
+\MTP@sym\Vvdash{uni22AA}{3}%
+\MTP@sym\Xi{uni039E}{0}%
+\MTP@sym\Zbar{uni01B5}{0}%
+\MTP@sym\aleph{uni2135}{0}%
+\MTP@sym\alpha{u1D6FC}{0}%
+\MTP@sym\amalg{uni2A3F}{2}%
+\MTP@sym\angle{uni2220}{0}%
+\MTP@sym\approx{uni2248}{3}%
+\MTP@sym\approxeq{uni224A}{3}%
+\MTP@sym\ast{uni2217}{2}%
+\MTP@sym\asymp{uni224D}{3}%
+\MTP@sym\backprime{uni2035}{0}%
+\MTP@sym\backsim{uni223D}{3}%
+\MTP@sym\backsimeq{uni22CD}{3}%
+\MTP@sym\barwedge{uni22BC}{2}%
+\MTP@sym\beta{u1D6FD}{0}%
+\MTP@sym\beth{uni2136}{0}%
+\MTP@sym\between{uni226C}{3}%
+\MTP@sym\bigcapop{uni22C2}{1}%
+\MTP@sym\bigcupdotop{uni2A03}{1}%
+\MTP@sym\bigcupop{uni22C3}{1}%
+\MTP@sym\bigodotop{uni2A00}{1}%
+\MTP@sym\bigoplusop{uni2A01}{1}%
+\MTP@sym\bigotimesop{uni2A02}{1}%
+\MTP@sym\bigsqcapop{uni2A05}{1}%
+\MTP@sym\bigsqcupop{uni2A06}{1}%
+\MTP@sym\bigstar{uni2605}{0}%
+\MTP@sym\bigtimesop{uni2A09}{1}%
+\MTP@sym\bigtriangleup{uni25B3}{2}%
+\MTP@sym\biguplusop{uni2A04}{1}%
+\MTP@sym\bigveeop{uni22C1}{1}%
+\MTP@sym\bigwedgeop{uni22C0}{1}%
+\MTP@sym\blacktriangle{uni25B4}{0}%
+\MTP@sym\blacktriangledown{uni25BE}{0}%
+\MTP@sym\bot{uni22A5}{0}%
+\MTP@sym\boxast{uni29C6}{2}%
+\MTP@sym\boxbar{uni25EB}{2}%
+\MTP@sym\boxbslash{uni29C5}{2}%
+\MTP@sym\boxdot{uni22A1}{2}%
+\MTP@sym\boxminus{uni229F}{2}%
+\MTP@sym\boxplus{uni229E}{2}%
+\MTP@sym\boxtimes{uni22A0}{2}%
+\MTP@sym\bumpeq{uni224F}{3}%
+\MTP@sym\cap{uni2229}{2}%
+\MTP@sym\cdot{uni22C5}{2}%
+\MTP@sym\chi{u1D712}{0}%
+\MTP@sym\circeq{uni2257}{3}%
+\MTP@sym\circledast{uni229B}{2}%
+\MTP@sym\circledcirc{uni229A}{2}%
+\MTP@sym\circleddash{uni229D}{2}%
+\MTP@sym\clubsuit{uni2663}{0}%
+\MTP@sym\coloneq{uni2254}{3}%
+\MTP@sym\complement{uni2201}{0}%
+\MTP@sym\cong{uni2245}{3}%
+\MTP@sym\coprodop{uni2210}{1}%
+\MTP@sym\cup{uni222A}{2}%
+\MTP@sym\curlyeqprec{uni22DE}{3}%
+\MTP@sym\curlyeqsucc{uni22DF}{3}%
+\MTP@sym\curlyvee{uni22CE}{2}%
+\MTP@sym\curlywedge{uni22CF}{2}%
+\MTP@sym\curvearrowleft{uni21B6}{3}%
+\MTP@sym\curvearrowright{uni21B7}{3}%
+\MTP@sym\dagger{uni2020}{2}%
+\MTP@sym\daleth{uni2138}{0}%
+\MTP@sym\dashcolon{uni2239}{3}%
+\MTP@sym\dashv{uni22A3}{3}%
+\MTP@sym\ddagger{uni2021}{2}%
+\MTP@sym\delta{u1D6FF}{0}%
+\MTP@sym\diagdown{uni27CD}{0}%
+\MTP@sym\diagup{uni27CB}{0}%
+\MTP@sym\diamondsuit{uni2662}{0}%
+\MTP@sym\div{uni00F7}{2}%
+\MTP@sym\divideontimes{uni22C7}{2}%
+\MTP@sym\doteq{uni2250}{3}%
+\MTP@sym\dotplus{uni2214}{2}%
+\MTP@sym\doublebarwedge{uni2A5E}{2}%
+\MTP@sym\downdownarrows{uni21CA}{3}%
+\MTP@sym\downharpoonleft{uni21C3}{3}%
+\MTP@sym\downharpoonright{uni21C2}{3}%
+\MTP@sym\ell{uni2113}{0}%
+\MTP@sym\epsilon{u1D716}{0}%
+\MTP@sym\eqcirc{uni2256}{3}%
+\MTP@sym\eqcolon{uni2255}{3}%
+\MTP@sym\eqsim{uni2242}{3}%
+\MTP@sym\eqslantgtr{uni2A96}{3}%
+\MTP@sym\eqslantless{uni2A95}{3}%
+\MTP@sym\equiv{uni2261}{3}%
+\MTP@sym\eta{u1D702}{0}%
+\MTP@sym\exists{uni2203}{0}%
+\MTP@sym\fallingdotseq{uni2252}{3}%
+\MTP@sym\fintop{uni2A0F}{1}%
+\MTP@sym\flat{uni266D}{0}%
+\MTP@sym\forall{uni2200}{0}%
+\MTP@sym\frown{uni2322}{3}%
+\MTP@sym\gamma{u1D6FE}{0}%
+\MTP@sym\ge{uni2265}{3}%
+\MTP@sym\geq{uni2265}{3}%
+\MTP@sym\geqq{uni2267}{3}%
+\MTP@sym\geqslant{uni2A7E}{3}%
+\MTP@sym\gets{uni2190}{3}%
+\MTP@sym\gg{uni226B}{3}%
+\MTP@sym\ggg{uni22D9}{3}%
+\MTP@sym\gimel{uni2137}{0}%
+\MTP@sym\gnapprox{uni2A8A}{3}%
+\MTP@sym\gneq{uni2A88}{3}%
+\MTP@sym\gneqq{uni2269}{3}%
+\MTP@sym\gnsim{uni22E7}{3}%
+\MTP@sym\gtrapprox{uni2A86}{3}%
+\MTP@sym\gtreqless{uni22DB}{3}%
+\MTP@sym\gtreqqless{uni2A8C}{3}%
+\MTP@sym\gtrless{uni2277}{3}%
+\MTP@sym\gtrsim{uni2273}{3}%
+\MTP@sym\heartsuit{uni2661}{0}%
+\MTP@sym\hslash{uni210F_1}{0}%
+\MTP@sym\iiiintop{uni2A0C}{1}%
+\MTP@sym\iiintop{uni222D}{1}%
+\MTP@sym\iintop{uni222C}{1}%
+\MTP@sym\imath{u1D6A4}{0}%
+\MTP@sym\in{uni2208}{3}%
+\MTP@sym\infty{uni221E}{0}%
+\MTP@sym\intercal{uni22BA}{2}%
+\MTP@sym\intop{uni222B}{1}%
+\MTP@sym\iota{u1D704}{0}%
+\MTP@sym\jmath{u1D6A5}{0}%
+\MTP@sym\kappa{mtp.itkappa}{0}%
+\MTP@sym\lambda{mtp.itlambda}{0}%
+\MTP@sym\land{uni2227}{2}%
+\MTP@sym\laplac{uni29E0}{0}%
+\MTP@sym\le{uni2264}{3}%
+\MTP@sym\leftarrow{uni2190}{3}%
+\MTP@sym\leftarrowtail{uni21A2}{3}%
+\MTP@sym\leftharpoondown{uni21BD}{3}%
+\MTP@sym\leftharpoonup{uni21BC}{3}%
+\MTP@sym\leftleftarrows{uni21C7}{3}%
+\MTP@sym\leftrightarrow{uni2194}{3}%
+\MTP@sym\leftrightarrows{uni21C6}{3}%
+\MTP@sym\leftrightharpoons{uni21CB}{3}%
+\MTP@sym\leftrightsquigarrow{uni21AD}{3}%
+\MTP@sym\leftsquigarrow{uni21DC}{3}%
+\MTP@sym\leftthreetimes{uni22CB}{2}%
+\MTP@sym\leq{uni2264}{3}%
+\MTP@sym\leqq{uni2266}{3}%
+\MTP@sym\leqslant{uni2A7D}{3}%
+\MTP@sym\lessapprox{uni2A85}{3}%
+\MTP@sym\lesseqgtr{uni22DA}{3}%
+\MTP@sym\lesseqqgtr{uni2A8B}{3}%
+\MTP@sym\lessgtr{uni2276}{3}%
+\MTP@sym\lesssim{uni2272}{3}%
+\MTP@sym\ll{uni226A}{3}%
+\MTP@sym\lll{uni22D8}{3}%
+\MTP@sym\lnapprox{uni2A89}{3}%
+\MTP@sym\lneq{uni2A87}{3}%
+\MTP@sym\lneqq{uni2268}{3}%
+\MTP@sym\lnot{uni00AC}{0}%
+\MTP@sym\lnsim{uni22E6}{3}%
+\MTP@sym\looparrowleft{uni21AB}{3}%
+\MTP@sym\looparrowright{uni21AC}{3}%
+\MTP@sym\lor{uni2228}{2}%
+\MTP@sym\ltimes{uni22C9}{2}%
+\MTP@sym\mathdollar{uni0024}{0}%
+\MTP@sym\mathparagraph{uni00B6}{0}%
+\MTP@sym\mathsection{uni00A7}{0}%
+\MTP@sym\measuredangle{uni2221}{0}%
+\MTP@sym\mho{uni2127}{0}%
+\MTP@sym\mid{uni2223}{3}%
+\MTP@sym\mp{uni2213}{2}%
+\MTP@sym\mu{mtp.itmu}{0}%
+\MTP@sym\multimap{uni22B8}{3}%
+\MTP@sym\multimapinv{uni27DC}{3}%
+\MTP@sym\nLeftarrow{uni21CD}{3}%
+\MTP@sym\nLeftrightarrow{uni21CE}{3}%
+\MTP@sym\nRightarrow{uni21CF}{3}%
+\MTP@sym\nVDash{uni22AF}{3}%
+\MTP@sym\nVdash{uni22AE}{3}%
+\MTP@sym\nabla{uni2207}{0}%
+\MTP@sym\napprox{uni2249}{3}%
+\MTP@sym\nasymp{uni226D}{3}%
+\MTP@sym\natural{uni266E}{0}%
+\MTP@sym\ncong{uni2247}{3}%
+\MTP@sym\ne{uni2260}{3}%
+\MTP@sym\nearrow{uni2197}{3}%
+\MTP@sym\neg{uni00AC}{0}%
+\MTP@sym\neq{uni2260}{3}%
+\MTP@sym\nequiv{uni2262}{3}%
+\MTP@sym\nexists{uni2204}{0}%
+\MTP@sym\ngeq{uni2271}{3}%
+\MTP@sym\ngtr{uni226F}{3}%
+\MTP@sym\ngtrless{uni2279}{3}%
+\MTP@sym\ngtrsim{uni2275}{3}%
+\MTP@sym\ni{uni220B}{3}%
+\MTP@sym\nleftarrow{uni219A}{3}%
+\MTP@sym\nleftrightarrow{uni21AE}{3}%
+\MTP@sym\nleq{uni2270}{3}%
+\MTP@sym\nless{uni226E}{3}%
+\MTP@sym\nlessgtr{uni2278}{3}%
+\MTP@sym\nlesssim{uni2274}{3}%
+\MTP@sym\nmid{uni2224}{3}%
+\MTP@sym\nni{uni220C}{3}%
+\MTP@sym\notin{uni2209}{3}%
+\MTP@sym\nparallel{uni2226}{3}%
+\MTP@sym\nprec{uni2280}{3}%
+\MTP@sym\npreccurlyeq{uni22E0}{3}%
+\MTP@sym\nrightarrow{uni219B}{3}%
+\MTP@sym\nsim{uni2241}{3}%
+\MTP@sym\nsimeq{uni2244}{3}%
+\MTP@sym\nsqsubseteq{uni22E2}{3}%
+\MTP@sym\nsqsupseteq{uni22E3}{3}%
+\MTP@sym\nsubset{uni2284}{3}%
+\MTP@sym\nsubseteq{uni2288}{3}%
+\MTP@sym\nsucc{uni2281}{3}%
+\MTP@sym\nsucccurlyeq{uni22E1}{3}%
+\MTP@sym\nsupset{uni2285}{3}%
+\MTP@sym\nsupseteq{uni2289}{3}%
+\MTP@sym\ntrianglelefteq{uni22EC}{3}%
+\MTP@sym\ntrianglerighteq{uni22ED}{3}%
+\MTP@sym\nu{mtp.itnu}{0}%
+\MTP@sym\nvDash{uni22AD}{3}%
+\MTP@sym\nvdash{uni22AC}{3}%
+\MTP@sym\nwarrow{uni2196}{3}%
+\MTP@sym\odot{mtp.circleddot}{2}%
+\MTP@sym\oiiintop{uni2230}{1}%
+\MTP@sym\oiintop{uni222F}{1}%
+\MTP@sym\ointctrclockwiseop{uni2233}{1}%
+\MTP@sym\ointop{uni222E}{1}%
+\MTP@sym\omega{mtp.itomega}{0}%
+\MTP@sym\ominus{mtp.circledminus}{2}%
+\MTP@sym\oplus{mtp.circledplus}{2}%
+\MTP@sym\oslash{mtp.circledslash}{2}%
+\MTP@sym\otimes{mtp.circledtimes}{2}%
+\MTP@sym\owns{uni220B}{3}%
+\MTP@sym\parallel{uni2225}{3}%
+\MTP@sym\partial{uni2202}{0}%
+\MTP@sym\phi{mtp.itphi}{0}%
+\MTP@sym\pi{mtp.itpi}{0}%
+\MTP@sym\pitchfork{uni22D4}{3}%
+\MTP@sym\pm{uni00B1}{2}%
+\MTP@sym\prec{uni227A}{3}%
+\MTP@sym\precapprox{uni2AB7}{3}%
+\MTP@sym\preccurlyeq{uni227C}{3}%
+\MTP@sym\preceq{uni2AAF}{3}%
+\MTP@sym\preceqq{uni2AB3}{3}%
+\MTP@sym\precnapprox{uni2AB9}{3}%
+\MTP@sym\precneqq{uni2AB5}{3}%
+\MTP@sym\precnsim{uni22E8}{3}%
+\MTP@sym\precsim{uni227E}{3}%
+\MTP@sym\prime{uni2032}{0}%
+\MTP@sym\prodop{uni220F}{1}%
+\MTP@sym\propto{uni221D}{3}%
+\MTP@sym\psi{mtp.itpsi}{0}%
+\MTP@sym\rho{mtp.itrho}{0}%
+\MTP@sym\rightarrow{uni2192}{3}%
+\MTP@sym\rightarrowtail{uni21A3}{3}%
+\MTP@sym\rightharpoondown{uni21C1}{3}%
+\MTP@sym\rightharpoonup{uni21C0}{3}%
+\MTP@sym\rightleftarrows{uni21C4}{3}%
+\MTP@sym\rightleftharpoons{uni21CC}{3}%
+\MTP@sym\rightrightarrows{uni21C9}{3}%
+\MTP@sym\rightsquigarrow{uni21DD}{3}%
+\MTP@sym\rightthreetimes{uni22CC}{2}%
+\MTP@sym\risingdotseq{uni2253}{3}%
+\MTP@sym\rtimes{uni22CA}{2}%
+\MTP@sym\searrow{uni2198}{3}%
+\MTP@sym\setminus{uni2216}{2}%
+\MTP@sym\sharp{uni266F}{0}%
+\MTP@sym\sigma{mtp.itsigma}{0}%
+\MTP@sym\sim{uni223C}{3}%
+\MTP@sym\simeq{uni2243}{3}%
+\MTP@sym\smile{uni2323}{3}%
+\MTP@sym\spadesuit{uni2660}{0}%
+\MTP@sym\sphericalangle{uni2222}{0}%
+\MTP@sym\sqcap{uni2293}{2}%
+\MTP@sym\sqcup{uni2294}{2}%
+\MTP@sym\sqintop{uni2A16}{1}%
+\MTP@sym\sqsubset{uni228F}{3}%
+\MTP@sym\sqsubseteq{uni2291}{3}%
+\MTP@sym\sqsupset{uni2290}{3}%
+\MTP@sym\sqsupseteq{uni2292}{3}%
+\MTP@sym\star{uni22C6}{2}%
+\MTP@sym\subset{uni2282}{3}%
+\MTP@sym\subseteq{uni2286}{3}%
+\MTP@sym\subseteqq{uni2AC5}{3}%
+\MTP@sym\subsetneq{uni228A}{3}%
+\MTP@sym\subsetneqq{uni2ACB}{3}%
+\MTP@sym\succ{uni227B}{3}%
+\MTP@sym\succapprox{uni2AB8}{3}%
+\MTP@sym\succcurlyeq{uni227D}{3}%
+\MTP@sym\succeq{uni2AB0}{3}%
+\MTP@sym\succeqq{uni2AB4}{3}%
+\MTP@sym\succnapprox{uni2ABA}{3}%
+\MTP@sym\succneqq{uni2AB6}{3}%
+\MTP@sym\succnsim{uni22E9}{3}%
+\MTP@sym\succsim{uni227F}{3}%
+\MTP@sym\sumintop{uni2A0B}{1}%
+\MTP@sym\sumop{uni2211}{1}%
+\MTP@sym\supset{uni2283}{3}%
+\MTP@sym\supseteq{uni2287}{3}%
+\MTP@sym\supseteqq{uni2AC6}{3}%
+\MTP@sym\supsetneq{uni228B}{3}%
+\MTP@sym\supsetneqq{uni2ACC}{3}%
+\MTP@sym\swarrow{uni2199}{3}%
+\MTP@sym\tau{mtp.ittau}{0}%
+\MTP@sym\theta{mtp.ittheta}{0}%
+\MTP@sym\times{uni00D7}{2}%
+\MTP@sym\to{uni2192}{3}%
+\MTP@sym\top{uni22A4}{0}%
+\MTP@sym\triangledown{uni25BF}{0}%
+\MTP@sym\triangleleft{uni25C1}{2}%
+\MTP@sym\trianglelefteq{uni22B4}{3}%
+\MTP@sym\triangleq{uni225C}{3}%
+\MTP@sym\triangleright{uni25B7}{2}%
+\MTP@sym\trianglerighteq{uni22B5}{3}%
+\MTP@sym\twoheadleftarrow{uni219E}{3}%
+\MTP@sym\twoheadrightarrow{uni21A0}{3}%
+\MTP@sym\upDelta{uni0394}{0}%
+\MTP@sym\upGamma{uni0393}{0}%
+\MTP@sym\upLambda{uni039B}{0}%
+\MTP@sym\upOmega{uni03A9}{0}%
+\MTP@sym\upPhi{uni03A6}{0}%
+\MTP@sym\upPi{uni03A0}{0}%
+\MTP@sym\upPsi{uni03A8}{0}%
+\MTP@sym\upSigma{uni03A3}{0}%
+\MTP@sym\upTheta{uni0398}{0}%
+\MTP@sym\upUpsilon{uni03A5}{0}%
+\MTP@sym\upXi{uni039E}{0}%
+\MTP@sym\upalpha{mtp.alphaup}{0}%
+\MTP@sym\upbeta{mtp.betaup}{0}%
+\MTP@sym\upchi{mtp.chiup}{0}%
+\MTP@sym\updelta{mtp.deltaup}{0}%
+\MTP@sym\upepsilon{mtp.epsilonup}{0}%
+\MTP@sym\upeta{mtp.etaup}{0}%
+\MTP@sym\upgamma{mtp.gammaup}{0}%
+\MTP@sym\upharpoonleft{uni21BF}{3}%
+\MTP@sym\upharpoonright{mtp.restriction}{3}%
+\MTP@sym\upiota{mtp.iotaup}{0}%
+\MTP@sym\upkappa{mtp.kappaup}{0}%
+\MTP@sym\uplambda{mtp.lambdaup}{0}%
+\MTP@sym\uplus{uni228E}{2}%
+\MTP@sym\upmu{mtp.muup}{0}%
+\MTP@sym\upnu{mtp.nuup}{0}%
+\MTP@sym\upomega{mtp.omegaup}{0}%
+\MTP@sym\upphi{mtp.phiup}{0}%
+\MTP@sym\uppi{mtp.piup}{0}%
+\MTP@sym\uppsi{mtp.psiup}{0}%
+\MTP@sym\uprho{mtp.rhoup}{0}%
+\MTP@sym\upsigma{mtp.sigmaup}{0}%
+\MTP@sym\upsilon{mtp.itupsilon}{0}%
+\MTP@sym\uptau{mtp.tauup}{0}%
+\MTP@sym\uptheta{mtp.thetaup}{0}%
+\MTP@sym\upuparrows{uni21C8}{3}%
+\MTP@sym\upupsilon{mtp.upsilonup}{0}%
+\MTP@sym\upvarepsilon{uni03B5}{0}%
+\MTP@sym\upvarkappa{uni03F0}{0}%
+\MTP@sym\upvarphi{uni03C6}{0}%
+\MTP@sym\upvarpi{uni03D6}{0}%
+\MTP@sym\upvarrho{uni03F1}{0}%
+\MTP@sym\upvarsigma{uni03C2}{0}%
+\MTP@sym\upvartheta{uni03D1}{0}%
+\MTP@sym\upxi{uni03BE}{0}%
+\MTP@sym\upzeta{uni03B6}{0}%
+\MTP@sym\vDash{uni22A8}{3}%
+\MTP@sym\varTheta{mtp.Thetait}{0}%
+\MTP@sym\varclubsuit{uni2667}{0}%
+\MTP@sym\vardiamondsuit{uni2666}{0}%
+\MTP@sym\varepsilon{mtp.itvarepsilon}{0}%
+\MTP@sym\varheartsuit{uni2665}{0}%
+\MTP@sym\varkappa{mtp.itvarkappa}{0}%
+\MTP@sym\varnothing{uni2205_1}{0}%
+\MTP@sym\varointclockwiseop{uni2232}{1}%
+\MTP@sym\varphi{mtp.itvarphi}{0}%
+\MTP@sym\varpi{mtp.itvarpi}{0}%
+\MTP@sym\varrho{mtp.itvarrho}{0}%
+\MTP@sym\varsigma{mtp.itvarsigma}{0}%
+\MTP@sym\varspadesuit{uni2664}{0}%
+\MTP@sym\vartheta{mtp.itvartheta}{0}%
+\MTP@sym\vartriangle{uni25B5}{3}%
+\MTP@sym\vartriangleleft{mtp.lhd}{3}%
+\MTP@sym\vartriangleright{mtp.rhd}{3}%
+\MTP@sym\vdash{uni22A2}{3}%
+\MTP@sym\vee{uni2228}{2}%
+\MTP@sym\veebar{uni22BB}{2}%
+\MTP@sym\wedge{uni2227}{2}%
+\MTP@sym\wp{uni2118}{0}%
+\MTP@sym\wr{uni2240}{2}%
+\MTP@sym\xi{mtp.itxi}{0}%
+\MTP@sym\zeta{mtp.itzeta}{0}%
+}
+% with amsmath, mtpro2.sty keeps amsmath's composite arrows (\mapsto = \mapstochar\rightarrow, ...)
+\AtBeginDocument{\@ifpackageloaded{amsmath}{%
+%
+}{}}
+
+% arrows over formulas and \overbrace/\underbrace as LaTeX/amsmath build them (from
+% pieces and rules) instead of unicode-math's stretchy glyphs
+\AtBeginDocument{%
+\DeclareRobustCommand\overrightarrow[1]{\vbox{\m@th\ialign{##\crcr
+      \rightarrowfill\crcr\noalign{\kern-\p@\nointerlineskip}
+      $\hfil\displaystyle{#1}\hfil$\crcr}}}%
+\DeclareRobustCommand\overleftarrow[1]{\vbox{\m@th\ialign{##\crcr
+      \leftarrowfill\crcr\noalign{\kern-\p@\nointerlineskip}%
+      $\hfil\displaystyle{#1}\hfil$\crcr}}}%
+\DeclareRobustCommand\overbrace[1]{\mathop{\vbox{\m@th\ialign{##\crcr\noalign{\kern3\p@}%
+      \downbracefill\crcr\noalign{\kern3\p@\nointerlineskip}%
+      $\hfil\displaystyle{#1}\hfil$\crcr}}}\limits}%
+\DeclareRobustCommand\underbrace[1]{\mathop{\vtop{\m@th\ialign{##\crcr
+   $\hfil\displaystyle{#1}\hfil$\crcr
+   \noalign{\kern3\p@\nointerlineskip}%
+   \upbracefill\crcr\noalign{\kern3\p@}}}}\limits}%
+\DeclareRobustCommand\rightarrowfill{$\m@th\smash-\mkern-7mu%
+  \cleaders\hbox{$\mkern-2mu\smash-\mkern-2mu$}\hfill
+  \mkern-7mu\mathord\rightarrow$}%
+\DeclareRobustCommand\leftarrowfill{$\m@th\mathord\leftarrow\mkern-7mu%
+  \cleaders\hbox{$\mkern-2mu\smash-\mkern-2mu$}\hfill
+  \mkern-7mu\smash-$}%
+\DeclareRobustCommand\downbracefill{$\m@th \setbox\z@\hbox{$\braceld$}%
+  \braceld\leaders\vrule \@height\ht\z@ \@depth\z@\hfill\braceru
+  \bracelu\leaders\vrule \@height\ht\z@ \@depth\z@\hfill\bracerd$}%
+\DeclareRobustCommand\upbracefill{$\m@th \setbox\z@\hbox{$\braceld$}%
+  \bracelu\leaders\vrule \@height\ht\z@ \@depth\z@\hfill\bracerd
+  \braceld\leaders\vrule \@height\ht\z@ \@depth\z@\hfill\braceru$}%
+\@ifpackageloaded{amsmath}{%
+\DeclareRobustCommand\overrightarrow{%
+  \mathpalette{\overarrow@\rightarrowfill@}}%
+\DeclareRobustCommand\overleftarrow{%
+  \mathpalette{\overarrow@\leftarrowfill@}}%
+\DeclareRobustCommand\overleftrightarrow{%
+  \mathpalette{\overarrow@\leftrightarrowfill@}}%
+\DeclareRobustCommand\underrightarrow{%
+  \mathpalette{\underarrow@\rightarrowfill@}}%
+\DeclareRobustCommand\underleftarrow{%
+  \mathpalette{\underarrow@\leftarrowfill@}}%
+\DeclareRobustCommand\underleftrightarrow{%
+  \mathpalette{\underarrow@\leftrightarrowfill@}}%
+}{}%
+}
+
+% unicode-math's commands whose character MTPro2 lacks: the definition a package gave them
+% before (amsmath's \iiiint, \varTheta, ...), or else an error, not a blank
+\def\MTP@nochar#1#2{\PackageError{ntxmath-otf}{\expandafter\string\csname#1\endcsname\space
+  (U+#2) is not in the NewTX Math font}{newtxmath has no glyph for this character;
+  with its Type 1 fonts the command is not defined either.}}
+\AddToHook{begindocument/end}{\directlua{ntxmathotf.nochar()}}
+% newtxmath's classes of the ASCII symbols
+\AddToHook{begindocument/end}{\directlua{for c, k in pairs({[33]=5,[34]=0,[35]=0,[36]=0,[37]=0,[38]=0,[40]=4,[41]=5,[42]=2,[43]=2,[44]=6,[45]=2,[46]=0,[47]=4,[58]=3,[59]=6,[60]=3,[61]=3,[62]=3,[63]=5,[64]=0,[91]=4,[92]=0,[93]=5,[94]=0,[96]=0,[123]=0,[124]=0,[125]=0,[126]=0}) do
+  local m = tex.getmathcode(c)
+  if type(m) == 'table' and m[1] < 8 and not (m[1] == k) then tex.setmathcode(c, {k, m[2], m[3]}) end
+end}}
+% newtxmath's delimiters that unicode-math lacks (\llbracket, \lbag, \arrowvert, ...)
+\def\MTP@delim#1#2#3{\directlua{ntxmathotf.delim("delim:#1","#2",#3)}}
+\AddToHook{begindocument/end}{%
+  \DeclareRobustCommand\Arrowvert{\MTP@delim{ntx}{Arrowvert}{0}}%
+  \DeclareRobustCommand\arrowvert{\MTP@delim{ntx}{arrowvert}{0}}%
+  \DeclareRobustCommand\bracevert{\MTP@delim{ntx}{bracevert}{0}}%
+  \DeclareRobustCommand\dlb{\MTP@delim{ntx}{dlb}{4}}%
+  \DeclareRobustCommand\drb{\MTP@delim{ntx}{drb}{5}}%
+  \DeclareRobustCommand\lVert{\MTP@delim{ntx}{lVert}{4}}%
+  \DeclareRobustCommand\llbracket{\MTP@delim{ntx}{llbracket}{4}}%
+  \DeclareRobustCommand\lvert{\MTP@delim{ntx}{lvert}{4}}%
+  \DeclareRobustCommand\rVert{\MTP@delim{ntx}{rVert}{5}}%
+  \DeclareRobustCommand\rrbracket{\MTP@delim{ntx}{rrbracket}{5}}%
+  \DeclareRobustCommand\rvert{\MTP@delim{ntx}{rvert}{5}}%
+  \DeclareRobustCommand\smlbrace{\MTP@delim{ntx}{smlbrace}{4}}%
+  \DeclareRobustCommand\smrbrace{\MTP@delim{ntx}{smrbrace}{5}}%
+  \DeclareRobustCommand\|{\MTP@delim{ntx}{|}{0}}}
+% hyperref: headings with maths give bookmarks with the symbols (Flow with 𝛼i and ∇f)
+\AddToHook{begindocument/end}{\@ifpackageloaded{hyperref}{\pdfstringdefDisableCommands{%
+  \directlua{ntxmathotf.pdfstr()}%
+  \@for\MTP@o:=mathrm,mathbf,mathit,mathsf,mathtt,mathcal,mathscr,mathfrak,mathbb,%
+    symup,symit,symbf,symbfit,symsf,symtt,symcal,symscr,%
+    symfrak,symbb,bm,hm,vec,hat,bar,tilde,dot,ddot,breve,check,acute,grave,mathring,widehat,%
+    widetilde,overline,underline,boldsymbol,text,operatorname\do{%
+    \expandafter\let\csname\MTP@o\endcsname\@firstofone}}}{}}
+% the text alphabets as newtxmath declares them: \mathbf and \mathit in the roman
+% font (OT1), \mathsf in OT1, \mathtt in the default encoding
+\DeclareMathAlphabet{\MTP@mathbf}{OT1}{minntx}{b}{n}
+\DeclareMathAlphabet{\MTP@mathit}{OT1}{minntx}{m}{it}
+\DeclareMathAlphabet{\MTP@mathsf}{OT1}{\sfdefault}{m}{n}
+\DeclareMathAlphabet{\MTP@mathtt}{\encodingdefault}{\ttdefault}{m}{n}
+\SetMathAlphabet{\MTP@mathit}{bold}{OT1}{minntx}{b}{it}
+\SetMathAlphabet{\MTP@mathsf}{bold}{OT1}{\sfdefault}{b}{n}
+\SetMathAlphabet{\MTP@mathtt}{bold}{\encodingdefault}{\ttdefault}{b}{n}
+\AddToHook{begindocument/end}{\let\mathbf\MTP@mathbf\let\mathit\MTP@mathit
+  \ifMTP@textsf\else\let\mathsf\MTP@mathsf\fi\let\mathtt\MTP@mathtt}
+\directlua{ntxmathotf.ot1greek = true}% (\mathbf{\Delta}: the OT1 font's own Greek)
+% (newtxmath's text-mode symbols, \openbox and \AmS, use its fonts as text fonts)
+\DeclareFontEncoding{LMS}{}{}\DeclareFontSubstitution{LMS}{ntxsy}{m}{n}
+% amscd's CD environment: its @ is maths-active ("8000), which unicode-math's set-up undoes
+\AddToHook{begindocument/end}{\@ifpackageloaded{amscd}{\mathcode`\@="8000 }{}}
+% amsmath's \varGamma ... \varOmega are the italic capitals of the letters font (with
+% MTPro2: its italic Greek); unicode-math makes \varTheta the upright theta symbol U+03F4
+% (and maps the italic capitals' code points to the upright ones: the characters directly)
+\AddToHook{begindocument/end}{\@ifpackageloaded{amsmath}{\directlua{ntxmathotf.vargreek()}}{}}
+% mathtools' colon commands: unicode-math redefines \dblcolon, \coloneqq, \Coloneqq and
+% \eqqcolon as the characters U+2237, U+2254, U+2A74, U+2255; they get mathtools' own
+% definitions back (as with the Type 1 fonts), and so do the colon commands whose
+% character the fonts lack
+\AddToHook{begindocument/end}{\@ifpackageloaded{mathtools}{%
+  \def\dblcolon{\MATHT@dblcolon}\def\coloneqq{\MATHT@coloneq}%
+  \def\Coloneqq{\MATHT@dblcoloneq}\def\eqqcolon{\MATHT@eqcolon}%
+  \def\Colon{\MATHT@dblcolon}%
+  \let\overbracket\MToverbracket\let\underbracket\MTunderbracket%
+  }{}}
+% \cdots and \ldots as LaTeX builds them, from \cdotp and \ldotp (punctuation: the dots
+% close up in sub- and superscripts, as TeX spaces them; unicode-math's one-glyph \cdots
+% cannot do that); the glyphs U+22EF, U+2026 remain for Unicode input
+\AddToHook{begindocument/end}{%
+  \def\@cdots{\mathinner{\cdotp\cdotp\cdotp}}%
+  \@ifpackageloaded{amsmath}% (amsmath's \cdots: a thin space before the end of a formula)
+    {\DeclareRobustCommand\cdots{\DN@{\extrap@\@cdots}\FN@\next@}}%
+    {\DeclareRobustCommand\cdots{\mathinner{\cdotp\cdotp\cdotp}}}%
+  \DeclareRobustCommand\mathellipsis{\mathinner{\ldotp\ldotp\ldotp}}}
+% composite symbols (amsmath's long arrows, LaTeX's hooked arrows, \doteq, mathtools'
+% colons) copy and read as the one character they show: an ActualText span around them,
+% or with tagging (luamml) the character as their MathML <mo>
+\def\MTP@actual#1#2{\pdfextension literal page{/Span<</ActualText<FEFF#1>>>BDC}#2%
+  \pdfextension literal page{EMC}}
+\def\MTP@composite#1#2{\ifcsname#1\endcsname
+  \expandafter\ifx\csname#1\endcsname\relax\else
+  \directlua{ntxmathotf.composite("#1","#2")}\fi\fi}
+\AddToHook{begindocument/end}{%
+  \expandafter\ifx\csname luamml_annotate:en\endcsname\relax\else
+    \def\MTP@actual#1#2{\csname luamml_annotate:en\endcsname
+      {core={[0]='mo',"\luaescapestring{\Uchar"#1}"}}{#2}}\fi
+  \let\MTP@actual@\MTP@actual
+  \def\MTP@nested{\let\MTP@actual\@secondoftwo}% (\longmapsto holds \longrightarrow: one span)
+  \def\MTP@unnested{\let\MTP@actual\MTP@actual@}%
+  \MTP@composite{hookleftarrow}{21A9}\MTP@composite{hookrightarrow}{21AA}%
+  \MTP@composite{longleftarrow}{27F5}\MTP@composite{longrightarrow}{27F6}%
+  \MTP@composite{longleftrightarrow}{27F7}\MTP@composite{Longleftarrow}{27F8}%
+  \MTP@composite{Longrightarrow}{27F9}\MTP@composite{Longleftrightarrow}{27FA}%
+  \MTP@composite{longmapsto}{27FC}\MTP@composite{mapsto}{21A6}%
+  \MTP@composite{doteq}{2250}\MTP@composite{bowtie}{22C8}\MTP@composite{models}{22A7}%
+  \MTP@composite{dblcolon}{2237}\MTP@composite{coloneqq}{2254}%
+  \MTP@composite{Coloneqq}{2A74}\MTP@composite{eqqcolon}{2255}%
+  \@ifpackageloaded{amsmath}{}{\MTP@composite{cdots}{22EF}}\MTP@composite{@cdots}{22EF}\MTP@composite{mathellipsis}{2026}}
+
+% \sqrt[n]{...}: TeX's placement of the degree (raised by 0.6 of the radical's height
+% minus depth; OpenType's percentage counts height plus depth)
+\AtBeginDocument{\@ifpackageloaded{amsmath}{%
+  \def\plainroot@#1\of#2{\MTP@mmlindex
+    \setbox\rootbox\hbox{$\m@th\scriptscriptstyle{#1}\MTP@mmlsavei$}%
+    \mathchoice{\r@@t\displaystyle{#2}}{\r@@t\textstyle{#2}}%
+      {\r@@t\scriptstyle{#2}}{\r@@t\scriptscriptstyle{#2}}\egroup}%
+  \def\r@@t#1#2{\MTP@mmlroot\setbox\z@\hbox{$\MTP@rootattr=1 \m@th#1\sqrtsign{#2}\MTP@mmlsave$}%
+    \dimen@\ht\z@\advance\dimen@-\dp\z@
+    \setbox\@ne\hbox{$\m@th#1\mskip\uproot@ mu$}\advance\dimen@ by1.667\wd\@ne
+    \MTP@mmlhide{\mkern-\leftroot@ mu\mkern5mu\raise.6\dimen@\copy\rootbox
+    \mkern-10mu\mkern\leftroot@ mu}\MTP@mmlmark{\box\z@}}}{}}
+
+% mtpro2.sty's accents that have no Unicode character (\dotup, \what, \wwtilde, ...)
+\AtBeginDocument{\directlua{ntxmathotf.accents()}}
+\AddToHook{begindocument/end}{\directlua{ntxmathotf.mathml()}}
+% Tagged PDF (luamml): MathML for mtpro2.sty's macros that build a formula from boxes.
+% \MTP@mml{<kind>}{<construct>}: \MTP@mmlsave in the construct's inner formula saves the
+% argument's MathML, which then goes into the construct's (ntxmathotf.mml). The labels are
+% numbered, so constructs inside the argument have labels of their own.
+\newcount\MTP@mmlc
+\newattribute\MTP@mmlattr
+\def\MTP@mml#1#2{#2}
+\def\MTP@mmlmark#1{#1}
+\def\MTP@mmlhide#1{#1}
+\let\MTP@mmlsave\relax \let\MTP@mmlsavei\relax \let\MTP@mmlindex\relax \let\MTP@mmlroot\relax
+\let\MTP@mmlin\relax
+\AddToHook{begindocument/end}{%
+  \expandafter\ifx\csname luamml_annotate:en\endcsname\relax\else
+    \def\MTP@mml#1#2{\global\advance\MTP@mmlc\@ne
+      \expandafter\MTP@mml@\expandafter{\the\MTP@mmlc}{#1}{#2}}%
+    \def\MTP@mml@#1#2#3{\csname luamml_annotate:en\endcsname
+      {\directlua{ntxmathotf.mml("mtp#1",#2)}}{\def\MTP@mmlsave{\MTP@mmlsv{mtp#1}}#3}}%
+    % roots with an index: TeX's \mathchoice typesets them four times, and luamml takes the
+    % branch of the formula's style. In each branch, \MTP@mmlroot saves the square root's
+    % MathML and \MTP@mmlmark marks the box that shows it, which gets the root's MathML
+    % (ntxmathotf.mathml: the radicand and the index saved by \MTP@mmlsavei)
+    \def\MTP@mmlindex{\global\advance\MTP@mmlc\@ne \edef\MTP@ri{mtp\the\MTP@mmlc}}%
+    \def\MTP@mmlsavei{\MTP@mmlsv\MTP@ri}%
+    \def\MTP@mmlroot{\global\advance\MTP@mmlc\@ne \edef\MTP@rl{\the\MTP@mmlc}%
+      \def\MTP@mmlsave{\MTP@mmlsv{mtp\MTP@rl}}%
+      \directlua{ntxmathotf.mmlroot[\MTP@rl] = "\MTP@ri"}}%
+    \def\MTP@mmlmark#1{\MTP@mmlattr=\MTP@rl\relax #1\MTP@mmlattr=-"7FFFFFFF\relax}%
+    \def\MTP@mmlhide#1{\MTP@mmlattr="40000000\relax #1\MTP@mmlattr=-"7FFFFFFF\relax}% (the index)
+    % (saved without structure elements: those come with the formula that uses the MathML)
+    \def\MTP@mmlin{\MTP@mmlsv{}}%
+    \def\MTP@mmlsv#1{\expandafter\def\csname l__luamml_label_tl\endcsname{#1}%
+      \csname l__luamml_flag_int\endcsname=1 }%
+  \fi}
+% mtpro2.sty's own macros (\widehat, \overcbrace, \PARENS, \SQRT, \xl, ...), verbatim
+\AddToHook{begindocument/end}{\makeatletter\input{ntxmath-otf-macros.tex}\makeatother}
+
+% newtxmath's \mathcal: its calligraphic capitals (unicode-math's script letters are
+% \mathscr's)
+\AtBeginDocument{%
+  \protected\def\mathcal#1{\MTP@galpha{cal}{#1}}%
+  \ifMTP@textsf \let\mathsf\MTP@textsf \fi}
+% the alphabets that are math alphabets with newtxmath (\mathrm, \mathbb, \mathfrak; its
+% \mathscr sets each letter on its own): a group, so that \mathrm{xy}_i is a box with a
+% script (one letter stays a character, as TeX makes it)
+\AddToHook{begindocument/end}{%
+  \@for\MTP@o:=mathrm,mathbb,mathfrak\do{%
+    \expandafter\let\csname MTP@u@\MTP@o\expandafter\endcsname\csname\MTP@o\endcsname
+    \expandafter\protected\expandafter\edef\csname\MTP@o\endcsname#1{{\expandafter\noexpand
+      \csname MTP@u@\MTP@o\endcsname{#1}}}}}
+\endinput

@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import functools
 import datetime
 import math
 import os
@@ -472,6 +473,7 @@ def read_classic_defs(text: str, names, ams: bool = False) -> dict[str, str]:
     return out
 
 
+@functools.lru_cache(maxsize=None)
 def kpse(name: str) -> Path | None:
     try:
         p = subprocess.run(["kpsewhich", name], capture_output=True, text=True).stdout.strip()
@@ -1167,9 +1169,11 @@ class MathFontBuild:
         pr = self.cmap.get(0x2032)                  # '' and ''' as TeX sets them: primes side by side
         if pr:
             for cp, k in ((0x2033, 2), (0x2034, 3), (0x2057, 4)):
-                parts = lambda n: [(n, i * self.glyphs[n].width, 0) for i in range(k)]
+                # (in a script TeX adds each prime's italic correction)
+                W = lambda n: self.glyphs[n].width + self.glyphs[n].italic
+                parts = lambda n: [(n, i * W(n), 0) for i in range(k)]
                 def comp(name, n):                  # (the prime's box, not the ink's)
-                    c = self.compose(name, parts(n), k * self.glyphs[n].width)
+                    c = self.compose(name, parts(n), k * W(n))
                     if c:
                         self.glyphs[c].height, self.glyphs[c].depth = self.glyphs[n].height, self.glyphs[n].depth
                     return c
@@ -1197,8 +1201,8 @@ class MathFontBuild:
         if not fonts:
             return g
         refs, ext = self.chain(fonts[0], large[1]) if override is None else override(fonts[0])
-        if ext and len(refs) > 1:       # TeX never sets the extensible character itself
-            refs = refs[:-1]
+        if ext and (len(refs) > 1 or getattr(self, "tex_ext", False)):
+            refs = refs[:-1]            # TeX never sets the extensible character itself
         names = [n for n in (self.add(r, f"{g or root_name}.v{i}", dup) for i, r in enumerate(refs)) if n]
         g = g or (names[0] if names else None)
         if not g:
@@ -1225,6 +1229,25 @@ class MathFontBuild:
                 parts = ([piece(bot, "bot")] if bot else []) + [rp] + \
                         ([piece(mid, "mid"), rp] if mid else []) + ([piece(top, "top")] if top else [])
             self.vasm[g] = parts
+            if getattr(self, "tex_ext", False) and small and self.glyphs[g].ref is not None and \
+                    self.glyphs[g].ref.font == font and self.glyphs[g].ref.slot in tf.exten:
+                # the small character is itself extensible (\lmoustache): TeX builds it from
+                # pieces at every size, the smallest being the fixed pieces alone
+                fixed = [p for p in parts if not p[1]] or parts[:1]
+                G = self.glyphs
+                y, comp = 0, []                  # (bottom up, boxes stacked as TeX stacks them)
+                for i, (n, _, _) in enumerate(fixed):
+                    if i:
+                        y += G[fixed[i - 1][0]].height + G[n].depth
+                    comp.append((n, 0, y))
+                rep = next((p[0] for p in parts if p[1]), fixed[0][0])     # (TeX: the box is as wide
+                c = self.compose(f"{g}.min", comp, G[rep].width + G[rep].italic)   # as the repeated piece)
+                if c:
+                    cg = G[c]
+                    cg.depth, cg.height = G[fixed[0][0]].depth, y + G[fixed[-1][0]].height
+                    self.vvar[c], self.vasm[c] = [c], parts
+                    self.vvar.pop(g, None); self.vasm.pop(g, None)
+                    return c
         return g
 
     def delimiters(self):
@@ -1343,9 +1366,14 @@ class MathFontBuild:
         overhang (OpenType convention); assembly pieces start at 0."""
         axis = self.src.tfm(self.fam("symbols")[0]).params[22] * UPM
         radical = self.cmap.get(0x221A)
+        ops = self.ops()
         for root, vs in self.vvar.items():
             for n in vs:
                 g = self.glyphs[n]
+                if root in ops and g.ref is not None and not g.shifted:
+                    # (TeX boxes an operator before centring it: a box is never less than
+                    # 0 high or deep, whatever the metrics say)
+                    g.height, g.depth = max(g.height, 0), max(g.depth, 0)
                 if root != radical and g.ref is not None and ("ex" in g.ref.font or "xl" in g.ref.font):
                     self.shift(n, axis - (g.height - g.depth) / 2)
         for parts in self.vasm.values():
@@ -1663,7 +1691,10 @@ def layout_table(tag: str, feature: str, lookup) -> object:
     return table
 
 
-def write_otf(B: MathFontBuild, family: str, donor: dict | None) -> TTFont:
+COPYRIGHT = "Converted from MathTime Professional 2 (Publish or Perish, Inc.) for personal use"
+
+
+def write_otf(B: MathFontBuild, family: str, donor: dict | None, copyright: str = COPYRIGHT) -> TTFont:
     """Glyphs, metrics, names, 'ssty' (GSUB), 'kern' (GPOS) and MATH -> a CFF OpenType font."""
     order = [".notdef"] + list(B.glyphs)
     cs = {".notdef": T2CharStringPen(500, None).getCharString()}
@@ -1702,8 +1733,7 @@ def write_otf(B: MathFontBuild, family: str, donor: dict | None) -> TTFont:
     fb.setupHorizontalHeader(ascent=900, descent=-300)
     fb.setupNameTable({"familyName": family, "styleName": "Regular", "psName": ps,
                        "uniqueFontIdentifier": ps, "fullName": family, "version": "Version 1.0",
-                       "copyright": "Converted from MathTime Professional 2 (Publish or Perish, Inc.) "
-                                    "for personal use"})
+                       "copyright": copyright})
     fb.setupOS2(sTypoAscender=900, sTypoDescender=-300, usWinAscent=1100, usWinDescent=400,
                 usWeightClass={"normal": 400, "bold": 700, "heavy": 900}[B.weight])
     fb.setupPost()
@@ -1754,6 +1784,8 @@ def variants_lua(B: MathFontBuild) -> str:
     miss = sorted((c, cp) for c, (cp, _cls) in B.inp.uni.table.items()
                   if cp not in B.cmap and re.fullmatch(r"[A-Za-z]+", c))
     out.append("  missing={" + ",".join(f"{c}={cp}" for c, cp in miss) + "},")
+    if getattr(B, "accent_xheight", None):          # (accents placed by their own fonts' x-heights)
+        out.append("  accentxh=true,")
     if B.tex_params:
         lua = lambda v: "{" + ",".join(f"{x:.7f}" for x in v) + "}" if isinstance(v, list) else f"{v:.7f}"
         out.append("  texparams={" + ",".join(f"{k}={lua(v)}" for k, v in sorted(B.tex_params.items())) + "},")
@@ -1771,11 +1803,12 @@ def packed_lua(source: str, header: list[str]) -> str:
         "\n]]):gsub('%s', '')))))()\n"
 
 
-def tfm_lua(builds: dict[str, MathFontBuild]) -> str:
+def tfm_lua(builds: dict[str, MathFontBuild], weights: dict | None = None) -> str:
     """TFM data of the legacy fonts with the OpenType glyph of each character: the package
     builds virtual fonts from it that behave exactly like the Type 1 fonts' TFMs.
     Dimensions are TFM fix_words (2^-20 design size), scaled at load time as TeX does."""
     fw = lambda v: str(round(v * 2**20))
+    W = weights or WEIGHTS
     out = ["-- mtpro2-otf-tfm.lua: generated by mtpro2_otf.py (TeX metrics and glyph names, no outlines)",
            "-- per font: K = kern values; c[slot] = {width, height, depth, italic, glyph index, raise,",
            "--   nextlarger, {top,mid,bot,rep}, {slot, kern index, ...}}  (fix_words)",
@@ -1805,7 +1838,7 @@ def tfm_lua(builds: dict[str, MathFontBuild]) -> str:
                              f"{t.nextlarger.get(slot, 'false')},"
                              f"{'{' + ','.join(map(str, ext)) + '}' if ext else 'false'},"
                              f"{'{' + ','.join(map(str, kern)) + '}' if kern else 'false'}}}")
-            out.append(f"  [{lua_str(font)}]={{otf={lua_str(WEIGHTS[w][1])},scale={scale},"
+            out.append(f"  [{lua_str(font)}]={{otf={lua_str(W[w][1])},scale={scale},"
                        f"ds={fw(t.design_size / 16)},p={{{','.join(fw(p) for p in t.params[1:])}}},"
                        f"K={{{','.join(fw(k) for k in kvals)}}},c={{")
             out.append("    " + ",\n    ".join(chars) + "}},")
@@ -1813,11 +1846,12 @@ def tfm_lua(builds: dict[str, MathFontBuild]) -> str:
     return "\n".join(out) + "\n"
 
 
-def dims_lua(builds: dict[str, MathFontBuild]) -> str:
+def dims_lua(builds: dict[str, MathFontBuild], weights: dict | None = None) -> str:
     """Exact TeX boxes (TFM width, height, depth) by glyph index. luaotfload measures glyphs
     from their outlines (rounded to font units, and ink that overshoots the TFM box counts);
     the package puts TeX's dimensions back when the font is loaded."""
     num = lambda v: f"{v:.3f}".rstrip("0").rstrip(".")
+    W = weights or WEIGHTS
     out = ["-- mtpro2-otf-dims.lua: generated by mtpro2_otf.py (glyph metrics only, no outlines)",
            "-- per font: glyph index, width, height, depth (font units), repeated", "return {"]
     for w, B in builds.items():
@@ -1825,7 +1859,7 @@ def dims_lua(builds: dict[str, MathFontBuild]) -> str:
         for gid, g in enumerate(B.glyphs.values(), 1):         # glyph 0 is .notdef
             if g.ref is not None or g.parts:                    # (composites: the exact width)
                 vals += [str(gid), num(max(g.width, 0)), num(g.height), num(g.depth)]
-        out.append(f"  [{lua_str(WEIGHTS[w][0].replace(' ', ''))}]={{" + ",".join(vals) + "},")
+        out.append(f"  [{lua_str(W[w][0].replace(' ', ''))}]={{" + ",".join(vals) + "},")
     # per font: which glyph italic x is in the text/script/scriptscript instance (they differ by
     # 'ssty'), and the x-heights of those sizes' symbol fonts (TeX places accents with them)
     out.append("  info={")
@@ -1877,7 +1911,18 @@ def dims_lua(builds: dict[str, MathFontBuild]) -> str:
                 at = B.src.tfm(A.ref.font)
                 if A.ref.slot not in at.nextlarger and A.ref.slot not in at.exten:
                     novar.append(str(gid[a]))
-        out.append(f"    [{lua_str(WEIGHTS[w][0].replace(' ', ''))}]={{probe={{{','.join(map(str, probe))}}},"
+        tuck = []                      # subscript tucks (italic corrections) as TFM fix_words
+        for n, g in B.glyphs.items():
+            if g.mkern and g.ref is not None and n in gid:
+                t = B.src.tfm(g.ref.font).chars.get(g.ref.slot)
+                if t is not None and abs(t.italic * UPM * g.ref.scale + g.mkern) < 1e-6:
+                    tuck += [str(gid[n]), str(g.ref.scale), str(round(t.italic * 2**20))]
+        axh = []                       # accents' own fonts' x-heights (builds that set them)
+        for n, xhv in getattr(B, "accent_xheight", {}).items():
+            if n in gid:
+                axh += [str(gid[n]), f"{xhv:.7f}"]
+        out.append(f"    [{lua_str(W[w][0].replace(' ', ''))}]={{probe={{{','.join(map(str, probe))}}},"
+                   f"accxh={{{','.join(axh)}}},tuck={{{','.join(tuck)}}},"
                    f"xheight={{{','.join(f'{v:.7f}' for v in xh)}}},"
                    f"optical={{{','.join(map(str, trip))}}},"
                    f"accent={{{','.join(acc)}}},"
@@ -1898,8 +1943,11 @@ def command_defs(B: MathFontBuild) -> tuple[list[str], list[str]]:
         cp = B.inp.uni.for_command("\\" + cmd, slot, fam)
         line = f"\\MTP@sym\\{cmd}{{{g}}}{{{CLASSES.get(cls, 0)}}}"
         alias = B.inp.uni.aliases.get(cmd)       # unicode-math: \hbar -> \hslash, ...
+        umcls = B.inp.uni.table.get(cmd, (None, None))[1]
         if cmd in B.forced or not cp or (cp in B.cmap and B.cmap[cp] != g) or \
-                (alias and B.commands.get(alias, (None, None))[1] != g):
+                (alias and B.commands.get(alias, (None, None))[1] != g) or \
+                (umcls and getattr(B, "keep_class", False) and "\\" + umcls != cls
+                 and not (umcls == "mathalpha" and cls == "\\mathord")):
             over.append(line)    # mtpro2.sty replaces LaTeX's definition / unicode-math shows another glyph
         else:
             prov.append(line)    # define only if LaTeX/unicode-math lacks it
@@ -1931,6 +1979,7 @@ local V = load("mtpro2-otf-variants")
 -- TeX's exact glyph boxes (luaotfload measures outlines: rounded, and with overshoots)
 local D = load("mtpro2-otf-dims")
 mtpro2otf.italic = {}                               -- font id -> {char -> subscript kern}
+mtpro2otf.accxh = {}                                -- font id -> {glyph index -> accent x-height}
 -- MTPro2's design for a size, as its .fd files choose it: 1 text (9 pt up), 2 script
 -- (7 to 9 pt), 3 scriptscript (below 7 pt); sizes before the package's scale option
 function mtpro2otf.design(sp)
@@ -2041,6 +2090,22 @@ luatexbase.add_to_callback("luaotfload.patch_font", function(tfm, spec, id)
       end
     end
   end
+  -- the subscript tucks to the sp: the italic corrections scaled as TeX scales them (the
+  -- font's math kerns are whole units)
+  if oinfo and oinfo.tuck and #oinfo.tuck > 0 and mtpro2otf.scaler and id and mtpro2otf.italic[id] then
+    local tk, scs, ik = {}, {}, mtpro2otf.italic[id]
+    local o = oinfo.tuck
+    for i = 1, #o, 3 do tk[o[i]] = i end
+    for u, c in pairs(tfm.characters) do
+      local i = c.index and tk[c.index]
+      if i and ik[u] then
+        local k = o[i + 1]
+        local sc = scs[k] or mtpro2otf.scaler(tfm.parameters.size * k)
+        scs[k] = sc
+        ik[u] = -sc(o[i + 2])
+      end
+    end
+  end
   -- accent positions from the unrounded attachments (TeX places accents to the sp: the
   -- font's whole units are a unit off at sizes other than 10 pt)
   if oinfo and oinfo.accent then
@@ -2050,6 +2115,12 @@ luatexbase.add_to_callback("luaotfload.patch_font", function(tfm, spec, id)
       local a = c.index and ac[c.index]
       if a and c.top_accent then c.top_accent = math.floor(a * f + 0.5) end
     end
+  end
+  -- (accents whose fonts' x-heights differ: by glyph index, for this font instance)
+  if oinfo and oinfo.accxh and #oinfo.accxh > 0 then
+    local ax = {}
+    for i = 1, #oinfo.accxh, 2 do ax[oinfo.accxh[i]] = oinfo.accxh[i + 1] end
+    mtpro2otf.accxh[id] = ax
   end
   -- TeX lowers an accent by at most the x-height of the accent's font, which is the script
   -- (scriptscript) size's own font in sub- and superscripts; OpenType has one value
@@ -2338,7 +2409,14 @@ do
       if t and id == ACC then                     -- the accent itself, if its font has a bold
         for _, k in ipairs({ "accent", "bot_accent" }) do
           local ok, c = pcall(function() return n[k] end)
-          if ok and c and c.fam and t[c.fam] then c.fam = t[c.fam] end
+          if ok and c and c.fam and t[c.fam] then
+            if c.fam == fam() and c.char and c.char >= 0xF0000 then   -- (set by name: the same
+              local name = mtpro2otf.byslot[c.char]                    -- name in the bold font)
+              local ok2, sl = pcall(luaotfload.aux.slot_of_name, node.family_font(t[c.fam], 0), name or "")
+              if name and ok2 and sl then c.char = sl end
+            end
+            c.fam = t[c.fam]
+          end
         end
       elseif t and n.left then                    -- the radical sign
         local d = n.left
@@ -2435,6 +2513,20 @@ do
     local ok, a = pcall(function() return n.accent end)
     return ok and a and a.char and extacc[a.char] and a.fam == fam()
   end
+  local function accglyph(h)                  -- the accent glyph of an accent's vbox
+    for x in node.traverse(h) do
+      if x.id == VLIST and x.head then
+        local a = x.head
+        if a.id == KERN then a = a.next end
+        if a and a.id == HLIST and a.head then
+          for y in node.traverse(a.head) do if y.id == node.id("glyph") then return y end end
+        end
+      elseif x.id == HLIST and x.head then
+        local y = accglyph(x.head)
+        if y then return y end
+      end
+    end
+  end
   local function accentfix(h, A, hc)
     local changed = false
     for x in node.traverse(h) do
@@ -2502,7 +2594,8 @@ do
     local inner = n
     while inner.nucleus and inner.nucleus.id == SUBML and inner.nucleus.head
         and inner.nucleus.head.id == ACC and not inner.nucleus.head.next
-        and not inner.nucleus.head.sub and not inner.nucleus.head.sup and isext(inner.nucleus.head) do
+        and not inner.nucleus.head.sub and not inner.nucleus.head.sup
+        and (V.accentxh or isext(inner.nucleus.head)) do
       inner = inner.nucleus.head
     end
     list(inner.nucleus, s | 1)
@@ -2512,7 +2605,15 @@ do
     n.prev, n.next = nil, nil
     local u = mtpro2otf.fontsize[node.family_font(fam(), size(s))]
     local box = node.hpack(node.mlist_to_hlist(n, snames[s], false))
-    if accentfix(box.head, math.floor(p.xheight3 * u + 0.5), hc) then
+    local A = p.xheight3 and math.floor(p.xheight3 * u + 0.5)
+    local g = accglyph(box.head)                  -- (the accent's own font's x-height)
+    local ax = g and mtpro2otf.accxh[g.font]
+    if ax then
+      local c = font.getfont(g.font).characters[g.char]
+      local xh = c and c.index and ax[c.index]
+      if xh then A = math.floor(xh * mtpro2otf.fontsize[g.font] + 0.5) end
+    end
+    if A and accentfix(box.head, A, hc) then
       local inner = box.head
       box.head = nil
       node.free(box)
@@ -2532,8 +2633,8 @@ do
       if LB and LB.attr then lite(n, s) end
       if id == STYLE then
         s = num(n.style)
-      elseif id == ACC and (s >= 4 or mtpro2otf.design(mtpro2otf.fontsize[node.family_font(fam(), size(s))]) > 1)
-          and V.texparams and V.texparams.xheight3 and isext(n) then
+      elseif id == ACC and ((s >= 4 or mtpro2otf.design(mtpro2otf.fontsize[node.family_font(fam(), size(s))]) > 1)
+          and V.texparams and V.texparams.xheight3 and isext(n) or V.accentxh and n.accent) then
         -- (in a script or at small sizes, where the designs' x-heights differ)
         local r = extaccent(n, s)
         if n == head then head = r end
@@ -2668,12 +2769,20 @@ do
               local c = k.char                        -- lacks stays missing, as in TeX)
               local cap = (c >= 0x1D6E2 and c <= 0x1D6FA and c - 0x1D6E2) or (c >= 0x391 and c <= 0x3A9 and c - 0x391)
               local m = hasc[fontof(mainfam)] or {}
+              -- an OT1 text font (newtxmath's \mathbf) has the eleven capitals TeX puts there
+              local ot1 = cap and mtpro2otf.ot1greek and ({ [2] = 0, [3] = 1, [7] = 2, [10] = 3, [13] = 4,
+                [15] = 5, [18] = 6, [20] = 7, [21] = 8, [23] = 9, [24] = 10 })[cap]
+              local fo = ot1 and font.getfont(fid)
+              if ot1 and ch[ot1] and fo and fo.name and fo.name:lower():find("ot1", 1, true) then
+                k.char = ot1; goto done
+              end
               if cap then
                 local b = 0x1D6A8 + cap
                 c = (boldf[fid] and m[b]) and b or 0x391 + cap
               end
               if m[c] then k.fam, k.char = mainfam, c end
             end
+            ::done::
           elseif k.id == SML then alphafix(k.list) end
         end
       end
@@ -2683,15 +2792,14 @@ do
     end
   end
   luatexbase.add_to_callback("mlist_to_hlist", function(head, style, penalties)
-    if mainfam == nil then                    -- (the family of MTPro2Math: unicode-math's own)
-      for f = 0, 255 do
-        local fid = node.family_font(f, 0)
+    if mainfam == nil then                    -- (the family of MTPro2Math: unicode-math's own;
+      for f = 0, 255 do                       -- looked for until it is there: a formula can come
+        local fid = node.family_font(f, 0)    -- before the fonts are set up)
         local fo = fid and fid > 0 and (font.getfont(fid) or fonts.hashes.identifiers[fid])
         if fo and fo.name and fo.name:find("MTPro2Math.otf", 1, true) then mainfam = f; break end
       end
-      mainfam = mainfam or -1
     end
-    if mainfam >= 0 then alphafix(head) end
+    if mainfam then alphafix(head) end
     head = walk(head, num(style))
     return node.mlist_to_hlist(head, style, penalties)
   end, "mtpro2-otf.mlist")
@@ -3975,7 +4083,7 @@ def make_sty(B: MathFontBuild, date: str) -> str:
             .replace("@@AMSLIST@@", ",".join(ams_fallbacks(B)) if not B.inp.complete else "")
             .replace("@@CLASSIC@@", classic_defs(B))
             .replace("@@COLONS@@", colon_defs(B))
-            .replace("@@MATHSIZES@@", "\n".join(re.findall(r"^\\(?:def\\default\w*ratio\{[^}]*\}|DeclareMathSizes(?:\{[^}]*\}){4})",
+            .replace("@@MATHSIZES@@", "\n".join(re.findall(r"^\\(?:def\\default\w*ratio\{[^}]*\}|DeclareMathSizes(?:\s*\{[^}]*\}){4})",
                                                        B.inp.sty, re.M)))
             .replace("@@AMSMATH@@", "%\n".join(f"\\renewcommand{{\\{c}}}{{{d.strip()}}}" for c, d in
                                               sorted(B.inp.amsmath_defs.items())) + "%"))
@@ -3988,6 +4096,32 @@ def make_sty(B: MathFontBuild, date: str) -> str:
 WEIGHTS = {"normal": ("MTPro2 Math", "MTPro2Math.otf"), "bold": ("MTPro2 Math Bold", "MTPro2Math-Bold.otf"),
            "heavy": ("MTPro2 Math Heavy", "MTPro2Math-Heavy.otf")}
 DONORS = {"normal": "texgyretermes-regular.otf", "bold": "texgyretermes-bold.otf", "heavy": "texgyretermes-bold.otf"}
+
+
+def weight_data(builds: dict[str, MathFontBuild]) -> MathFontBuild:
+    """The regular build, with what the package needs of the other weights."""
+    reg = builds["normal"]
+    # code points that the bold (heavy) font has only in a lighter weight: \\bm (\\hm)
+    # gives them poor man's bold, as bm.sty does for a family without that weight
+    reg.weight_params = {}
+    for w, B in builds.items():
+        if w != "normal":
+            sz = [B.src.tfm(f).params for f in B.fam("symbols")]
+            reg.weight_params[w] = {k: [p[i] for p in sz] for k, i in
+                                    (("num1", 8), ("num2", 9), ("denom1", 11), ("denom2", 12),
+                                     ("xheight", 5), ("axis", 22))}
+            reg.weight_params[w]["rule"] = B.src.tfm(B.fam("largesymbols")[0]).params[8]
+    reg.nobold = {}
+    for w, B in builds.items():
+        if w == "normal":
+            continue
+        # (a TeX family without fonts of this weight, like the letters for \\hm)
+        lighter = {f for fam, v in reg.inp.symfonts.items() if w not in v for f in v.get("normal", ())}
+        cps = {cp for cp, g in B.cmap.items() if g in B.from_fallback}
+        cps |= {cp for cp, g in reg.cmap.items()
+                if g in reg.glyphs and reg.glyphs[g].ref and reg.glyphs[g].ref.font in lighter}
+        reg.nobold[w] = sorted(cps)
+    return reg
 
 
 def convert(folder: Path, out: Path, weights=("normal", "bold", "heavy"), donor: Path | None = None,
@@ -4007,27 +4141,7 @@ def convert(folder: Path, out: Path, weights=("normal", "bold", "heavy"), donor:
         if not quiet:
             print(f"{fn}: {len(B.glyphs)} glyphs, {len(B.cmap)} code points")
     if "normal" in builds:
-        reg = builds["normal"]
-        # code points that the bold (heavy) font has only in a lighter weight: \\bm (\\hm)
-        # gives them poor man's bold, as bm.sty does for a family without that weight
-        reg.weight_params = {}
-        for w, B in builds.items():
-            if w != "normal":
-                sz = [B.src.tfm(f).params for f in B.fam("symbols")]
-                reg.weight_params[w] = {k: [p[i] for p in sz] for k, i in
-                                        (("num1", 8), ("num2", 9), ("denom1", 11), ("denom2", 12),
-                                         ("xheight", 5), ("axis", 22))}
-                reg.weight_params[w]["rule"] = B.src.tfm(B.fam("largesymbols")[0]).params[8]
-        reg.nobold = {}
-        for w, B in builds.items():
-            if w == "normal":
-                continue
-            # (a TeX family without fonts of this weight, like the letters for \\hm)
-            lighter = {f for fam, v in reg.inp.symfonts.items() if w not in v for f in v.get("normal", ())}
-            cps = {cp for cp, g in B.cmap.items() if g in B.from_fallback}
-            cps |= {cp for cp, g in reg.cmap.items()
-                    if g in reg.glyphs and reg.glyphs[g].ref and reg.glyphs[g].ref.font in lighter}
-            reg.nobold[w] = sorted(cps)
+        reg = weight_data(builds)
         (out / "mtpro2-otf-variants.lua").write_text(variants_lua(reg))
         (out / "mtpro2-otf-dims.lua").write_text(packed_lua(dims_lua(builds), [
             "-- mtpro2-otf-dims.lua: generated by mtpro2_otf.py: TeX's glyph boxes by glyph index",

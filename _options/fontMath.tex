@@ -1,6 +1,7 @@
 %% Maths font, as chosen by the class (see personal.cls and Fonts/README.md): MathTime Professional 2
 %% when tools/mtpro2_otf.py has written its OpenType fonts into the Fonts folder, otherwise newtx, the
-%% Times-style maths that ships with TeX Live.
+%% Times-style maths that ships with TeX Live, as OpenType fonts (ntxmath-otf, part of the template) or,
+%% when TeX cannot see those, as the classic newtxmath.
 \ifthesismathtime
 %% ---------------------------------------------------------------------------------------------
 %% MathTime Professional 2 as OpenType maths fonts (mtpro2-otf, with unicode-math): placed exactly as
@@ -24,9 +25,23 @@
 \newcommand{\thesisboldmath}{\bm} % mtpro2-otf's \bm (Lite: newtx bold letters)
 \edef\thesismathtimeedition{\MTPOTFedition}
 \ClassInfo{personal}{Maths font: MathTime Professional 2 \MTPOTFedition\space (OpenType, Fonts/)}
+\else\ifthesisntxotf
+%% ---------------------------------------------------------------------------------------------
+%% newtx as OpenType maths fonts (ntxmath-otf, with unicode-math, in _options/ntxmath-otf): every formula
+%% set exactly as with the classic newtxmath below, but the maths copies from the PDF as Unicode, and the
+%% tagged PDF gets MathML for each formula. Same options as below:
+%%   textsf: \mathsf in Source Sans, the document's sans
+%%   scale:  the maths at the size of the text (95 % for the Dover size)
+\ExplSyntaxOn
+\msg_redirect_name:nnn { unicode-math } { mathtools-colon } { none }
+\msg_redirect_name:nnn { unicode-math } { mathtools-overbracket } { none }
+\ExplSyntaxOff
+\edef\thesis@tmp{\noexpand\RequirePackage[textsf, scale=\thesis@fontscale]{ntxmath-otf}}\thesis@tmp
+\newcommand{\thesisboldmath}{\bm} % ntxmath-otf's \bm
+\ClassInfo{personal}{Maths font: newtx (OpenType, _options/ntxmath-otf)}
 \else
 %% ---------------------------------------------------------------------------------------------
-%% newtx
+%% newtx (classic: when TeX cannot see _options/ntxmath-otf, e.g. lualatex run without latexmk)
 %% ---------------------------------------------------------------------------------------------
 \newcommand{\thesisboldmath}{\bm} % bold for \vec and \tensor (bm is loaded in packages.tex)
 %% Math: newtxmath, the Times-style math font that matches the TeX Gyre Termes body text.
@@ -53,6 +68,17 @@
 \ExplSyntaxOn
 \tag_if_active:T { \tagpdfsetup { math/mathml/luamml/load = false } }
 \ExplSyntaxOff
+\fi\fi
+
+%% The OpenType maths fonts are TU-encoded, so microtype took them for text fonts: maths at the start or
+%% end of a line protruded into the margin, and maths glyphs stretched with the line (font expansion).
+%% With the classic maths fonts it does neither; nor here, so the pages stay as with those.
+\ifthesismathtime\def\thesis@tmp{T}\else\ifthesisntxotf\def\thesis@tmp{T}\else\def\thesis@tmp{}\fi\fi
+\ifx\thesis@tmp\@empty\else
+    \@for\thesis@mf:=NewTXMath,NewTXMath-Bold,MTPro2Math,MTPro2Math-Bold,MTPro2Math-Heavy\do{%
+        \edef\thesis@tmp{\noexpand\SetProtrusion[name=thesis-\thesis@mf]{encoding=TU, family=\thesis@mf.otf}{}%
+            \noexpand\SetExpansion[name=thesis-\thesis@mf, stretch=0, shrink=0]{encoding=TU, family=\thesis@mf.otf}{}}%
+        \thesis@tmp}
 \fi
 
 %% In PDF bookmarks (maths in a heading), the alphabets and bold commands just pass their letters on

@@ -17,6 +17,7 @@ for f in $names; do
     base=${lower##*/}
     case "$lower" in
         fonts/readme.md) continue ;;
+        _options/ntxmath-otf/newtxmath.otf|_options/ntxmath-otf/newtxmath-bold.otf) continue ;; # free: newtx (LPPL)
         fonts/*|*mtp2fonts/*|*mtp2lite/*|*mtpro2/*) blocked="$blocked$nl  $f"; continue ;;
     esac
     case "$base" in

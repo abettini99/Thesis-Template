@@ -8,7 +8,8 @@ check_pdf.py: check the compiled thesis before you hand it in or send it to the 
 It reports what a print shop or the TU Delft repository may reject:
 
   archival PDF  PDF/A-4f, with veraPDF (https://verapdf.org) when it is installed and
-                the template's own basic checks otherwise
+                the template's own basic checks otherwise; with veraPDF also PDF/UA-2
+                (accessibility) when the PDF declares it (tagging on in main.tex)
   fonts         every font embedded, no bitmap (Type 3) fonts, every font mapped to
                 Unicode (so text can be searched and copied); figure files with
                 fonts that are not embedded are named
@@ -44,16 +45,22 @@ PDFA_NAME = f"PDF/A-{PDFA[0]}{PDFA[1].lower()}"
 
 
 def check_pdfa(pdf: Path, r: Report) -> None:
-    r.section(f"Archival PDF ({PDFA_NAME})")
+    r.section(f"Archival and accessible PDF ({PDFA_NAME}, PDF/UA-2)")
     verapdf = shutil.which("verapdf")
-    if verapdf:                     # veraPDF picks the standard the PDF declares
+    if verapdf:                     # veraPDF checks every standard the PDF declares, one line each
         out = run(verapdf, "--format", "text", "--verbose", str(pdf))
-        if re.search(r"^PASS\b", out, re.M):
-            r.ok(f"veraPDF: {PDFA_NAME} compliant")
-        else:
-            rules = [l.strip() for l in out.splitlines() if l.strip() and not l.startswith("FAIL ")][:40] \
-                or out.strip().splitlines()[-5:]
-            r.fail(f"veraPDF: not {PDFA_NAME} compliant", rules)
+        verdicts = dict((m.group(2).lower(), m.group(1)) for m in
+                        re.finditer(r"^(PASS|FAIL) .* (\w+)\s*$", out, re.M))
+        rules = [l.strip() for l in out.splitlines()
+                 if l.strip() and not re.match(r"(PASS|FAIL) ", l)][:40] or out.strip().splitlines()[-5:]
+        named = {"4f": PDFA_NAME, "ua2": "PDF/UA-2 (accessible: tagged, for screen readers)"}
+        for flavour, name in named.items():
+            if flavour not in verdicts and flavour != "4f":
+                continue            # (PDF/UA only when main.tex switches tagging on)
+            if verdicts.get(flavour) == "PASS":
+                r.ok(f"veraPDF: {name} compliant")
+            else:
+                r.fail(f"veraPDF: not {name} compliant", rules)
         return
     xmp = run("pdfinfo", "-meta", str(pdf))
     part = re.search(r"pdfaid:part(?:>|=\")(\d)", xmp)

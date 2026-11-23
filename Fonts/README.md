@@ -1,6 +1,6 @@
 # Fonts: MathTime Professional 2 (optional)
 
-The template sets maths in **newtx**, a Times-style maths font that comes with TeX Live and Overleaf. If you own **MathTime Professional 2** (MTPro2), Lite (free) or Complete (paid), the template uses it instead once `tools/mtpro2_otf.py` has converted it into this folder: OpenType maths fonts plus a small package, `mtpro2-otf`, that places every symbol exactly where the classic Type 1 fonts put it. Every macro of the `mtpro2` package works (`\xl` to `\XXXL` operators, `\SQRT`, `\widearc`, `\bm`, `\hm` heavy, ...), maths copies from the PDF as proper Unicode, and the PDF stays PDF/A-4f.
+The template sets maths in **newtx**, a Times-style maths font that comes with TeX Live and Overleaf, as OpenType maths fonts (`ntxmath-otf`, in `_options/ntxmath-otf`: free, and part of the template). If you own **MathTime Professional 2** (MTPro2), Lite (free) or Complete (paid), the template uses it instead once `tools/mtpro2_otf.py` has converted it into this folder: OpenType maths fonts plus a small package, `mtpro2-otf`, that places every symbol exactly where the classic Type 1 fonts put it. Every macro of the `mtpro2` package works (`\xl` to `\XXXL` operators, `\SQRT`, `\widearc`, `\bm`, `\hm` heavy, ...), maths copies from the PDF as proper Unicode, and the PDF stays PDF/A-4f.
 
 The class uses whichever edition the files were made from; the log says which maths font is in use (search it for "Maths font"). `\vec`, `\tensor`, `\mathsf`, `\mathcal` and the rest work as with newtx; calligraphic letters stay newtx's simpler ones. With Complete you get MathTime's own bold, heavy, blackboard bold, script and Fraktur. **Lite** has none of these: the package takes bold letters (vectors, tensors) from newtx, blackboard bold and the AMS symbols from the AMS fonts, and script and Fraktur from Euler, as the Type 1 set-up does.
 
@@ -28,4 +28,4 @@ MathTime Professional 2 is licensed to you personally. The licence does not allo
 
 ## Accessibility
 
-With MathTime the PDF is PDF/A-4f, as with newtx: every character, maths included, maps to Unicode, so the PDF can be searched and copied. A fully accessible PDF (PDF/UA: tagged structure, maths as MathML) is a different matter: LaTeX's tagging project does not support the memoir class yet, whichever maths font is used.
+The PDF is archival (PDF/A-4f) and accessible (PDF/UA-2) with either maths font: `main.tex` switches on LaTeX's tagging, every character maps to Unicode, and every formula carries MathML for screen readers. MathML needs OpenType maths fonts, which both routes have: MathTime through `mtpro2-otf` (this folder), newtx through `ntxmath-otf` (in `_options/ntxmath-otf`, part of the template).
