@@ -1,82 +1,145 @@
 %% =====================================================================
-%% Nomenclature with glossaries-extra.
+%% Nomenclature: acronyms and symbols, defined once and listed automatically.
 %% Entries are defined in _nomenclature.tex (preamble) and printed in Chapters/00Nomenclature.tex.
-%% In the text:  \gls{bem}   -> "blade element momentum (BEM)" the first time, "BEM" after that
-%%               \gls{rho}   -> the symbol, in text or maths
-%% No external tool is needed: sorting is done by LaTeX itself (\makenoidxglossaries).
+%% In the text:  \gls{bem}    -> "blade element momentum theory (BEM)" the first time, "BEM" after that
+%%               \Gls{bem}    -> the same with a capital at the start of a sentence
+%%               \glspl{bem}  -> plurals: "... theories (BEMs)", then "BEMs"; \Glspl likewise
+%%               \gls{rho}    -> the symbol, in text or maths
+%%               \glsfmtshort{bem}, \glsfmtlong{bem} -> always the short or long form (headings, captions)
+%%               \glsreset{bem}, \glsresetall -> write out in full again at the next use
+%% Every entry links to its row in the nomenclature. Only entries used in the text are listed,
+%% unless \glsaddall is given (Chapters/00Nomenclature.tex); used entries are noted in the .aux
+%% file, so a new one appears after the next run.
+%% (The template's own code: the glossaries package did the same but cost about 6 s per run.)
 %% =====================================================================
 \makeatletter
-%% glossaries loads datatool, which (v3, TeX Live 2025 and later) warns that it has no Dutch localisation
-%% because babel loads Dutch for the summary. That is harmless here (nothing is sorted in Dutch), so turn the
-%% warning off. Only for datatool v3, recognised by its rollback file; older versions don't know the option.
-\IfFileExists{datatool-base-2019-09-27.sty}{%
-    \PassOptionsToPackage{lang-warn=false}{datatool-base}%
-    \PassOptionsToPackage{nowarn}{tracklang}%
-}{}
-\usepackage[nomain, nopostdot, nonumberlist, nogroupskip]{glossaries-extra}
-\makenoidxglossaries
-%% Store entry fields exactly as written (units such as \unit{\metre} only work when typeset).
-\glsnoexpandfields
-%% Symbols and acronyms in the text stay in the text colour, also in the digital edition: they still
-%% link to their nomenclature entry, but colour is kept for references (sections, equations, figures,
-%% sources, URLs), so maths is never coloured.
-\renewcommand*{\glstextformat}[1]{{\normalcolor #1}}
+\ExplSyntaxOn
+%% Every entry keeps its fields in token lists \g__thesis_nom_<label>_<field>_tl; the labels of
+%% each list are kept in definition order in \g__thesis_nom_<type>_seq.
+\cs_new:Npn \__thesis_nom:nn #1#2 { g__thesis_nom_ #1 _ #2 _tl }
+\cs_new_protected:Npn \__thesis_nom_set:nnn #1#2#3 { \tl_gclear_new:c { \__thesis_nom:nn {#1} {#2} } \tl_gset:cn { \__thesis_nom:nn {#1} {#2} } {#3} }
+\cs_new:Npn \__thesis_nom_get:nn #1#2 { \tl_if_exist:cT { \__thesis_nom:nn {#1} {#2} } { \tl_use:c { \__thesis_nom:nn {#1} {#2} } } }
+\clist_map_inline:nn { acronyms, dimless, latin, greek, super, sub } { \seq_new:c { g__thesis_nom_#1_seq } }
+\bool_new:N \g__thesis_nom_all_bool
 
-%% One list per kind of entry.
-\newglossary*{acronyms}{Acronyms}
-\newglossary*{dimless}{Dimensionless numbers}
-\newglossary*{latin}{Latin symbols}
-\newglossary*{greek}{Greek symbols}
-\newglossary*{super}{Superscripts}
-\newglossary*{sub}{Subscripts}
-
-%% Acronyms: long form with the short form in brackets on first use, short form afterwards.
-\setabbreviationstyle[acronym]{long-short}
-
-%% Extra columns for symbols.
-\glsaddstoragekey{dimensions}{}{\glsentrydimensions}
-\glsaddstoragekey{units}{}{\glsentryunits}
-\glsaddstoragekey{definition}{}{\glsentrydefinition}
+%% #1 type, #2 sort key (expanded), #3 label, then the fields as a key = value list
+\cs_new_protected:Npn \__thesis_nom_new:nnnn #1#2#3#4
+  {
+    \tl_if_exist:cT { \__thesis_nom:nn {#3} { type } }
+      { \msg_error:nnn { thesis } { nom-duplicate } {#3} }
+    \seq_gput_right:cn { g__thesis_nom_#1_seq } {#3}
+    \__thesis_nom_set:nnn {#3} { type } {#1}
+    \__thesis_nom_set:nnn {#3} { sort } {#2}
+    \keyval_parse:nnn { \use_none:n } { \__thesis_nom_set:nnn {#3} } {#4}
+    \bool_new:c { g__thesis_nom_#3_used_bool }
+    \bool_new:c { g__thesis_nom_#3_listed_bool }
+  }
+\msg_new:nnn { thesis } { nom-duplicate } { Nomenclature~entry~'#1'~defined~twice. }
+\msg_new:nnn { thesis } { nom-undefined } { Nomenclature~entry~'#1'~not~defined~(in~_nomenclature.tex). }
 
 %% ---------------------------------------------------------------------
 %% Commands for defining entries (use them in _nomenclature.tex).
-%% The optional first argument is a sort key. By default, acronyms are sorted by their short
-%% form and Latin symbols and dimensionless numbers by their label (case ignored, lower case first); Greek symbols and sub- and
-%% superscripts keep the order in which you define them.
+%% The optional first argument is a sort key. By default, acronyms are sorted by their short form and
+%% Latin symbols and dimensionless numbers by their label (case ignored, lower case first); Greek symbols
+%% and sub- and superscripts keep the order in which you define them.
 %% ---------------------------------------------------------------------
 %% \nomacronym[sort]{label}{SHORT}{long form}
-\newcommand{\nomacronym}[4][]{\thesis@withsort{#1}{#3}\thesis@nomacronym{#2}{#3}{#4}}
-\newcommand{\thesis@nomacronym}[4]{\newabbreviation[type=acronyms, category=acronym, sort={#1}]{#2}{#3}{#4}}
+\NewDocumentCommand \nomacronym { O{} m m m }
+  { \thesis@withsort {#1} {#3} { \__thesis_nom_new:nnnn { acronyms } } {#2} { short = {#3}, long = {#4} } }
 %% \nomdimless[sort]{label}{symbol}{description}{definition}       (symbol and definition: maths, U/a)
-\newcommand{\nomdimless}[5][]{\thesis@nomentry{dimless}{#1}{#2}{#3}{#4}{definition={\thesis@definition{#5}}}}
+\NewDocumentCommand \nomdimless { O{} m m m m }
+  { \thesis@withsort {#1} {#2} { \__thesis_nom_new:nnnn { dimless } } {#2} { name = {#3}, desc = {#4}, definition = {#5} } }
 %% \nomlatin[sort]{label}{symbol}{description}{dimensions}{units}   (symbol and dimensions: maths)
-\newcommand{\nomlatin}[6][]{\thesis@nomentry{latin}{#1}{#2}{#3}{#4}{dimensions={\thesis@dims{#5}}, units={#6}}}
+\NewDocumentCommand \nomlatin { O{} m m m m m }
+  { \thesis@withsort {#1} {#2} { \__thesis_nom_new:nnnn { latin } } {#2} { name = {#3}, desc = {#4}, dims = {#5}, units = {#6} } }
 %% \nomgreek[sort]{label}{symbol}{description}{dimensions}{units}
-\newcommand{\nomgreek}[6][]{\thesis@nomentry{greek}{#1}{#2}{#3}{#4}{dimensions={\thesis@dims{#5}}, units={#6}}}
+\NewDocumentCommand \nomgreek { O{} m m m m m }
+  { \thesis@withsort {#1} {#2} { \__thesis_nom_new:nnnn { greek } } {#2} { name = {#3}, desc = {#4}, dims = {#5}, units = {#6} } }
 %% \nomsuper[sort]{label}{symbol}{description}
-\newcommand{\nomsuper}[4][]{\thesis@nomentry{super}{#1}{#2}{#3}{#4}{}}
+\NewDocumentCommand \nomsuper { O{} m m m }
+  { \thesis@withsort {#1} {#2} { \__thesis_nom_new:nnnn { super } } {#2} { name = {#3}, desc = {#4} } }
 %% \nomsub[sort]{label}{symbol}{description}
-\newcommand{\nomsub}[4][]{\thesis@nomentry{sub}{#1}{#2}{#3}{#4}{}}
+\NewDocumentCommand \nomsub { O{} m m m }
+  { \thesis@withsort {#1} {#2} { \__thesis_nom_new:nnnn { sub } } {#2} { name = {#3}, desc = {#4} } }
 
-%% #1 type, #2 sort key (may be empty: then the label), #3 label, #4 symbol, #5 description, #6 extra keys
-\newcommand{\thesis@nomentry}[6]{\thesis@withsort{#2}{#3}\thesis@nomentry@{#1}{#3}{#4}{#5}{#6}}
-\newcommand{\thesis@nomentry@}[6]{%
-    \newglossaryentry{#3}{type=#2, sort={#1}, name={\ensuremath{#4}}, description={#5}, #6}}
-%% \thesis@withsort{sort key}{label}\cmd: calls \cmd{key}, the key made (expanded) from the sort key
+%% \thesis@withsort{sort key}{label}{\cmd}: calls \cmd{key}, the key made (expanded) from the sort key
 %% given, or from the label when that is empty.
-\newcommand{\thesis@withsort}[2]{%
-    \ifx\relax#1\relax \edef\thesis@sort{\thesis@sortkey{#2}}\else \edef\thesis@sort{\thesis@sortkey{#1}}\fi
-    \expandafter\thesis@withsort@\expandafter{\thesis@sort}}
-\newcommand{\thesis@withsort@}[2]{#2{#1}}
+\cs_new_protected:Npn \thesis@withsort #1#2#3
+  { \tl_if_blank:nTF {#1} { \exp_args:Ne #3 { \thesis@sortkey {#2} } } { \exp_args:Ne #3 { \thesis@sortkey {#1} } } }
 %% Sort keys ignore case, and a lower-case letter comes before the same capital (f before F, t before T),
-%% the order of a dictionary. The key is made explicit, "f" -> "f!0" and "F" -> "f!1", so the order does
-%% not depend on how the TeX installation breaks ties (TeX Live versions differ, Overleaf included).
-\ExplSyntaxOn
+%% the order of a dictionary: "f" -> "f!0" and "F" -> "f!1".
 \cs_new:Npn \thesis@sortkey #1
   { \str_lowercase:n {#1} ! \str_map_function:nN {#1} \__thesis_caseflag:N }
 \cs_new:Npn \__thesis_caseflag:N #1
   { \str_if_eq:eeTF {#1} { \str_lowercase:n {#1} } { 0 } { 1 } }
+
+%% ---------------------------------------------------------------------
+%% Use in the text
+%% ---------------------------------------------------------------------
+%% Symbols and acronyms in the text stay in the text colour, also in the digital edition: they still
+%% link to their nomenclature entry, but colour is kept for references (sections, equations, figures,
+%% sources, URLs), so maths is never coloured.
+\cs_new_protected:Npn \__thesis_nom_link:nn #1#2 % label, text
+  { \hyperlink { glo:#1 } { \normalcolor #2 } }
+\cs_new_protected:Npn \__thesis_nom_check:nT #1#2
+  {
+    \tl_if_exist:cTF { \__thesis_nom:nn {#1} { type } }
+      {
+        \bool_if:cF { g__thesis_nom_#1_listed_bool }
+          {
+            \bool_gset_true:c { g__thesis_nom_#1_listed_bool }
+            \iow_now:ce { @auxout } { \token_to_str:N \thesis@nomused { #1 } }
+          }
+        #2
+      }
+      { \msg_error:nnn { thesis } { nom-undefined } {#1} \textbf { ?? } }
+  }
+%% #1 label, #2 capital (true/false), #3 plural (true/false)
+\cs_new_protected:Npn \__thesis_gls:nnn #1#2#3
+  {
+    \__thesis_nom_check:nT {#1}
+      {
+        \str_if_eq:eeTF { \__thesis_nom_get:nn {#1} { type } } { acronyms }
+          {
+            \bool_if:cTF { g__thesis_nom_#1_used_bool }
+              { \__thesis_nom_link:nn {#1} { \__thesis_nom_short:nn {#1} {#3} } }
+              {
+                \bool_gset_true:c { g__thesis_nom_#1_used_bool }
+                \__thesis_nom_link:nn {#1}
+                  { \__thesis_nom_long:nnn {#1} {#2} {#3} ~ ( \__thesis_nom_short:nn {#1} {#3} ) }
+              }
+          }
+          { \__thesis_nom_link:nn {#1} { \ensuremath { \__thesis_nom_get:nn {#1} { name } } } }
+      }
+  }
+\cs_new:Npn \__thesis_nom_short:nn #1#2 { \__thesis_nom_get:nn {#1} { short } \bool_if:nT {#2} { s } }
+\cs_new:Npn \__thesis_nom_long:nnn #1#2#3
+  {
+    \bool_if:nTF {#2}
+      { \text_titlecase_first:e { \__thesis_nom_get:nn {#1} { long } } }
+      { \__thesis_nom_get:nn {#1} { long } }
+    \bool_if:nT {#3} { s }
+  }
+\cs_generate_variant:Nn \text_titlecase_first:n { e }
+\NewDocumentCommand \gls { m } { \__thesis_gls:nnn {#1} { \c_false_bool } { \c_false_bool } }
+\NewDocumentCommand \Gls { m } { \__thesis_gls:nnn {#1} { \c_true_bool } { \c_false_bool } }
+\NewDocumentCommand \glspl { m } { \__thesis_gls:nnn {#1} { \c_false_bool } { \c_true_bool } }
+\NewDocumentCommand \Glspl { m } { \__thesis_gls:nnn {#1} { \c_true_bool } { \c_true_bool } }
+%% always the short or the long form, not counted as a use (headings, captions, the list of figures)
+\NewDocumentCommand \glsfmtshort { m } { \__thesis_nom_check:nT {#1} { \__thesis_nom_short:nn {#1} { \c_false_bool } } }
+\NewDocumentCommand \glsfmtlong { m } { \__thesis_nom_check:nT {#1} { \__thesis_nom_long:nnn {#1} { \c_false_bool } { \c_false_bool } } }
+\NewDocumentCommand \glsreset { m } { \bool_if_exist:cT { g__thesis_nom_#1_used_bool } { \bool_gset_false:c { g__thesis_nom_#1_used_bool } } }
+\NewDocumentCommand \glsresetall { }
+  {
+    \clist_map_inline:nn { acronyms, dimless, latin, greek, super, sub }
+      { \seq_map_inline:cn { g__thesis_nom_##1_seq } { \bool_gset_false:c { g__thesis_nom_####1_used_bool } } }
+  }
+%% list every entry, used or not
+\NewDocumentCommand \glsaddall { } { \bool_gset_true:N \g__thesis_nom_all_bool }
+%% (in the .aux file: the entries used in the text in the previous run)
+\cs_new_protected:Npn \thesis@nomused #1 { \tl_gset:cn { g__thesis_nom_#1_inaux_tl } { } }
 \ExplSyntaxOff
+
 %% Definitions are set in-line: write U/a, not \frac{U}{a}, so the rows stay even.
 \newcommand{\thesis@definition}[1]{\ensuremath{#1}}
 %% Dimensions are given in maths ("\Lunit\Tunit^{-1}"); "--" gives an en dash for dimensionless quantities.
@@ -104,10 +167,9 @@
 \newcommand{\nomheader}[1]{{\sffamily\mbox{#1}}} % Source Sans Regular; \mbox: no hyphenation in narrow columns
 %% List titles look like section headings: semibold, 1.15 x text size, the same space around them;
 %% a title only starts a list where its header and first rows fit below it.
-\newcommand{\nomtitle}[1]{\par\addvspace{1.5\onelineskip}\needspace{7\onelineskip}\noindent{\thesis@secsize\bfseries\headingfont #1}\par\nopagebreak\vspace{0.5\onelineskip}}
-
-%% The lists get their titles from \printnom, so the glossary's own heading is switched off.
-\renewcommand*{\glossarysection}[2][]{}
+%% (\needspace's stretchable glue confuses longtable, which may then set a table's header above the title)
+\newcommand{\thesis@needspace}[1]{\par\ifdim\dimexpr\pagegoal-\pagetotal\relax<#1\relax\newpage\fi}
+\newcommand{\nomtitle}[1]{\par\addvspace{1.5\onelineskip}\thesis@needspace{7\onelineskip}\noindent{\thesis@secsize\bfseries\headingfont #1}\par\nopagebreak\vspace{0.5\onelineskip}}
 
 %% The rows of a list are collected first and set as one longtable at the end, so that the first
 %% two and the last two rows can be kept together: a page break never leaves a single row under the
@@ -136,46 +198,106 @@
   { \begin{longtable}{#1} #2 \tabularnewline* \midrule[0.3pt] \endhead #3 \end{longtable} }
 \ExplSyntaxOff
 
-%% Common settings for the styles below. Descriptions are set ragged right without hyphenation, as in
-%% the other tables.
-\newcommand{\thesis@nomtablesetup}{%
-    \setlength\tabcolsep{4pt}%
-    \setlength\LTleft{0pt}\setlength\LTright{0pt}\setlength\LTpre{0pt}\setlength\LTpost{0pt}%
-    \renewcommand*{\glossaryheader}{}%
-    \renewcommand*{\glsgroupheading}[1]{}%
-    \renewcommand*{\glsgroupskip}{}%
-    \renewcommand*{\subglossentry}[3]{\glossentry{##2}{##3}}}
-
-%% \thesis@newnomstyle{name}{width of the columns after Description, with their gaps}{their column spec}
-%%                    {their headers}{\cs taking the entry label and giving their cells}
-%% Every list starts with Symbol | Description; the description takes the width that is left.
-\newcommand{\thesis@newnomstyle}[5]{%
-    \newglossarystyle{#1}{%
-        \thesis@nomtablesetup
-        \renewenvironment{theglossary}{}{%
-            \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-2\tabcolsep-(#2)\relax}%
-            \thesis@nomtable{@{}p{\symbolwidth}>{\raggedright\arraybackslash}p{\descriptionwidth}#3@{}}
-                {\nomheader{Symbol} & \nomheader{Description}#4}}%
-        \renewcommand*{\glossentry}[2]{%
-            \thesis@nomrow{\glstarget{####1}{\glossentryname{####1}} & \glossentrydesc{####1}#5{####1}}}}}
-%% Symbol | Description
-\thesis@newnomstyle{nom-plain}{0pt}{}{}{\@gobble}
-%% Symbol | Description, the description being the acronym's long form
-\newglossarystyle{nom-acronyms}{%
-    \setglossarystyle{nom-plain}%
-    \renewcommand*{\glossentry}[2]{%
-        \thesis@nomrow{\glstarget{##1}{\glossentryname{##1}} & \Glsxtrlong{##1}}}}
-%% Symbol | Description | Definition   (as wide as Dimensions and Units together)
-\thesis@newnomstyle{nom-definition}{\dimensionswidth+\unitswidth+4\tabcolsep}
-    {p{\dimexpr\dimensionswidth+\unitswidth+2\tabcolsep}}{ & \nomheader{Definition}}{\thesis@nomdefinition}
-\newcommand{\thesis@nomdefinition}[1]{ & \glsentrydefinition{#1}}
-%% Symbol | Description | Dimensions | Units
-\thesis@newnomstyle{nom-dimensions}{\dimensionswidth+\unitswidth+4\tabcolsep}
-    {p{\dimensionswidth}p{\unitswidth}}{ & \nomheader{Dimensions} & \nomheader{Units}}{\thesis@nomdimensions}
-\newcommand{\thesis@nomdimensions}[1]{ & \glsentrydimensions{#1} & \glsentryunits{#1}}
-
-%% \printnom{type}{title}{style}{sort}: prints one list with its title.
-\newcommand{\printnom}[4]{%
-    \nomtitle{#2}%
-    \printnoidxglossary[type=#1, style=#3, sort=#4]}
+%% ---------------------------------------------------------------------
+%% The lists
+%% ---------------------------------------------------------------------
+\ExplSyntaxOn
+\seq_new:N \l__thesis_nom_labels_seq
+%% sort orders: nocase (by sort key) or def (order of definition)
+\cs_new_protected:Npn \__thesis_nom_sorted:nn #1#2 % type, order
+  {
+    \seq_clear:N \l__thesis_nom_labels_seq
+    \seq_map_inline:cn { g__thesis_nom_#1_seq }
+      {
+        \bool_lazy_or:nnT { \g__thesis_nom_all_bool } { \tl_if_exist_p:c { g__thesis_nom_##1_inaux_tl } }
+          { \seq_put_right:Nn \l__thesis_nom_labels_seq {##1} }
+      }
+    \str_if_eq:nnT {#2} { nocase }
+      {
+        \seq_sort:Nn \l__thesis_nom_labels_seq
+          {
+            \str_compare:eNeTF { \__thesis_nom_get:nn {##1} { sort } } > { \__thesis_nom_get:nn {##2} { sort } }
+              { \sort_return_swapped: } { \sort_return_same: }
+          }
+      }
+  }
+%% the cells after Symbol | Description for each style
+\cs_new:Npn \__thesis_nom_cells_plain:n #1 { }
+\cs_new:Npn \__thesis_nom_cells_definition:n #1
+  { & \exp_not:N \ensuremath { \exp_not:e { \__thesis_nom_get:nn {#1} { definition } } } }
+\cs_new:Npn \__thesis_nom_cells_dimensions:n #1
+  {
+    & \exp_not:N \thesis@dims { \exp_not:e { \__thesis_nom_get:nn {#1} { dims } } }
+    & \exp_not:e { \__thesis_nom_get:nn {#1} { units } }
+  }
+%% #1 width of the columns after Description, with their gaps; #2 their column spec; #3 their headers
+\cs_new_protected:Npn \__thesis_nom_print:nnnnn #1#2#3#4#5 % type, order, style, width, spec+headers
+  {
+    \__thesis_nom_sorted:nn {#1} {#2}
+    \seq_if_empty:NF \l__thesis_nom_labels_seq
+      {
+        \group_begin:
+          \setlength\tabcolsep{4pt}
+          \setlength\LTleft{0pt}\setlength\LTright{0pt}\setlength\LTpre{0pt}\setlength\LTpost{0pt}
+          \seq_map_inline:Nn \l__thesis_nom_labels_seq
+            {
+              \str_if_eq:nnTF {#3} { acronyms }
+                {
+                  \exp_args:Ne \thesis@nomrow
+                    {
+                      \exp_not:N \__thesis_nom_target:n {##1} { \exp_not:e { \__thesis_nom_get:nn {##1} { short } } }
+                      & \exp_not:N \text_titlecase_first:n { \exp_not:e { \__thesis_nom_get:nn {##1} { long } } }
+                    }
+                }
+                {
+                  \exp_args:Ne \thesis@nomrow
+                    {
+                      \exp_not:N \__thesis_nom_target:n {##1}
+                        { \exp_not:N \ensuremath { \exp_not:e { \__thesis_nom_get:nn {##1} { name } } } }
+                      & \exp_not:e { \__thesis_nom_get:nn {##1} { desc } }
+                      \use:c { __thesis_nom_cells_#3:n } {##1}
+                    }
+                }
+            }
+          #5
+        \group_end:
+      }
+  }
+\cs_new_protected:Npn \__thesis_nom_target:n #1 { \leavevmode \hypertarget { glo:#1 } }
+\cs_new_protected:Npn \__thesis_nom_table:nnn #1#2#3 % width of the extra columns, their spec, their headers
+  {
+    \setlength\descriptionwidth{\dimexpr\textwidth-\symbolwidth-2\tabcolsep-(#1)\relax}
+    \thesis@nomtable{@{}p{\symbolwidth}>{\raggedright\arraybackslash}p{\descriptionwidth}#2@{}}
+      {\nomheader{Symbol} & \nomheader{Description}#3}
+  }
+%% \printnom{type}{title}{style}{sort}: prints one list with its title (nothing if it is empty).
+%% Styles: nom-acronyms (Symbol | Description = long form), nom-plain (Symbol | Description),
+%% nom-definition (... | Definition), nom-dimensions (... | Dimensions | Units).
+\NewDocumentCommand \printnom { m m m m }
+  {
+    \__thesis_nom_sorted:nn {#1} {#4}
+    \seq_if_empty:NF \l__thesis_nom_labels_seq { \nomtitle {#2} }
+    \str_case:nn {#3}
+      {
+        { nom-acronyms } { \__thesis_nom_print:nnnnn {#1} {#4} { acronyms } { } { \__thesis_nom_table:nnn { 0pt } { } { } } }
+        { nom-plain } { \__thesis_nom_print:nnnnn {#1} {#4} { plain } { } { \__thesis_nom_table:nnn { 0pt } { } { } } }
+        { nom-definition }
+          {
+            \__thesis_nom_print:nnnnn {#1} {#4} { definition } { }
+              {
+                \__thesis_nom_table:nnn { \dimensionswidth+\unitswidth+4\tabcolsep }
+                  { p{\dimexpr\dimensionswidth+\unitswidth+2\tabcolsep} } { & \nomheader{Definition} }
+              }
+          }
+        { nom-dimensions }
+          {
+            \__thesis_nom_print:nnnnn {#1} {#4} { dimensions } { }
+              {
+                \__thesis_nom_table:nnn { \dimensionswidth+\unitswidth+4\tabcolsep }
+                  { p{\dimensionswidth}p{\unitswidth} } { & \nomheader{Dimensions} & \nomheader{Units} }
+              }
+          }
+      }
+  }
+\ExplSyntaxOff
 \makeatother
