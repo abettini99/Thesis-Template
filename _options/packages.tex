@@ -30,14 +30,15 @@
 \AddToHook{env/tabular/after}{\ifhmode\setbox\z@\lastbox\global\thesis@tabwd\wd\z@\box\z@\fi}
 \AddToHook{env/tabularx/after}{\global\thesis@tabwd\linewidth}
 \AddToHook{env/xltabular/after}{\global\thesis@tabwd\linewidth}
-\providecommand*{\tnote}[1]{\textsuperscript{#1}}
+%% (a marker takes no width, so numbers in a column stay aligned and the marker sticks out to the right)
+\providecommand*{\tnote}[1]{\rlap{\textsuperscript{#1}}}
 \newenvironment{tablenotes}[1][\ifdim\thesis@tabwd>\z@\thesis@tabwd\else\linewidth\fi]
   {\par\vspace{0.4\onelineskip}\noindent\begin{minipage}[t]{#1}\footnotesize
    \begin{list}{}{\setlength{\leftmargin}{1em}\setlength{\labelwidth}{0.8em}\setlength{\labelsep}{0.2em}%
      \setlength{\itemsep}{\z@}\setlength{\parsep}{\z@}\setlength{\topsep}{\z@}\setlength{\partopsep}{\z@}%
      \let\makelabel\thesis@tnotelabel}}
   {\end{list}\end{minipage}\par}
-\newcommand*{\thesis@tnotelabel}[1]{\tnote{#1}\hfil}
+\newcommand*{\thesis@tnotelabel}[1]{\textsuperscript{#1}\hfil}
 \makeatother
 %% All tables in one size, the caption size (\small): table text then sits between the captions and the text.
 %% (The nomenclature lists are not tables in this sense and keep the text size.)

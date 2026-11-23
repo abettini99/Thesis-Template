@@ -19,7 +19,9 @@
 \cs_new:Npn \__thesis_nom:nn #1#2 { g__thesis_nom_ #1 _ #2 _tl }
 \cs_new_protected:Npn \__thesis_nom_set:nnn #1#2#3 { \tl_gclear_new:c { \__thesis_nom:nn {#1} {#2} } \tl_gset:cn { \__thesis_nom:nn {#1} {#2} } {#3} }
 \cs_new:Npn \__thesis_nom_get:nn #1#2 { \tl_if_exist:cT { \__thesis_nom:nn {#1} {#2} } { \tl_use:c { \__thesis_nom:nn {#1} {#2} } } }
-\clist_map_inline:nn { acronyms, dimless, latin, greek, super, sub } { \seq_new:c { g__thesis_nom_#1_seq } }
+%% (the same, not expanded further in an e-expansion: fields hold maths such as \vec{u})
+\cs_new:Npn \__thesis_nom_raw:nn #1#2 { \tl_if_exist:cT { \__thesis_nom:nn {#1} {#2} } { \exp_not:v { \__thesis_nom:nn {#1} {#2} } } }
+\clist_map_inline:nn { acronyms, dimless, latin, greek, super, sub, indices, notation } { \seq_new:c { g__thesis_nom_#1_seq } }
 \bool_new:N \g__thesis_nom_all_bool
 
 %% #1 type, #2 sort key (expanded), #3 label, then the fields as a key = value list
@@ -28,6 +30,8 @@
     \tl_if_exist:cT { \__thesis_nom:nn {#3} { type } }
       { \msg_error:nnn { thesis } { nom-duplicate } {#3} }
     \seq_gput_right:cn { g__thesis_nom_#1_seq } {#3}
+    %% sub- and superscripts also go, in the order they are defined, into one list of indices
+    \str_case:nn {#1} { {sub} { \seq_gput_right:Nn \g__thesis_nom_indices_seq {#3} } {super} { \seq_gput_right:Nn \g__thesis_nom_indices_seq {#3} } }
     \__thesis_nom_set:nnn {#3} { type } {#1}
     \__thesis_nom_set:nnn {#3} { sort } {#2}
     \keyval_parse:nnn { \use_none:n } { \__thesis_nom_set:nnn {#3} } {#4}
@@ -43,7 +47,7 @@
 %% Latin symbols and dimensionless numbers by their label (case ignored, lower case first); Greek symbols
 %% and sub- and superscripts keep the order in which you define them.
 %% ---------------------------------------------------------------------
-%% \nomacronym[sort]{label}{SHORT}{long form}
+%% \nomacronym[sort]{label}{SHORT}{long form}   (abbreviations of any kind: BEM, RPM, ...)
 \NewDocumentCommand \nomacronym { O{} m m m }
   { \thesis@withsort {#1} {#3} { \__thesis_nom_new:nnnn { acronyms } } {#2} { short = {#3}, long = {#4} } }
 %% \nomdimless[sort]{label}{symbol}{description}{definition}       (symbol and definition: maths, U/a)
@@ -61,6 +65,9 @@
 %% \nomsub[sort]{label}{symbol}{description}
 \NewDocumentCommand \nomsub { O{} m m m }
   { \thesis@withsort {#1} {#2} { \__thesis_nom_new:nnnn { sub } } {#2} { name = {#3}, desc = {#4} } }
+%% \nomnotation[sort]{label}{symbol}{description}   (operators and conventions: \vec{u}, \grad, (\cdot)\transpose)
+\NewDocumentCommand \nomnotation { O{} m m m }
+  { \thesis@withsort {#1} {#2} { \__thesis_nom_new:nnnn { notation } } {#2} { name = {#3}, desc = {#4} } }
 
 %% \thesis@withsort{sort key}{label}{\cmd}: calls \cmd{key}, the key made (expanded) from the sort key
 %% given, or from the label when that is empty.
@@ -131,7 +138,7 @@
 \NewDocumentCommand \glsreset { m } { \bool_if_exist:cT { g__thesis_nom_#1_used_bool } { \bool_gset_false:c { g__thesis_nom_#1_used_bool } } }
 \NewDocumentCommand \glsresetall { }
   {
-    \clist_map_inline:nn { acronyms, dimless, latin, greek, super, sub }
+    \clist_map_inline:nn { acronyms, dimless, latin, greek, super, sub, notation }
       { \seq_map_inline:cn { g__thesis_nom_##1_seq } { \bool_gset_false:c { g__thesis_nom_####1_used_bool } } }
   }
 %% list every entry, used or not
@@ -224,11 +231,12 @@
 %% the cells after Symbol | Description for each style
 \cs_new:Npn \__thesis_nom_cells_plain:n #1 { }
 \cs_new:Npn \__thesis_nom_cells_definition:n #1
-  { & \exp_not:N \ensuremath { \exp_not:e { \__thesis_nom_get:nn {#1} { definition } } } }
+  { & \exp_not:N \ensuremath { \__thesis_nom_raw:nn {#1} { definition } } }
+\cs_new:Npn \__thesis_nom_cells_units:n #1 { & \__thesis_nom_raw:nn {#1} { units } }
 \cs_new:Npn \__thesis_nom_cells_dimensions:n #1
   {
-    & \exp_not:N \thesis@dims { \exp_not:e { \__thesis_nom_get:nn {#1} { dims } } }
-    & \exp_not:e { \__thesis_nom_get:nn {#1} { units } }
+    & \exp_not:N \thesis@dims { \__thesis_nom_raw:nn {#1} { dims } }
+    & \__thesis_nom_raw:nn {#1} { units }
   }
 %% #1 width of the columns after Description, with their gaps; #2 their column spec; #3 their headers
 \cs_new_protected:Npn \__thesis_nom_print:nnnnn #1#2#3#4#5 % type, order, style, width, spec+headers
@@ -245,16 +253,16 @@
                 {
                   \exp_args:Ne \thesis@nomrow
                     {
-                      \exp_not:N \__thesis_nom_target:n {##1} { \exp_not:e { \__thesis_nom_get:nn {##1} { short } } }
-                      & \exp_not:N \text_titlecase_first:n { \exp_not:e { \__thesis_nom_get:nn {##1} { long } } }
+                      \exp_not:N \__thesis_nom_target:n {##1} { \__thesis_nom_raw:nn {##1} { short } }
+                      & \exp_not:N \text_titlecase_first:n { \__thesis_nom_raw:nn {##1} { long } }
                     }
                 }
                 {
                   \exp_args:Ne \thesis@nomrow
                     {
                       \exp_not:N \__thesis_nom_target:n {##1}
-                        { \exp_not:N \ensuremath { \exp_not:e { \__thesis_nom_get:nn {##1} { name } } } }
-                      & \exp_not:e { \__thesis_nom_get:nn {##1} { desc } }
+                        { \exp_not:N \ensuremath { \__thesis_nom_symbol:nn {#1} {##1} } }
+                      & \__thesis_nom_raw:nn {##1} { desc }
                       \use:c { __thesis_nom_cells_#3:n } {##1}
                     }
                 }
@@ -263,6 +271,18 @@
         \group_end:
       }
   }
+%% the symbol in a list; in the list of indices with a dot for what it is attached to: (·)_∞, (·)^n
+\cs_new:Npn \__thesis_nom_symbol:nn #1#2 % list, label
+  {
+    \str_if_eq:nnTF {#1} { indices }
+      {
+        { ( \exp_not:N \cdot ) }
+        \str_if_eq:eeTF { \__thesis_nom_get:nn {#2} { type } } { super }
+          { \exp_not:N \c_math_superscript_token } { \exp_not:N \c_math_subscript_token }
+        { \__thesis_nom_raw:nn {#2} { name } }
+      }
+      { \__thesis_nom_raw:nn {#2} { name } }
+  }
 \cs_new_protected:Npn \__thesis_nom_target:n #1 { \leavevmode \hypertarget { glo:#1 } }
 \cs_new_protected:Npn \__thesis_nom_table:nnn #1#2#3 % width of the extra columns, their spec, their headers
   {
@@ -270,9 +290,10 @@
     \thesis@nomtable{@{}p{\symbolwidth}>{\raggedright\arraybackslash}p{\descriptionwidth}#2@{}}
       {\nomheader{Symbol} & \nomheader{Description}#3}
   }
-%% \printnom{type}{title}{style}{sort}: prints one list with its title (nothing if it is empty).
+%% \printnom{list}{title}{style}{sort}: prints one list with its title (nothing if it is empty).
+%% Lists: acronyms, dimless, latin, greek, notation, sub, super, and indices (sub- and superscripts in one).
 %% Styles: nom-acronyms (Symbol | Description = long form), nom-plain (Symbol | Description),
-%% nom-definition (... | Definition), nom-dimensions (... | Dimensions | Units).
+%% nom-definition (... | Definition), nom-units (... | Units), nom-dimensions (... | Dimensions | Units).
 \NewDocumentCommand \printnom { m m m m }
   {
     \__thesis_nom_sorted:nn {#1} {#4}
@@ -288,6 +309,11 @@
                 \__thesis_nom_table:nnn { \dimensionswidth+\unitswidth+4\tabcolsep }
                   { p{\dimexpr\dimensionswidth+\unitswidth+2\tabcolsep} } { & \nomheader{Definition} }
               }
+          }
+        { nom-units }
+          {
+            \__thesis_nom_print:nnnnn {#1} {#4} { units } { }
+              { \__thesis_nom_table:nnn { \unitswidth+2\tabcolsep } { p{\unitswidth} } { & \nomheader{Units} } }
           }
         { nom-dimensions }
           {

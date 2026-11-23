@@ -7,13 +7,17 @@
 \glsaddall
 
 %% \printnom{list}{title}{style}{sort order}
+%%   lists: acronyms, dimless, latin, greek, indices (sub- and superscripts together; or sub and super
+%%   apart), notation
+%%   styles: nom-acronyms, nom-definition, nom-units, nom-plain, and nom-dimensions (units with their
+%%   dimensions, L T^-1 etc., for a thesis built on dimensional analysis)
 %%   sort order: nocase (alphabetical by sort key) or def (order of definition)
-\printnom{acronyms}{Acronyms}{nom-acronyms}{nocase}
+\printnom{acronyms}{Abbreviations}{nom-acronyms}{nocase}
 \printnom{dimless}{Dimensionless numbers}{nom-definition}{nocase}
-\printnom{latin}{Latin symbols}{nom-dimensions}{nocase}
-\printnom{greek}{Greek symbols}{nom-dimensions}{def}
-\printnom{super}{Superscripts}{nom-plain}{def}
-\printnom{sub}{Subscripts}{nom-plain}{def}
+\printnom{latin}{Latin symbols}{nom-units}{nocase}
+\printnom{greek}{Greek symbols}{nom-units}{def}
+\printnom{indices}{Subscripts and superscripts}{nom-plain}{def}
+\printnom{notation}{Notation}{nom-plain}{def}
 
 % Finish the last page here, so the page numbering of the main matter starts on a fresh page.
 \cleardoublepage
