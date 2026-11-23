@@ -3,11 +3,11 @@
 %% Loads NewTXMath(-Bold).otf with unicode-math, with the layout of classic newtxmath:
 %% every newtxmath symbol command, its alphabets, TeX's metrics and optical sizes.
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{ntxmath-otf}[2026/11/23 v1.1 newtxmath as OpenType]
+\ProvidesPackage{ntxmath-otf}[2026/11/23 v1.4 newtxmath as OpenType]
 \RequirePackage{iftex}
 \RequireLuaTeX
 % the version (for classes that choose fallbacks)
-\def\NTXOTFversion{1.1}
+\def\NTXOTFversion{1.4}
 \newif\ifMTP@lite
 % packages that clash: ntxmath-otf provides their commands
 \newif\ifMTP@ownload
@@ -63,9 +63,35 @@
 \fi
 \directlua{ntxmathotf.savemissing()}% (definitions of commands whose character MTPro2 lacks)
 % the Type 1 set-up's operators font (newtxmath: {\tx@enc}{\rmdefaultB}, m/n and bold b/n)
-\def\MTP@mt@enc{OT1}\def\MTP@mt@fam{minntx}\def\MTP@mt@bold{b}\def\MTP@mt@heavy{m}
+\def\MTP@mt@enc{OT1}\edef\MTP@mt@fam{\rmdefault}\@ifpackageloaded{newtxtext}{\def\MTP@mt@fam{minntx}}{}\@ifpackageloaded{tgtermes}{\def\MTP@mt@fam{minntx}}{}\directlua{local f = token.get_macro('MTP@mt@fam') if f == 'ptm' or not (f == 'minntx' or f:match('^ntx')) then token.set_macro('MTP@mt@fam', 'minntx') end}\def\MTP@mt@bold{b}\def\MTP@mt@heavy{m}
+% (unicode-math loads fontspec, which makes TU the default encoding: a document set up in T1
+% or OT1, e.g. \usepackage[T1]{fontenc} with newtx's ntxtlf, keeps its text fonts, as with the
+% Type 1 maths packages, which leave the encoding alone)
+\let\MTP@encdefault\encodingdefault \let\MTP@rmdefault\rmdefault
+\let\MTP@sfdefault\sfdefault \let\MTP@ttdefault\ttdefault
 \RequirePackage{unicode-math}
 \unimathsetup{mathrm=sym}% (\mathrm, operator names: newtxmath's operators font, as glyphs of the maths font)
+% (the maths fonts are set up in TU, also when fontspec came first and T1 after it; restored
+% once they are)
+\def\MTP@tmp{TU}\ifx\encodingdefault\MTP@tmp\else
+  \let\encodingdefault\MTP@tmp \fontencoding{TU}\fontfamily{lmr}\selectfont\fi
+\ifx\MTP@encdefault\encodingdefault\else
+  \AtEndOfPackage{%
+    \let\encodingdefault\MTP@encdefault \let\rmdefault\MTP@rmdefault
+    \let\sfdefault\MTP@sfdefault \let\ttdefault\MTP@ttdefault
+    \fontencoding{\encodingdefault}\fontfamily{\familydefault}\selectfont}\fi
+% U+00B0 in maths (siunitx's \degree and \degreeCelsius with unicode-math): laid out as the
+% Type 1 set-up's {}^{\circ} (siunitx's choice there), but read, copied and tagged as °
+% (with luamml <mi mathvariant="normal">°</mi>, otherwise an ActualText span)
+\AddToHook{begindocument/end}{%
+  \begingroup\lccode`\~="B0 \lowercase{\endgroup\protected\def~}{\MTP@degree}%
+  \mathcode"B0="8000
+  \def\MTP@degree{\pdfextension literal page{/Span<</ActualText<FEFF00B0>>>BDC}%
+    {}^{\circ}\pdfextension literal page{EMC}}%
+  \expandafter\ifx\csname luamml_annotate:en\endcsname\relax\else
+    \let\MTP@degree@\MTP@degree
+    \def\MTP@degree{\csname luamml_annotate:en\endcsname
+      {core={[0]='mi',mathvariant='normal',"\luaescapestring{\Uchar"B0}"}}{\MTP@degree@}}\fi}
 % unicode-math ends a delimiter command's number with \scan_stop: (\lbrace is \Udelimiter 4
 % \symoperators "0007B\scan_stop:); \abovewithdelims (amsmath's \genfrac) then takes that \relax
 % for its thickness. The Type 1 set-up ends it with a space (\delimiter"4266308 ), as here.
@@ -1168,34 +1194,70 @@
 % the document's \SetProtrusion/\SetExpansion apply as they would to the Type 1 font.
 \directlua{ntxmathotf.mttext = {[33]=33,[34]=34,[36]=36,[48]=48,[49]=49,[50]=50,[51]=51,[52]=52,[53]=53,[54]=54,[55]=55,[56]=56,[57]=57,[59]=59,[63]=63,[64]=64,[65]=65,[66]=66,[67]=67,[68]=68,[69]=69,[70]=70,[71]=71,[72]=72,[73]=73,[74]=74,[75]=75,[76]=76,[77]=77,[78]=78,[79]=79,[80]=80,[81]=81,[82]=82,[83]=83,[84]=84,[85]=85,[86]=86,[87]=87,[88]=88,[89]=89,[90]=90,[96]=96,[97]=97,[98]=98,[99]=99,[100]=100,[101]=101,[102]=102,[103]=103,[104]=104,[105]=105,[106]=106,[107]=107,[108]=108,[109]=109,[110]=110,[111]=111,[112]=112,[113]=113,[114]=114,[115]=115,[116]=116,[117]=117,[118]=118,[119]=119,[120]=120,[121]=121,[122]=122,[8758]=58}}
 \def\MTP@mt@name#1/#2/#3/#4/#5/#6\@nil{%
-  \in@{NewTXMath}{#2}%
+  \expandafter\in@\expandafter{\detokenize{NewTXMath}}{#2}% (#2: \string's characters)
   \ifin@
-    \in@{-Bold}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@bold \else
-    \in@{-Heavy}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@heavy \else \def\MTP@mt@ser{m}\fi\fi
-    \edef\MTP@tmp{\noexpand\MTP@MT@split@name\MTP@mt@enc/\MTP@mt@fam/\MTP@mt@ser/#4/#5/#6\noexpand\@nil}%
+    \expandafter\in@\expandafter{\detokenize{-Bold}}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@bold \else
+    \expandafter\in@\expandafter{\detokenize{-Heavy}}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@heavy \else \def\MTP@mt@ser{m}\fi\fi
+    \edef\MTP@tmp{\noexpand\MTP@MT@split@name\detokenize\expandafter{\MTP@mt@enc}/%
+      \detokenize\expandafter{\MTP@mt@fam}/\detokenize\expandafter{\MTP@mt@ser}/#4/#5/#6\noexpand\@nil}%
   \else \def\MTP@tmp{\MTP@MT@split@name#1/#2/#3/#4/#5/#6\@nil}\fi
   \MTP@tmp}
 \AddToHook{begindocument/before}{\@ifpackageloaded{microtype}{%
   \let\MTP@MT@split@name\MT@split@name \let\MT@split@name\MTP@mt@name
   \g@addto@macro\MT@setupfont{\directlua{ntxmathotf.mtfix()}}%
+  % (what microtype gives the Type 1 operators font itself, for slots the maths font lacks:
+  % that font set up once, regular and bold, when the document starts)
+  \AddToHook{begindocument/end}{\directlua{ntxmathotf.mtref = { m = {}, b = {} }}%
+    \begingroup\fontencoding{\MTP@mt@enc}\fontfamily{\MTP@mt@fam}\fontseries{m}\fontshape{n}\selectfont
+      \directlua{ntxmathotf.mtrefread("m")}\endgroup
+    \begingroup\fontencoding{\MTP@mt@enc}\fontfamily{\MTP@mt@fam}\fontseries{\MTP@mt@bold}\fontshape{n}\selectfont
+      \directlua{ntxmathotf.mtrefread("b")}\endgroup}%
   \directlua{
     local done, T = {}, ntxmathotf.mttext
+    ntxmathotf.mtref, ntxmathotf.mtsaved = { m = {}, b = {} }, {}
+    function ntxmathotf.mtrefread(s)
+      local q = {}
+      for c, v in pairs(T) do
+        if not (c == v) then
+          table.insert(q, "ntxmathotf.mtref." .. s .. "[" .. v .. "] = {\string\\the\string\\lpcode\string\\font" .. v
+            .. ", \string\\the\string\\rpcode\string\\font" .. v .. ", \string\\the\string\\efcode\string\\font" .. v .. "} ")
+        end
+      end
+      tex.sprint("\string\\directlua{" .. table.concat(q) .. "}")
+    end
     function ntxmathotf.mtfix()
       local id = font.current()
-      if done[id] then return end
+      local L, R, E = "\string\\lpcode\string\\font", "\string\\rpcode\string\\font", "\string\\efcode\string\\font"
+      local function set(c, v) return L .. c .. "=" .. v .. R .. c .. "=" .. v .. E .. c .. "=" .. v .. " " end
+      if done[id] then
+        % (the same font set up again under another name, e.g. Lite's bold version, which uses
+        % the regular font: its codes as first set)
+        local s = ntxmathotf.mtsaved[id]
+        if s then
+          local q = {}
+          for c, r in pairs(s) do table.insert(q, L .. c .. "=" .. r[1] .. " " .. R .. c .. "=" .. r[2] .. " " .. E .. c .. "=" .. r[3] .. " ") end
+          tex.sprint(table.concat(q))
+        end
+        return
+      end
       done[id] = true
       local f = font.getfont(id)
       if not (f and f.name and f.name:find("NewTXMath", 1, true)) then return end
-      local L, R, E = "\string\\lpcode\string\\font", "\string\\rpcode\string\\font", "\string\\efcode\string\\font"
-      local function set(c, v) return L .. c .. "=" .. v .. R .. c .. "=" .. v .. E .. c .. "=" .. v .. " " end
       local a, b = {}, {}
+      local ref = ntxmathotf.mtref[f.name:find("-Bold", 1, true) and "b" or "m"]
       for c, v in pairs(T) do
-        if not (c == v) then table.insert(a, L .. c .. "=" .. L .. v .. " " .. R .. c .. "=" .. R .. v .. " " .. E .. c .. "=" .. E .. v .. " ") end
+        if not (c == v) then
+          local r = not f.characters[v] and ref[v]
+          if r then table.insert(a, L .. c .. "=" .. r[1] .. " " .. R .. c .. "=" .. r[2] .. " " .. E .. c .. "=" .. r[3] .. " ")
+          else table.insert(a, L .. c .. "=" .. L .. v .. " " .. R .. c .. "=" .. R .. v .. " " .. E .. c .. "=" .. E .. v .. " ") end
+        end
       end
+      local q = {}
       for c in pairs(f.characters) do
-        if not T[c] then table.insert(b, set(c, 0)) end
+        if not T[c] then table.insert(b, set(c, 0)); table.insert(q, "[" .. c .. "]={0,0,0}")
+        else table.insert(q, "[" .. c .. "]={" .. "\string\\the" .. L .. c .. ",\string\\the" .. R .. c .. ",\string\\the" .. E .. c .. "}") end
       end
-      tex.sprint(table.concat(a) .. table.concat(b))
+      tex.sprint(table.concat(a) .. table.concat(b) .. "\string\\directlua{ntxmathotf.mtsaved[" .. id .. "]={" .. table.concat(q, ",") .. "}}")
     end}}{}}
 % newtxmath's classes of the ASCII symbols
 \AddToHook{begindocument/end}{\directlua{for c, k in pairs({[33]=5,[34]=0,[35]=0,[36]=0,[37]=0,[38]=0,[40]=4,[41]=5,[42]=2,[43]=2,[44]=6,[45]=2,[46]=0,[47]=4,[58]=3,[59]=6,[60]=3,[61]=3,[62]=3,[63]=5,[64]=0,[91]=4,[92]=0,[93]=5,[94]=0,[96]=0,[123]=0,[124]=0,[125]=0,[126]=0}) do

@@ -6,7 +6,7 @@
 \usepackage[hidelinks]{hyperref}
 \newcommand\pkg{\textsf{ntxmath-otf}}
 \newcommand\cs[1]{\texttt{\char`\\#1}}
-\title{\pkg: newtxmath as an OpenType maths font\\[2pt]\large version 1.1}
+\title{\pkg: newtxmath as an OpenType maths font\\[2pt]\large version 1.4}
 \author{built by \texttt{ntxmath\_otf.py}}
 \date{2026/11/23}
 \begin{document}\emergencystretch=3em
@@ -148,6 +148,39 @@ It needs \TeX\ Live 2026 with \textsf{newtx}, Python~3 and \textsf{fontTools}, a
 needed).
 
 \section{Changes}
+\textbf{1.4} (2026/11/23; the fonts are unchanged):
+\begin{itemize}
+\item \textsf{siunitx}'s \cs{degree} and \cs{degreeCelsius} (the character ° in maths) keep the
+  layout of \verb|{}^{\circ}| from 1.3, but are the character ° again for readers: copied text
+  °, MathML \verb|<mi mathvariant="normal">°</mi>| (1.3 gave the ring operator ∘ for both).
+  Typed ° in maths is the same.
+\item \texttt{--selftest --document}: the width, copied text and MathML of
+  \cs{qty\{4.5\}\{\cs{degree}\}}.
+\end{itemize}
+\textbf{1.3} (2026/11/23; the fonts are unchanged):
+\begin{itemize}
+\item \textsf{siunitx}: \cs{degree} and \cs{degreeCelsius} are \verb|{}^{\circ}| in maths, as
+  \textsf{siunitx} sets them with the Type~1 maths fonts (with \textsf{unicode-math} it takes the
+  character °, 0.15\,pt narrower and lower); \cs{arcminute}, \cs{arcsecond}, \cs{ang} as before.
+\item With \textsf{fontspec} loaded first and \verb|\usepackage[T1]{fontenc}| after it, the maths
+  fonts were declared in T1: maths symbols such as \cs{circ} came out empty. They are always set
+  up in TU now; the document's encoding stays T1.
+\item \texttt{--selftest --document}: units in the text, and a variant with \textsf{fontspec},
+  then T1 \texttt{ntxtlf}.
+\end{itemize}
+\textbf{1.2} (2026/11/23; the fonts are unchanged):
+\begin{itemize}
+\item \textsf{microtype}: the text glyphs get the settings of the text family classic
+  \textsf{newtxmath} would use in the same document (\texttt{minntx} with \textsf{newtxtext},
+  \textsf{tgtermes} or \texttt{ptm}; so \texttt{ntxtlf} gets \textsf{microtype}'s Times
+  settings). In 1.1 they got its generic settings: a line starting with a digit protruded
+  less than with the Type~1 fonts.
+\item A typed \texttt{:} keeps its text protrusion and expansion.
+\item Loading the package (and with it \textsf{fontspec}) no longer changes the document's text
+  encoding and families: a T1 text font set up before the package stays in use.
+\item \texttt{--selftest --document} also runs a variant with T1 \texttt{ntxtlf},
+  \textsf{newtxtext} loaded after the package, and \textsf{microtype}.
+\end{itemize}
 \textbf{1.1} (2026/11/23, from testing in a thesis template; the fonts are unchanged):
 \begin{itemize}
 \item \texttt{slantedGreek}, \texttt{uprightGreek} and \texttt{ISO} options.

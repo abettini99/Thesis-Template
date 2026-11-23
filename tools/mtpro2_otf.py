@@ -69,7 +69,7 @@ from fontTools.ttLib.tables import otTables as ot
 
 UPM = 1000
 PACKAGE_DATE = "2026/11/23"
-PACKAGE_VERSION = "1.6"
+PACKAGE_VERSION = "1.9"
 # Fixed font timestamp (mtpro2.sty v2.3, 2009-04-27): identical input -> byte-identical fonts.
 BUILD_TIME = int(datetime.datetime(2009, 4, 27, tzinfo=datetime.timezone.utc).timestamp()) + 2082844800
 
@@ -3601,7 +3601,33 @@ STY = r'''%% mtpro2-otf.sty -- MathTime Pro 2 as OpenType (built by mtpro2_otf.p
 % the Type 1 set-up's operators font (mtpro2.sty: {\encodingdefault}{\rmdefault}, b/n in the bold
 % version, m/n in the heavy one), as when the package loads
 \edef\MTP@mt@enc{\encodingdefault}\edef\MTP@mt@fam{\rmdefault}\def\MTP@mt@bold{b}\def\MTP@mt@heavy{m}
+% (unicode-math loads fontspec, which makes TU the default encoding: a document set up in T1
+% or OT1, e.g. \usepackage[T1]{fontenc} with newtx's ntxtlf, keeps its text fonts, as with the
+% Type 1 maths packages, which leave the encoding alone)
+\let\MTP@encdefault\encodingdefault \let\MTP@rmdefault\rmdefault
+\let\MTP@sfdefault\sfdefault \let\MTP@ttdefault\ttdefault
 \RequirePackage{unicode-math}
+% (the maths fonts are set up in TU, also when fontspec came first and T1 after it; restored
+% once they are)
+\def\MTP@tmp{TU}\ifx\encodingdefault\MTP@tmp\else
+  \let\encodingdefault\MTP@tmp \fontencoding{TU}\fontfamily{lmr}\selectfont\fi
+\ifx\MTP@encdefault\encodingdefault\else
+  \AtEndOfPackage{%
+    \let\encodingdefault\MTP@encdefault \let\rmdefault\MTP@rmdefault
+    \let\sfdefault\MTP@sfdefault \let\ttdefault\MTP@ttdefault
+    \fontencoding{\encodingdefault}\fontfamily{\familydefault}\selectfont}\fi
+% U+00B0 in maths (siunitx's \degree and \degreeCelsius with unicode-math): laid out as the
+% Type 1 set-up's {}^{\circ} (siunitx's choice there), but read, copied and tagged as °
+% (with luamml <mi mathvariant="normal">°</mi>, otherwise an ActualText span)
+\AddToHook{begindocument/end}{%
+  \begingroup\lccode`\~="B0 \lowercase{\endgroup\protected\def~}{\MTP@degree}%
+  \mathcode"B0="8000
+  \def\MTP@degree{\pdfextension literal page{/Span<</ActualText<FEFF00B0>>>BDC}%
+    {}^{\circ}\pdfextension literal page{EMC}}%
+  \expandafter\ifx\csname luamml_annotate:en\endcsname\relax\else
+    \let\MTP@degree@\MTP@degree
+    \def\MTP@degree{\csname luamml_annotate:en\endcsname
+      {core={[0]='mi',mathvariant='normal',"\luaescapestring{\Uchar"B0}"}}{\MTP@degree@}}\fi}
 % unicode-math ends a delimiter command's number with \scan_stop: (\lbrace is \Udelimiter 4
 % \symoperators "0007B\scan_stop:); \abovewithdelims (amsmath's \genfrac) then takes that \relax
 % for its thickness. The Type 1 set-up ends it with a space (\delimiter"4266308 ), as here.
@@ -3821,34 +3847,70 @@ STY = r'''%% mtpro2-otf.sty -- MathTime Pro 2 as OpenType (built by mtpro2_otf.p
 % the document's \SetProtrusion/\SetExpansion apply as they would to the Type 1 font.
 \directlua{mtpro2otf.mttext = {@@MTTEXT@@}}
 \def\MTP@mt@name#1/#2/#3/#4/#5/#6\@nil{%
-  \in@{MTPro2Math}{#2}%
+  \expandafter\in@\expandafter{\detokenize{MTPro2Math}}{#2}% (#2: \string's characters)
   \ifin@
-    \in@{-Bold}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@bold \else
-    \in@{-Heavy}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@heavy \else \def\MTP@mt@ser{m}\fi\fi
-    \edef\MTP@tmp{\noexpand\MTP@MT@split@name\MTP@mt@enc/\MTP@mt@fam/\MTP@mt@ser/#4/#5/#6\noexpand\@nil}%
+    \expandafter\in@\expandafter{\detokenize{-Bold}}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@bold \else
+    \expandafter\in@\expandafter{\detokenize{-Heavy}}{#2}\ifin@ \let\MTP@mt@ser\MTP@mt@heavy \else \def\MTP@mt@ser{m}\fi\fi
+    \edef\MTP@tmp{\noexpand\MTP@MT@split@name\detokenize\expandafter{\MTP@mt@enc}/%
+      \detokenize\expandafter{\MTP@mt@fam}/\detokenize\expandafter{\MTP@mt@ser}/#4/#5/#6\noexpand\@nil}%
   \else \def\MTP@tmp{\MTP@MT@split@name#1/#2/#3/#4/#5/#6\@nil}\fi
   \MTP@tmp}
 \AddToHook{begindocument/before}{\@ifpackageloaded{microtype}{%
   \let\MTP@MT@split@name\MT@split@name \let\MT@split@name\MTP@mt@name
   \g@addto@macro\MT@setupfont{\directlua{mtpro2otf.mtfix()}}%
+  % (what microtype gives the Type 1 operators font itself, for slots the maths font lacks:
+  % that font set up once, regular and bold, when the document starts)
+  \AddToHook{begindocument/end}{\directlua{mtpro2otf.mtref = { m = {}, b = {} }}%
+    \begingroup\fontencoding{\MTP@mt@enc}\fontfamily{\MTP@mt@fam}\fontseries{m}\fontshape{n}\selectfont
+      \directlua{mtpro2otf.mtrefread("m")}\endgroup
+    \begingroup\fontencoding{\MTP@mt@enc}\fontfamily{\MTP@mt@fam}\fontseries{\MTP@mt@bold}\fontshape{n}\selectfont
+      \directlua{mtpro2otf.mtrefread("b")}\endgroup}%
   \directlua{
     local done, T = {}, mtpro2otf.mttext
+    mtpro2otf.mtref, mtpro2otf.mtsaved = { m = {}, b = {} }, {}
+    function mtpro2otf.mtrefread(s)
+      local q = {}
+      for c, v in pairs(T) do
+        if not (c == v) then
+          table.insert(q, "mtpro2otf.mtref." .. s .. "[" .. v .. "] = {\string\\the\string\\lpcode\string\\font" .. v
+            .. ", \string\\the\string\\rpcode\string\\font" .. v .. ", \string\\the\string\\efcode\string\\font" .. v .. "} ")
+        end
+      end
+      tex.sprint("\string\\directlua{" .. table.concat(q) .. "}")
+    end
     function mtpro2otf.mtfix()
       local id = font.current()
-      if done[id] then return end
+      local L, R, E = "\string\\lpcode\string\\font", "\string\\rpcode\string\\font", "\string\\efcode\string\\font"
+      local function set(c, v) return L .. c .. "=" .. v .. R .. c .. "=" .. v .. E .. c .. "=" .. v .. " " end
+      if done[id] then
+        % (the same font set up again under another name, e.g. Lite's bold version, which uses
+        % the regular font: its codes as first set)
+        local s = mtpro2otf.mtsaved[id]
+        if s then
+          local q = {}
+          for c, r in pairs(s) do table.insert(q, L .. c .. "=" .. r[1] .. " " .. R .. c .. "=" .. r[2] .. " " .. E .. c .. "=" .. r[3] .. " ") end
+          tex.sprint(table.concat(q))
+        end
+        return
+      end
       done[id] = true
       local f = font.getfont(id)
       if not (f and f.name and f.name:find("MTPro2Math", 1, true)) then return end
-      local L, R, E = "\string\\lpcode\string\\font", "\string\\rpcode\string\\font", "\string\\efcode\string\\font"
-      local function set(c, v) return L .. c .. "=" .. v .. R .. c .. "=" .. v .. E .. c .. "=" .. v .. " " end
       local a, b = {}, {}
+      local ref = mtpro2otf.mtref[f.name:find("-Bold", 1, true) and "b" or "m"]
       for c, v in pairs(T) do
-        if not (c == v) then table.insert(a, L .. c .. "=" .. L .. v .. " " .. R .. c .. "=" .. R .. v .. " " .. E .. c .. "=" .. E .. v .. " ") end
+        if not (c == v) then
+          local r = not f.characters[v] and ref[v]
+          if r then table.insert(a, L .. c .. "=" .. r[1] .. " " .. R .. c .. "=" .. r[2] .. " " .. E .. c .. "=" .. r[3] .. " ")
+          else table.insert(a, L .. c .. "=" .. L .. v .. " " .. R .. c .. "=" .. R .. v .. " " .. E .. c .. "=" .. E .. v .. " ") end
+        end
       end
+      local q = {}
       for c in pairs(f.characters) do
-        if not T[c] then table.insert(b, set(c, 0)) end
+        if not T[c] then table.insert(b, set(c, 0)); table.insert(q, "[" .. c .. "]={0,0,0}")
+        else table.insert(q, "[" .. c .. "]={" .. "\string\\the" .. L .. c .. ",\string\\the" .. R .. c .. ",\string\\the" .. E .. c .. "}") end
       end
-      tex.sprint(table.concat(a) .. table.concat(b))
+      tex.sprint(table.concat(a) .. table.concat(b) .. "\string\\directlua{mtpro2otf.mtsaved[" .. id .. "]={" .. table.concat(q, ",") .. "}}")
     end}}{}}
 % hyperref: headings with maths give bookmarks with the symbols (Flow with 𝛼i and ∇f)
 \AddToHook{begindocument/end}{\@ifpackageloaded{hyperref}{\pdfstringdefDisableCommands{%
@@ -4263,7 +4325,8 @@ def text_chars(B: MathFontBuild) -> dict[int, int]:
     for d in B.inp.decls:
         if d.kind == "symbol" and d.fam in ops and not (len(d.cmd) == 1 and ord(d.cmd) in special):
             cp = B.inp.uni.for_command(d.cmd, d.slot, d.fam)
-            if cp and cp in B.cmap and cp not in t and cp not in other:
+            # (a character typed in maths, : say, wins over a command at the same code point)
+            if cp and cp in B.cmap and cp not in t and (cp not in other or len(d.cmd) == 1):
                 t[cp] = d.slot
     # a code that is another one's source slot keeps its own place (no copy chains)
     srcs = {s for c, s in t.items() if c != s}
@@ -4885,6 +4948,8 @@ matter at considerable length and with remarkable patience. }
 \para{$\max_{i} a_i$ and $\lim_{n\to\infty} 1/n$}\para{$2^{10}=1024$, $\operatorname{Wo}(T)$}
 \para{\num{6.02e23} and \qty{9.81}{\metre\per\second\squared}}
 \para{\boldmath $1.342\,\mathrm{AT}\{x\}$\unboldmath}
+\para{\qty{4.5}{\degree}}\para{(\unit{\degree}) and \qty{20}{\degreeCelsius}}
+\para{\ang{12;30;15}, \unit{\arcminute} and $90^\circ$}
 \subsection{Error estimate}
 \filler The error is bounded as in \eqref{eq:est}:
 \begin{equation}\label{eq:est}
@@ -4901,6 +4966,7 @@ a&=\sum_{k=1}^{n}\frac{\uppi}{k^2}+\mathrm{e}^{\mathrm{i}\theta}, & b&=\int_0^1 
 \end{align}
 \filler See \url{https://example.org/thesis} and \cite{x}\footnote{A note with $x^2$.}.
 \filler\filler $7$ \filler $\mathrm{W}$\filler\filler\filler
+\SuspendTagging{doctest}\setbox0\hbox{\qty{4.5}{\degree}}\typeout{DOCTEST-DEGREE=\the\wd0}\ResumeTagging{doctest}
 \end{document}
 """
 # every glyph outside maths on each page, where it lands: margin kerns (protrusion) and glyph
@@ -4961,7 +5027,7 @@ def doctest(work: Path, t1: str, otf: str, env: dict, label: str,
                            capture_output=True, text=True, timeout=1800)
         log = (work / f"{job}.log").read_text(errors="replace") if (work / f"{job}.log").exists() else ""
         dump = (work / f"{job}.doc").read_text().split("\n") if (work / f"{job}.doc").exists() else []
-        res[job] = {"errors": len(re.findall(r"^! ", log, re.M)),
+        res[job] = {"errors": len(re.findall(r"^! |^\[\\directlua\]:\d+:", log, re.M)),   # (Lua errors too)
                     "tagwarn": len(re.findall(r"(?:Package|Module) (?:tagpdf|luamml|latex-lab)\S* Warning", log)),
                     "glyphs": [tuple(map(int, l.split())) for l in dump if l]}
     a, b = res["doc_t1"]["glyphs"], res["doc_otf"]["glyphs"]
@@ -4975,6 +5041,33 @@ def doctest(work: Path, t1: str, otf: str, env: dict, label: str,
           f"tagging warnings {res['doc_t1']['tagwarn']}/{res['doc_otf']['tagwarn']} (Type 1/OpenType)")
     for u, v in moved[:5]:
         print(f"  page {u[0]} {chr(u[1])!r} at ({u[2] / 65536:.2f}, {u[3] / 65536:.2f}) -> ({v[2] / 65536:.2f}, {v[3] / 65536:.2f})")
+    # \qty{4.5}{\degree}: its width, the text a reader copies, and its MathML (tagged PDF): the
+    # width of the Type 1 set-up's {}^{\circ}, but the character U+00B0
+    deg = {}
+    for job in ("doc_t1", "doc_otf"):
+        log = (work / f"{job}.log").read_text(errors="replace") if (work / f"{job}.log").exists() else ""
+        w = re.search(r"^DOCTEST-DEGREE=([\d.]+)pt", log, re.M)
+        cp = "?"
+        if shutil.which("pdftotext") and (work / f"{job}.pdf").exists():
+            r = subprocess.run(["pdftotext", f"{job}.pdf", "-"], cwd=work, capture_output=True, text=True)
+            m = re.search(r"4\.5 ?[^\sA-Za-z]+", r.stdout)
+            cp = m.group(0) if m else "?"
+        mml = "?"
+        html = work / f"{job}-luamml-mathml.html"
+        if html.exists():
+            for m in re.finditer(r"<math\b.*?</math>", html.read_text(errors="replace"), re.S):
+                s = re.sub(r"\s+", " ", m.group(0))
+                if re.search(r">\s*4\s*</mn>.*>\s*5\s*</mn>", s):
+                    mml = re.sub(r"^<math[^>]*>\s*|\s*</math>$", "", s)
+                    break
+        deg[job] = (float(w.group(1)) if w else None, cp, mml)
+    (wa, ca, ma), (wb, cb, mb) = deg["doc_t1"], deg["doc_otf"]
+    dok = wa is not None and wb is not None and abs(wa - wb) < 0.01 and "°" in cb and "°</mi>" in mb
+    ok = ok and dok
+    print(f"  \\qty{{4.5}}{{\\degree}}: {'ok' if dok else 'DIFFERENT'}: width {wa}/{wb}pt, copied "
+          f"{ca!r}/{cb!r} (Type 1/OpenType)")
+    print(f"    MathML Type 1:   {ma}")
+    print(f"    MathML OpenType: {mb}")
     # PDF/A-4f and PDF/UA-2 validation, when veraPDF is installed (https://verapdf.org)
     vera = shutil.which("verapdf")
     if vera:

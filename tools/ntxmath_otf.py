@@ -871,7 +871,7 @@ NTX_WEIGHTS = {"normal": ("NewTX Math", "NewTXMath.otf"), "bold": ("NewTX Math B
 NTX_DONORS = {"normal": "texgyretermes-regular.otf", "bold": "texgyretermes-bold.otf"}
 NTX_COPYRIGHT = ("Converted from the newtx fonts (Michael Sharpe) and txfonts (Young Ryu); "
                  "LaTeX Project Public License 1.3")
-NTX_VERSION = "1.1"
+NTX_VERSION = "1.4"
 NTX_DATE = "2026/11/23"
 LEGACY_FAMS = ("letters", "symbols", "largesymbols")
 
@@ -1142,7 +1142,15 @@ def ntx_sty(reg) -> str:
     t = t.replace("% the Type 1 set-up's operators font (mtpro2.sty: {\\encodingdefault}{\\rmdefault}, b/n in the bold\n"
                   "% version, m/n in the heavy one), as when the package loads\n",
                   "% the Type 1 set-up's operators font (newtxmath: {\\tx@enc}{\\rmdefaultB}, m/n and bold b/n)\n", 1)
-    t = t.replace(a, f"\\def\\MTP@mt@enc{{{enc}}}\\def\\MTP@mt@fam{{{v.get('rmdefaultB') or 'minntx'}}}"
+    # (\\rmdefaultB as newtxmath sets it when it loads: \\rmdefault, or minntx with a Times text
+    # package (newtxtext, tgtermes) or \\rmdefault ptm/minntx; the same glyphs either way, but
+    # microtype's settings differ: ntxtlf is its Times, ptmx. Not a newtx family: minntx.)
+    fam = ("\\edef\\MTP@mt@fam{\\rmdefault}"
+           "\\@ifpackageloaded{newtxtext}{\\def\\MTP@mt@fam{minntx}}{}"
+           "\\@ifpackageloaded{tgtermes}{\\def\\MTP@mt@fam{minntx}}{}"
+           "\\directlua{local f = token.get_macro('MTP@mt@fam') "
+           "if f == 'ptm' or not (f == 'minntx' or f:match('^ntx')) then token.set_macro('MTP@mt@fam', 'minntx') end}")
+    t = t.replace(a, f"\\def\\MTP@mt@enc{{{enc}}}{fam}"
                   f"\\def\\MTP@mt@bold{{{v.get('bold@wt') or 'b'}}}", 1)
     # newtxmath's classes for the ASCII symbols (unicode-math has its own: / is an opening
     # symbol with newtxmath, an ordinary one with unicode-math)
@@ -1331,8 +1339,25 @@ def selftest(work: Path | None = None, stress: bool = False, size: float | None 
     if document:
         # (newtxtext, which loads its fonts with fontspec: with another fontspec font, classic
         # newtxmath's operators font would be OT1 in that family, i.e. cmr10)
-        return M.doctest(work, t1_pkg, otf_pkg, env, f"options {otf_opts or '(none)'}",
-                         text=r"\usepackage{newtxtext}")
+        rc = M.doctest(work, t1_pkg, otf_pkg, env, f"options {otf_opts or '(none)'}, newtxtext",
+                       text=r"\usepackage{newtxtext}")
+        # (and as a template that sets \rmdefault to newtx's Times without newtxtext: then
+        # newtxmath's operators font is ntxtlf, which microtype gives its Times settings)
+        sub = work / "doc-ntxtlf"
+        sub.mkdir(exist_ok=True)
+        sc = re.search(r"scaled?=([\d.]+)", options)
+        after = r"\usepackage[scaled=%s]{newtxtext}" % sc.group(1) if sc else r"\usepackage{newtxtext}"
+        rc |= M.doctest(sub, t1_pkg + after, otf_pkg + after, env,
+                        f"options {otf_opts or '(none)'}, \\rmdefault ntxtlf, newtxtext after the maths",
+                        text=r"\usepackage[T1]{fontenc}\renewcommand\rmdefault{ntxtlf}")
+        # (and with fontspec loaded first, T1 after it: the maths fonts are still set up in TU)
+        sub = work / "doc-fontspec-t1"
+        sub.mkdir(exist_ok=True)
+        fs = r"\usepackage{fontspec}\setmainfont{TeX Gyre Termes}" + (f"[Scale={sc.group(1)}]" if sc else "")
+        rc |= M.doctest(sub, t1_pkg + after, otf_pkg + after, env,
+                        f"options {otf_opts or '(none)'}, fontspec, then T1 \\rmdefault ntxtlf, newtxtext after",
+                        text=fs + r"\usepackage[T1]{fontenc}\renewcommand\rmdefault{ntxtlf}")
+        return rc
     return 0
 
 
