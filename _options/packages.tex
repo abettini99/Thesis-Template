@@ -5,7 +5,7 @@
 %% =====================================================================
 
 %% Maths and units
-\ifthesismathtime\else\ifthesisntxotf\else\usepackage{bm}\fi\fi % https://ctan.org/pkg/bm %% bold symbols (\vec, \tensor); the OpenType maths fonts have their own \bm (MathTime also \hm, heavy)
+\ifthesisotfmath\else\usepackage{bm}\fi % https://ctan.org/pkg/bm %% bold symbols (\vec, \tensor); the OpenType maths fonts have their own \bm (MathTime also \hm, heavy)
 \usepackage{siunitx}            % https://ctan.org/pkg/siunitx %% quantities and units: \qty{}{}, \num{}, \unit{}
 
 %% Figures and tables
@@ -85,10 +85,13 @@
 %% Proofs stretch like the other statements (amsthm gives them 6pt plus 6pt, so they took up most of the
 %% slack on a page that breaks early, leaving holes around them).
 %% (With \DocumentMetadata, LaTeX's own code replaces amsthm: proofs are its "proof" blocks.)
+\makeatletter
 \IfInstanceExistsTF{block}{proof-1}
     {\EditInstance{block}{proof-1}{begin-vspace = 6pt plus 2pt}\EditInstance{block}{proof-2}{begin-vspace = 6pt plus 2pt}%
      \EditInstance{captionedtext}{proof}{after-hspace = \labelsep, caption-unbreakable = true}}% (as amsthm: a rigid separation, the label in a box)
-    {\makeatletter\expandafter\patchcmd\csname\string\proof\endcsname{\topsep6\p@\@plus6\p@}{\topsep6\p@\@plus2\p@}{}{\PackageWarning{thesis}{Could not patch the proof spacing}}\makeatother}
+    {\expandafter\patchcmd\csname\string\proof\endcsname{\topsep6\p@\@plus6\p@}{\topsep6\p@\@plus2\p@}{}%
+        {\PackageWarning{thesis}{Could not patch the proof spacing}}}
+\makeatother
 %% (the environments are defined after cleveref below, so it names shared-counter ones correctly)
 
 %% Algorithms (pseudocode): "Algorithm 2.1", numbered per chapter, as a float with its caption on top.
@@ -96,29 +99,25 @@
 %% List of algorithms: \listofalgorithms in main.tex (commented out there).
 \usepackage[chapter]{algorithm}
 \usepackage{algpseudocode}
+\makeatletter
 %% A \label after \State refers to the line number. LaTeX's list code (November 2026) makes the label of an
 %% item given in brackets the current label, so \Require, \Ensure and \Statex (\item[...]) would take
 %% it over; algorithmicx sets the line number as the label only once. Set again after every item.
-\makeatletter
 \algrenewcommand\ALG@beginalgorithmic{%
     \let\thesis@algitem\item
     \def\thesis@alglabel{\def\@currentlabel{\theALG@line}}%
     \def\thesis@algitem@opt[##1]{\thesis@algitem[##1]\thesis@alglabel}%
     \def\item{\@ifnextchar[\thesis@algitem@opt{\thesis@algitem\thesis@alglabel}}}
-\makeatother
+%% every algorithm numbers its lines from 1: give their link targets unique names
+\renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
 %% Same look as code listings and tables: caption above (small, label in bold small capitals), then a
 %% thin rule, the steps, and a thin rule.
-\makeatletter
 \renewcommand\fs@ruled{\def\@fs@cfont{}\let\@fs@capt\floatc@ruled
     \def\@fs@pre{}\def\@fs@post{\kern2pt\hrule\relax}%
     \def\@fs@mid{\kern3pt\hrule\kern3pt}\let\@fs@iftopcapt\iftrue}
-%% every algorithm numbers its lines from 1: give their link targets unique names
-\renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
-\makeatother
 \floatstyle{ruled}\restylefloat{algorithm}
 %% (with LaTeX's tagging code of November 2026, float.sty's caption ends the caption structure itself:
 %% then it is begun here too)
-\makeatletter
 \ExplSyntaxOn
 \exp_args:Nee \str_if_in:nnTF { \token_to_meaning:N \float@caption } { \tl_to_str:n { caption/end } }
   { \def\thesis@floatcapbegin{\UseTaggingSocket{caption/begin}{\@current@float@struct}} }

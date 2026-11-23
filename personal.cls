@@ -49,11 +49,11 @@
 \newif\ifchapterbib
 \DeclareOption{chapterbib}{\chapterbibtrue}
 \ProcessOptions\relax
-\def\thesis@paper{trimmed}
-\def\thesis@tmp{print-preparation}\ifx\thesis@edition\thesis@tmp \def\thesis@paper{bleed}\fi
-\def\thesis@tmp{print-report}\ifx\thesis@edition\thesis@tmp \def\thesis@paper{sheet}\fi
-\def\thesis@tmp{american}
-\ifx\thesis@language\thesis@tmp \def\thesis@bcp{en-US}\else \def\thesis@bcp{en-GB}\fi % language in the PDF metadata
+\RequirePackage{etoolbox}
+\def\thesis@paper{trimmed} % what the PDF page is: see PAGE LAYOUT
+\ifdefstring{\thesis@edition}{print-preparation}{\def\thesis@paper{bleed}}{}
+\ifdefstring{\thesis@edition}{print-report}{\def\thesis@paper{sheet}}{}
+\ifdefstring{\thesis@language}{american}{\def\thesis@bcp{en-US}}{\def\thesis@bcp{en-GB}} % language in the PDF metadata
 
 %% LuaLaTeX only: the class uses Lua for page balance, line breaks of URLs, maths fonts and the logs.
 \IfFormatAtLeastF{2026-06-01}{%
@@ -72,7 +72,7 @@
 %% Public switch, for files outside the class (\ifprintversion ... \else ... \fi): true for the print
 %% editions (links invisible, code in black and white, no rotated pages), false for digital.
 \newif\ifprintversion
-\def\thesis@tmp{digital}\ifx\thesis@edition\thesis@tmp\else \printversiontrue \fi
+\ifdefstring{\thesis@edition}{digital}{}{\printversiontrue}
 
 %% Page sizes. Per size: trimmed page, type block, fore-edge and top margins, chapter-title size.
 %% The fore-edge margin is (2/3) x (page width - binding - text width); text widths give 70-77
@@ -96,14 +96,12 @@
 \@namedef{thesis@size@tudelft}{\thesis@size{170mm}{240mm}{113mm}{192mm}{33.4mm}{23.9mm}{36pt}\def\thesis@ptsize{11pt}}
 \@nameuse{thesis@size@\thesis@pagesize}
 \edef\thesis@tmp{\noexpand\LoadClass[\thesis@ptsize,twoside,openright]{book}}\thesis@tmp
-\RequirePackage{etoolbox}
 %% The type sizes and default spacings of memoir, which the earlier versions of this class were based on
 %% (\small and \large are a little smaller than in the book class): its size option file, read as is.
 \newlength{\onelineskip} \newlength{\lxvchars} \newlength{\xlvchars} \newif\ifextrafontsizes
-\def\thesis@tmp#1pt{#1}\edef\thesis@tmp{\expandafter\thesis@tmp\thesis@ptsize}\input{mem\thesis@tmp.clo}
 %% One em of the class's type size, as memoir measured lengths given in em when the class was loaded
-\newdimen\thesis@em \thesis@em=\@xpt\p@ \def\thesis@tmpb{11}\ifx\thesis@tmp\thesis@tmpb \thesis@em=\@xipt\p@\fi
-\def\thesis@tmpb{12}\ifx\thesis@tmp\thesis@tmpb \thesis@em=\@xiipt\p@\fi
+\newdimen\thesis@em
+\ifdefstring{\thesis@ptsize}{11pt}{\input{mem11.clo}\thesis@em=\@xipt\p@}{\input{mem10.clo}\thesis@em=\@xpt\p@}
 
 %%% PAGE LAYOUT
 %% The sheet (the PDF page), the book page on it and the type block on the book page:
@@ -119,19 +117,18 @@
 \newlength{\thesis@bleed}       \setlength{\thesis@bleed}{2mm}  % TU Delft uses 2mm bleed
 \setlength{\paperwidth}{\thesis@pagewidth}
 \setlength{\paperheight}{\thesis@pageheight}
-\def\thesis@tmp{bleed}\ifx\thesis@paper\thesis@tmp
+\ifdefstring{\thesis@paper}{bleed}{%
     \setlength{\stockwidth}{\dimexpr\paperwidth+2\thesis@bleed}%
     \setlength{\stockheight}{\dimexpr\paperheight+2\thesis@bleed}%
-    \setlength{\trimtop}{\thesis@bleed}\setlength{\trimedge}{\thesis@bleed}%
-\else\def\thesis@tmp{sheet}\ifx\thesis@paper\thesis@tmp
+    \setlength{\trimtop}{\thesis@bleed}\setlength{\trimedge}{\thesis@bleed}}{}
+\ifdefstring{\thesis@paper}{sheet}{%
     \if@letter \setlength{\stockwidth}{8.5in}\setlength{\stockheight}{11in}%
     \else      \setlength{\stockwidth}{210mm}\setlength{\stockheight}{297mm}\fi
     \setlength{\trimtop}{\dimexpr(\stockheight-\paperheight)/2}%
-    \setlength{\trimedge}{\dimexpr(\stockwidth-\paperwidth)/2}%
-\else
+    \setlength{\trimedge}{\dimexpr(\stockwidth-\paperwidth)/2}}{}
+\ifdefstring{\thesis@paper}{trimmed}{%
     \setlength{\stockwidth}{\paperwidth}\setlength{\stockheight}{\paperheight}%
-    \setlength{\trimtop}{0pt}\setlength{\trimedge}{0pt}%
-\fi\fi
+    \setlength{\trimtop}{0pt}\setlength{\trimedge}{0pt}}{}
 %% The type block: the given width, and the height rounded down to whole lines. The spine margin is
 %% what the fore-edge margin and the text leave (it includes 7 mm for the binding: the glue and the
 %% curve into the spine; increase the fore-edge margin's share for very thick books, 500+ pages).
@@ -198,16 +195,18 @@
 %% say), LaTeX's new code takes the paragraph skip off below it and adds it back at the next blank line.
 %% Added back as a separate skip it keeps the space before a following heading, statement or list from
 %% merging with the space below the equation; both are left out instead, as with the old code.
-\def\thesis@addparskip{%
-    \ifdim\lastskip>\z@
-        \@tempskipa\lastskip \unskip \@tempskipb\glueexpr\lastskip+\parskip\relax
-        \ifdim\@tempskipb=\z@ \ifdim\gluestretch\@tempskipb=\z@ \ifdim\glueshrink\@tempskipb=\z@
-            \unskip \vskip\@tempskipa % the display's "minus the paragraph skip" and this one cancel out
-        \else \vskip\glueexpr\@tempskipa+\parskip\relax \fi
-        \else \vskip\glueexpr\@tempskipa+\parskip\relax \fi
-        \else \vskip\glueexpr\@tempskipa+\parskip\relax \fi
-    \else \vskip\parskip \fi}
 \ExplSyntaxOn
+\cs_new_protected:Npn \thesis@addparskip
+  {
+    \dim_compare:nNnTF \lastskip > \c_zero_dim
+      {
+        \skip_set:Nn \@tempskipa \lastskip \tex_unskip:D
+        \skip_if_eq:nnTF { \lastskip + \parskip } { \c_zero_skip }
+          { \tex_unskip:D \skip_vertical:N \@tempskipa } % the display's "minus the paragraph skip" and this one cancel out
+          { \skip_vertical:n { \@tempskipa + \parskip } }
+      }
+      { \skip_vertical:N \parskip }
+  }
 \def\@doendpe{\@endpetrue
   \def\par{\@restorepar \clubpenalty\@clubpenalty
     \if@domathendpe \thesis@addparskip \@domathendpefalse \fi
@@ -221,6 +220,10 @@
 %% are removed before the page is made up.
 %% (The page is made up as before: a stretchable skip at its end, from \clearpage, stays where it is.)
 \def\@outputbox@removebskip{\global\let\@outputbox@reinsertbskip\relax}
+%% \thesis@ifzeroskip<skip>{true}{false}: the skip is 0pt with no stretch or shrink
+\ExplSyntaxOn
+\cs_new:Npn \thesis@ifzeroskip #1 { \skip_if_eq:nnTF {#1} { \c_zero_skip } }
+\ExplSyntaxOff
 \newif\ifthesis@stripped \newif\ifthesis@stripany
 \def\thesis@striptail{%
     \ifnum\lastnodetype=13 \unpenalty\expandafter\thesis@striptail
@@ -233,9 +236,7 @@
 \def\@make@normalcolbox{%
     \setbox\@outputbox\vbox{\boxmaxdepth\@maxdepth \unvbox\@outputbox
         \skip@\z@skip \thesis@strippedfalse \thesis@stripanyfalse \thesis@striptail
-        \ifthesis@stripped
-            \ifdim\skip@=\z@ \ifdim\gluestretch\skip@=\z@ \ifdim\glueshrink\skip@=\z@
-            \else\vskip\skip@\fi \else\vskip\skip@\fi \else\vskip\skip@\fi
+        \ifthesis@stripped \thesis@ifzeroskip\skip@{}{\vskip\skip@}%
         \else \ifthesis@stripany \vskip\skip@ \fi\fi}% (only skips of nothing: one is put back, as the page
         % then ended with a skip with the old code too)
     \setbox\@outputbox \vbox to\@colht {%
@@ -454,6 +455,8 @@
 %% pages either way; the OpenType fonts add maths that copies as Unicode and MathML in the tagged PDF.
 \newif\ifthesisntxotf
 \ifthesismathtime\else\IfFileExists{ntxmath-otf.sty}{\thesisntxotftrue}{}\fi
+\newif\ifthesisotfmath % either of the two: OpenType maths fonts, with unicode-math
+\ifthesismathtime\thesisotfmathtrue\fi \ifthesisntxotf\thesisotfmathtrue\fi
 
 %%% TEXT FONTS
 %% Loaded through fontspec.

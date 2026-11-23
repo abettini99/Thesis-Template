@@ -1,101 +1,142 @@
 %% =====================================================================
-%% Tagged PDF (PDF/UA): support for packages that LaTeX's tagging code does not handle by itself yet.
-%% Read by packages.tex; does something only when tagging is on (\DocumentMetadata{..., tagging=on}),
-%% so the untagged editions are not affected.
-%%
-%% Code listings (listings): set as a code block (tag Code lines in a verbatim structure), with the
-%% line numbers as labels, and the caption as the listing's caption. Adapted from the LaTeX team's own
-%% set-up for the tagpdf documentation (tagpdfdocu-patches.sty, 2026-08-21, LaTeX Project Public
-%% License); without it, every listing closed the section around it in the tagged structure. LaTeX's
-%% release of November 2026 brings the same code (latex-lab-listings): then only the spacing is set here.
-%%
-%% Numbered equations (MathML): multline gets a structure for its equation number, as equation
-%% does, and an equation with split keeps its number in the MathML (see below and tagging.lua).
+%% Tagged PDF (PDF/UA): what LaTeX's tagging code does not handle by itself (yet), and where its look
+%% differs from the untagged editions. Read by packages.tex, right after listings is loaded; everything
+%% here does something only when tagging is on (\DocumentMetadata{..., tagging=on}).
+%%   1. Code listings
+%%   2. Equation numbers in the MathML (with tagging.lua)
+%%   3. Theorems and proofs straight after one another (LaTeX's code of June 2026)
+%%   4. Figures side by side
 %% =====================================================================
 \ExplSyntaxOn
-\tag_if_active:T
+\tag_if_active:T { \cs_gset:Npn \thesistagging {} }
+\ExplSyntaxOff
+\ifdefined\thesistagging
+\makeatletter
+
+%% ---------------------------------------------------------------------------------------------
+%% 1. Code listings: a code block (a verbatim structure of code lines), the line numbers as labels and
+%% the caption as the listing's caption. LaTeX brings this itself from November 2026 (latex-lab-listings,
+%% loaded with listings); for the June 2026 release, the same code, from the LaTeX team's set-up for the
+%% tagpdf documentation (tagpdfdocu-patches.sty, 2026-08-21, LaTeX Project Public License). Without it,
+%% every listing closed the section around it in the tagged structure.
+\IfPackageLoadedTF{latex-lab-listings}{\let\thesis@lablistings\relax}{}
+\ifdefined\thesis@lablistings\else
+\ExplSyntaxOn
+\NewTaggingSocket{listings/number}{2}
+\NewTaggingSocketPlug{listings/number}{default}
   {
-    % (LaTeX's own listings support, from November 2026, does the same: then only the spacing below)
-    \IfPackageLoadedTF { latex-lab-listings } { \cs_gset:Npn \thesislablistings {} }
+    \tag_mc_end_push:
+    \tagstructbegin{tag=Lbl}
+    \tagmcbegin{}
+    #2
+    \tagmcend
+    \tagstructend
+    \tag_mc_begin_pop:n{}
+  }
+\AssignTaggingSocketPlug{listings/number}{default}
+\ExplSyntaxOff
+\DeclareInstance{blockenv}{lstlisting}{std}{%
+    name                   = lstlisting,
+    tag-name               = verbatim,
+    tag-attr-class         = ,
+    tagging-recipe         = standard,
+    inner-level-counter    = ,
+    transparent-level      = true,
+    block-instance         = lstlisting,
+    inner-instance         = ,
+    final-code             = \AssignStructureRole{para/textblock}
+                               {\UseStructureName{block/verbatim/codeline}}\ignorespaces,
+    tagging-suppress-paras = true}
+\tagpdfsetup{float/new=lstlisting}
+\lst@Key{numbers}{none}{%
+    \let\lst@PlaceNumber\@empty
+    \lstKV@SwitchCases{#1}%
+    {none:\\%
+     left:\def\lst@PlaceNumber{\llap{\normalfont
+                \UseTaggingSocket{listings/number}{}{\lst@numberstyle{\thelstnumber}}\kern\lst@numbersep}}\\%
+     right:\def\lst@PlaceNumber{\rlap{\normalfont
+                \kern\linewidth \kern\lst@numbersep
+                \UseTaggingSocket{listings/number}{}{\lst@numberstyle{\thelstnumber}}}}%
+    }{\PackageError{Listings}{value `#1' for keyword `numbers' not supported}\@ehc}}
+\lst@AddToHook{PreInit}{\ifhmode \UseTaggingSocket{inline/begin}{tag=\UseStructureName{text/verb}}\fi}
+\lst@AddToHook{DeInit}{\ifhmode \UseTaggingSocket{inline/end}%
+    \else \edef\@current@float@struct{\UseName{tag_get:n}{struct_num}}\BlockEnvEnd \fi}
+\def\lst@makecaption{\AssignStructureRole{para/textblock}{Span}\def\@captype{lstlisting}\@makecaption}
+\def\lst@maketitle{\def\@captype{lstlisting}%
+    \AssignStructureRole{para/textblock}{Span}%
+    \AssignTaggingSocketPlug{caption/label/begin}{noop}%
+    \AssignTaggingSocketPlug{caption/label/end}{noop}%
+    \AssignSocketPlug{caption/label}{noop}%
+    \@makecaption\lst@title@dropdelim}
+\fi
+%% The spacing, as without tagging (both releases): listings adds its own skips and break points
+%% (\lstset aboveskip, belowskip), so the block around a listing adds none ...
+\DeclareInstance{block}{lstlisting-1}{std}{%
+    left-margin = 0pt, para-vspace = 0pt, begin-vspace = 0pt, end-vspace = 0pt,
+    begin-extra-vspace = 0pt, end-extra-vspace = 0pt, begin-unchained-vspace = 0pt,
+    begin-penalty = 10000, end-penalty = 10000}
+\DeclareInstanceCopy{block}{lstlisting-2}{lstlisting-1}
+\DeclareInstanceCopy{block}{lstlisting-3}{lstlisting-1}
+\DeclareInstanceCopy{block}{lstlisting-4}{lstlisting-1}
+\DeclareInstanceCopy{block}{lstlisting-5}{lstlisting-1}
+\DeclareInstanceCopy{block}{lstlisting-6}{lstlisting-1}
+%% ... no stretch above it (the block adds the paragraph skip), and no skips of nothing (they stayed at
+%% the foot of a page that breaks at the listing)
+\def\lst@EveryDisplay{%
+    \MathCollectFalse
+    \parskip\z@skip
+    \ifx\lst@float\relax \SimpleBlockEnv{lstlisting}{}%
+    \else \SimpleBlockEnv{lstlisting}{tagging-recipe = standalone}\fi
+    \thesis@unskipzero}
+\def\thesis@unskipzero{\let\thesis@next\relax
+    \ifvmode\ifnum\lastnodetype=11 % (a skip)
+        \thesis@ifzeroskip\lastskip{\unskip\let\thesis@next\thesis@unskipzero}{}\fi\fi
+    \thesis@next}
+
+\ExplSyntaxOn
+%% ---------------------------------------------------------------------------------------------
+%% 2. Equation numbers in the MathML (only when the MathML is made: luamml, math/setup in
+%% \DocumentMetadata, with the OpenType maths fonts).
+%%   multline: luamml leaves multline out of the environments whose equation number gets its own
+%%   structure, but still refers to that structure when it writes the MathML ("structure with label 0
+%%   is unknown"): treat multline like equation and gather.
+%%   equation with split: LaTeX keeps only the split's table in the MathML and drops the equation
+%%   number; it is kept back here and added again around that table (tagging.lua).
+\AddToHook{begindocument}
   {
-    \NewTaggingSocket{listings/number}{2}
-    \NewTaggingSocketPlug{listings/number}{default}
+    \IfPackageLoadedT{luamml}
       {
-        \tag_mc_end_push:
-        \tagstructbegin{tag=Lbl}
-        \tagmcbegin{}
-        #2
-        \tagmcend
-        \tagstructend
-        \tag_mc_begin_pop:n{}
-      }
-    \AssignTaggingSocketPlug{listings/number}{default}
-    \DeclareInstance{blockenv}{lstlisting}{std}
-      {
-        name                   = lstlisting,
-        tag-name               = verbatim,
-        tag-attr-class         = ,
-        tagging-recipe         = standard,
-        inner-level-counter    = ,
-        transparent-level      = true,
-        block-instance         = lstlisting,
-        inner-instance         = ,
-        final-code             = \AssignStructureRole{para/textblock}
-                                   {\UseStructureName{block/verbatim/codeline}}\ignorespaces,
-        tagging-suppress-paras = true
+        \tl_if_exist:cF { c__luamml_label_multline_tl }
+          { \tl_const:cn { c__luamml_label_multline_tl } { } }
+        \directlua{dofile(kpse.find_file('_options/tagging.lua'))}
+        \NewTaggingSocketPlug{math/luamml/mtable/tag/save}{thesis}
+          {
+            \bool_if:NTF \l__math_gathersplit_bool
+              { \use:c{thesis@luamml@savetag} \l__luamml_amsmath_tag_struct_num_int }
+              { \__luamml_amsmath_save_tag_with_struct_elem:N \l__luamml_amsmath_tag_struct_num_int }
+          }
+        \AssignTaggingSocketPlug{math/luamml/mtable/tag/save}{thesis}
+        \NewTaggingSocketPlug{math/luamml/mtable/tag/set}{thesis}
+          { \bool_if:NF \l__math_gathersplit_bool { \__luamml_amsmath_set_tag: } }
+        \AssignTaggingSocketPlug{math/luamml/mtable/tag/set}{thesis}
+        \NewTaggingSocketPlug{math/luamml/mtable/innertable/finalize}{thesis}
+          {
+            \__luamml_amsmath_finalize_inner_table:
+            \bool_if:NT \l__math_gathersplit_bool { \use:c{thesis@luamml@wraptag} }
+          }
+        \AssignTaggingSocketPlug{math/luamml/mtable/innertable/finalize}{thesis}
       }
   }
-    \DeclareInstance{block}{lstlisting-1}{std}
-      {
-        left-margin = 0pt, para-vspace = 0pt, begin-vspace = 0pt, end-vspace = 0pt,
-        begin-extra-vspace = 0pt, end-extra-vspace = 0pt, begin-unchained-vspace = 0pt,
-        % listings adds its own skips and break points (\lstset aboveskip, belowskip)
-        begin-penalty = 10000, end-penalty = 10000
-      }
-    \DeclareInstanceCopy{block}{lstlisting-2}{lstlisting-1}
-    \DeclareInstanceCopy{block}{lstlisting-3}{lstlisting-1}
-    \DeclareInstanceCopy{block}{lstlisting-4}{lstlisting-1}
-    \DeclareInstanceCopy{block}{lstlisting-5}{lstlisting-1}
-    \DeclareInstanceCopy{block}{lstlisting-6}{lstlisting-1}
-    \cs_if_exist:NF \thesislablistings { \tagpdfsetup{float/new=lstlisting} }
-    % multline: luamml leaves multline out of the environments whose equation number gets its
-    % own structure, but still refers to that structure when it writes the MathML, which gives
-    % "structure with label 0 is unknown". Treat multline like equation and gather.
-    % Both only when the MathML is made (luamml, math/setup in \DocumentMetadata).
-    \AddToHook{begindocument}
-      {
-        \IfPackageLoadedT{luamml}
-          {
-            \tl_if_exist:cF { c__luamml_label_multline_tl }
-              { \tl_const:cn { c__luamml_label_multline_tl } { } }
-            % equation with split: see tagging.lua.
-            \directlua{dofile(kpse.find_file('_options/tagging.lua'))}
-            \NewTaggingSocketPlug{math/luamml/mtable/tag/save}{thesis}
-              {
-                \bool_if:NTF \l__math_gathersplit_bool
-                  { \use:c{thesis@luamml@savetag} \l__luamml_amsmath_tag_struct_num_int }
-                  { \__luamml_amsmath_save_tag_with_struct_elem:N \l__luamml_amsmath_tag_struct_num_int }
-              }
-            \AssignTaggingSocketPlug{math/luamml/mtable/tag/save}{thesis}
-            \NewTaggingSocketPlug{math/luamml/mtable/tag/set}{thesis}
-              { \bool_if:NF \l__math_gathersplit_bool { \__luamml_amsmath_set_tag: } }
-            \AssignTaggingSocketPlug{math/luamml/mtable/tag/set}{thesis}
-            \NewTaggingSocketPlug{math/luamml/mtable/innertable/finalize}{thesis}
-              {
-                \__luamml_amsmath_finalize_inner_table:
-                \bool_if:NT \l__math_gathersplit_bool { \use:c{thesis@luamml@wraptag} }
-              }
-            \AssignTaggingSocketPlug{math/luamml/mtable/innertable/finalize}{thesis}
-          }
-      }
-    % Theorems, proofs and other blocks that stand on their own: LaTeX's tagging code ends them
-    % without the usual note that what follows straight on continues the paragraph (\if@endpe),
-    % which the tagging needs, but it changes the look: text straight after was indented, and a
-    % theorem, proof or list straight after got \partopsep more space above it. Here the look
-    % stays as in the untagged editions, while the tagging code still sees what it expects.
-    % (LaTeX's code as of June 2026, with the socket block/endpe; the November 2026 code is handled below)
-    \socket_if_exist:nT { block/endpe }
-      {
+
+%% ---------------------------------------------------------------------------------------------
+%% 3. Theorems, proofs and other blocks that stand on their own (LaTeX's code of June 2026, which has
+%% the socket block/endpe; the November 2026 code needs nothing here). That code ends them without the
+%% usual note that what follows straight on continues the paragraph (\if@endpe), which its tagging
+%% needs, but it changes the look: text straight after was indented, and a theorem, proof or list
+%% straight after got \partopsep more space above it. Here the look stays as in the untagged editions,
+%% while the tagging code still sees what it expects.
+\socket_if_exist:nT { block/endpe }
+  {
     \bool_new:N \g__thesis_block_endpe_bool   % a block on its own has just ended
     \bool_new:N \l__thesis_block_pre_bool
     \bool_new:N \l__thesis_block_space_bool
@@ -153,63 +194,28 @@
           }
         \AssignTaggingSocketPlug { block/recipe } { thesis }
       }
-      }
-    % Figures side by side (a minipage each, with its own caption, in one figure): a figure may
-    % have only one caption in a tagged PDF, so each minipage after the first starts a figure of its
-    % own in the structure (the pages are unchanged).
-    \int_new:N \g__thesis_float_captions_int
-    \AddToHook{cmd/@floatboxreset/after}{ \int_gzero:N \g__thesis_float_captions_int }
-    \AddToHook{cmd/end@float/before}{ \int_gzero:N \g__thesis_float_captions_int }
-    \AddToHook{cmd/end@dblfloat/before}{ \int_gzero:N \g__thesis_float_captions_int }
-    \AddToHook{cmd/caption/before}{ \int_gincr:N \g__thesis_float_captions_int }
-    \AddToHook{env/minipage/before}
+  }
+
+%% ---------------------------------------------------------------------------------------------
+%% 4. Figures side by side (a minipage each, with its own caption, in one figure): a figure may have only
+%% one caption in a tagged PDF, so each minipage after the first starts a figure of its own in the
+%% structure (the pages are unchanged).
+\int_new:N \g__thesis_float_captions_int
+\AddToHook{cmd/@floatboxreset/after}{ \int_gzero:N \g__thesis_float_captions_int }
+\AddToHook{cmd/end@float/before}{ \int_gzero:N \g__thesis_float_captions_int }
+\AddToHook{cmd/end@dblfloat/before}{ \int_gzero:N \g__thesis_float_captions_int }
+\AddToHook{cmd/caption/before}{ \int_gincr:N \g__thesis_float_captions_int }
+\AddToHook{env/minipage/before}
+  {
+    \bool_lazy_and:nnT
+      { \cs_if_exist_p:c { @captype } }
+      { \int_compare_p:nNn { \g__thesis_float_captions_int } > { 0 } }
       {
-        \bool_lazy_and:nnT
-          { \cs_if_exist_p:c { @captype } }
-          { \int_compare_p:nNn { \g__thesis_float_captions_int } > { 0 } }
-          {
-            \tagpdfsetup{float/split}
-            \int_gzero:N \g__thesis_float_captions_int
-          }
+        \tagpdfsetup{float/split}
+        \int_gzero:N \g__thesis_float_captions_int
       }
-    \cs_gset:Npn \thesistagging {}
   }
 \ExplSyntaxOff
-\ifdefined\thesistagging
-\makeatletter
-\ifdefined\thesislablistings\else
-\lst@Key{numbers}{none}{%
-    \let\lst@PlaceNumber\@empty
-    \lstKV@SwitchCases{#1}%
-    {none:\\%
-     left:\def\lst@PlaceNumber{\llap{\normalfont
-                \UseTaggingSocket{listings/number}{}{\lst@numberstyle{\thelstnumber}}\kern\lst@numbersep}}\\%
-     right:\def\lst@PlaceNumber{\rlap{\normalfont
-                \kern\linewidth \kern\lst@numbersep
-                \UseTaggingSocket{listings/number}{}{\lst@numberstyle{\thelstnumber}}}}%
-    }{\PackageError{Listings}{value `#1' for keyword `numbers' not supported}\@ehc}}
-\fi
-\def\lst@EveryDisplay{%
-    \MathCollectFalse
-    \parskip\z@skip % no extra stretch above the listing (the block adds the paragraph skip)
-    \ifx\lst@float\relax \SimpleBlockEnv{lstlisting}{}%
-    \else \SimpleBlockEnv{lstlisting}{tagging-recipe = standalone}\fi
-    \thesis@unskipzero} % the block's skips of nothing: they stayed at the foot of a page that breaks here
-\def\thesis@unskipzero{\let\thesis@next\relax
-    \ifvmode\ifnum\lastnodetype=11 \ifdim\lastskip=\z@ \ifdim\gluestretch\lastskip=\z@
-    \ifdim\glueshrink\lastskip=\z@ \unskip\let\thesis@next\thesis@unskipzero\fi\fi\fi\fi\fi
-    \thesis@next}
-\ifdefined\thesislablistings\else
-\lst@AddToHook{PreInit}{\ifhmode \UseTaggingSocket{inline/begin}{tag=\UseStructureName{text/verb}}\fi}
-\lst@AddToHook{DeInit}{\ifhmode \UseTaggingSocket{inline/end}%
-    \else \edef\@current@float@struct{\UseName{tag_get:n}{struct_num}}\BlockEnvEnd \fi}
-\def\lst@makecaption{\AssignStructureRole{para/textblock}{Span}\def\@captype{lstlisting}\@makecaption}
-\def\lst@maketitle{\def\@captype{lstlisting}%
-    \AssignStructureRole{para/textblock}{Span}%
-    \AssignTaggingSocketPlug{caption/label/begin}{noop}%
-    \AssignTaggingSocketPlug{caption/label/end}{noop}%
-    \AssignSocketPlug{caption/label}{noop}%
-    \@makecaption\lst@title@dropdelim}
-\fi
+
 \makeatother
 \fi
