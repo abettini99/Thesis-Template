@@ -26,16 +26,11 @@
 %%   draft             fast compiles while writing: images as boxes, overfull lines marked, line numbers,
 %%                     DRAFT and the date on every page
 %%   final             the version for the printer and the repository: hides all todo notes
-%%   backreferences    each reference ends with the pages it is cited on
 %%   chapterbib        every chapter ends with its own reference list (a thesis built from papers)
-%%   sidewaysalternate sideways floats turned with their top towards the spine, so they alternate between
-%%                     left and right pages (default: the top at the left edge, the book convention)
-%%   showframe         the page layout frames, for checking the layout
 \newcommand*{\thesis@edition}{digital}
 \newcommand*{\thesis@pagesize}{demy}
 \newcommand*{\thesis@language}{british}
-\newif\if@letter \newif\if@thumb \newif\ifthesis@showtrims \newif\if@showframe \newif\if@draft
-\newif\if@backref \newif\ifchapterbib \newif\ifthesis@sidewaysalt
+\newif\if@letter \newif\if@thumb \newif\ifthesis@showtrims \newif\if@draft \newif\ifchapterbib
 %% \thesis@choice{key}{value}{allowed values}{command to set}: an unknown value is an error naming the choices
 \ExplSyntaxOn
 \cs_new_protected:Npn \thesis@choice #1#2#3#4
@@ -55,10 +50,7 @@
                        \ifdefstring{\thesis@tmp}{letter}{\@lettertrue}{\@letterfalse} ,
     thumbs.if        = @thumb ,
     cropmarks.if     = thesis@showtrims ,
-    showframe.if     = @showframe ,
-    backreferences.if = @backref ,
     chapterbib.if    = chapterbib ,
-    sidewaysalternate.if = thesis@sidewaysalt ,
     untagged.code    = {} ,
     draft.code       = \@drafttrue \PassOptionsToPackage{draft}{graphicx}\PassOptionsToClass{draft}{book} ,
     final.code       = \PassOptionsToPackage{disable}{todonotes}\PassOptionsToPackage{final}{changes} ,
@@ -429,11 +421,7 @@
 %% take its metadata from it.
 \ifdefined\thesistitle\else % (main.tex reads it first, in template/documentmetadata.tex)
     \IfFileExists{settings/thesisinfo.tex}{\input{settings/thesisinfo}}{\ClassWarningNoLine{thesis}{settings/thesisinfo.tex not found}}\fi
-\input{template/pdfa} % before anything that loads xcolor (showframe, lualineno, ...)
-
-\if@showframe
-    \RequirePackage{showframe}
-\fi
+\input{template/pdfa} % before anything that loads xcolor (lualineno, ...)
 
 \if@draft
     %% line numbers in the margin, so readers can point at a line ("p. 12, l. 31"); lualineno numbers
@@ -753,11 +741,6 @@
     \ifhyperref{\href{https://doi.org/#1}{\nolinkurl{#1}}}{\nolinkurl{#1}}}
 %% A URL adds nothing when there is a DOI: hide it (and its access date).
 \AtEveryBibitem{\iffieldundef{doi}{}{\clearfield{url}\clearfield{urlyear}\clearfield{urlmonth}\clearfield{urlday}}}
-\if@backref
-    \ExecuteBibliographyOptions{backref=true, backrefstyle=three}
-    \DefineBibliographyStrings{british}{backrefpage={cited on page}, backrefpages={cited on pages}}
-    \DefineBibliographyStrings{american}{backrefpage={cited on page}, backrefpages={cited on pages}}
-\fi
 \ifchapterbib
     %% Every \chapter starts a new reference section; its list is printed at the end of the chapter
     %% file (\include). Chapters without citations print nothing (and don't warn about it).

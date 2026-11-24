@@ -51,20 +51,17 @@
 %% Sideways floats (sidewaystable, sidewaysfigure) for material too wide for the page: a page of
 %% their own, turned so that the top of the table is at the left edge on left and right pages alike
 %% (the book convention: the reader always turns the book clockwise, and a table continued over a
-%% spread reads as one page). The text keeps flowing around it. With the class option
-%% sidewaysalternate, the top is towards the spine instead, so the direction alternates.
+%% spread reads as one page). The text keeps flowing around it.
 \makeatletter
-\ifthesis@sidewaysalt\usepackage{rotating}\else\usepackage[figuresright]{rotating}\fi % https://ctan.org/pkg/rotating
+\usepackage[figuresright]{rotating} % https://ctan.org/pkg/rotating
 %% Digital edition: those pages are shown turned upright in PDF viewers. A marker inside the float sets
-%% /Rotate on the page it lands on (90, or 270 for a float turned the other way); the next page resets
+%% /Rotate 90 on the page it lands on; the next page resets
 %% it. Not in the print editions: for the printer, a rotated page can confuse the imposition software.
 \let\thesisrotatepage\relax
 \ifprintversion\else
     \protected\def\thesisrotatepage{\latelua{
         thesis_pageattr = pdf.getpageattributes() or ""
-        local odd = math.fmod(tex.count["c@page"], 2) == 1
-        local turn = (\ifthesis@sidewaysalt true\else false\fi\space and not odd) and 270 or 90
-        pdf.setpageattributes(thesis_pageattr .. " /Rotate " .. turn)}}
+        pdf.setpageattributes(thesis_pageattr .. " /Rotate 90")}}
     \AddToHook{env/sidewaystable/end}{\thesisrotatepage}
     \AddToHook{env/sidewaysfigure/end}{\thesisrotatepage}
     \AddToHook{shipout/before}{\directlua{

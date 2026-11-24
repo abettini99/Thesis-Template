@@ -124,10 +124,7 @@ A misspelt value stops the compile with a message that lists the choices.
 | `untagged` | While writing: the same pages without the tagging for screen readers, each compile about 30% faster. Still archival, but not accessible; the log reminds you. Never for a version you hand in. |
 | `draft` | Fast compiles while writing: images as boxes, overfull lines marked, line numbers in the margin, *DRAFT* and the date on every page. |
 | `final` | The version for the printer and the repository: hides all todo notes. |
-| `backreferences` | Each reference in the bibliography ends with the pages it is cited on: "(cited on pages 12, 45)". |
 | `chapterbib` | Every chapter ends with its own reference list instead of one list at the end of the book, as is common for a thesis built from papers. |
-| `sidewaysalternate` | Sideways tables and figures (and `figurepage[landscape]`, `tablepage[landscape]`) turned with their top towards the spine, so the direction alternates between left and right pages, instead of the top at the left edge on every page (the book convention). |
-| `showframe` | Shows the page layout frames, for checking the layout. |
 
 The print editions (printer, preview, proof) are set for paper: code in black and white, and links invisible (preview and proof: they still work on screen) or left out altogether (printer: a PDF/X file has nothing clickable).
 

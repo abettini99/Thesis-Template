@@ -495,7 +495,7 @@
 
 %% Each is a float of its own (placement p) that fills the page, so LaTeX keeps it in order with the other
 %% floats. Whether its page is a left or a right one, and which page goes without running head, is read
-%% from the previous run (it decides on which side wide goes, and which way landscape turns).
+%% from the previous run (it decides on which side wide goes).
 \int_new:N \g__thesis_page_int
 \cs_new_protected:Npn \__thesis_page_mark:
   {
@@ -543,12 +543,7 @@
           \hbox_to_wd:nn { \textwidth }
             {
               \int_if_even:nT { \__thesis_page_page: } { \skip_horizontal:n { - \l__thesis_page_extra_dim } }
-              \rotatebox
-                {
-                  \bool_if:nTF { \legacy_if_p:n { thesis@sidewaysalt } && \int_if_even_p:n { \__thesis_page_page: } }
-                    { -90 } { 90 }
-                }
-                { \__thesis_page_area:nn {#1} {#3} }
+              \rotatebox { 90 } { \__thesis_page_area:nn {#1} {#3} }
               \hss
             }
         }
