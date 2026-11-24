@@ -4,6 +4,16 @@ A LaTeX template for a TU Delft PhD dissertation. One source gives the same page
 
 **Sample PDFs** from the latest release, built on GitHub from this repository (maths in the bundled newtx): the [digital edition](https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/thesis-digital.pdf) (PDF/A-4f and PDF/UA-2), the [printer's file](https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/thesis-print.pdf) (PDF/X-6, with bleed), the [preview](https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/thesis-preview.pdf) (the trimmed book), the [cover](https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/cover.pdf), the [propositions](https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/propositions.pdf), and [veraPDF's report](https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/verapdf-report.html) on the digital edition.
 
+## What it looks like
+
+![The same page in the four page sizes, at the same scale, with type size, leading, lines per page and line length](.github/readme/page-sizes.png)
+
+*The same page in the four page sizes, at the same scale (preview edition). The image is regenerated overnight after any day with changes ([`.github/scripts/page_sizes.py`](.github/scripts/page_sizes.py)).*
+
+![The cover in four colour schemes: the template's light blue-green with teal, oxblood with blush, sand with terracotta, and black with muted sand](.github/readme/cover-variants.png)
+
+*The cover in four colour schemes, with the template's texts; their colour values are under *Propositions and cover* below. Regenerated with the page-size image ([`.github/scripts/cover_variants.py`](.github/scripts/cover_variants.py)).*
+
 ## Getting started
 
 Compile with **LuaLaTeX** on **TeX Live 2026**: in Overleaf, *Menu → Settings → Compiler → LuaLaTeX* and *TeX Live version → 2026*; locally, `latexmk main.tex` (the included `latexmkrc` selects LuaLaTeX and finds the template's fonts).
@@ -26,7 +36,7 @@ Set in the `\documentclass` line of `main.tex`, as keys: `\documentclass[edition
 | `edition=printer` | For the professional printer: a PDF/X file, the pages plus bleed on every side (see *PDF standards* below; add `cropmarks` only if the printer asks for them). |
 | `edition=preview` | The printed book as it looks after trimming: the pages at their final size, as on paper. For checking the layout on screen; a plain PDF (no PDF/A, tagging or attachments), so it cannot be mistaken for the printer's file. |
 | `edition=proof` | For printing a proof at home: the pages centred on an A4 sheet (`cropmarks` marks where to cut). |
-| `size=demy` *(default)*, `a5`, `royal`, `dutch` | Page size: 138 × 216 mm (metric demy octavo), 148 × 210 mm (A5), 156 × 234 mm (metric royal octavo) or 170 × 240 mm (the usual Dutch dissertation size). Text block, margins and type size follow: 10 pt for the first three, 11 pt for the Dutch size, so all lines hold about 65–75 characters (see the image below). Check that your printer offers the size. |
+| `size=demy` *(default)*, `a5`, `royal`, `dutch` | Page size: 138 × 216 mm (metric demy octavo), 148 × 210 mm (A5), 156 × 234 mm (metric royal octavo) or 170 × 240 mm (the usual Dutch dissertation size). Text block, margins and type size follow: 10 pt for the first three, 11 pt for the Dutch size, so all lines hold about 65–75 characters (see *What it looks like* above). Check that your printer offers the size. |
 | `english=british` *(default)*, `american` | Hyphenation, quotation marks and dates. |
 | `paper=a4` *(default)*, `letter` | The sheet of the proof edition. |
 | `cropmarks` | Crop marks showing where the page is trimmed: on the proof sheet, or outside the bleed (printer edition, when the printer asks for them). |
@@ -36,10 +46,6 @@ Set in the `\documentclass` line of `main.tex`, as keys: `\documentclass[edition
 | `chapterbib` | Every chapter ends with its own reference list instead of one list at the end of the book, as is common for a thesis built from papers. |
 
 The print editions (printer, preview, proof) are set for paper: code in black and white, and links invisible (preview and proof: they still work on screen) or left out altogether (printer: a PDF/X file has nothing clickable).
-
-![The same page in the four page sizes, at the same scale, with type size, leading, lines per page and line length](.github/readme/page-sizes.png)
-
-*The same page in the four page sizes, at the same scale (preview edition). The image is regenerated overnight after any day with changes ([`.github/scripts/page_sizes.py`](.github/scripts/page_sizes.py)).*
 
 ## Where things are
 
@@ -328,9 +334,7 @@ Both are separate documents that use the fonts and the details in `settings/thes
 - **`propositions.tex`** prints the propositions in the thesis page size, in English with an optional Dutch page (`\dutchversionfalse` for English only), ending with the approval sentence naming the promotors (`\thesispromotors` in `settings/thesisinfo.tex`). Check the Doctorate Regulations for how many propositions are required and what kind.
 - **`cover.tex`** lays out back, spine and front on one sheet with bleed. Its settings are in **`settings/cover.tex`**, and the drawing in `settings/coverdesign.tex`; the digital edition of the thesis uses the same design for its first page (the front cover, then a blank inside cover) and its last page (the back cover, on a left-hand page after a blank inside back cover). The page numbers stay the same; the viewer labels these pages Cover and Back cover and shows the pages side by side, cover on its own. Set the page size, the number of pages of the final thesis PDF and the paper thickness in `settings/cover.tex`; it calculates the spine width (shown on the sheet and in the log), or takes the width the printer gives you. Text goes on the spine only when it is at least 6 mm wide. The design is one solid colour over the whole sheet with the title in [Josefin Sans](https://fonts.google.com/specimen/Josefin+Sans) (SIL Open Font License, included as a variable font in `template/fonts/josefin`; light 350 and bold 500): on the front a short lead-in line above the large title (`\coverleadin`, `\covertitle`, with your own line breaks; made smaller automatically when too wide), an optional subtitle, a drawing in the middle (`\covermotif`: TikZ code or an image; a patch of a triangular mesh by default), the name and a small line under it; on the spine the surname at the top, the title in the same two weights in the middle and a small mark at the foot (text, or a logo with `\coverspinelogo`); on the back the summary in the book's serif at 10.5 on 13.5 pt, a small ABOUT THE AUTHOR heading and the biography (`\coversummary`, `\coverbio`), and space for the ISBN barcode. Colours, texts and sizes are set in `settings/cover.tex`. The red and blue guides show the trim, the spine folds and the safe area; turn them off with `\coverguidesfalse` before sending the file. Ask the printer for the paper thickness and the bleed they want, and check the result against their cover template if they have one.
 
-![The cover in four colour schemes: the template's light blue-green with teal, oxblood with blush, sand with terracotta, and black with muted sand](.github/readme/cover-variants.png)
-
-*The cover in four colour schemes, with the template's texts ([`.github/scripts/cover_variants.py`](.github/scripts/cover_variants.py); regenerated with the page-size image).* To use a scheme, set its four colours in `settings/cover.tex`:
+The cover in four colour schemes is shown at the top of this README (*What it looks like*). To use a scheme, set its four colours in `settings/cover.tex`:
 
 | Scheme | `coverback` | `covertext` | `coversecondary` | `covermotifcolour` |
 |---|---|---|---|---|
