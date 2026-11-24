@@ -74,10 +74,10 @@
     \ClassError{personal}{\string\DocumentMetadata\space missing}{Put
         \string\DocumentMetadata{pdfversion=2.0, pdfstandard=a-4f} on the first line, before \string\documentclass.}}
 %% Untagged on purpose (\thesistaggingfalse in main.tex, for faster compiles while writing): a reminder.
-\@ifundefined{ifthesistagging}{}{\csname ifthesistagging\endcsname\else
+\@ifundefined{thesispdfx}{\@ifundefined{ifthesistagging}{}{\csname ifthesistagging\endcsname\else
     \AtEndDocument{\ClassWarningNoLine{personal}{Untagged build (\string\thesistaggingfalse\space in
         main.tex): this PDF is not accessible (PDF/UA). Comment the line out for any version you hand in}}
-\fi}
+\fi}}{}% (not for the printer: that edition is never tagged)
 
 %% Public switch, for files outside the class (\ifprintversion ... \else ... \fi): true for the print
 %% editions (links invisible, code in black and white, no rotated pages), false for digital.
@@ -117,7 +117,8 @@
 
 %%% PAGE LAYOUT
 %% The sheet (the PDF page), the book page on it and the type block on the book page:
-%%   bleed   = the book page plus 2 mm bleed on every side (print-preparation);
+%%   bleed   = the book page plus the bleed on every side (print-preparation; \thesisbleed, 2 mm by default),
+%%             and with crop marks a further 10 mm outside it for the marks;
 %%   trimmed = the book page alone, at its final size (digital, print-showcase);
 %%   sheet   = the book page centred on an A4 or US Letter sheet (print-report).
 %% \stockwidth x \stockheight is the sheet, \paperwidth x \paperheight the book page, \trimtop and
@@ -126,13 +127,16 @@
 \newlength{\trimtop}     \newlength{\trimedge}
 \newlength{\spinemargin} \newlength{\foremargin}  \newlength{\uppermargin} \newlength{\lowermargin}
 \setlength{\onelineskip}{\baselineskip} % one line of normal text
-\newlength{\thesis@bleed}       \setlength{\thesis@bleed}{2mm}  % TU Delft uses 2mm bleed
+\newlength{\thesis@bleed}       \setlength{\thesis@bleed}{\ifdefined\thesisbleed\thesisbleed\else 2mm\fi} % (_thesisinfo.tex)
+%% For the printer (PDF/X) with crop marks (showtrims): a margin outside the bleed for the marks
+\newlength{\thesis@slug}
+\ifdefined\thesispdfx\ifthesis@showtrims\setlength{\thesis@slug}{10mm}\fi\fi
 \setlength{\paperwidth}{\thesis@pagewidth}
 \setlength{\paperheight}{\thesis@pageheight}
 \ifdefstring{\thesis@paper}{bleed}{%
-    \setlength{\stockwidth}{\dimexpr\paperwidth+2\thesis@bleed}%
-    \setlength{\stockheight}{\dimexpr\paperheight+2\thesis@bleed}%
-    \setlength{\trimtop}{\thesis@bleed}\setlength{\trimedge}{\thesis@bleed}}{}
+    \setlength{\stockwidth}{\dimexpr\paperwidth+2\thesis@bleed+2\thesis@slug}%
+    \setlength{\stockheight}{\dimexpr\paperheight+2\thesis@bleed+2\thesis@slug}%
+    \setlength{\trimtop}{\dimexpr\thesis@bleed+\thesis@slug}\setlength{\trimedge}{\dimexpr\thesis@bleed+\thesis@slug}}{}
 \ifdefstring{\thesis@paper}{sheet}{%
     \if@letter \setlength{\stockwidth}{8.5in}\setlength{\stockheight}{11in}%
     \else      \setlength{\stockwidth}{210mm}\setlength{\stockheight}{297mm}\fi
@@ -168,7 +172,17 @@
 \setlength{\pagewidth}{\stockwidth} \setlength{\pageheight}{\stockheight}
 %% Crop marks (showtrims, print-preparation and print-report): a cross at each corner of the book page
 %% and a short mark at the middle of each edge, drawn on every sheet.
-\ifthesis@showtrims
+\ifthesis@showtrims\ifdefined\thesispdfx
+    %% For the printer: the usual marks, in the margin outside the bleed, on the lines of the trim
+    \newcommand*{\thesis@cropmark}[2]{\begin{picture}(0,0)\unitlength 1mm\linethickness{0.3pt}%
+        \put(\fpeval{#1*(\thesis@bleed/(1mm)+1)},0){\line(#1,0){6}}%
+        \put(0,\fpeval{#2*(\thesis@bleed/(1mm)+1)}){\line(0,#2){6}}\end{picture}}
+    \AddToHook{shipout/background}{%
+        \put(\dimexpr\trimedge\relax,-\dimexpr\trimtop\relax){\thesis@cropmark{-1}{1}}%
+        \put(\dimexpr\trimedge+\paperwidth\relax,-\dimexpr\trimtop\relax){\thesis@cropmark{1}{1}}%
+        \put(\dimexpr\trimedge\relax,-\dimexpr\trimtop+\paperheight\relax){\thesis@cropmark{-1}{-1}}%
+        \put(\dimexpr\trimedge+\paperwidth\relax,-\dimexpr\trimtop+\paperheight\relax){\thesis@cropmark{1}{-1}}}
+\else
     \newcommand*{\thesis@trimcross}{\begin{picture}(0,0)\unitlength 1cm\thinlines
         \put(-2,0){\line(1,0){4}}\put(0,-2){\line(0,1){4}}\end{picture}}
     \newcommand*{\thesis@trimmid}[4]{\begin{picture}(0,0)\unitlength 1mm\thinlines\put(#1,#2){\line(#3,#4){10}}\end{picture}}
@@ -185,6 +199,12 @@
                 \hb@xt@\paperwidth{\thesis@trimcross\hfil\thesis@trimmid{0}{-12}{0}{1}\hfil\thesis@trimcross}}%
             \hss}%
         \vss}}\UseName{tag_resume:n}{crop marks}}
+\fi\fi
+
+%% For the printer (print-preparation: PDF/X): page boxes, RGB as sRGB, no links (_options/printpdf.tex)
+\ifdefined\thesispdfx
+    \input{_options/printpdf}
+    \thesisprintboxes{\trimedge}{\dimexpr\stockheight-\trimtop-\paperheight\relax}{\paperwidth}{\paperheight}{\thesis@bleed}
 \fi
 
 %% A chapter starts on a right-hand page; the empty left-hand page before it has no running head.
@@ -392,7 +412,8 @@
 %%% THESIS INFORMATION AND ARCHIVAL PDF
 %% _thesisinfo.tex (title, author, committee, ...) is read here, so that the PDF/A setup can
 %% take its metadata from it.
-\IfFileExists{_thesisinfo.tex}{\input{_thesisinfo}}{\ClassWarningNoLine{personal}{_thesisinfo.tex not found}}
+\ifdefined\thesistitle\else % (main.tex reads it first, in _options/documentmetadata.tex)
+    \IfFileExists{_thesisinfo.tex}{\input{_thesisinfo}}{\ClassWarningNoLine{personal}{_thesisinfo.tex not found}}\fi
 \input{_options/pdfa} % before anything that loads xcolor (showframe, lualineno, ...)
 
 \if@showframe

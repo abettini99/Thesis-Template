@@ -1,0 +1,80 @@
+%% =====================================================================
+%% For the printer (PDF/X; the standard and colour profile are set in _options/documentmetadata.tex).
+%% Read by the class in the print-preparation edition, and by cover.tex.
+%%  - \thesisprintboxes{left}{bottom}{width}{height}{bleed}: the trimmed page on the sheet and the bleed
+%%    around it, on every page (TrimBox, BleedBox): where the printer cuts;
+%%  - RGB colours in sRGB, explicitly, so that the printer can convert them exactly to the inks of their
+%%    press: LaTeX's, xcolor's and TikZ's colours (rewritten as each page is shipped out, and in TikZ's
+%%    driver) and RGB photos (through LaTeX's image inclusion); sRGB is also the pages' default for
+%%    anything else written as plain RGB (DefaultRGB), as a safety net. Black and grey stay black ink only.
+%%    Figure PDFs bring their own (Python/thesis_fonts.py, tools/print_ready.py); tools/check_print.py
+%%    finds anything left in device RGB;
+%%  - no links: PDF/X allows nothing clickable on the printed page (the link text stays; the bookmarks too).
+%% =====================================================================
+\chardef\thesisprintatcatcode=\catcode`\@ \makeatletter % (also read outside the class: cover.tex)
+\ExplSyntaxOn
+\cs_set:Npn \__thesis_bp:n #1 { \dim_to_decimal_in_bp:n {#1} }
+\NewDocumentCommand \thesisprintboxes { m m m m m }
+  {
+    \pdfmanagement_add:nne { Page } { TrimBox }
+      { [ \__thesis_bp:n {#1} ~ \__thesis_bp:n {#2} ~ \__thesis_bp:n { #1 + #3 } ~ \__thesis_bp:n { #2 + #4 } ] }
+    \pdfmanagement_add:nne { Page } { BleedBox }
+      {
+        [ \__thesis_bp:n { #1 - #5 } ~ \__thesis_bp:n { #2 - #5 } ~
+          \__thesis_bp:n { #1 + #3 + #5 } ~ \__thesis_bp:n { #2 + #4 + #5 } ]
+      }
+  }
+\AddToHook{begindocument}
+  {
+    \pdf_object_new:n { thesis/sRGB }
+    \pdf_object_write:nnn { thesis/sRGB } { fstream } { { /N~3 } { sRGB.icc } }
+    \pdf_object_new:n { thesis/DefaultRGB }
+    \pdf_object_write:nne { thesis/DefaultRGB } { array } { /ICCBased~\pdf_object_ref:n { thesis/sRGB } }
+    \pdfmanagement_add:nne { Page/Resources/ColorSpace } { DefaultRGB } { \pdf_object_ref:n { thesis/DefaultRGB } }
+    \pdfmanagement_add:nne { Page/Resources/ColorSpace } { thesisSRGB } { \pdf_object_ref:n { thesis/DefaultRGB } }
+    \tl_set:Ne \l_tmpa_tl { \pdf_object_ref:n { thesis/DefaultRGB } }
+    \regex_extract_once:nVN { \d+ } \l_tmpa_tl \l_tmpa_seq
+    \cs_gset:Npe \thesis@srgbobj { \seq_item:Nn \l_tmpa_seq { 1 } } % (its object number)
+  }
+%% RGB photos (PNG, JPEG) in sRGB too: LuaTeX writes them as device RGB, so LaTeX's image inclusion gets the
+%% colour space as a keyword (through the page box it already passes; grey and palette images unchanged)
+\cs_new:Npn \thesis@srgbobj { }
+\AddToHook{begindocument}
+  {
+    \cs_if_exist:NT \Gin@pagebox
+      {
+        \cs_gset:Npe \Gin@pagebox
+          {
+            \exp_not:N \directlua { thesis.imagecs("\exp_not:N \Gin@base \exp_not:N \Gin@ext", "\exp_not:N \thesis@srgbobj") }
+            \exp_not:V \Gin@pagebox
+          }
+      }
+  }
+%% Every RGB colour LaTeX, xcolor and TikZ write onto a page, in that sRGB colour space explicitly
+%% ("/thesisSRGB cs r g b sc") instead of as device RGB ("r g b rg"), and equal components as grey: done
+%% as each page is shipped out (_options/thesisprint.lua). Unambiguous for any preflight, whether or not it
+%% applies the default above (which stays, as a safety net); tools/check_print.py reports any device RGB.
+\directlua { thesis.srgbpages() }
+%% (TikZ writes its colours as literals the filter cannot read back: its driver gets the same form directly)
+\AddToHook{begindocument/before}
+  {
+    \cs_if_exist:NT \pgfsys@color@rgb@fill
+      {
+        \cs_gset:Npn \pgfsys@color@rgb@stroke #1#2#3
+          { \pgfsysprotocol@literal { \directlua { tex.sprint(thesis.srgbfix("#1~#2~#3~RG")) } } }
+        \cs_gset:Npn \pgfsys@color@rgb@fill #1#2#3
+          { \pgfsysprotocol@literal { \directlua { tex.sprint(thesis.srgbfix("#1~#2~#3~rg")) } } }
+      }
+  }
+%% no links: the link text only, as with hyperref's draft option (which would also drop the bookmarks)
+\AddToHook{begindocument/end}
+  {
+    \cs_gset:Npn \hyper@link #1#2#3 {#3}
+    \cs_gset:Npn \hyper@linkstart #1#2 {}
+    \cs_gset:Npn \hyper@linkend {}
+    \cs_gset:Npn \hyper@linkurl #1#2 {#1}
+    \cs_gset:Npn \hyper@linkfile #1#2#3 {#1}
+    \cs_gset:Npn \hyper@link@ [#1] #2#3#4 {#4}
+  }
+\ExplSyntaxOff
+\catcode`\@=\thesisprintatcatcode

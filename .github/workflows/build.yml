@@ -1,10 +1,13 @@
-# Builds the thesis on every push, checks it, and keeps the PDF.
+# Builds the thesis on every push, checks it, and keeps the PDFs.
 #
-#   - The PDF (and its log) is kept for 30 days: Actions tab > the run > Artifacts.
-#   - It is checked with tools/check_pdf.py, with veraPDF for a full PDF/A-4f and PDF/UA-2 validation, and with
-#     tools/check_figures.py. A run fails (red cross) if the PDF has something that must be fixed.
-#   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10) to publish the PDF as a
-#     release: a fixed link to send to your supervisors. In a private repository only people with
+#   - Two editions: main.pdf as main.tex sets it (print-preparation: PDF/X, for the printer) and
+#     digital.pdf (the digital edition: PDF/A-4f and PDF/UA-2, for the screen and the repository).
+#   - The PDFs (and logs) are kept for 30 days: Actions tab > the run > Artifacts.
+#   - They are checked with tools/check_pdf.py (veraPDF for a full PDF/A-4f and PDF/UA-2 validation of the
+#     digital edition; tools/check_print.py for the PDF/X edition) and with tools/check_figures.py. A run
+#     fails (red cross) if a PDF has something that must be fixed.
+#   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10) to publish the digital edition as
+#     a release: a fixed link to send to your supervisors. In a private repository only people with
 #     access to it can open the link.
 #
 # The build uses the latest TeX Live, like Overleaf. MathTime fonts are never on GitHub, so these
@@ -35,7 +38,11 @@ jobs:
       - uses: actions/checkout@v5
       - name: Compile
         run: latexmk -interaction=nonstopmode -halt-on-error main.tex
-      - name: Keep the PDF and the log
+      - name: Compile the digital edition
+        run: |
+          sed -E 's/\\documentclass\[[^]]*\]\{personal\}/\\documentclass[digital,thumb]{personal}/' main.tex > digital.tex
+          latexmk -interaction=nonstopmode -halt-on-error digital.tex
+      - name: Keep the PDFs and the logs
         if: always()
         uses: actions/upload-artifact@v7
         with:
@@ -43,6 +50,8 @@ jobs:
           path: |
             main.pdf
             main.log
+            digital.pdf
+            digital.log
           retention-days: 30
 
   check:
@@ -57,7 +66,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq --no-install-recommends poppler-utils
-          pip install --quiet pikepdf
+          pip install --quiet pikepdf Pillow
           # veraPDF from its official Docker image, as a "verapdf" command for check_pdf.py
           docker pull -q verapdf/cli:latest
           mkdir -p "$HOME/bin"
@@ -65,14 +74,17 @@ jobs:
             "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE" > "$HOME/bin/verapdf"
           chmod +x "$HOME/bin/verapdf"
           echo "$HOME/bin" >> "$GITHUB_PATH"
-      - name: Check the PDF (PDF/A with veraPDF, fonts, images, log)
+      - name: Check the print edition (PDF/X, fonts, images, colour, log)
         run: python3 tools/check_pdf.py main.pdf
+      - name: Check the digital edition (PDF/A and PDF/UA with veraPDF, fonts, images, log)
+        if: always()
+        run: python3 tools/check_pdf.py digital.pdf
       - name: Check the figures
         if: always()
-        run: python3 tools/check_figures.py main.log
+        run: python3 tools/check_figures.py digital.log
       - name: veraPDF report
         if: always()
-        run: verapdf --format html main.pdf > verapdf-report.html || true
+        run: verapdf --format html digital.pdf > verapdf-report.html || true
       - name: Keep the veraPDF report
         if: always()
         uses: actions/upload-artifact@v7
@@ -86,7 +98,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag="${GITHUB_REF_NAME}"
-          cp main.pdf "thesis-${tag}.pdf"
+          cp digital.pdf "thesis-${tag}.pdf"
           gh release create "$tag" "thesis-${tag}.pdf" --title "Thesis ${tag}" \
             --notes "Built from ${GITHUB_SHA::7} on $(date -u +%Y-%m-%d). Maths in newtx (MathTime fonts are not on GitHub)." \
             || gh release upload "$tag" "thesis-${tag}.pdf" --clobber

@@ -15,12 +15,16 @@
 %%   5. Turn the guides off (\coverguidesfalse) and send cover.pdf.
 %% Many printers also have a cover template or calculator; check the result against it.
 %% =====================================================================
-%% Title and name, and the archival PDF (PDF/A-4f; set up before \documentclass)
-\input{_thesisinfo}
+%% For the printer: PDF/X-6 or PDF/X-4 with the printer's colour profile (set in _thesisinfo.tex, as for the
+%% thesis), set up before \documentclass; title and name from _thesisinfo.tex
+\def\thesisforprinter{}
+\input{_options/documentmetadata}
 \def\thesispdfsuffix{ (cover)}
-\input{_options/pdfa}
 \documentclass{article}
 \usepackage{fix-cm} % maths fonts at any size (the large title)
+\AddToHook{begindocument/end}{% (as fix-cm does; again, as LaTeX sets it at the start of the document)
+    \DeclareFontShape{OMX}{cmex}{m}{n}{<-7.5>cmex7<7.5-8.5>cmex8<8.5-9.5>cmex9<9.5->cmex10}{}}
+\input{_options/pdfa} % title, author and language in the metadata
 
 \usepackage{xcolor}
 \input{_options/formatColor}
@@ -46,6 +50,9 @@
 \typeout{}\typeout{Cover: spine width \coverspine\space mm, sheet \coversheetwidth\space x \coversheetheight\space mm (including \coverbleed\space mm bleed)}\typeout{}
 
 \usepackage[paperwidth=\coversheetwidth mm, paperheight=\coversheetheight mm, margin=0pt]{geometry}
+%% For the printer: the trimmed cover inside the bleed (page boxes), RGB as sRGB (_options/printpdf.tex)
+\input{_options/printpdf}
+\thesisprintboxes{\coverbleed mm}{\coverbleed mm}{\dimexpr\coversheetwidth mm-2\dimexpr\coverbleed mm\relax\relax}{\coverpageheight mm}{\coverbleed mm}
 \usepackage{tikz}
 \usepackage{graphicx}
 \usepackage[british]{babel}

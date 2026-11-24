@@ -5,7 +5,8 @@ check_pdf.py: check the compiled thesis before you hand it in or send it to the 
     python3 tools/check_pdf.py              # checks main.pdf and main.log
     python3 tools/check_pdf.py other.pdf    # another PDF (and its .log, if there is one)
 
-It reports what a print shop or the TU Delft repository may reject:
+It reports what a print shop or the TU Delft repository may reject. For the print-preparation
+edition (PDF/X, for the printer) it runs tools/check_print.py instead of the archival checks.
 
   archival PDF  PDF/A-4f, with veraPDF (https://verapdf.org) when it is installed and
                 the template's own basic checks otherwise; with veraPDF also PDF/UA-2
@@ -256,9 +257,21 @@ def main(argv=None) -> int:
     size = re.search(r"Page size:\s+(.+)", info)
     print(f"{args.pdf.name}: {pages.group(1) if pages else '?'} pages, {size.group(1).strip() if size else '?'}")
     r = Report()
-    check_pdfa(args.pdf, r)
-    check_fonts(args.pdf, r)
-    check_images(args.pdf, r)
+    if b"GTS_PDFX" in args.pdf.read_bytes():
+        # the print-preparation edition (PDF/X, for the printer): its own checks, then the log
+        print("PDF/X (for the printer): tools/check_print.py")
+        import check_print
+        pr = check_print.check(args.pdf)
+        for line in pr.facts:
+            print(f"  {line}")
+        for line in pr.errors:
+            r.fail(line)
+        for line in pr.warnings:
+            r.warn(line)
+    else:
+        check_pdfa(args.pdf, r)
+        check_fonts(args.pdf, r)
+        check_images(args.pdf, r)
     check_log(args.pdf.with_suffix(".log"), r)
     print(f"\n{r.errors} problem(s) to fix, {r.warnings} warning(s) to look at.")
     return 1 if r.errors else 0

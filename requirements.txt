@@ -3,6 +3,8 @@
 #
 #   Python/example_figures.py and your own plots        matplotlib, numpy
 #   tools/check_figures.py (text sizes, fonts in figures) pikepdf
+#   tools/check_print.py, print_ready.py, print_pdf.py      pikepdf, Pillow
+#   (thesis_fonts.save makes figures print-ready with them)
 #   .github/scripts/ (README images)                     Pillow
 #   tools/mtpro2_otf.py (MathTime conversion)            fonttools
 #

@@ -12,6 +12,7 @@ matplotlib's own maths in Times New Roman (or STIX, if Times New Roman is not in
 
 setup("newtx") forces newtx, e.g. for figures that go into a public repository.
 """
+import sys
 import os
 import shutil
 from pathlib import Path
@@ -133,3 +134,18 @@ def save(fig, path, **kwargs):
             if hasattr(text, "set_fontfeatures"):
                 text.set_fontfeatures(["-liga", "-clig"])
         fig.savefig(path, **kwargs)
+    _print_ready(path)
+
+
+def _print_ready(path):
+    """Declare the figure's RGB as sRGB and make black and greys true grey (tools/print_ready.py), so the
+    printer converts its colours exactly and small text prints with black ink only. Skipped, with a note,
+    without pikepdf or Pillow: the figure is then fine on screen, and tools/check_print.py names it."""
+    if path.suffix.lower() != ".pdf":
+        return
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
+        from print_ready import make_print_ready
+        make_print_ready(path)
+    except ImportError as err:
+        print(f"note: {path.name} not made print-ready ({err}); pip install -r requirements.txt")

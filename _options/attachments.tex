@@ -11,6 +11,12 @@
 %% Keep attachments small: they make the PDF larger, also in print (the printer ignores them, but they
 %% are sent along). Large data sets belong in a repository such as 4TU.ResearchData, cited with their DOI.
 %% =====================================================================
+%% For the printer (PDF/X): no attachments; the commands do nothing.
+\ifdefined\thesispdfx
+\NewDocumentCommand \figuredata { O{} m } { }
+\NewDocumentCommand \supplementfile { O{} m } { }
+\expandafter\endinput
+\fi
 \ExplSyntaxOn
 
 %% File types: PDF/A needs each attached file's type. LaTeX knows .csv, .txt, .pdf, .png, ...; a few more.

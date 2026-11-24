@@ -14,8 +14,12 @@
 \makeatletter
 \providecommand*{\thesispdfsuffix}{}
 \providecommand*{\thesis@bcp}{en-GB}
-\RequirePackage{pdfmanagement}
-\edef\thesis@tmp{\noexpand\SetKeys[document/metadata]{pdfstandard=a-4f, pdfversion=2.0, lang=\thesis@bcp}}
+\IfDocumentMetadataTF{}{\RequirePackage{pdfmanagement}} % (a document without \DocumentMetadata)
+\ifdefined\thesispdfx % for the printer: PDF/X (_options/documentmetadata.tex), only the language here
+    \edef\thesis@tmp{\noexpand\SetKeys[document/metadata]{lang=\thesis@bcp}}
+\else
+    \edef\thesis@tmp{\noexpand\SetKeys[document/metadata]{pdfstandard=a-4f, pdfversion=2.0, lang=\thesis@bcp}}
+\fi
 \thesis@tmp
 %% Licence: the code in \thesislicence gives its name and web address (\thesislicencename,
 %% \thesislicenceurl; both empty for all rights reserved).
