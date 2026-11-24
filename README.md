@@ -123,7 +123,7 @@ A misspelt value stops the compile with a message that lists the choices.
 | `cropmarks` | Crop marks showing where the page is trimmed: on the proof sheet, or outside the bleed (printer edition, when the printer asks for them). |
 | `untagged` | While writing: the same pages without the tagging for screen readers, each compile about 30% faster. Still archival, but not accessible; the log reminds you. Never for a version you hand in. |
 | `draft` | Fast compiles while writing: images as boxes, overfull lines marked, line numbers in the margin, *DRAFT* and the date on every page. |
-| `final` | The version for the printer and the repository: hides all todo notes. |
+| `final` | The version for the printer and the repository: hides all todo notes. Not together with `draft` or `untagged` (the class stops with an error). |
 | `chapterbib` | Every chapter ends with its own reference list instead of one list at the end of the book, as is common for a thesis built from papers. |
 
 The print editions (printer, preview, proof) are set for paper: code in black and white, and links invisible (preview and proof: they still work on screen) or left out altogether (printer: a PDF/X file has nothing clickable).

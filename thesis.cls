@@ -30,7 +30,7 @@
 \newcommand*{\thesis@edition}{digital}
 \newcommand*{\thesis@pagesize}{demy}
 \newcommand*{\thesis@language}{british}
-\newif\if@letter \newif\if@thumb \newif\ifthesis@showtrims \newif\if@draft \newif\ifchapterbib
+\newif\if@letter \newif\if@thumb \newif\ifthesis@showtrims \newif\if@draft \newif\ifthesis@final \newif\ifchapterbib
 %% \thesis@choice{key}{value}{allowed values}{command to set}: an unknown value is an error naming the choices
 \ExplSyntaxOn
 \cs_new_protected:Npn \thesis@choice #1#2#3#4
@@ -53,13 +53,24 @@
     chapterbib.if    = chapterbib ,
     untagged.code    = {} ,
     draft.code       = \@drafttrue \PassOptionsToPackage{draft}{graphicx}\PassOptionsToClass{draft}{book} ,
-    final.code       = \PassOptionsToPackage{disable}{todonotes}\PassOptionsToPackage{final}{changes} ,
+    final.code       = \thesis@finaltrue \PassOptionsToPackage{disable}{todonotes}\PassOptionsToPackage{final}{changes} ,
 }
 \RequirePackage{etoolbox}
 \ProcessKeyOptions
 %% (draft is a class option, so every package sees it: hyperref and bookmark would then leave out all
 %% links and bookmarks)
 \PassOptionsToPackage{final}{hyperref}\PassOptionsToPackage{final}{bookmark}
+%% final is the version you hand in: not a draft, and tagged (accessible)
+\ifthesis@final
+    \if@draft
+        \ClassError{thesis}{The options draft and final exclude each other}{draft is for writing,
+            final for the version you hand in: remove one of them.}
+    \fi
+    \@ifundefined{ifthesistagging}{}{\csname ifthesistagging\endcsname\else
+        \ClassError{thesis}{The options untagged and final exclude each other}{The version you hand in
+            must be tagged (accessible, PDF/UA): remove untagged.}
+    \fi}
+\fi
 \def\thesis@paper{trimmed} % what the PDF page is: see PAGE LAYOUT
 \ifdefstring{\thesis@edition}{printer}{\def\thesis@paper{bleed}}{}
 \ifdefstring{\thesis@edition}{proof}{\def\thesis@paper{sheet}}{}
