@@ -19,7 +19,7 @@ First release of the TU Delft PhD thesis template, for **LuaLaTeX on TeX Live 20
 
 ### Licence
 
-The template is released under the MIT License (see `LICENSE`). Excluded: the TU Delft logo (TU Delft's trademark, to be used only as its brand guidelines allow), Josefin Sans (SIL Open Font License 1.1) and ntxmath-otf (LaTeX Project Public License 1.3). A thesis written with the template is not covered.
+The template is released under the MIT License (see `LICENSE`). Excluded (see `EXCEPTIONS.md`): the TU Delft logo (TU Delft's trademark, to be used only as its brand guidelines allow), Josefin Sans (SIL Open Font License 1.1) and ntxmath-otf (LaTeX Project Public License 1.3). A thesis written with the template is not covered.
 
 ### Getting started
 
