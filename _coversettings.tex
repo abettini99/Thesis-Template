@@ -1,0 +1,79 @@
+%% =====================================================================
+%% COVER SETTINGS
+%% The texts, colours and drawing of the cover, and the numbers the printer needs. Read by cover.tex (the
+%% cover for the printer: back, spine and front on one sheet) and, in the digital edition, by the thesis
+%% itself, which opens with the front cover and ends with the back cover. Title and name come from
+%% _thesisinfo.tex. The drawing code is in _options/coverdesign.tex (no changes needed there).
+%% =====================================================================
+%% Book page size (trimmed), the same as the class option in main.tex:
+%%   demy 138 x 216   a5 148 x 210   royal 156 x 234   tudelft 170 x 240   (mm)
+\newcommand{\coverpagewidth}{138}   % mm
+\newcommand{\coverpageheight}{216}  % mm
+
+%% Spine width = number of pages / 2 x thickness of one sheet (leaf) + extra for the cover board/glue.
+\newcommand{\coverpagecount}{200}         % pages of the final thesis PDF, including blank pages
+\newcommand{\coverpaperthickness}{0.110}  % mm per sheet; about 0.10 mm for 80 g/m2, 0.11 mm for 90 g/m2,
+                                          % 0.12-0.13 mm for 100 g/m2 uncoated paper. Ask the printer!
+\newcommand{\coverspineextra}{0.5}        % mm, for the cover itself; the printer will tell you (0 if unsure)
+%% Or set the spine width the printer gives you directly, and ignore the three lines above:
+% \newcommand{\coverspinefixed}{12.5}     % mm
+
+\newcommand{\coverbleed}{3}  % mm on all four sides
+\newcommand{\coversafe}{5}   % mm: keep text at least this far inside the trim and away from the spine folds
+
+%% Show trim lines, spine folds and the safe area (for checking only; turn off for the printer).
+\newif\ifcoverguides
+\coverguidestrue   % \coverguidesfalse for the final file
+
+%% Spine text direction: -90 reads from top to bottom (English convention, and most Dutch books
+%% today), 90 from bottom to top (traditional continental convention).
+\newcommand{\coverspinerotation}{-90}
+
+%% Colours: one solid colour over back, spine and front, the text, and the drawing on the front
+\definecolor{coverback}{HTML}{CFE6E6}   % pale teal
+\definecolor{covertext}{HTML}{161616}
+\definecolor{covermotifcolour}{HTML}{2C6B70}
+
+%% Front: the title in capitals, with your own line breaks (\\); the subtitle and a small line under the
+%% name. The title is made smaller automatically when its longest line is too wide.
+\newcommand{\coverleadin}{Title of the}  % a short lead-in line above the title, smaller: e.g. Adjoint-based; {} for none
+\newcommand{\covertitle}{Dissertation}   % the rest of the title, large: e.g. Inflow\\ Modelling (or \thesistitle)
+\newcommand{\coversubtitle}{}            % a line under the title, smaller: e.g. \thesissubtitle; {} for none
+\newcommand{\coversmallprint}{Doctoral thesis\quad·\quad TU Delft}
+\newcommand{\coverspinemark}{TU Delft}   % small, at the foot of the spine: TU Delft, the year, ...; {} for none
+%% Or a logo at the foot of the spine instead, turned with the spine text: an image file, best a vector PDF
+%% in black on a transparent background. Its height is measured across the spine. Leave empty to print
+%% \coverspinemark instead.
+\newcommand{\coverspinelogo}{}        % e.g. Images/_title_images/logo_black.pdf, the TU Delft logo of the title page
+\newcommand{\coverspinelogoheight}{6.5} % mm (at most 60 % of the spine width)
+
+%% The drawing in the middle of the front: TikZ code (lengths in mm, centred on (0,0), about 40 mm across),
+%% or an image: \renewcommand{\covermotif}{\node {\includegraphics[width=45mm]{Images/motif.pdf}};}
+%% The default is a patch of a triangular mesh.
+\newcommand{\covermotif}{%
+    \begin{scope}[x={(9mm,0)}, y={(4.5mm,7.794mm)}, line width=0.5pt, line join=round]
+        \foreach \i in {-2,...,2} \foreach \j in {-2,...,2} {
+            \pgfmathtruncatemacro\inside{abs(\i+\j) <= 2}
+            \ifnum\inside=1
+                \pgfmathtruncatemacro\right{\i < 2 && abs(\i+\j+1) <= 2}
+                \pgfmathtruncatemacro\up{\j < 2 && abs(\i+\j+1) <= 2}
+                \pgfmathtruncatemacro\down{\i < 2 && \j > -2}
+                \ifnum\right=1 \draw (\i,\j) -- (\i+1,\j); \fi
+                \ifnum\up=1 \draw (\i,\j) -- (\i,\j+1); \fi
+                \ifnum\down=1 \draw (\i,\j) -- (\i+1,\j-1); \fi
+                \fill (\i,\j) circle (0.9mm);
+            \fi}
+    \end{scope}}
+
+%% ISBN barcode on the back: an image file from the printer or an online barcode generator (vector PDF
+%% or EPS is best). Leave empty to keep a white box, where the printer places the barcode.
+\newcommand{\coverbarcode}{}   % e.g. Images/barcode.pdf
+
+%% Text on the back: the summary (paragraphs separated by \par\medskip), then a small spaced heading,
+%% ABOUT THE AUTHOR, and a short biography.
+\newcommand{\coversummary}{%
+    A short summary of the thesis for the back cover, in two or three paragraphs: what the problem is,
+    what was done and what was found.\par\medskip
+    Write it for an interested reader who is not a specialist.}
+\newcommand{\coverbio}{%
+    A short biography of the author.}

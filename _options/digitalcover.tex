@@ -1,0 +1,102 @@
+%% =====================================================================
+%% The cover in the digital edition: the front cover as the first page, then a blank inside cover (so the
+%% title page stays a right-hand page), and at the very end a blank inside back cover and the back cover,
+%% on a left-hand page, as in the printed book. The same design as cover.tex (_coversettings.tex,
+%% _options/coverdesign.tex), at the size of the book page. The page numbers do not change: the cover
+%% pages are labelled Cover, Inside cover, Inside back cover and Back cover in the PDF viewer, which opens
+%% the PDF with the pages side by side, the cover on its own. Read by the class in the digital edition.
+%% =====================================================================
+\AddToHook{begindocument/before}{%
+    \input{_coversettings}%
+    \input{_options/coverdesign}%
+    \hypersetup{pdfpagelayout=TwoPageRight}}
+
+\ExplSyntaxOn
+%% Alternative texts: the front gives title and author, the back its text (screen readers read the cover as
+%% one figure each).
+\tl_new:N \l__thesis_coveralt_tl
+\cs_new_protected:Npn \__thesis_coveralt:n #1
+  {
+    \tl_set:Nn \l__thesis_coveralt_tl {#1}
+    \tl_replace_all:Nnn \l__thesis_coveralt_tl { \par } { ~ }
+    \tl_replace_all:Nnn \l__thesis_coveralt_tl { \medskip } { }
+    \tl_set:Ne \l__thesis_coveralt_tl { \text_purify:V \l__thesis_coveralt_tl }
+  }
+\cs_generate_variant:Nn \text_purify:n { V }
+
+%% The page: a picture of no size at the start of the text block, shifted to the corner of the page (the
+%% text block starts 1in + \topmargin + \headheight + \headsep from the top, the first baseline \topskip
+%% below that), so no positions from an earlier compile are needed.
+\cs_new_protected:Npn \__thesis_coverpage:nn #1#2 % #1 front or back, #2 alternative text
+  {
+    \thispagestyle{empty}
+    \noindent
+    \begin{tikzpicture}[overlay, x=1mm, y=1mm, alt={#2}]
+      \begin{scope}
+        [
+          shift =
+            {
+              (
+                \dim_eval:n { -1in - \hoffset - \int_if_odd:nTF { \value { page } } { \oddsidemargin } { \evensidemargin } } ,
+                \dim_eval:n { 1in + \voffset + \topmargin + \headheight + \headsep + \topskip - \paperheight }
+              )
+            }
+        ]
+        \fill[coverback] (-1, -1) rectangle ([shift={(1mm, 1mm)}] \paperwidth, \paperheight); % (1 mm beyond the page edges)
+        \cs_set:Npe \coverpagewidth { \fp_eval:n { \dim_to_fp:n { \paperwidth } / \dim_to_fp:n { 1mm } } }
+        \cs_set:Npe \coverpageheight { \fp_eval:n { \dim_to_fp:n { \paperheight } / \dim_to_fp:n { 1mm } } }
+        \cs_set:Npn \coverbottom { 0 }
+        \cs_set_eq:NN \covertop \coverpageheight
+        \str_if_eq:nnTF {#1} { front } { \coverfront { 0 } } { \coverback { 0 } { 0 } }
+      \end{scope}
+    \end{tikzpicture}
+    \par
+  }
+\cs_new_protected:Npn \__thesis_emptypage:n #1 % a blank page labelled #1
+  {
+    \group_begin:
+      \cs_set:Npn \thepage {#1}
+      \thispagestyle{empty}
+      \null
+      \clearpage
+    \group_end:
+  }
+
+%% Front: before the half-title (the document sets page i there)
+\AddToHook{begindocument/end}
+  {
+    \coverprepare
+    % the cover settings are for the sheet; here the book page counts, but the two should agree
+    \fp_compare:nNnT { abs ( \coverpagewidth - \dim_to_fp:n { \paperwidth } / \dim_to_fp:n { 1mm } ) } > { 0.5 }
+      { \msg_warning:nn { thesis } { cover-size } }
+    \fp_compare:nNnT { abs ( \coverpageheight - \dim_to_fp:n { \paperheight } / \dim_to_fp:n { 1mm } ) } > { 0.5 }
+      { \msg_warning:nn { thesis } { cover-size } }
+    \group_begin:
+      \cs_set:Npn \thepage { Cover }
+      \pdfbookmark[0]{Cover}{thesis.cover}
+      \__thesis_coveralt:n
+        { Cover:~\thesispdftitle .~\thesisauthorfirstnames\space\thesisauthorlastname . }
+      \exp_args:NnV \__thesis_coverpage:nn { front } \l__thesis_coveralt_tl
+      \clearpage
+    \group_end:
+    \__thesis_emptypage:n { Inside~cover }
+  }
+%% Back: on the last left-hand page, after a blank inside back cover
+\AddToHook{enddocument}
+  {
+    \cleardoublepage
+    \__thesis_emptypage:n { Inside~back~cover }
+    \group_begin:
+      \cs_set:Npn \thepage { Back~cover }
+      \pdfbookmark[0]{Back~cover}{thesis.backcover}
+      \__thesis_coveralt:n { Back~cover:~\coversummary \par About~the~author:~\coverbio }
+      \exp_args:NnV \__thesis_coverpage:nn { back } \l__thesis_coveralt_tl
+      \clearpage
+    \group_end:
+  }
+\msg_new:nnn { thesis } { cover-size }
+  {
+    The~page~size~in~_coversettings.tex~(\coverpagewidth\space x~\coverpageheight\space mm)~is~not~
+    that~of~the~thesis.~Set~it~to~the~book~page~size,~or~cover.tex~makes~a~cover~of~the~wrong~size.
+  }
+\ExplSyntaxOff

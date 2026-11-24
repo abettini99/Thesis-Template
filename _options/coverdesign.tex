@@ -1,0 +1,106 @@
+%% =====================================================================
+%% Cover design: the front and back panels, drawn the same way by cover.tex (on the sheet for the printer)
+%% and by the digital edition of the thesis (as its first and last pages). The settings, texts and colours
+%% are in _coversettings.tex. Needs: fontspec (the thesis fonts), xcolor, TikZ, graphicx.
+%%   \coverprepare            at the start of the document: the title boxes
+%%   \coverfront{x}           in a TikZ picture with x=1mm, y=1mm: the front panel, its left edge (the
+%%   \coverback{x}            trim) at x mm, between \coverbottom and \covertop; the back panel likewise
+%% Both use \coverpagewidth, \coverpageheight, \coversafe, \coverbottom and \covertop (mm).
+%% =====================================================================
+
+%% Cover font: Josefin Sans (SIL Open Font License, in _options/josefin), a variable font: regular at weight
+%% 350, bold at 500. Set other weights (100 to 700) here.
+\newfontfamily{\coverfont}{JosefinSans-VF.ttf}[
+    Path            = _options/josefin/,
+    Renderer        = HarfBuzz,
+    BoldFont        = JosefinSans-VF.ttf,
+    UprightFeatures = {RawFeature={axis={wght=350}}},
+    BoldFeatures    = {RawFeature={axis={wght=500}}},
+]
+\newcommand{\covertrack}[1]{\addfontfeatures{LetterSpace=#1}} % tracking, in 1/100 em: negative is tighter
+
+%% Back-cover text block: the summary in the book's serif at 10.5 on 13.5 pt, then a small spaced
+%% heading in the cover font and the biography.
+\newcommand{\backcovertext}[2]{%
+    \setlength{\parindent}{0pt}%
+    \fontsize{10.5}{13.5}\selectfont
+    #1\par\bigskip
+    {\coverfont\fontsize{8}{10}\selectfont\covertrack{20}ABOUT THE AUTHOR}\par\smallskip
+    #2}
+
+\newsavebox{\covertitlebox}
+\newsavebox{\coverspinebox}
+\newlength{\coverspinemax}
+\newcommand{\spinetitlebox}[1]{% the spine title at #1 pt, scaled down to 65 % of the page height if longer
+    \sbox{\coverspinebox}{\coverfont\fontsize{#1}{#1}\selectfont\covertrack{-3}% tight, like the front title
+        \ifx\coverleadin\empty\else\coverspineleadin\ \fi\textbf{\coverspinetitle}}%
+    \setlength{\coverspinemax}{0.65\dimexpr\coverpageheight mm\relax}%
+    \ifdim\wd\coverspinebox>\coverspinemax \resizebox{\coverspinemax}{!}{\usebox{\coverspinebox}}\else\usebox{\coverspinebox}\fi}
+
+%% The title in capitals, its \\ kept (front), and on one line (spine)
+\ExplSyntaxOn
+\NewDocumentCommand \coverprepare { }
+  {
+    \tl_gset:Ne \g_tmpa_tl { \text_uppercase:n { \covertitle } }
+    \tl_gset:Ne \g_tmpb_tl { \text_uppercase:n { \covertitle } }
+    \tl_greplace_all:Nnn \g_tmpb_tl { \\ } { \unskip \space \ignorespaces }
+    \cs_gset:Npe \coverspinetitle { \exp_not:V \g_tmpb_tl }
+    \cs_gset:Npe \coverspineleadin { \text_uppercase:n { \coverleadin } }
+    \cs_if_exist:NT \tag_suspend:n { \tag_suspend:n { cover } } % (a box for a picture: not tagged in a tagged PDF)
+    \sbox{\covertitlebox}{\coverfont\bfseries\covertrack{-8}\fontsize{56}{54}\selectfont
+        \begin{tabular}{@{}c@{}}\g_tmpa_tl\end{tabular}}
+    \cs_if_exist:NT \tag_resume:n { \tag_resume:n { cover } }
+  }
+\ExplSyntaxOff
+
+%% Front: title and subtitle at the top, the drawing in the middle, name and small print at the bottom
+\newcommand{\coverfront}[1]{%
+    \pgfmathsetmacro{\frontcentre}{#1 + \coverpagewidth/2}%
+    \pgfmathsetmacro{\covertextwidth}{\coverpagewidth - 2*\coversafe - 6}%
+    \coordinate (titletop) at (\frontcentre, \covertop - 0.12*\coverpageheight);
+    \if\relax\detokenize\expandafter{\coverleadin}\relax\else
+        \node[anchor=north, align=center, text width=\covertextwidth mm, text=covertext, inner sep=0,
+              font={\coverfont\covertrack{-4}\fontsize{27}{30}\selectfont}]
+            (leadin) at (titletop) {\MakeUppercase{\coverleadin}};
+        \coordinate (titletop) at ([yshift=-1.5mm]leadin.south);
+    \fi
+    \node[anchor=north, inner sep=0, text=covertext] (title) at (titletop)
+        {\resizebox{\ifdim\wd\covertitlebox>\covertextwidth mm \covertextwidth mm\else\wd\covertitlebox\fi}{!}{\usebox\covertitlebox}};
+    \if\relax\detokenize\expandafter{\coversubtitle}\relax\else
+        \node[anchor=north, align=center, text width=\covertextwidth mm, text=covertext, inner sep=0,
+              font={\coverfont\covertrack{-2}\fontsize{15}{19}\selectfont}]
+            at ([yshift=-7mm]title.south) {\MakeUppercase{\coversubtitle}};
+    \fi
+    \begin{scope}[shift={(\frontcentre, \coverbottom + 0.46*\coverpageheight)}, covermotifcolour, x=1mm, y=1mm]
+        \covermotif
+    \end{scope}
+    \node[anchor=south, align=center, text width=\covertextwidth mm, text=covertext, inner sep=0,
+          font={\coverfont\covertrack{-6}\fontsize{24}{28}\selectfont}]
+        at (\frontcentre, \coverbottom + 24) {\thesisauthorfirstnames\ \thesisauthorlastname};
+    \node[anchor=south, text=covertext!75, inner sep=0, font={\coverfont\covertrack{20}\fontsize{6.5}{8}\selectfont}]
+        at (\frontcentre, \coverbottom + 14) {\MakeUppercase{\coversmallprint}};
+}
+
+%% Back: the summary in the text font of the book at 10.5 pt, its top level with the front title, at a
+%% comfortable line length, then the biography; at the bottom the ISBN barcode, or (#2 = 1, on the sheet
+%% for the printer) a white box where the printer places it
+\newcommand{\coverback}[2]{%
+    \pgfmathsetmacro{\backcentre}{#1 + \coverpagewidth/2}%
+    \pgfmathsetmacro{\covertextwidth}{\coverpagewidth - 2*\coversafe - 6}%
+    \pgfmathsetmacro{\blurbwidth}{min(\covertextwidth, 100)}%
+    \node[anchor=north, text width=\blurbwidth mm, text=covertext, inner sep=0,
+          font=\rmfamily]
+        at (\backcentre, \covertop - 0.12*\coverpageheight)
+        {\backcovertext{\coversummary}{\coverbio}};
+    \begin{scope}[shift={(#1 + \coverpagewidth - \coversafe - 40, \coverbottom + \coversafe)}]
+        \if\relax\detokenize\expandafter{\coverbarcode}\relax
+            \ifnum#2=1
+                \fill[white] (0, 0) rectangle (40, 22);
+                \ifcoverguides\node[text=black!50, font=\sffamily\scriptsize, align=center] at (20, 11) {ISBN \thesisisbn\\barcode area};\fi
+            \fi
+        \else
+            \fill[white] (0, 0) rectangle (40, 22);
+            \node[inner sep=0] at (20, 11) {\includegraphics[width=36mm, height=18mm, keepaspectratio]{\coverbarcode}};
+        \fi
+    \end{scope}
+}

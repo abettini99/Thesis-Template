@@ -479,6 +479,7 @@
 
 %%% MATH FONT
 \input{_options/fontMath}
+\ifprintversion\else\input{_options/digitalcover}\fi % digital edition: front cover first, back cover last
 %% Space around relations (=, <, \to) may stretch only a little in justified lines (TeX allows it to
 %% double); the word spaces take up the slack instead.
 \AtBeginDocument{\thickmuskip=5mu plus 2mu\relax}
