@@ -52,11 +52,7 @@
         $ \m@th #2 \luamml_save:nNn {#1} \textstyle { mrow } \__thesis_nm_no_structure: $
       }
   }
-\cs_new_protected:Npn \__thesis_nm_no_structure:
-  {
-    \int_set:Nn \l__luamml_flag_int
-      { \l__luamml_flag_int - 8 * \int_mod:nn { \int_div_truncate:nn { \l__luamml_flag_int } { 8 } } { 2 } }
-  }
+\cs_new_eq:NN \__thesis_nm_no_structure: \thesis_luamml_no_structure:
 %% every cell gets a marker, so that empty cells and rows keep their place in the MathML
 \cs_new_protected:Npn \__thesis_nm_cell:
   { \luamml_annotate:nen { 1 } { nucleus = true, mathml = { [0] = 'mrow', ['thesis-cell'] = 'true' } } { { \hbox:n { } } } }

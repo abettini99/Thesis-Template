@@ -16,7 +16,13 @@ def parser(doc: str) -> argparse.ArgumentParser:
 
 
 def run(*cmd) -> str:
-    return subprocess.run(cmd, capture_output=True, text=True, errors="replace").stdout
+    """A command's output. If it fails, says so on stderr (an empty result would read as "nothing found")."""
+    r = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
+    if r.returncode != 0:
+        import sys
+        msg = (r.stderr.strip().splitlines() or [f"exit code {r.returncode}"])[-1]
+        print(f"  (note: {cmd[0]} failed: {msg})", file=sys.stderr)
+    return r.stdout
 
 
 class Report:

@@ -1,22 +1,12 @@
-# Regenerates .github/readme/page-sizes.png (the page-size comparison in the README) whenever the
-# template changes, and commits it if it looks different. It compiles the template in all four
+# Regenerates .github/readme/page-sizes.png (the page-size comparison in the README) every night, and
+# commits it if it looks different. It compiles the template in all four
 # page sizes on the latest TeX Live, so a failing run also means the template no longer compiles.
 name: Page sizes
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - thesis.cls
-      - main.tex
-      - template/**
-      - settings/**
-      - references.bib
-      - chapters/**
-      - figures/**
-      - .github/scripts/page_sizes.py
-      - .github/workflows/page-sizes.yml
-  workflow_dispatch:   # run by hand: Actions tab > Page sizes > Run workflow
+  schedule:
+    - cron: '17 3 * * *'   # nightly (only if the image changed does it commit), so it never races a push
+  workflow_dispatch:       # run by hand: Actions tab > Page sizes > Run workflow
 
 permissions:
   contents: write      # to commit the image

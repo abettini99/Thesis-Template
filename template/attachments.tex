@@ -135,26 +135,32 @@
 %% 1. The citation file, written at the start of every compile and attached (citation.bib, citation.ris).
 \iow_new:N \g__thesis_cite_iow
 \cs_new:Npn \__thesis_plain:n #1 { \text_purify:n {#1} }
+%% One BibTeX field, `  name     = {value},', the = signs lined up (names padded to 9 characters)
+\cs_new_protected:Npn \__thesis_bib_field:nn #1#2
+  {
+    \iow_now:Ne \g__thesis_cite_iow
+      {
+        \c_space_tl \c_space_tl #1
+        \prg_replicate:nn { 9 - \str_count:n {#1} } { \c_space_tl }
+        = ~ \c_left_brace_str #2 \c_right_brace_str ,
+      }
+  }
 \cs_new_protected:Npn \__thesis_citation_write:
   {
-    \tl_set:Ne \l_tmpa_tl { \__thesis_plain:n { \thesisauthorlastname } \int_use:N \c_sys_year_int }
+    \tl_set:Ne \l_tmpa_tl { \__thesis_plain:n { \thesisauthorlastname } \thesisyear }
     \tl_remove_all:Nn \l_tmpa_tl { ~ }
     % BibTeX
     \iow_open:Nn \g__thesis_cite_iow { \c_sys_jobname_str -citation.bib }
     \iow_now:Ne \g__thesis_cite_iow { @phdthesis \c_left_brace_str \l_tmpa_tl , }
-    \iow_now:Ne \g__thesis_cite_iow
-      { \c_space_tl\c_space_tl author\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str \__thesis_plain:n { \thesisauthorlastname , ~ \thesisauthorfirstnames } \c_right_brace_str , }
-    \iow_now:Ne \g__thesis_cite_iow
-      { \c_space_tl\c_space_tl title\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str\c_left_brace_str \__thesis_plain:n { \thesispdftitle } \c_right_brace_str\c_right_brace_str , }
-    \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl school\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str Delft~University~of~Technology \c_right_brace_str , }
-    \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl address\c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str Delft,~the~Netherlands \c_right_brace_str , }
-    \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl type\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str Doctoral~dissertation \c_right_brace_str , }
-    \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl year\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str \int_use:N \c_sys_year_int \c_right_brace_str , }
-    \thesis_if_filled:nT { \thesisisbn }
-      { \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl isbn\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str \thesisisbn \c_right_brace_str , } }
-    \thesis_if_filled:nT { \thesisdoi }
-      { \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl doi\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str \thesisdoi \c_right_brace_str , } }
-    \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl keywords\c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str \__thesis_plain:n { \thesiskeywords } \c_right_brace_str , }
+    \__thesis_bib_field:nn { author } { \__thesis_plain:n { \thesisauthorlastname , ~ \thesisauthorfirstnames } }
+    \__thesis_bib_field:nn { title } { \c_left_brace_str \__thesis_plain:n { \thesispdftitle } \c_right_brace_str }
+    \__thesis_bib_field:nn { school } { Delft~University~of~Technology }
+    \__thesis_bib_field:nn { address } { Delft,~the~Netherlands }
+    \__thesis_bib_field:nn { type } { Doctoral~dissertation }
+    \__thesis_bib_field:nn { year } { \thesisyear }
+    \thesis_if_filled:nT { \thesisisbn } { \__thesis_bib_field:nn { isbn } { \thesisisbn } }
+    \thesis_if_filled:nT { \thesisdoi } { \__thesis_bib_field:nn { doi } { \thesisdoi } }
+    \__thesis_bib_field:nn { keywords } { \__thesis_plain:n { \thesiskeywords } }
     \iow_now:Ne \g__thesis_cite_iow { \c_right_brace_str }
     \iow_close:N \g__thesis_cite_iow
     % RIS
@@ -162,7 +168,7 @@
     \iow_now:Ne \g__thesis_cite_iow { TY\c_space_tl \c_space_tl -~THES }
     \iow_now:Ne \g__thesis_cite_iow { AU\c_space_tl \c_space_tl -~\__thesis_plain:n { \thesisauthorlastname , ~ \thesisauthorfirstnames } }
     \iow_now:Ne \g__thesis_cite_iow { TI\c_space_tl \c_space_tl -~\__thesis_plain:n { \thesispdftitle } }
-    \iow_now:Ne \g__thesis_cite_iow { PY\c_space_tl \c_space_tl -~\int_use:N \c_sys_year_int }
+    \iow_now:Ne \g__thesis_cite_iow { PY\c_space_tl \c_space_tl -~\thesisyear }
     \iow_now:Ne \g__thesis_cite_iow { PB\c_space_tl \c_space_tl -~Delft~University~of~Technology }
     \iow_now:Ne \g__thesis_cite_iow { CY\c_space_tl \c_space_tl -~Delft,~the~Netherlands }
     \iow_now:Ne \g__thesis_cite_iow { M3\c_space_tl \c_space_tl -~Doctoral~dissertation }

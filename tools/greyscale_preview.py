@@ -7,7 +7,7 @@ greyscale_preview.py: see the thesis as a black-and-white printer prints it.
 
 It reports:
   colour pages   which pages contain colour at all: printers charge per colour page, so this
-                 is the number to quote (the digital edition has maroon links on many pages;
+                 is the number to quote (the digital edition has brick-red links on many pages;
                  compile a print edition to count)
   figures        colours in each figure PDF that become the same grey: lines or areas that
                  differ only in such colours cannot be told apart in print. Fine if they also
@@ -109,9 +109,8 @@ def main(argv=None) -> int:
         print(f"greyscale preview: {out.name}\n")
 
     figures = sorted((ROOT / "figures").glob("**/*.pdf")) if (ROOT / "figures").is_dir() else []
-    try:
-        import pikepdf  # noqa: F401
-    except ImportError:
+    import importlib.util
+    if importlib.util.find_spec("pikepdf") is None:
         print("figure colours not checked: pip install -r requirements.txt")
         return 0
     alike_total = 0

@@ -37,6 +37,16 @@ for f in $binaries; do
         blocked="$blocked$nl  $f (contains MathTime data)"
     fi
 done
+# 3. by content: text files the converter wrote (renamed, or copied under another name). They carry
+#    its signature line; the converter itself and this hook mention it and are left alone.
+texts=$(git diff --cached --numstat --diff-filter=ACMR | awk -F '\t' '$1 != "-" { print $3 }')
+for f in $texts; do
+    case "$blocked" in *"  $f"*) continue ;; esac
+    case "$f" in tools/mtpro2_otf.py|tools/hooks/pre-commit) continue ;; esac
+    if git cat-file -p ":$f" 2>/dev/null | head -c 1048576 | LC_ALL=C grep -a -q -E 'by mtpro2_otf[.]py|contains MTPro2 data|from your mtpro2[.]sty|MTPro II|MathTime[(]TM[)]'; then
+        blocked="$blocked$nl  $f (written by tools/mtpro2_otf.py from MathTime)"
+    fi
+done
 unset IFS
 
 if [ -n "$blocked" ]; then

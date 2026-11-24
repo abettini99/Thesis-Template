@@ -234,6 +234,7 @@
 \thesis@editkey{heading}{thesislist}{display}{placement-start-code}{start-code}{\thispagestyle{chapter}}
 \newcommand{\thesis@list}[4]{% starred?, file, title, mark
     \par\begingroup
+    \hypersetup{linkcolor=black}% (every entry is a link: in the text colour, as in print)
     \IfBooleanF{#1}{\MakeLinkTarget[chapter]{}\addcontentsline{toc}{chapter}{#3}}%
     \ParseLaTeXeHeading{thesislist}{\BooleanTrue}{running={#4}}{#3}% (the marks before the space below it)
     \def\thesis@tmp{#2}\def\thesis@tmpb{toc}\ifx\thesis@tmp\thesis@tmpb\else\vskip10\p@\fi % the lists of figures and tables start with a chapter's gap

@@ -27,7 +27,6 @@ import difflib
 import json
 import re
 import shutil
-import sys
 import unicodedata
 import urllib.parse
 import urllib.request

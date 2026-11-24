@@ -36,8 +36,7 @@
             \token_if_eq_meaning:NNF #2 \hbox
               {
                 \luamml_save:nNn {#1} #2 { mrow }
-                \int_set:Nn \l__luamml_flag_int
-                  { \l__luamml_flag_int - 8 * \int_mod:nn { \int_div_truncate:nn { \l__luamml_flag_int } { 8 } } { 2 } }
+                \thesis_luamml_no_structure:
               }
           }
         %% #1: the MathML (a Lua table) that replaces what #2 sets

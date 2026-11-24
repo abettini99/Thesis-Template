@@ -21,11 +21,15 @@
 \definecolor{tudelft-bright-green}{HTML}{B0D235} % CMYK 36/0/100/0
 \definecolor{tudelft-yellow}{HTML}{FBF491}       % CMYK 2/0/54/0
 
-%% Links in the digital edition (invisible in the print editions): maroon, the traditional second
-%% colour of the book (headings in manuscripts and early title pages were printed in red). One colour
-%% for every reference; symbols and acronyms stay in the text colour (formatNomenclature.tex).
-\definecolor{maroon}{HTML}{800000}
-\colorlet{link}{maroon}
+%% Links in the digital edition (invisible in the print editions). One colour for every reference;
+%% symbols and acronyms stay in the text colour (formatNomenclature.tex), and so do the entries of the
+%% contents and lists, which are links throughout. Colour is the only thing that marks a link in the
+%% text, so it must stand out from the black text as well as from the page (WCAG 2.2, 1.4.1 and 1.4.3):
+%% at least 3:1 against black and 4.5:1 against white. The brick red, 3.9:1 and 5.4:1; the blue, 4.0:1 and
+%% 5.3:1, passes too. (The earlier maroon, 800000, is 1.9:1 against black: too close to the text.)
+\definecolor{linkred}{HTML}{C0392B}
+\definecolor{linkblue}{HTML}{1F6FB2}
+\colorlet{link}{linkred}   % or linkblue
 
 %% Greys (the thumb tabs use them: settings/thumbs.tex)
 \definecolor{anthracite}{gray}{0.2}

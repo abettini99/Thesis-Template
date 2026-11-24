@@ -21,53 +21,7 @@
                                 %  ([H], "here, no matter what", also works: float.sty comes with the algorithms below)
 \usepackage{pdfpages}           % https://ctan.org/pkg/pdfpages %% whole PDF pages, e.g. a published paper: \includepdf[pages=-]{paper.pdf}
 %% Sub-figures and sub-tables ((a), (b), ...) are part of the class: see thesis.cls.
-%% Notes under a table, marked in the table with \tnote{a} (as with the threeparttable package, whose
-%% notes break the tagged PDF). They take the width of the table just above them (a tabular), or the
-%% width of the line (tabularx, xltabular), or the width given: \begin{tablenotes}[6cm].
-%%   \begin{tablenotes} \item[a] Corrected for blockage. \item[b] ... \end{tablenotes}
-\makeatletter
-\newdimen\thesis@tabwd
-\AddToHook{cmd/@floatboxreset/after}{\global\thesis@tabwd\z@}
-\AddToHook{env/tabular/after}{\ifhmode\setbox\z@\lastbox\global\thesis@tabwd\wd\z@\box\z@\fi}
-\AddToHook{env/tabularx/after}{\global\thesis@tabwd\linewidth}
-\AddToHook{env/xltabular/after}{\global\thesis@tabwd\linewidth}
-%% (a marker takes no width, so numbers in a column stay aligned and the marker sticks out to the right)
-\providecommand*{\tnote}[1]{\rlap{\textsuperscript{#1}}}
-\newenvironment{tablenotes}[1][\ifdim\thesis@tabwd>\z@\thesis@tabwd\else\linewidth\fi]
-  {\par\vspace{0.4\onelineskip}\noindent\begin{minipage}[t]{#1}\footnotesize
-   \begin{list}{}{\setlength{\leftmargin}{1em}\setlength{\labelwidth}{0.8em}\setlength{\labelsep}{0.2em}%
-     \setlength{\itemsep}{\z@}\setlength{\parsep}{\z@}\setlength{\topsep}{\z@}\setlength{\partopsep}{\z@}%
-     \let\makelabel\thesis@tnotelabel}}
-  {\end{list}\end{minipage}\par}
-\newcommand*{\thesis@tnotelabel}[1]{\textsuperscript{#1}\hfil}
-\makeatother
-%% All tables in one size, the caption size (\small): table text then sits between the captions and the text.
-%% (The nomenclature lists are not tables in this sense and keep the text size.)
-\setfloatadjustment{table}{\small} % applied inside every table float, also sideways ones (thesis.cls)
-\AddToHook{env/xltabular/begin}{\small} % long tables are not floats
-%% Wrapping (X) columns are set ragged right without hyphenation: in a narrow column justified text
-%% leaves wide gaps, and a word broken over two lines of a table cell reads badly.
-\renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash}p{#1}}
-%% Sideways floats (sidewaystable, sidewaysfigure) for material too wide for the page: a page of
-%% their own, turned so that the top of the table is at the left edge on left and right pages alike
-%% (the book convention: the reader always turns the book clockwise, and a table continued over a
-%% spread reads as one page). The text keeps flowing around it.
-\makeatletter
-\usepackage[figuresright]{rotating} % https://ctan.org/pkg/rotating
-%% Digital edition: those pages are shown turned upright in PDF viewers. A marker inside the float sets
-%% /Rotate 90 on the page it lands on; the next page resets
-%% it. Not in the print editions: for the printer, a rotated page can confuse the imposition software.
-\let\thesisrotatepage\relax
-\ifprintversion\else
-    \protected\def\thesisrotatepage{\latelua{
-        thesis_pageattr = pdf.getpageattributes() or ""
-        pdf.setpageattributes(thesis_pageattr .. " /Rotate 90")}}
-    \AddToHook{env/sidewaystable/end}{\thesisrotatepage}
-    \AddToHook{env/sidewaysfigure/end}{\thesisrotatepage}
-    \AddToHook{shipout/before}{\directlua{
-        if thesis_pageattr then pdf.setpageattributes(thesis_pageattr); thesis_pageattr = nil end}}
-\fi
-\makeatother
+\input{template/tables}       % notes under tables (\tnote, tablenotes), table text size, sideways floats
 \usetikzlibrary{positioning,arrows.meta} % TikZ itself is loaded by the class (thumb tabs)
 
 %% Text and code
@@ -94,7 +48,7 @@
 %% Hyperlinks and PDF bookmarks
 \usepackage{bookmark}           % https://ctan.org/pkg/bookmark %% PDF bookmarks (loads hyperref)
 %% Hyperlinks: invisible in the print editions (they would only show up as coloured text on paper),
-%% maroon in the digital edition (the colour "link", set in formatColor.tex).
+%% brick red in the digital edition (the colour "link", set in settings/colours.tex).
 \ifprintversion
     \hypersetup{hidelinks}
 \else
@@ -115,55 +69,13 @@
 %%   proof        "Proof."           ends with a square (\qedhere puts it on the last line of an equation)
 %% Theorems are often set in italics; upright reads better when the statement is full of maths.
 %% To rename one, change the word here and in its \crefname below.
-\let\openbox\relax  % also defined by newtxmath; let amsthm define it
-\usepackage{amsthm}
-%% (With \DocumentMetadata, LaTeX's own code stands in for amsthm and does not define \openbox, the square
-%% at the end of a proof: amsthm's definition.)
-\providecommand{\openbox}{\leavevmode\hbox to.77778em{\hfil\vrule\vbox to.675em{\hrule width.6em\vfil\hrule}\vrule\hfil}}
-%% Proofs stretch like the other statements (amsthm gives them 6pt plus 6pt, so they took up most of the
-%% slack on a page that breaks early, leaving holes around them).
-%% (With \DocumentMetadata, LaTeX's own code replaces amsthm: proofs are its "proof" blocks.)
-\makeatletter
-\IfInstanceExistsTF{block}{proof-1}
-    {\EditInstance{block}{proof-1}{begin-vspace = 6pt plus 2pt}\EditInstance{block}{proof-2}{begin-vspace = 6pt plus 2pt}%
-     \EditInstance{captionedtext}{proof}{after-hspace = \labelsep, caption-unbreakable = true}}% (as amsthm: a rigid separation, the label in a box)
-    {\expandafter\patchcmd\csname\string\proof\endcsname{\topsep6\p@\@plus6\p@}{\topsep6\p@\@plus2\p@}{}%
-        {\PackageWarning{thesis}{Could not patch the proof spacing}}}
-\makeatother
+\input{template/statements}   % amsthm, and the look of statements and proofs (template/statements.tex)
 %% (the environments are defined after cleveref below, so it names shared-counter ones correctly)
 
 %% Algorithms (pseudocode): "Algorithm 2.1", numbered per chapter, as a float with its caption on top.
 %% Write the steps with \State, \If, \For, \While, \Repeat/\Until, \Return, \Comment: https://ctan.org/pkg/algorithmicx
 %% List of algorithms: \listofalgorithms in main.tex (commented out there).
-\usepackage[chapter]{algorithm}
-\usepackage{algpseudocode}
-\makeatletter
-%% A \label after \State refers to the line number. LaTeX's list code (November 2026) makes the label of an
-%% item given in brackets the current label, so \Require, \Ensure and \Statex (\item[...]) would take
-%% it over; algorithmicx sets the line number as the label only once. Set again after every item.
-\algrenewcommand\ALG@beginalgorithmic{%
-    \let\thesis@algitem\item
-    \def\thesis@alglabel{\def\@currentlabel{\theALG@line}}%
-    \def\thesis@algitem@opt[##1]{\thesis@algitem[##1]\thesis@alglabel}%
-    \def\item{\@ifnextchar[\thesis@algitem@opt{\thesis@algitem\thesis@alglabel}}}
-%% every algorithm numbers its lines from 1: give their link targets unique names
-\renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
-%% Same look as code listings and tables: caption above (small, label in bold small capitals), then a
-%% thin rule, the steps, and a thin rule.
-\renewcommand\fs@ruled{\def\@fs@cfont{}\let\@fs@capt\floatc@ruled
-    \def\@fs@pre{}\def\@fs@post{\kern2pt\hrule\relax}%
-    \def\@fs@mid{\kern3pt\hrule\kern3pt}\let\@fs@iftopcapt\iftrue}
-\floatstyle{ruled}\restylefloat{algorithm}
-%% (with LaTeX's tagging code of November 2026, float.sty's caption ends the caption structure itself:
-%% then it is begun here too)
-\ExplSyntaxOn
-\exp_args:Nee \str_if_in:nnTF { \token_to_meaning:N \float@caption } { \tl_to_str:n { caption/end } }
-  { \def\thesis@floatcapbegin{\UseTaggingSocket{caption/begin}{\@current@float@struct}} }
-  { \let\thesis@floatcapbegin\relax }
-\ExplSyntaxOff
-\renewcommand\floatc@ruled[2]{\thesis@floatcapbegin
-    {\parindent\z@\thesis@capcentrefalse\thesis@tagparaoff\leavevmode\thesis@captionbox{#1}{#2}\par\thesis@tagparaon}\@minipagefalse}
-\makeatother
+\input{template/algorithms}   % algorithm and algpseudocode, with the look of listings and tables
 \algrenewcommand\algorithmicrequire{\textbf{Input:}}
 \algrenewcommand\algorithmicensure{\textbf{Output:}}
 \algrenewcommand\algorithmiccomment[1]{\hfill\textcolor{black!60}{\(\triangleright\) \textit{#1}}}
@@ -183,20 +95,6 @@
 %% Refer to an algorithm line with line~\ref{alg:...} (\cref would capitalise it mid-sentence).
 
 %% The numbered statements described above (after cleveref, which needs that for shared counters)
-%% Head: "Theorem 3.1." in bold; with a note, "Theorem 3.1 (Name)." with the note in regular weight.
-%% (LaTeX's tagging code reads the last argument as a list of \thmname, \thmnumber and \thmnote only.)
-\newtheoremstyle{thesis}{\topsep}{\topsep}{\normalfont}{0pt}{\bfseries}{.}{5pt plus 1pt minus 1pt}%
-    {\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}
-%% (amsthm put only the space above and below a statement around it; LaTeX's own code adds \partopsep)
-%% (and the paragraph skip of the first paragraph is part of the space above, as with amsthm)
-\IfInstanceExistsT{block}{thm-thesis-1}{%
-    \newskip\thesistheoremsep \thesistheoremsep=\topsep
-    \newskip\thesisremarksep \thesisremarksep=\glueexpr\topsep/2\relax % (as amsthm: half the space around a theorem)
-    \EditInstance{block}{thm-thesis-1}{begin-extra-vspace = 0pt, begin-vspace = \thesistheoremsep - \parskip, end-vspace = \thesistheoremsep}%
-    \EditInstance{block}{thm-thesis-2}{begin-extra-vspace = 0pt, begin-vspace = \thesistheoremsep - \parskip, end-vspace = \thesistheoremsep}%
-    \EditInstance{block}{thm-remark-1}{begin-vspace = \thesisremarksep - \parskip, end-vspace = \thesisremarksep}%
-    \EditInstance{block}{thm-remark-2}{begin-vspace = \thesisremarksep - \parskip, end-vspace = \thesisremarksep}%
-    \EditInstance{thmstyle}{remark}{title-format = #1}}% (as amsthm: no italic correction after "Remark", which LaTeX adds from November 2026)
 \theoremstyle{thesis}
 \newtheorem{formulation}{Formulation}[chapter]
 \newtheorem{definition}{Definition}[chapter]
@@ -230,5 +128,6 @@
 % \usepackage{pgfplotstable}    % https://ctan.org/pkg/pgfplotstable %% tables from data files: \pgfplotstabletypeset{data.csv}
 % \usepackage{csvsimple}        % https://ctan.org/pkg/csvsimple %% simple tables from CSV files: \csvautobooktabular{data.csv}
 %% Not usable in a tagged PDF (they break the tagging or the MathML), so left out: wrapfig, arydshln,
-%% tabularray, chemformula, tensor, threeparttable (qrcode only through \qrlink, environments.tex) (use tablenotes above), and nicematrix's
+%% tabularray, chemformula, tensor, threeparttable (use tablenotes, template/tables.tex), qrcode (only
+%% through \qrlink, template/environments.tex), and nicematrix's
 %% NiceArray and NiceTabular (its matrix environments are fine: see nicematrix.tex).

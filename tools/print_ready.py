@@ -16,7 +16,6 @@ figures/plots/thesis_fonts.py runs this on every figure it saves; use the script
 need it. Photos (PNG, JPEG) need nothing: LaTeX declares their RGB as sRGB itself. Running it twice on a
 file changes nothing the second time. Needs pikepdf and Pillow (pip install -r requirements.txt).
 """
-import io
 import sys
 from pathlib import Path
 

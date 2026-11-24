@@ -68,8 +68,9 @@ The digital edition is produced as **PDF/A-4f**, the current archival standard (
   - *Formulas:* every formula carries MathML; for one that reads badly (a large block matrix), `\formulaalt{a short description}` right before it gives screen readers that text instead.
   - *Acronyms:* after its first use, `\gls{bem}` gives "BEM" marked with its expansion, read as "blade element momentum theory".
   - *Units:* `\qty{10}{\metre\per\second}` is read as "10 metres per second" and `\unit{\kilo\gram}` as "kilograms", for units written with siunitx's macros (not for `\unit{m/s}`).
-  - *Contrast:* the template's colours stand out against the page (text 4.5:1 or more, lines 3:1, WCAG 2.2); `tools/check_pdf.py` and `tools/check_figures.py` report colours of your own that do not (see *Colours* under *Plots*).
-  - *Languages:* text in `\begin{otherlanguage}{dutch}` (the Dutch summary and propositions) is marked as Dutch, so screen readers switch pronunciation.
+  - *Contrast:* the template's colours stand out against the page (text 4.5:1 or more, lines 3:1, WCAG 2.2), and links (brick red) also against the black text (3.9:1), as colour is the only thing that marks them; `tools/check_pdf.py` and `tools/check_figures.py` report colours of your own that do not (see *Colours* under *Plots*).
+  - *Languages:* text in `\begin{otherlanguage}{dutch}` (the Dutch summary and propositions) is marked as Dutch, and a word in `\foreignlanguage{dutch}{...}` too, so screen readers switch pronunciation.
+  - *Links:* each link also carries a short description (where it goes), which PDF/UA-1 checkers such as PAC and Acrobat ask for.
 
 ### For the printer: PDF/X
 
@@ -107,11 +108,11 @@ A misspelt value stops the compile with a message that lists the choices. Thumb 
 
 ![The same page in the four page sizes, at the same scale, with type size, leading, lines per page and line length](.github/readme/page-sizes.png)
 
-*The same page in the four page sizes, at the same scale (preview edition). The image is regenerated automatically whenever the template changes ([`.github/scripts/page_sizes.py`](.github/scripts/page_sizes.py)).*
+*The same page in the four page sizes, at the same scale (preview edition). The image is regenerated every night ([`.github/scripts/page_sizes.py`](.github/scripts/page_sizes.py)).*
 
 | Option | Effect |
 |---|---|
-| `edition=digital` *(default)* | For the screen, the TU Delft repository and sharing: the pages at their final size, archival (PDF/A-4f) and, as the final version, accessible (PDF/UA-2), with links in maroon (set once in `settings/colours.tex`; symbols and acronyms stay black, so maths is never coloured), coloured code and sideways pages shown upright. |
+| `edition=digital` *(default)* | For the screen, the TU Delft repository and sharing: the pages at their final size, archival (PDF/A-4f) and, as the final version, accessible (PDF/UA-2), with links in brick red (set once in `settings/colours.tex`; symbols and acronyms stay black, so maths is never coloured), coloured code and sideways pages shown upright. |
 | `edition=printer` | For the professional printer: a PDF/X file, the pages plus bleed on every side (see *For the printer: PDF/X*; add `cropmarks` only if the printer asks for them). |
 | `edition=preview` | The printed book as it looks after trimming: the pages at their final size, as on paper. For checking the layout on screen. |
 | `edition=proof` | For printing a proof at home: the pages centred on an A4 sheet (`cropmarks` marks where to cut). |
@@ -148,7 +149,7 @@ tools/         checks and converters
 | `settings/thesisinfo.tex` | **Fill this in:** title, author, defence date, Rector Magnificus, doctoral committee, keywords, printer, ISBN, licence, an optional dedication. Used on the title pages, CV and in the PDF metadata; leave an optional field empty, `{}`, to leave it out. |
 | `settings/nomenclature.tex` | **Fill this in:** acronyms and symbols for the nomenclature. |
 | `settings/hyphenation.tex` | Hyphenation of words TeX breaks wrongly or not at all (technical terms, names). Add to it as you write. |
-| `settings/packages.tex` | The packages the thesis loads, with optional ones commented out at the bottom; table, statement and algorithm styles. |
+| `settings/packages.tex` | The packages the thesis loads, with optional ones commented out at the bottom; the numbered statements (`\newtheorem`) and the names `\cref` gives them. |
 | `settings/commands.tex` | Your commands: maths notation (vectors, derivatives, brackets), and anything you add. |
 | `settings/colours.tex` | TU Delft colours and the link colour. |
 | `settings/thumbs.tex` | Thumb tabs: on or off, their colours and size. |
@@ -160,7 +161,7 @@ tools/         checks and converters
 | `propositions.tex`, `cover.tex` | The propositions (stellingen) and the book cover, separate documents (see *Propositions and cover*). |
 | `fonts/` | Optional: MathTime Professional 2 for the maths (see `fonts/README.md`). Never put it in a public repository. |
 | `thesis.cls` | The class: options, page layout, core packages. (At the top level, so LaTeX finds it however the thesis is compiled.) |
-| `template/` | Everything else of the template: fonts and headings, page styles, title pages (`titlepage.tex`), environments, the PDF set-up (`documentmetadata.tex` the standard of each edition, `pdfa.tex` PDF/A and metadata, `tagging.tex` and `accessibility.tex` PDF/UA, `attachments.tex`, `printpdf.tex` and `thesisprint.lua` PDF/X, `digitalcover.tex` the cover pages of the digital edition), and the bundled fonts in `template/fonts/` (newtx maths as OpenType, `ntxmath-otf`, and the cover's Josefin Sans). |
+| `template/` | Everything else of the template: fonts and headings, page styles, title pages (`titlepage.tex`), environments, tables, statements and algorithms (`tables.tex`, `statements.tex`, `algorithms.tex`), the PDF set-up (`documentmetadata.tex` the standard of each edition, `pdfa.tex` PDF/A and metadata, `tagging.tex` and `accessibility.tex` PDF/UA, `attachments.tex`, `printpdf.tex` and `thesisprint.lua` PDF/X, `digitalcover.tex` the cover pages of the digital edition), and the bundled fonts in `template/fonts/` (newtx maths as OpenType, `ntxmath-otf`, and the cover's Josefin Sans). |
 | `tools/` | `check_pdf.py` checks the compiled PDF before submission; `check_print.py` checks the PDF/X edition for the printer; `print_ready.py` makes figure PDFs from elsewhere ready for print; `print_pdf.py` converts the print edition to CMYK when a printer asks for it; `check_figures.py` checks each figure's printed size, text size and fonts; `check_bib.py` tidies `references.bib`; `check_hyphenation.py` lists the hyphenated words to review; `greyscale_preview.py` counts colour pages and shows the thesis in greyscale; `diff_versions.py` makes a PDF with the changes since an earlier version marked; `mtpro2_otf.py` converts MathTime Professional 2 into OpenType maths fonts (see `fonts/README.md`); `ntxmath_otf.py` rebuilds `template/fonts/ntxmath-otf` from newtx (with `mtpro2_otf.py` beside it, no MathTime needed); `hooks/pre-commit` refuses commits with MathTime files; `common.py` holds the code the checks share. |
 | `requirements.txt` | Python packages for the scripts and plots: `pip install -r requirements.txt`. |
 | `latexmkrc` | latexmk settings: LuaLaTeX, and the `fonts/` and `template/fonts/ntxmath-otf/` folders on TeX's search paths. |
@@ -306,7 +307,7 @@ Both are separate documents that use the fonts and the details in `settings/thes
 
 ## Before sending it to the printer
 
-1. **Details:** check every line of `settings/thesisinfo.tex` again: names (all first names, as on your passport), title, defence date and time, Rector Magnificus, committee and order, ISBN, printer, cover designer.
+1. **Details:** check every line of `settings/thesisinfo.tex` again: names (all first names, as on your passport), title, defence date and time, the year of the defence (`\thesisyear`, for the copyright line and the metadata), Rector Magnificus, committee and order, ISBN, printer, cover designer.
 2. **Final build:** compile with the options `edition=printer` and `version=final` (removes all todo notes and draft marks; with `cropmarks` only if the printer wants crop marks), with the printer's settings in `settings/thesisinfo.tex` (see *For the printer: PDF/X*). For the repository, compile the same with `edition=digital, version=final`: the same pages, at their final size. Search the PDF for "??" (broken references) and "[" followed by a citation key (missing references).
 3. **Check the references:** run `python3 tools/check_bib.py --doi` and fix what it reports.
 4. **Check the PDF:** run `python3 tools/check_pdf.py` (it reads `main.pdf` and `main.log`; on Overleaf, download both first), on the print edition and on the digital one. For the print edition (PDF/X) it runs `tools/check_print.py`: trim and bleed, colour, fonts, links, image resolution, thin lines and the pages in colour. For the digital edition it reports what the repository rejects: PDF/A and PDF/UA problems, fonts not embedded (also inside figure files) or without Unicode, blurry raster images (below 300 ppi at their printed size), CMYK images, broken references and citations, missing characters and overfull boxes. Fix everything marked FAIL.
@@ -335,9 +336,9 @@ Printers usually charge every page that contains any colour as a colour page. So
 
 This repository is synced with Overleaf (*Menu → GitHub*).
 
-**Every push builds the thesis** (`.github/workflows/build.yml`) on the latest TeX Live, in two editions (`main.pdf` as `main.tex` sets it, and `digital.pdf`), and checks them: `tools/check_pdf.py` (with [veraPDF](https://verapdf.org) for a full PDF/A-4f and PDF/UA-2 validation of the digital edition, `tools/check_print.py` for the PDF/X edition) and `tools/check_figures.py`. A red cross in the *Actions* tab means a PDF has something to fix; the run's *Artifacts* hold the PDFs, their logs and the veraPDF report for 30 days. **Push a tag** (`git tag draft-2026-10 && git push origin draft-2026-10`) and the digital edition is published as a release, a fixed link for your supervisors (in a private repository, only people with access can open it). These builds use newtx for the maths, as the MathTime fonts are never on GitHub.
+**Every push builds the thesis** (`.github/workflows/build.yml`) on the latest TeX Live: the printer and digital editions as the final version (`printer.pdf`, `digital.pdf`, with the other options as `main.tex` sets them), `main.tex` as it is, the propositions and the cover, and checks them: `tools/check_pdf.py` (with [veraPDF](https://verapdf.org) for a full PDF/A-4f and PDF/UA-2 validation of the digital edition, `tools/check_print.py` for the PDF/X edition) and `tools/check_figures.py`. A red cross in the *Actions* tab means a PDF has something to fix; the run's *Artifacts* hold the PDFs, their logs and the veraPDF report for 30 days. **Push a tag** (`git tag draft-2026-10 && git push origin draft-2026-10`) and the digital edition is published as a release, a fixed link for your supervisors (in a private repository, only people with access can open it). These builds use newtx for the maths, as the MathTime fonts are never on GitHub.
 
-On every push that changes the template, a second workflow (`.github/workflows/page-sizes.yml`) compiles it in all four page sizes on the latest TeX Live and updates the page-size image above; a failed run in the *Actions* tab means the template no longer compiles. When it updates the image it adds a commit, so pull in Overleaf afterwards.
+Every night, a second workflow (`.github/workflows/page-sizes.yml`) compiles the template in all four page sizes on the latest TeX Live and updates the page-size image above; a failed run in the *Actions* tab means the template no longer compiles. When the image changed it adds a commit, so pull in Overleaf now and then.
 
 - Before editing elsewhere (locally, or with Claude), **push** from Overleaf so the repository has your latest version.
 - After changes were committed to the repository, **pull** in Overleaf to bring them in.

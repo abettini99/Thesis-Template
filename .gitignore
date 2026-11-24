@@ -66,6 +66,10 @@ __pycache__/
 
 # Build output
 main.pdf
+cover.pdf
+propositions.pdf
+printer.pdf
+digital.pdf
 *.xdv
 creationdate.lua
 *-cmyk.pdf

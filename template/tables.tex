@@ -1,0 +1,48 @@
+%% =====================================================================
+%% Tables: notes under a table, one text size, wrapping columns, sideways floats.
+%% Read by settings/packages.tex. Part of the template: edit settings/packages.tex instead.
+%% =====================================================================
+%% Notes under a table, marked in the table with \tnote{a} (as with the threeparttable package, whose
+%% notes break the tagged PDF). They take the width of the table just above them (a tabular), or the
+%% width of the line (tabularx, xltabular), or the width given: \begin{tablenotes}[6cm].
+%%   \begin{tablenotes} \item[a] Corrected for blockage. \item[b] ... \end{tablenotes}
+\makeatletter
+\newdimen\thesis@tabwd
+\AddToHook{cmd/@floatboxreset/after}{\global\thesis@tabwd\z@}
+\AddToHook{env/tabular/after}{\ifhmode\setbox\z@\lastbox\global\thesis@tabwd\wd\z@\box\z@\fi}
+\AddToHook{env/tabularx/after}{\global\thesis@tabwd\linewidth}
+\AddToHook{env/xltabular/after}{\global\thesis@tabwd\linewidth}
+%% (a marker takes no width, so numbers in a column stay aligned and the marker sticks out to the right)
+\providecommand*{\tnote}[1]{\rlap{\textsuperscript{#1}}}
+\newenvironment{tablenotes}[1][\ifdim\thesis@tabwd>\z@\thesis@tabwd\else\linewidth\fi]
+  {\par\vspace{0.4\onelineskip}\noindent\begin{minipage}[t]{#1}\footnotesize
+   \begin{list}{}{\setlength{\leftmargin}{1em}\setlength{\labelwidth}{0.8em}\setlength{\labelsep}{0.2em}%
+     \setlength{\itemsep}{\z@}\setlength{\parsep}{\z@}\setlength{\topsep}{\z@}\setlength{\partopsep}{\z@}%
+     \let\makelabel\thesis@tnotelabel}}
+  {\end{list}\end{minipage}\par}
+\newcommand*{\thesis@tnotelabel}[1]{\textsuperscript{#1}\hfil}
+\makeatother
+%% All tables in one size, the caption size (\small): table text then sits between the captions and the text.
+%% (The nomenclature lists are not tables in this sense and keep the text size.)
+\setfloatadjustment{table}{\small} % applied inside every table float, also sideways ones (thesis.cls)
+\AddToHook{env/xltabular/begin}{\small} % long tables are not floats
+%% Wrapping (X) columns are set ragged right without hyphenation: in a narrow column justified text
+%% leaves wide gaps, and a word broken over two lines of a table cell reads badly.
+\renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash}p{#1}}
+%% Sideways floats (sidewaystable, sidewaysfigure) for material too wide for the page: a page of
+%% their own, turned so that the top of the table is at the left edge on left and right pages alike
+%% (the book convention: the reader always turns the book clockwise, and a table continued over a
+%% spread reads as one page). The text keeps flowing around it.
+\makeatletter
+\usepackage[figuresright]{rotating} % https://ctan.org/pkg/rotating
+%% Digital edition: those pages are shown turned upright in PDF viewers. A marker inside the float sets
+%% /Rotate 90 on the page it lands on (only that page). Not in the print editions: for the printer, a rotated page can confuse the imposition software.
+\let\thesisrotatepage\relax
+\ifprintversion\else
+    \ExplSyntaxOn
+    \protected\def\thesisrotatepage{\pdfmanagement_add:nnn { ThisPage } { Rotate } { 90 }}
+    \ExplSyntaxOff
+    \AddToHook{env/sidewaystable/end}{\thesisrotatepage}
+    \AddToHook{env/sidewaysfigure/end}{\thesisrotatepage}
+\fi
+\makeatother

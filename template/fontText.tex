@@ -14,9 +14,8 @@
 
 %% Heading font: Source Sans (Adobe, SIL Open Font License), included in TeX Live, so no font files
 %% are needed in the project. Light for titles, semibold for section headings.
-%% TeX Live 2026 renamed the fonts from Source Sans Pro to Source Sans 3 (file names SourceSans3-...);
-%% use whichever is installed, so the template works with old and new TeX Live (and on Overleaf).
-\IfFontExistsTF{SourceSans3-Light.otf}{\def\thesis@sourcesans{SourceSans3}}{\def\thesis@sourcesans{SourceSansPro}}
+%% (Source Sans 3: the file names SourceSans3-..., as in TeX Live 2026.)
+\def\thesis@sourcesans{SourceSans3}
 \newfontfamily{\sourcesans}{\thesis@sourcesans}[
     Extension   = {.otf},
     UprightFont = {*-Light},

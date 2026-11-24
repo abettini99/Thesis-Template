@@ -66,7 +66,6 @@ def is_iccrgb(cs):
 def image_in_colour(xo):
     """True if an RGB image has visible colour (not just greys)."""
     try:
-        from PIL import Image
         im = pikepdf.PdfImage(xo).as_pil_image().convert("RGB")
         im.thumbnail((200, 200))
         hsv = im.convert("HSV")
@@ -137,9 +136,17 @@ class Walker:
         self.r.add("errors", f"{how} ({what}): {self.where(page, src)}"
                    + ("; run tools/print_ready.py on that file" if src else ""))
 
+    def group(self, page, obj, src):
+        """A transparency group that blends in device RGB: the colours it mixes are unmanaged."""
+        grp = obj.get("/Group") if hasattr(obj, "get") else None
+        if isinstance(grp, pikepdf.Dictionary) and is_rgb(grp.get("/CS")):
+            self.r.add("warnings", f"transparency blended in device RGB (/Group /CS): {self.where(page, src)}"
+                       + ("; run tools/print_ready.py on that file" if src else ""))
+
     def stream(self, page, obj, res, ctm, src, default_rgb, depth=0):
         if depth > 12:
             return
+        self.group(page, obj.obj if hasattr(obj, "obj") else obj, src)
         try:
             ops = pikepdf.parse_content_stream(obj)
         except Exception as err:
@@ -220,6 +227,16 @@ class Walker:
                                          f"{self.where(page, src)}")
                 if o in ("sc", "scn") and len(nums) == 3:
                     gs["fill"] = (gs["fill"][0], tuple(nums))
+                if o in ("scn", "SCN") and isinstance(operands[-1], Name):   # a pattern
+                    pat = res.get("/Pattern", {}).get(operands[-1]) if res is not None else None
+                    if pat is not None and int(pat.get("/PatternType", 0)) == 2:
+                        sh = pat.get("/Shading")
+                        if sh is not None and is_rgb(sh.get("/ColorSpace")):
+                            self.rgb_unmanaged(page, src, "shading pattern", default_rgb)
+                    elif pat is not None and int(pat.get("/PatternType", 0)) == 1:
+                        pres = pat.get("/Resources")
+                        self.stream(page, pat, pres if pres is not None else res, gs["ctm"], src,
+                                    self.has_default(pres) if pres is not None else default_rgb, depth + 1)
             elif o in ("S", "s", "B", "B*", "b", "b*"):
                 width = gs["w"] * scale(gs["ctm"])
                 if width < HAIRLINE:
@@ -238,6 +255,10 @@ class Walker:
                 if rich and size < 12:
                     self.r.add("warnings", f"small text in rich black (all four inks): {self.where(page, src)}"
                                + ("; run tools/print_ready.py on that file" if src else ""))
+            elif o == "INLINE IMAGE" and operands:
+                cs = getattr(operands[0], "colorspace", None)
+                if str(cs) in ("/DeviceRGB", "/RGB"):
+                    self.rgb_unmanaged(page, src, "inline image", default_rgb)
             elif o == "sh" and operands:
                 sh = res.get("/Shading", {}).get(operands[0]) if res is not None else None
                 if sh is not None and is_rgb(sh.get("/ColorSpace")):
@@ -384,7 +405,7 @@ def check(path, folder=None):
     w.run()
     n = len(pdf.pages)
     r.add("facts", f"{n} pages" + ("" if n % 4 == 0 else
-                                    f" (printers print in sheets of 4, 8 or 16 pages and add blank ones: ask)"))
+                                    " (printers print in sheets of 4, 8 or 16 pages and add blank ones: ask)"))
     cp = sorted(w.colour_pages)
     if cp:
         labels = [str(i + 1) + (f" ({w.labels[i]})" if w.labels[i] and w.labels[i] != str(i + 1) else "") for i in cp]

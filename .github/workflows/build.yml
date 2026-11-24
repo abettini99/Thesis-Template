@@ -1,7 +1,8 @@
 # Builds the thesis on every push, checks it, and keeps the PDFs.
 #
 #   - Two editions, both as the final version (the other options as main.tex sets them): printer.pdf
-#     (PDF/X, for the printer) and digital.pdf (PDF/A-4f and PDF/UA-2, for the screen and the repository).
+#     (PDF/X, for the printer) and digital.pdf (PDF/A-4f and PDF/UA-2, for the screen and the repository);
+#     also main.tex as it is (a draft, as a rule), the propositions and the cover.
 #   - The PDFs (and logs) are kept for 30 days: Actions tab > the run > Artifacts.
 #   - They are checked with tools/check_pdf.py (veraPDF for a full PDF/A-4f and PDF/UA-2 validation of the
 #     digital edition; tools/check_print.py for the PDF/X edition) and with tools/check_figures.py. A run
@@ -44,6 +45,11 @@ jobs:
         run: |
           sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=digital, version=final]{thesis}/' main.tex > digital.tex
           latexmk -interaction=nonstopmode -halt-on-error digital.tex
+      - name: Compile a draft (as main.tex sets it), the propositions and the cover
+        run: |
+          latexmk -interaction=nonstopmode -halt-on-error main.tex
+          latexmk -interaction=nonstopmode -halt-on-error propositions.tex
+          latexmk -interaction=nonstopmode -halt-on-error cover.tex
       - name: Keep the PDFs and the logs
         if: always()
         uses: actions/upload-artifact@v7
@@ -54,6 +60,8 @@ jobs:
             printer.log
             digital.pdf
             digital.log
+            propositions.pdf
+            cover.pdf
           retention-days: 30
 
   check:
@@ -81,6 +89,11 @@ jobs:
       - name: Check the digital edition (PDF/A and PDF/UA with veraPDF, fonts, images, log)
         if: always()
         run: python3 tools/check_pdf.py digital.pdf
+      - name: Check the propositions and the cover (PDF/X)
+        if: always()
+        run: |
+          python3 tools/check_print.py propositions.pdf
+          python3 tools/check_print.py cover.pdf
       - name: Check the figures
         if: always()
         run: python3 tools/check_figures.py digital.log

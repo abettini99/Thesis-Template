@@ -1,0 +1,33 @@
+%% =====================================================================
+%% Algorithms (pseudocode): the algorithm float and algpseudocode, with the look of listings and tables.
+%% Read by settings/packages.tex. Part of the template: edit settings/packages.tex instead.
+%% =====================================================================
+\usepackage[chapter]{algorithm}
+\usepackage{algpseudocode}
+\makeatletter
+%% A \label after \State refers to the line number. LaTeX's list code (November 2026) makes the label of an
+%% item given in brackets the current label, so \Require, \Ensure and \Statex (\item[...]) would take
+%% it over; algorithmicx sets the line number as the label only once. Set again after every item.
+\algrenewcommand\ALG@beginalgorithmic{%
+    \let\thesis@algitem\item
+    \def\thesis@alglabel{\def\@currentlabel{\theALG@line}}%
+    \def\thesis@algitem@opt[##1]{\thesis@algitem[##1]\thesis@alglabel}%
+    \def\item{\@ifnextchar[\thesis@algitem@opt{\thesis@algitem\thesis@alglabel}}}
+%% every algorithm numbers its lines from 1: give their link targets unique names
+\renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
+%% Same look as code listings and tables: caption above (small, label in bold small capitals), then a
+%% thin rule, the steps, and a thin rule.
+\renewcommand\fs@ruled{\def\@fs@cfont{}\let\@fs@capt\floatc@ruled
+    \def\@fs@pre{}\def\@fs@post{\kern2pt\hrule\relax}%
+    \def\@fs@mid{\kern3pt\hrule\kern3pt}\let\@fs@iftopcapt\iftrue}
+\floatstyle{ruled}\restylefloat{algorithm}
+%% (with LaTeX's tagging code of November 2026, float.sty's caption ends the caption structure itself:
+%% then it is begun here too)
+\ExplSyntaxOn
+\exp_args:Nee \str_if_in:nnTF { \token_to_meaning:N \float@caption } { \tl_to_str:n { caption/end } }
+  { \def\thesis@floatcapbegin{\UseTaggingSocket{caption/begin}{\@current@float@struct}} }
+  { \let\thesis@floatcapbegin\relax }
+\ExplSyntaxOff
+\renewcommand\floatc@ruled[2]{\thesis@floatcapbegin
+    {\parindent\z@\thesis@capcentrefalse\thesis@tagparaoff\leavevmode\thesis@captionbox{#1}{#2}\par\thesis@tagparaon}\@minipagefalse}
+\makeatother

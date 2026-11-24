@@ -2,9 +2,9 @@
 %% PDF/A-4f (archival PDF on PDF 2.0, e.g. for the TU Delft repository) with LaTeX's own PDF management.
 %% Fonts embedded, sRGB output intent, all text mapped to Unicode, and XMP metadata.
 %%
-%% The PDF management itself is switched on by \DocumentMetadata in the first line of main.tex; this file
-%% adds the language and the metadata. cover.tex has no \DocumentMetadata (it is a single page in the
-%% article class, not tagged) and loads the PDF management here, as a package.
+%% The PDF management itself, and the standard of each edition, are switched on by
+%% \input{template/documentmetadata} on the first line of main.tex, propositions.tex and cover.tex; this
+%% file adds the language and the metadata.
 %%
 %% The metadata (title, author, keywords, ...) comes from settings/thesisinfo.tex, through hyperref's keys once
 %% hyperref is loaded: there is nothing to edit here.
@@ -14,12 +14,7 @@
 \makeatletter
 \providecommand*{\thesispdfsuffix}{}
 \providecommand*{\thesis@bcp}{en-GB}
-\IfDocumentMetadataTF{}{\RequirePackage{pdfmanagement}} % (a document without \DocumentMetadata)
-\ifdefined\thesispdfx % for the printer: PDF/X (template/documentmetadata.tex), only the language here
-    \edef\thesis@tmp{\noexpand\SetKeys[document/metadata]{lang=\thesis@bcp}}
-\else
-    \edef\thesis@tmp{\noexpand\SetKeys[document/metadata]{pdfstandard=a-4f, pdfversion=2.0, lang=\thesis@bcp}}
-\fi
+\edef\thesis@tmp{\noexpand\SetKeys[document/metadata]{lang=\thesis@bcp}}% (the standard: documentmetadata.tex)
 \thesis@tmp
 %% Licence: the code in \thesislicence gives its name and web address (\thesislicencename,
 %% \thesislicenceurl; both empty for all rights reserved).
@@ -52,6 +47,9 @@
         \tl_set:Ne \thesislicenceurl
           { https://creativecommons.org/licenses/ \exp_last_unbraced:NV \use_ii:nn \l_tmpb_tl / }
         \tl_replace_once:Nnn \thesislicenceurl { licenses/../ } { }
+        % as a string: the colon of https: has the catcode of a letter here, and \href would then not see
+        % a web address and make a link to a file
+        \tl_set:Ne \thesislicenceurl { \tl_to_str:N \thesislicenceurl }
         \tl_set_eq:NN \thesislicencecode \l_tmpa_tl
         \tl_replace_all:Nnn \thesislicencecode { ~ } { \nobreakspace }
       }
@@ -86,7 +84,7 @@
         \str_if_eq:eeTF { \tl_trim_spaces:e { \thesislicence } } { CC0~1.0 }
           { Dedicated~to~the~public~domain~under~\thesislicencename :~\thesislicenceurl }
           {
-            Copyright~\the\year\space\thesisauthorfirstnames\space\thesisauthorlastname .~
+            Copyright~\thesisyear\space\thesisauthorfirstnames\space\thesisauthorlastname .~
             \tl_if_empty:NTF \thesislicencename
               { All~rights~reserved. }
               { Licensed~under~\thesislicencename\space(\thesislicence):~\thesislicenceurl }

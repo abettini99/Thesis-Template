@@ -8,7 +8,7 @@
 %% Options, given as keys in the \documentclass line, for example
 %%   \documentclass[edition=printer, version=final, size=dutch]{thesis}
 %%   edition  = digital (default) | printer | preview | proof: the same book pages, prepared for where they go
-%%       digital : final size, for the screen and the repository (maroon links, coloured code, sideways
+%%       digital : final size, for the screen and the repository (brick-red links, coloured code, sideways
 %%                 pages upright); archival (PDF/A-4f) and, as the final version, accessible (PDF/UA-2)
 %%       printer : for the professional printer: PDF/X, the pages with bleed (settings/thesisinfo.tex:
 %%                 standard, colour profile, bleed)
@@ -265,6 +265,16 @@
 %% are removed before the page is made up.
 %% (The page is made up as before: a stretchable skip at its end, from \clearpage, stays where it is.)
 \def\@outputbox@removebskip{\global\let\@outputbox@reinsertbskip\relax}
+%% \thesis_luamml_no_structure: the maths that follows (in this group) gets no structure elements of its own in
+%% the tagged PDF (luamml's flag 8 cleared): for MathML that only becomes part of the MathML around it
+%% (template/cancel.tex, nicematrix.tex, accessibility.tex). luamml's flag is not a public interface.
+\ExplSyntaxOn
+\cs_new_protected:Npn \thesis_luamml_no_structure:
+  {
+    \int_set:Nn \l__luamml_flag_int
+      { \l__luamml_flag_int - 8 * \int_mod:nn { \int_div_truncate:nn { \l__luamml_flag_int } { 8 } } { 2 } }
+  }
+\ExplSyntaxOff
 %% \thesis@ifzeroskip<skip>{true}{false}: the skip is 0pt with no stretch or shrink
 \ExplSyntaxOn
 \cs_new:Npn \thesis@ifzeroskip #1 { \skip_if_eq:nnTF {#1} { \c_zero_skip } }
@@ -371,9 +381,7 @@
     \thesis@listparindent\parindent}
 
 %% \needspace{3\onelineskip}: start a new page unless that much space is left on this one
-\newcommand{\needspace}[1]{\begingroup\setlength{\dimen@}{#1}%
-    \vskip\z@\@plus\dimen@\penalty -100\vskip\z@\@plus-\dimen@
-    \vskip\dimen@\penalty 9999\vskip-\dimen@\vskip\z@skip\endgroup}
+\RequirePackage{needspace}
 
 %% No widows or orphans: never leave a single line of a paragraph alone at the top or bottom of a
 %% page. Facing pages still end on the same line: when a page has to break early, the space around
@@ -386,7 +394,8 @@
 %% But only up to a limit: each space stretches at most as far as it allows. A page that needs more (few
 %% headings or displays to share the gap) ends short by the rest instead, so the spacing stays even.
 \directlua{
-    function thesis_stretch(n)
+    thesis = thesis or {}
+    function thesis.stretch(n)
         local s = 0
         for g in node.traverse_id(node.id("glue"), tex.box[n].list) do
             if g.stretch_order > 0 and g.stretch > 0 then tex.sprint("-1") return end
@@ -400,7 +409,7 @@
     \def\@makecol{\thesis@makecol
         \setbox\@tempboxa\vbox{\unvcopy\@outputbox}%
         \dimen@=\dimexpr\@colht-\ht\@tempboxa-\dp\@tempboxa\relax % the gap to fill
-        \dimen@ii=\directlua{thesis_stretch(\number\@outputbox)}sp % what the spaces allow
+        \dimen@ii=\directlua{thesis.stretch(\number\@outputbox)}sp % what the spaces allow
         \ifdim\dimen@ii>\z@ \ifdim\dimen@>\z@
             \dimen@=\dimexpr\dimen@-\dimen@ii\relax % the part beyond what they allow: at the foot
             \ifdim\dimen@>\onelineskip % less than a line: stretch a little further, stay flush
@@ -501,6 +510,24 @@
 \ifthesismathtime\else\IfFileExists{ntxmath-otf.sty}{\thesisntxotftrue}{}\fi
 \newif\ifthesisotfmath % either of the two: OpenType maths fonts, with unicode-math
 \ifthesismathtime\thesisotfmathtrue\fi \ifthesisntxotf\thesisotfmathtrue\fi
+%% Neither: TeX cannot see the template's fonts folders (lualatex run directly, not through latexmk, which
+%% reads latexmkrc). Then formulas get no MathML, which the accessible PDF (PDF/UA-2) needs: the final
+%% version stops; a draft (never tagged) goes on with the classic newtxmath, with a warning.
+\ifthesisotfmath\else
+    \ExplSyntaxOn
+    \tag_if_active:TF
+      {
+        \ClassError{thesis}{Maths~fonts~not~found:~compile~with~latexmk}
+          {TeX~cannot~see~template/fonts/ntxmath-otf.~latexmk~(and~Overleaf)~read~latexmkrc,~which~adds~it~to~TeX's~search~path;~
+           lualatex~run~directly~does~not.~Without~those~fonts~the~formulas~get~no~MathML,~and~the~PDF~is~not~accessible~(PDF/UA-2).}
+      }
+      {
+        \ClassWarningNoLine{thesis}{Maths~fonts~not~found~(TeX~cannot~see~template/fonts/ntxmath-otf):\MessageBreak
+          using~the~classic~newtxmath.~Compile~with~latexmk,~which~reads~latexmkrc;\MessageBreak
+          the~final~version~needs~it}
+      }
+    \ExplSyntaxOff
+\fi
 
 %%% TEXT FONTS
 %% Loaded through fontspec.
@@ -520,7 +547,7 @@
 \protected\def\pdfglyphtounicode{\pdfextension glyphtounicode}
 \input{glyphtounicode}
 
-%%% CAPTIONS (figures, tables and equations are numbered per chapter by memoir: 2.1, 2.2, ...)
+%%% CAPTIONS (figures, tables and equations are numbered per chapter: 2.1, 2.2, ...)
 %% "TABLE 2.1" in bold small capitals, a quad, the caption in the small size. Tables have their caption
 %% on top, figures below; 6pt (half a line) between caption and content. A caption that fits on one
 %% line is centred; a longer one is justified, or ragged right without hyphens if narrower than 60 mm
@@ -728,7 +755,8 @@
 %% last four characters are removed from the list url.sty has just built; no ~ in the Lua: it is an
 %% active character here).
 \directlua{
-    function thesis_urltail(k)
+    thesis = thesis or {}
+    function thesis.urltail(k)
         local nest = tex.nest[tex.nest.ptr]
         local n, chars = nest.tail, 0
         while n and not (n == nest.head) and chars < k do
@@ -738,7 +766,7 @@
         end
     end
 }
-\def\UrlRight{\directlua{thesis_urltail(4)}}
+\def\UrlRight{\directlua{thesis.urltail(4)}}
 \thesis@urlsetup
 \renewcommand*{\biburlsetup}{\thesis@urlsetup} % biblatex would otherwise apply its own rules in the references
 %% "doi:" stays on the same line as the DOI itself (biblatex's default allows a break after the colon).

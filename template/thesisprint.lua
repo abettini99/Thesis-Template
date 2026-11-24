@@ -47,11 +47,13 @@ function thesis.imagecs(name, obj)
   if not f or not obj or obj == "" then if f then f:close() end return end
   local head = f:read(65536) or ""
   f:close()
-  local rgb = false
+  local rgb, profile = false, false
   if head:sub(1, 8) == "\137PNG\r\n\26\n" then
     local ctype = head:byte(26)
     rgb = (ctype == 2 or ctype == 6)                 -- truecolour, with or without alpha
+    profile = head:find("iCCP", 1, true) ~= nil      -- a colour profile of its own (Display P3, Adobe RGB, ...)
   elseif head:sub(1, 2) == "\255\216" then          -- JPEG: the number of components in the frame header
+    profile = head:find("ICC_PROFILE", 1, true) ~= nil
     local i = 3
     while i < #head - 9 do
       local marker = head:byte(i + 1)
@@ -63,7 +65,14 @@ function thesis.imagecs(name, obj)
       i = i + 2 + head:byte(i + 2) * 256 + head:byte(i + 3)
     end
   end
-  if rgb then tex.sprint("colorspace " .. obj .. " ") end
+  if rgb and profile then
+    -- LuaTeX drops the photo's own profile; calling it sRGB would shift its colours, so it stays as it is
+    -- (device RGB, which tools/check_print.py reports): save it in sRGB instead
+    texio.write_nl("term and log", "Package thesis Warning: " .. name .. " has a colour profile of its own,"
+      .. " which LuaTeX drops. Save it in sRGB (for the printer edition).")
+  elseif rgb then
+    tex.sprint("colorspace " .. obj .. " ")
+  end
 end
 
 -- For the printer: every RGB colour that LaTeX, xcolor or TikZ writes onto a page ("r g b rg", "... RG")
@@ -83,8 +92,9 @@ do
   end
   local function fix(s)
     if not s or not s:find("[rR][gG]") then return s end
-    s = s:gsub(num .. "(%s+)" .. num .. "(%s+)" .. num .. "%s+rg", function(a, _, b, _, c) return conv(a, b, c, "rg") end)
-    s = s:gsub(num .. "(%s+)" .. num .. "(%s+)" .. num .. "%s+RG", function(a, _, b, _, c) return conv(a, b, c, "RG") end)
+    -- (whole numbers and operators only: %f frontiers, so "12 0 0 rgx" or "a1 0 0 rg" are left alone)
+    s = s:gsub("%f[%w.%-]" .. num .. "(%s+)" .. num .. "(%s+)" .. num .. "%s+rg%f[%W]", function(a, _, b, _, c) return conv(a, b, c, "rg") end)
+    s = s:gsub("%f[%w.%-]" .. num .. "(%s+)" .. num .. "(%s+)" .. num .. "%s+RG%f[%W]", function(a, _, b, _, c) return conv(a, b, c, "RG") end)
     return s
   end
   local whatsit = node.id("whatsit")

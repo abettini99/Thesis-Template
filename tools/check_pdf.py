@@ -302,6 +302,16 @@ def check_log(log: Path, r: Report) -> None:
         r.warn("the log asks for another run: compile again (latexmk does this by itself)")
 
 
+def is_pdfx(path) -> bool:
+    """A PDF/X file: an output intent of the kind GTS_PDFX (read with pikepdf when it is installed)."""
+    try:
+        import pikepdf
+        with pikepdf.open(path) as pdf:
+            return any(str(oi.get("/S")) == "/GTS_PDFX" for oi in pdf.Root.get("/OutputIntents", []))
+    except ImportError:
+        return b"GTS_PDFX" in Path(path).read_bytes()
+
+
 def main(argv=None) -> int:
     ap = parser(__doc__)
     ap.add_argument("pdf", nargs="?", type=Path, default=ROOT / "main.pdf", help="default: main.pdf")
@@ -316,7 +326,7 @@ def main(argv=None) -> int:
     size = re.search(r"Page size:\s+(.+)", info)
     print(f"{args.pdf.name}: {pages.group(1) if pages else '?'} pages, {size.group(1).strip() if size else '?'}")
     r = Report()
-    if b"GTS_PDFX" in args.pdf.read_bytes():
+    if is_pdfx(args.pdf):
         # the print-preparation edition (PDF/X, for the printer): its own checks, then the log
         print("PDF/X (for the printer): tools/check_print.py")
         import check_print
