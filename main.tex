@@ -1,26 +1,24 @@
 \input{template/documentmetadata} % the kind of PDF, from the edition chosen below
-\documentclass[edition=printer, thumbs]{thesis}
+\documentclass[edition=digital, version=draft]{thesis}
 % Options (keys; see the top of thesis.cls for the details):
-%   edition  = digital  for the screen and the repository: archival (PDF/A-4f) and accessible (PDF/UA-2),
-%                       tagged for screen readers, with MathML for every formula (default)
+%   edition  = digital  for the screen and the repository: archival (PDF/A-4f), and as the final version
+%                       accessible (PDF/UA-2): tagged for screen readers, with MathML (default)
 %            | printer  for the professional printer: PDF/X-6 or PDF/X-4 with bleed (standard, colour
 %                       profile and bleed in settings/thesisinfo.tex)
 %            | preview  the printed book as it looks after trimming: final size, as on paper
 %            | proof    for printing a proof at home: the pages centred on A4 (paper=letter: US Letter)
 %              (the same pages, with the same page numbers, in every edition)
+%   version  = fast-draft  while writing, compiled fastest: images as boxes, overfull lines marked
+%            | draft       for your supervisors: real images, line numbers in the margin (default)
+%            | final       to hand in and print: no todo notes or marks; tagged for screen readers
+%              (both drafts show todo notes and DRAFT with the date on every page, and are not tagged)
 %   size     = demy (default) | a5 | royal | dutch      book page 138x216, 148x210, 156x234 or 170x240 mm
-%   language = british (default) | american            hyphenation, quotation marks, dates
+%   english  = british (default) | american            hyphenation, quotation marks, dates
 %   paper    = a4 (default) | letter                   the sheet of the proof edition
-%   thumbs              thumb tabs
 %   cropmarks           crop marks: where the page is trimmed (proof; printer: outside the bleed, only if
 %                       the printer asks for them)
-%   untagged            while writing: no tagging, each compile about 30% faster; the same pages, still
-%                       archival but not accessible (the log says so). Never for a version you hand in.
-%   draft               fast compiles while writing: images as boxes, overfull lines marked, line numbers,
-%                       DRAFT on every page
-%   final               the version for the printer and the repository: hides all todo notes (not with
-%                       draft or untagged)
 %   chapterbib          every chapter ends with its own reference list
+% Thumb tabs: settings/thumbs.tex.
 
 % Maths font: newtx (Times), or MathTime Professional 2: unpack the MathTime zip and run
 % python3 tools/mtpro2_otf.py <unpacked folder> fonts, which converts it into the fonts folder (all mtpro2

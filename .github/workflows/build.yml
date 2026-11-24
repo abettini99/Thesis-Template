@@ -1,7 +1,7 @@
 # Builds the thesis on every push, checks it, and keeps the PDFs.
 #
-#   - Two editions: main.pdf as main.tex sets it (edition=printer: PDF/X, for the printer) and
-#     digital.pdf (the digital edition: PDF/A-4f and PDF/UA-2, for the screen and the repository).
+#   - Two editions, both as the final version (the other options as main.tex sets them): printer.pdf
+#     (PDF/X, for the printer) and digital.pdf (PDF/A-4f and PDF/UA-2, for the screen and the repository).
 #   - The PDFs (and logs) are kept for 30 days: Actions tab > the run > Artifacts.
 #   - They are checked with tools/check_pdf.py (veraPDF for a full PDF/A-4f and PDF/UA-2 validation of the
 #     digital edition; tools/check_print.py for the PDF/X edition) and with tools/check_figures.py. A run
@@ -36,11 +36,13 @@ jobs:
     container: texlive/texlive:latest
     steps:
       - uses: actions/checkout@v5
-      - name: Compile
-        run: latexmk -interaction=nonstopmode -halt-on-error main.tex
-      - name: Compile the digital edition
+      - name: Compile the edition for the printer (final version)
         run: |
-          sed -E 's/\\documentclass\[[^]]*\]\{thesis\}/\\documentclass[edition=digital, thumbs]{thesis}/' main.tex > digital.tex
+          sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=printer, version=final]{thesis}/' main.tex > printer.tex
+          latexmk -interaction=nonstopmode -halt-on-error printer.tex
+      - name: Compile the digital edition (final version)
+        run: |
+          sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=digital, version=final]{thesis}/' main.tex > digital.tex
           latexmk -interaction=nonstopmode -halt-on-error digital.tex
       - name: Keep the PDFs and the logs
         if: always()
@@ -48,8 +50,8 @@ jobs:
         with:
           name: thesis
           path: |
-            main.pdf
-            main.log
+            printer.pdf
+            printer.log
             digital.pdf
             digital.log
           retention-days: 30
@@ -75,7 +77,7 @@ jobs:
           chmod +x "$HOME/bin/verapdf"
           echo "$HOME/bin" >> "$GITHUB_PATH"
       - name: Check the print edition (PDF/X, fonts, images, colour, log)
-        run: python3 tools/check_pdf.py main.pdf
+        run: python3 tools/check_pdf.py printer.pdf
       - name: Check the digital edition (PDF/A and PDF/UA with veraPDF, fonts, images, log)
         if: always()
         run: python3 tools/check_pdf.py digital.pdf

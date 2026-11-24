@@ -6,31 +6,35 @@
 %% replace memoir's only inside this class.
 
 %% Options, given as keys in the \documentclass line, for example
-%%   \documentclass[edition=printer, size=dutch, thumbs]{thesis}
+%%   \documentclass[edition=printer, version=final, size=dutch]{thesis}
 %%   edition  = digital (default) | printer | preview | proof: the same book pages, prepared for where they go
 %%       digital : final size, for the screen and the repository (maroon links, coloured code, sideways
-%%                 pages upright); archival and accessible (PDF/A-4f, PDF/UA-2)
+%%                 pages upright); archival (PDF/A-4f) and, as the final version, accessible (PDF/UA-2)
 %%       printer : for the professional printer: PDF/X, the pages with bleed (settings/thesisinfo.tex:
 %%                 standard, colour profile, bleed)
 %%       preview : final size, as on paper: the printed book as it looks after trimming
 %%       proof   : the pages centred on an A4 sheet (paper=letter: US Letter), for printing a proof at home
-%%     The paper editions (printer, preview, proof) have no visible links (none at all in the PDF/X
+%%     The print editions (printer, preview, proof) have no visible links (none at all in the PDF/X
 %%     file), code in black and white and no rotated pages.
+%%   version  = fast-draft | draft (default) | final: how far along the thesis is
+%%       fast-draft : your own writing loop, compiled fastest: images as labelled boxes, overfull lines
+%%                    marked with a black bar, todo notes shown, DRAFT and the date on every page; not tagged
+%%       draft      : for your supervisors: the real images, todo notes and changes shown, line numbers in
+%%                    the margin (so readers can point at "p. 12, l. 31"), DRAFT and the date; not tagged
+%%       final      : to hand in and to print: todo notes and change marks hidden, no marks on the pages,
+%%                    tagged for screen readers (PDF/UA-2) in the digital, preview and proof editions
+%%     (template/documentmetadata.tex reads version too, before the class: tagging only for final)
 %%   size     = demy (default) | a5 | royal | dutch: book page 138 x 216, 148 x 210, 156 x 234, 170 x 240 mm
-%%   language = british (default) | american: hyphenation, quotation marks, dates
+%%   english  = british (default) | american: hyphenation, quotation marks, dates
 %%   paper    = a4 (default) | letter: the sheet of the proof edition
-%%   thumbs            chapter thumb tabs on the page edge
 %%   cropmarks         crop marks: on the proof sheet, or outside the bleed for the printer (only if asked)
-%%   untagged          no tagging (faster compiles while writing; not accessible: never for a version you
-%%                     hand in); read by template/documentmetadata.tex, before the class
-%%   draft             fast compiles while writing: images as boxes, overfull lines marked, line numbers,
-%%                     DRAFT and the date on every page
-%%   final             the version for the printer and the repository: hides all todo notes
 %%   chapterbib        every chapter ends with its own reference list (a thesis built from papers)
+%% Thumb tabs are switched on and styled in settings/thumbs.tex.
 \newcommand*{\thesis@edition}{digital}
+\newcommand*{\thesis@version}{draft}
 \newcommand*{\thesis@pagesize}{demy}
 \newcommand*{\thesis@language}{british}
-\newif\if@letter \newif\if@thumb \newif\ifthesis@showtrims \newif\if@draft \newif\ifthesis@final \newif\ifchapterbib
+\newif\if@letter \newif\ifthesis@showtrims \newif\ifchapterbib
 %% \thesis@choice{key}{value}{allowed values}{command to set}: an unknown value is an error naming the choices
 \ExplSyntaxOn
 \cs_new_protected:Npn \thesis@choice #1#2#3#4
@@ -44,33 +48,26 @@
 \ExplSyntaxOff
 \DeclareKeys{
     edition.code     = \thesis@choice{edition}{#1}{digital,printer,preview,proof}\thesis@edition ,
+    version.code     = \thesis@choice{version}{#1}{fast-draft,draft,final}\thesis@version ,
     size.code        = \thesis@choice{size}{#1}{demy,a5,royal,dutch}\thesis@pagesize ,
-    language.code    = \thesis@choice{language}{#1}{british,american}\thesis@language ,
+    english.code     = \thesis@choice{english}{#1}{british,american}\thesis@language ,
     paper.code       = \thesis@choice{paper}{#1}{a4,letter}\thesis@tmp
                        \ifdefstring{\thesis@tmp}{letter}{\@lettertrue}{\@letterfalse} ,
-    thumbs.if        = @thumb ,
     cropmarks.if     = thesis@showtrims ,
     chapterbib.if    = chapterbib ,
-    untagged.code    = {} ,
-    draft.code       = \@drafttrue \PassOptionsToPackage{draft}{graphicx}\PassOptionsToClass{draft}{book} ,
-    final.code       = \thesis@finaltrue \PassOptionsToPackage{disable}{todonotes}\PassOptionsToPackage{final}{changes} ,
 }
 \RequirePackage{etoolbox}
 \ProcessKeyOptions
-%% (draft is a class option, so every package sees it: hyperref and bookmark would then leave out all
-%% links and bookmarks)
-\PassOptionsToPackage{final}{hyperref}\PassOptionsToPackage{final}{bookmark}
-%% final is the version you hand in: not a draft, and tagged (accessible)
-\ifthesis@final
-    \if@draft
-        \ClassError{thesis}{The options draft and final exclude each other}{draft is for writing,
-            final for the version you hand in: remove one of them.}
-    \fi
-    \@ifundefined{ifthesistagging}{}{\csname ifthesistagging\endcsname\else
-        \ClassError{thesis}{The options untagged and final exclude each other}{The version you hand in
-            must be tagged (accessible, PDF/UA): remove untagged.}
-    \fi}
-\fi
+%% What each version does (the draft marks themselves are set up further down, \ifthesis@draftmarks)
+\newif\ifthesis@draftmarks % DRAFT and the date on every page; todo notes and changes shown
+\newif\ifthesis@linenumbers
+\ifdefstring{\thesis@version}{fast-draft}{%
+    \thesis@draftmarkstrue
+    \PassOptionsToPackage{draft}{graphicx}% images as labelled boxes
+    \PassOptionsToClass{draft}{book}}{}%   overfull lines marked with a black bar
+\ifdefstring{\thesis@version}{draft}{\thesis@draftmarkstrue\thesis@linenumberstrue}{}
+\ifdefstring{\thesis@version}{final}{%
+    \PassOptionsToPackage{disable}{todonotes}\PassOptionsToPackage{final}{changes}}{}
 \def\thesis@paper{trimmed} % what the PDF page is: see PAGE LAYOUT
 \ifdefstring{\thesis@edition}{printer}{\def\thesis@paper{bleed}}{}
 \ifdefstring{\thesis@edition}{proof}{\def\thesis@paper{sheet}}{}
@@ -90,11 +87,6 @@
 \IfDocumentMetadataTF{}{%
     \ClassError{thesis}{\string\DocumentMetadata\space missing}{Put
         \string\input{template/documentmetadata} on the first line, before \string\documentclass.}}
-%% Untagged on purpose (the option untagged, for faster compiles while writing): a reminder.
-\@ifundefined{thesispdfx}{\@ifundefined{ifthesistagging}{}{\csname ifthesistagging\endcsname\else
-    \AtEndDocument{\ClassWarningNoLine{thesis}{Untagged build (the class option untagged): this PDF is
-        not accessible (PDF/UA). Remove the option for any version you hand in}}
-\fi}}{}% (not for the printer: that edition is never tagged)
 
 %% Public switch, for files outside the class (\ifprintversion ... \else ... \fi): true for the print
 %% editions (links invisible or left out, code in black and white, no rotated pages), false for digital.
@@ -434,7 +426,7 @@
     \IfFileExists{settings/thesisinfo.tex}{\input{settings/thesisinfo}}{\ClassWarningNoLine{thesis}{settings/thesisinfo.tex not found}}\fi
 \input{template/pdfa} % before anything that loads xcolor (lualineno, ...)
 
-\if@draft
+\ifthesis@linenumbers
     %% line numbers in the margin, so readers can point at a line ("p. 12, l. 31"); lualineno numbers
     %% the lines of each finished page just before it is shipped out, equations included
     \RequirePackage{lualineno}
@@ -447,6 +439,8 @@
         }
         set = thesis
     }
+\fi
+\ifthesis@draftmarks
     \RequirePackage[firstpageonly=false]{draftwatermark}
     \DraftwatermarkOptions{text={\normalfont DRAFT \textendash\ \today}, fontsize=8pt, angle=0, pos={0.5\paperwidth, 4mm}, color=black!60}
 \fi

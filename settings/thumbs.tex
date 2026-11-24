@@ -1,0 +1,18 @@
+%% =====================================================================
+%% Thumb tabs: a tab with the chapter number on the outer page edge, so the chapters can be found by
+%% flipping through the closed book (the drawing is in template/thumb.tex). In every edition.
+%% =====================================================================
+\thesisthumbstrue       % \thesisthumbsfalse for none
+
+%% The tab and its number: light grey with a black number by default; for the darker look, anthracite
+%% (or tudelft-black) with a white number. Any colour other than grey makes every page with a tab a
+%% colour page at the printer.
+\colorlet{thumb}{lightgrey}
+\colorlet{thumbtext}{tudelft-black}
+% \colorlet{thumb}{anthracite}\colorlet{thumbtext}{tudelft-white}
+
+%% Size: the tab's height (at most; with many chapters the tabs get shorter so they all fit), the space
+%% around its number, and how far it reaches into the page.
+\setlength\thumbheight{24pt}
+\setlength\thumbedge{4pt}
+\setlength\thumbhspace{36pt}

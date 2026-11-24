@@ -34,7 +34,7 @@ def build(size, outdir):
     """Compile main.tex in this page size; return the PDF and the measured metrics."""
     src = (ROOT / "main.tex").read_text()
     src = re.sub(r"^\\documentclass\[[^\]]*\]\{thesis\}",
-                 rf"\\documentclass[edition=preview, thumbs, size={size}]{{thesis}}", src, count=1, flags=re.M)
+                 rf"\\documentclass[edition=preview, version=final, size={size}]{{thesis}}", src, count=1, flags=re.M)
     probe = (r"\typeout{THESIS-METRICS:\the\textwidth;\the\textheight;\csname f@size\endcsname;"
              r"\the\baselineskip;\csname thesis@fontscale\endcsname}")
     src = src.replace(r"\begin{Spacing}{\thesisspacing}", r"\begin{Spacing}{\thesisspacing}" + probe, 1)

@@ -1,5 +1,5 @@
 %% =====================================================================
-%% Thumb tabs (class option thumbs)
+%% Thumb tabs (switched on and styled in settings/thumbs.tex)
 %% A tab with the chapter number on the outer page edge, running into the bleed, so the
 %% chapters can be found by flipping through the closed book.
 %%  - Tabs step down the page, one position per chapter; appendices continue below the last
@@ -9,13 +9,15 @@
 %%    page size. With few chapters, tabs are spaced 2 tab heights apart; with many, they move
 %%    closer and become shorter.
 %%  - Square tabs in a light grey with a black number ("thumb" and "thumbtext" in
-%%    formatColor.tex). Grey prints with black ink only; coloured tabs would make every page of
+%%    settings/thumbs.tex). Grey prints with black ink only; coloured tabs would make every page of
 %%    the book a colour page at the printer.
 %% \thumbsoff and \thumbson switch them off and on, e.g. around the references.
 %% =====================================================================
-\newlength\thumbheight      \setlength\thumbheight{24pt}    % tab height (maximum)
-\newlength\thumbedge        \setlength\thumbedge{4pt}       % padding around the number
-\newlength\thumbhspace      \setlength\thumbhspace{36pt}    % how far the tab reaches into the page
+\newlength\thumbheight      % tab height (maximum)                 (these three are set in
+\newlength\thumbedge        % padding around the number             settings/thumbs.tex)
+\newlength\thumbhspace      % how far the tab reaches into the page
+\newif\ifthesisthumbs
+\input{settings/thumbs}
 \newlength\thumbvspace                                      % step between tab positions (computed)
 \newlength\thesis@thumbtab                                  % actual tab height (computed)
 
@@ -83,7 +85,7 @@
             \headingfont\bfseries\color{thumbtext}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
     \end{tikzpicture}}
 \newcommand*{\thesis@thumb}[1]{%
-    \if@thumb\ifthesis@thumbson\ifnum\value{chapter}>0
+    \ifthesisthumbs\ifthesis@thumbson\ifnum\value{chapter}>0
         \xdef\thesis@thumbside{#1}%
     \fi\fi\fi}
 \newcommand*{\lthumb}{\thesis@thumb{{\the\trimedge}{1}{east}}}
