@@ -16,19 +16,19 @@
 \def\MTP@addclash#1{\@ifpackageloaded{#1}{\MTP@clash{#1}{its commands}}{}%
   \AddToHook{package/#1/before}{\ifMTP@ownload\else\MTP@clash{#1}{its commands}\fi}}
 \@for\MTP@o:=newtxmath,bm,amssymb,amsfonts\do{\expandafter\MTP@addclash\expandafter{\MTP@o}}
-\def\MTP@features{}
+\def\MTP@features{}\def\MTP@style{TeX}
 % newtxmath's options: scale (or scaled), slantedGreek and uprightGreek (the default); the
 % plain Times set-up is its default and the only one converted, so other newtxmath options
 % are ignored, with a warning. ISO: the same as slantedGreek (unicode-math's math-style=ISO:
 % italic capital Greek; \upGamma, \uppi, \mathrm{e} stay upright)
 \DeclareOption{upint}{\AddToHook{begindocument/end}{\ifdefined\smallintup\let\smallint\smallintup\fi\ifdefined\smalliintup\let\smalliint\smalliintup\fi\ifdefined\smalliiintup\let\smalliiint\smalliiintup\fi\ifdefined\smallointup\let\smalloint\smallointup\fi\ifdefined\smalloiintup\let\smalloiint\smalloiintup\fi\ifdefined\smalloiiintup\let\smalloiiint\smalloiiintup\fi\ifdefined\smallvarointclockwiseup\let\smallvarointclockwise\smallvarointclockwiseup\fi\ifdefined\smallointctrclockwiseup\let\smallointctrclockwise\smallointctrclockwiseup\fi\ifdefined\smallsumintup\let\smallsumint\smallsumintup\fi\ifdefined\smalliiiintup\let\smalliiiint\smalliiiintup\fi\ifdefined\smallfintup\let\smallfint\smallfintup\fi\ifdefined\smallsqintup\let\smallsqint\smallsqintup\fi\ifdefined\intupop\let\intop\intupop\fi\ifdefined\iintupop\let\iintop\iintupop\fi\ifdefined\iiintupop\let\iiintop\iiintupop\fi\ifdefined\ointupop\let\ointop\ointupop\fi\ifdefined\oiintupop\let\oiintop\oiintupop\fi\ifdefined\oiiintupop\let\oiiintop\oiiintupop\fi\ifdefined\varointclockwiseupop\let\varointclockwiseop\varointclockwiseupop\fi\ifdefined\ointctrclockwiseupop\let\ointctrclockwiseop\ointctrclockwiseupop\fi\ifdefined\sumintupop\let\sumintop\sumintupop\fi\ifdefined\iiiintupop\let\iiiintop\iiiintupop\fi\ifdefined\fintupop\let\fintop\fintupop\fi\ifdefined\sqintupop\let\sqintop\sqintupop\fi}}
-\DeclareOption{frenchmath}{\PassOptionsToPackage{math-style=french}{unicode-math}\AddToHook{begindocument/end}{\ifdefined\alphaup\let\alpha\alphaup\fi\ifdefined\betaup\let\beta\betaup\fi\ifdefined\gammaup\let\gamma\gammaup\fi\ifdefined\deltaup\let\delta\deltaup\fi\ifdefined\epsilonup\let\epsilon\epsilonup\fi\ifdefined\zetaup\let\zeta\zetaup\fi\ifdefined\etaup\let\eta\etaup\fi\ifdefined\thetaup\let\theta\thetaup\fi\ifdefined\iotaup\let\iota\iotaup\fi\ifdefined\kappaup\let\kappa\kappaup\fi\ifdefined\lambdaup\let\lambda\lambdaup\fi\ifdefined\muup\let\mu\muup\fi\ifdefined\nuup\let\nu\nuup\fi\ifdefined\xiup\let\xi\xiup\fi\ifdefined\piup\let\pi\piup\fi\ifdefined\rhoup\let\rho\rhoup\fi\ifdefined\sigmaup\let\sigma\sigmaup\fi\ifdefined\tauup\let\tau\tauup\fi\ifdefined\upsilonup\let\upsilon\upsilonup\fi\ifdefined\phiup\let\phi\phiup\fi\ifdefined\chiup\let\chi\chiup\fi\ifdefined\psiup\let\psi\psiup\fi\ifdefined\omegaup\let\omega\omegaup\fi\ifdefined\varepsilonup\let\varepsilon\varepsilonup\fi\ifdefined\varthetaup\let\vartheta\varthetaup\fi\ifdefined\varpiup\let\varpi\varpiup\fi\ifdefined\varrhoup\let\varrho\varrhoup\fi\ifdefined\varsigmaup\let\varsigma\varsigmaup\fi\ifdefined\varphiup\let\varphi\varphiup\fi\ifdefined\varkappaup\let\varkappa\varkappaup\fi}}
+\DeclareOption{frenchmath}{\def\MTP@style{french}\AddToHook{begindocument/end}{\ifdefined\alphaup\let\alpha\alphaup\fi\ifdefined\betaup\let\beta\betaup\fi\ifdefined\gammaup\let\gamma\gammaup\fi\ifdefined\deltaup\let\delta\deltaup\fi\ifdefined\epsilonup\let\epsilon\epsilonup\fi\ifdefined\zetaup\let\zeta\zetaup\fi\ifdefined\etaup\let\eta\etaup\fi\ifdefined\thetaup\let\theta\thetaup\fi\ifdefined\iotaup\let\iota\iotaup\fi\ifdefined\kappaup\let\kappa\kappaup\fi\ifdefined\lambdaup\let\lambda\lambdaup\fi\ifdefined\muup\let\mu\muup\fi\ifdefined\nuup\let\nu\nuup\fi\ifdefined\xiup\let\xi\xiup\fi\ifdefined\piup\let\pi\piup\fi\ifdefined\rhoup\let\rho\rhoup\fi\ifdefined\sigmaup\let\sigma\sigmaup\fi\ifdefined\tauup\let\tau\tauup\fi\ifdefined\upsilonup\let\upsilon\upsilonup\fi\ifdefined\phiup\let\phi\phiup\fi\ifdefined\chiup\let\chi\chiup\fi\ifdefined\psiup\let\psi\psiup\fi\ifdefined\omegaup\let\omega\omegaup\fi\ifdefined\varepsilonup\let\varepsilon\varepsilonup\fi\ifdefined\varthetaup\let\vartheta\varthetaup\fi\ifdefined\varpiup\let\varpi\varpiup\fi\ifdefined\varrhoup\let\varrho\varrhoup\fi\ifdefined\varsigmaup\let\varsigma\varsigmaup\fi\ifdefined\varphiup\let\varphi\varphiup\fi\ifdefined\varkappaup\let\varkappa\varkappaup\fi}}
 \DeclareOption{vvarbb}{\AddToHook{begindocument/end}{\let\mathbb\vvmathbb}}
 \DeclareOption{varbb}{\AddToHook{begindocument/end}{\let\mathbb\vmathbb}}
 \DeclareOption{cmintegrals}{}
 \DeclareOption{uprightGreek}{}
-\DeclareOption{slantedGreek}{\PassOptionsToPackage{math-style=ISO}{unicode-math}}
-\DeclareOption{ISO}{\PassOptionsToPackage{math-style=ISO}{unicode-math}}
+\DeclareOption{slantedGreek}{\def\MTP@style{ISO80000-2}}
+\DeclareOption{ISO}{\def\MTP@style{ISO80000-2}}
 \def\MTP@cal{v}\def\MTP@scr{x}\def\MTP@frak{x}\def\MTP@bb{x}\def\MTP@br{c}
 \newif\ifMTP@slops \newif\ifMTP@zswash \newif\ifMTP@sbcorr \newif\ifMTP@textsf
 \DeclareOption{textsf}{\MTP@textsftrue}
@@ -69,8 +69,23 @@
 % Type 1 maths packages, which leave the encoding alone)
 \let\MTP@encdefault\encodingdefault \let\MTP@rmdefault\rmdefault
 \let\MTP@sfdefault\sfdefault \let\MTP@ttdefault\ttdefault
-\RequirePackage{unicode-math}
-\unimathsetup{mathrm=sym}% (\mathrm, operator names: newtxmath's operators font, as glyphs of the maths font)
+\@for\MTP@o:=root,DOTSB,DOTSI,DOTSX,DOTSC,mdots@\do{\ifcsname\MTP@o\endcsname
+  \expandafter\let\csname MTP@k@\MTP@o\expandafter\endcsname\csname\MTP@o\endcsname\fi}
+\RequirePackage{lua-unicode-math}
+\directlua{ntxmathotf.lumrestore()}
+\def\dotsb@{\cdots}% (as unicode-math sets it)
+\every@math@size\expandafter{\the\every@math@size\global\textfont2=\textfont2 \global\scriptfont2=\scriptfont2
+  \global\scriptscriptfont2=\scriptscriptfont2 \global\textfont3=\textfont3
+  \global\scriptfont3=\scriptfont3 \global\scriptscriptfont3=\scriptscriptfont3 }
+\protected\def\mathexclam{\Udelimiter 5\symlummain "00021 }\protected\def\lparen{\Udelimiter 4\symlummain "00028 }\protected\def\rparen{\Udelimiter 5\symlummain "00029 }\protected\def\lbrack{\Udelimiter 4\symlummain "0005B }\protected\def\rbrack{\Udelimiter 5\symlummain "0005D }\protected\def\lbrace{\Udelimiter 4\symlummain "0007B }\protected\def\rbrace{\Udelimiter 5\symlummain "0007D }\protected\def\lceil{\Udelimiter 4\symlummain "02308 }\protected\def\rceil{\Udelimiter 5\symlummain "02309 }\protected\def\lfloor{\Udelimiter 4\symlummain "0230A }\protected\def\rfloor{\Udelimiter 5\symlummain "0230B }\protected\def\ulcorner{\Udelimiter 4\symlummain "0231C }\protected\def\urcorner{\Udelimiter 5\symlummain "0231D }\protected\def\llcorner{\Udelimiter 4\symlummain "0231E }\protected\def\lrcorner{\Udelimiter 5\symlummain "0231F }\protected\def\lmoustache{\Udelimiter 4\symlummain "023B0 }\protected\def\rmoustache{\Udelimiter 5\symlummain "023B1 }\protected\def\lbrbrak{\Udelimiter 4\symlummain "02772 }\protected\def\rbrbrak{\Udelimiter 5\symlummain "02773 }\protected\def\lbag{\Udelimiter 4\symlummain "027C5 }\protected\def\rbag{\Udelimiter 5\symlummain "027C6 }\protected\def\lBrack{\Udelimiter 4\symlummain "027E6 }\protected\def\rBrack{\Udelimiter 5\symlummain "027E7 }\protected\def\langle{\Udelimiter 4\symlummain "027E8 }\protected\def\rangle{\Udelimiter 5\symlummain "027E9 }\protected\def\lAngle{\Udelimiter 4\symlummain "027EA }\protected\def\rAngle{\Udelimiter 5\symlummain "027EB }\protected\def\Lbrbrak{\Udelimiter 4\symlummain "027EC }\protected\def\Rbrbrak{\Udelimiter 5\symlummain "027ED }\protected\def\lgroup{\Udelimiter 4\symlummain "027EE }\protected\def\rgroup{\Udelimiter 5\symlummain "027EF }\protected\def\lBrace{\Udelimiter 4\symlummain "02983 }\protected\def\rBrace{\Udelimiter 5\symlummain "02984 }\protected\def\lParen{\Udelimiter 4\symlummain "02985 }\protected\def\rParen{\Udelimiter 5\symlummain "02986 }\protected\def\llparenthesis{\Udelimiter 4\symlummain "02987 }\protected\def\rrparenthesis{\Udelimiter 5\symlummain "02988 }\protected\def\llangle{\Udelimiter 4\symlummain "02989 }\protected\def\rrangle{\Udelimiter 5\symlummain "0298A }\protected\def\lbrackubar{\Udelimiter 4\symlummain "0298B }\protected\def\rbrackubar{\Udelimiter 5\symlummain "0298C }\protected\def\lbrackultick{\Udelimiter 4\symlummain "0298D }\protected\def\rbracklrtick{\Udelimiter 5\symlummain "0298E }\protected\def\lbracklltick{\Udelimiter 4\symlummain "0298F }\protected\def\rbrackurtick{\Udelimiter 5\symlummain "02990 }\protected\def\langledot{\Udelimiter 4\symlummain "02991 }\protected\def\rangledot{\Udelimiter 5\symlummain "02992 }\protected\def\lparenless{\Udelimiter 4\symlummain "02993 }\protected\def\rparengtr{\Udelimiter 5\symlummain "02994 }\protected\def\Lparengtr{\Udelimiter 4\symlummain "02995 }\protected\def\Rparenless{\Udelimiter 5\symlummain "02996 }\protected\def\lblkbrbrak{\Udelimiter 4\symlummain "02997 }\protected\def\rblkbrbrak{\Udelimiter 5\symlummain "02998 }\protected\def\lvzigzag{\Udelimiter 4\symlummain "029D8 }\protected\def\rvzigzag{\Udelimiter 5\symlummain "029D9 }\protected\def\Lvzigzag{\Udelimiter 4\symlummain "029DA }\protected\def\Rvzigzag{\Udelimiter 5\symlummain "029DB }\protected\def\lcurvyangle{\Udelimiter 4\symlummain "029FC }\protected\def\rcurvyangle{\Udelimiter 5\symlummain "029FD }
+\@for\MTP@o:=root,DOTSB,DOTSI,DOTSX,DOTSC,mdots@\do{\ifcsname MTP@k@\MTP@o\endcsname
+  \expandafter\let\csname\MTP@o\expandafter\endcsname\csname MTP@k@\MTP@o\endcsname\fi}
+\edef\MTP@tmp{\noexpand\UseInstance{lua-unicode-math-style}{\MTP@style}}\MTP@tmp
+% (the classic prime: ' is LaTeX's ^{\prime...}; ` the character)
+\begingroup\lccode`\~=`\' \lowercase{\endgroup\def~}{\active@math@prime}
+\mathcode`\`="0060
+\AtBeginDocument{\let\mathrm\symup}
+\def\operator@font{\mathfamattr=\csname c__l_uni_math_attribute_symup_int\endcsname\relax}
 % (the maths fonts are set up in TU, also when fontspec came first and T1 after it; restored
 % once they are)
 \def\MTP@tmp{TU}\ifx\encodingdefault\MTP@tmp\else
@@ -93,18 +108,20 @@
     \def\MTP@degree{\csname luamml_annotate:en\endcsname
       {core={[0]='mi',mathvariant='normal',"\luaescapestring{\Uchar"B0}"}}{\MTP@degree@}}\fi}
 % unicode-math ends a delimiter command's number with \scan_stop: (\lbrace is \Udelimiter 4
-% \symoperators "0007B\scan_stop:); \abovewithdelims (amsmath's \genfrac) then takes that \relax
+% \symlummain "0007B\scan_stop:); \abovewithdelims (amsmath's \genfrac) then takes that \relax
 % for its thickness. The Type 1 set-up ends it with a space (\delimiter"4266308 ), as here.
-\ExplSyntaxOn
-\cs_set:Nn \__um_delimiter:Nnn { \Udelimiter \mathchar@type#1 \csname sym#2\endcsname #3 ~ }
-\ExplSyntaxOff
 \edef\MTP@path{\directlua{ntxmathotf.fontdir("NewTXMath.otf")}}% (found like any TeX file)
-\edef\MTP@load{\noexpand\setmathfont{NewTXMath.otf}[Path=\MTP@path,RawFeature={\MTP@features},script-features={},sscript-features={}]}\MTP@load
+\DeclareFontFamily{TU}{NewTXMath}{}
+\edef\MTP@load{\noexpand\DeclareFontShape{TU}{NewTXMath}{m}{n}{<->\noexpand\UnicodeFontFile{\MTP@path NewTXMath.otf}{mode=base;script=math;language=dflt;mathfontdimen=xetex;\MTP@features}}{}}\MTP@load
+\DeclareSymbolFont{lummain}{TU}{NewTXMath}{m}{n}
+\directlua{ntxmathotf.mainfam = \number\symlummain}
 \IfFileExists{NewTXMath-Bold.otf}{%
-  \edef\MTP@load{\noexpand\setmathfont{NewTXMath-Bold.otf}[Path=\MTP@path,version=bold,RawFeature={\MTP@features},script-features={},sscript-features={}]}\MTP@load
+  \edef\MTP@load{\noexpand\DeclareFontFamily{TU}{NewTXMath-Bold}{}\noexpand\DeclareFontShape{TU}{NewTXMath-Bold}{m}{n}{<->\noexpand\UnicodeFontFile{\MTP@path NewTXMath-Bold.otf}{mode=base;script=math;language=dflt;mathfontdimen=xetex;\MTP@features}}{}}\MTP@load
+  \SetSymbolFont{lummain}{bold}{TU}{NewTXMath-Bold}{m}{n}
   \def\MTP@boldver{bold}}{\def\MTP@boldver{normal}}
 \IfFileExists{NewTXMath-Heavy.otf}{%
-  \edef\MTP@load{\noexpand\setmathfont{NewTXMath-Heavy.otf}[Path=\MTP@path,version=heavy,RawFeature={\MTP@features},script-features={},sscript-features={}]}\MTP@load
+  \DeclareMathVersion{heavy}\edef\MTP@load{\noexpand\DeclareFontFamily{TU}{NewTXMath-Heavy}{}\noexpand\DeclareFontShape{TU}{NewTXMath-Heavy}{m}{n}{<->\noexpand\UnicodeFontFile{\MTP@path NewTXMath-Heavy.otf}{mode=base;script=math;language=dflt;mathfontdimen=xetex;\MTP@features}}{}}\MTP@load
+  \SetSymbolFont{lummain}{heavy}{TU}{NewTXMath-Heavy}{m}{n}
   \def\MTP@heavyver{heavy}}{\let\MTP@heavyver\MTP@boldver}
 % mtpro2.sty's script and scriptscript sizes (unicode-math declares one, from the font)
 \def\defaultscriptratio{.73}
@@ -1160,7 +1177,7 @@
 \def\MTP@nochar#1#2{\PackageError{ntxmath-otf}{\expandafter\string\csname#1\endcsname\space
   (U+#2) is not in the NewTX Math font}{newtxmath has no glyph for this character;
   with its Type 1 fonts the command is not defined either.}}
-\AddToHook{begindocument/end}{\directlua{ntxmathotf.nochar()}}
+\AddToHook{begindocument/end}{\directlua{ntxmathotf.umcodes()}\directlua{ntxmathotf.nochar()}}
 % a formula nested in an alphabet switch starts with the document's letters, as with the
 % Type 1 fonts, where the switch is \fam and TeX resets it at the start of every formula
 % (\operatorname{inf\vphantom{p}}, \mathbb{x\phantom{y}}, \mathrm{x\text{$p$}}). unicode-math
@@ -1168,10 +1185,7 @@
 % also switches outside), so packages that set mathcodes themselves (url) are left alone.
 % (No ~ and no Lua comments here: babel makes ~ active, and newlines become spaces.)
 \newcount\MTP@inalpha
-\ExplSyntaxOn
-\cs_set_protected:Nn \__um_switch_to:n { \tl_use:c {g__um_switchto_#1_tl} \ifmmode \MTP@inalpha=\@ne \fi }
-\ExplSyntaxOff
-\def\MTP@resetmc{\ifnum\MTP@inalpha>\z@ \MTP@inalpha=\z@ \directlua{ntxmathotf.resetmc()}\fi}
+\def\MTP@resetmc{\mathfamattr=\csname c__l_uni_math_attribute_unset_int\endcsname\relax}
 \AddToHook{begindocument/end}{\directlua{
   local L, S = {}, {}
   for _, r in ipairs({{48, 57}, {65, 90}, {97, 122}, {913, 937}, {945, 969}, {977, 982}, {1008, 1013}, {8706, 8706}, {8711, 8711}}) do

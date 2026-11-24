@@ -235,7 +235,7 @@ luatexbase.add_to_callback("luaotfload.patch_font", function(tfm, spec, id)
     if tfm.fullname then tfm.fullname = tfm.fullname .. "-D" .. lvl end
   end
 end, "ntxmath-otf.dims")
-local function fam() return tex.getmathcode(0x2211)[2] end
+local function fam() return ntxmathotf.mainfam or tex.getmathcode(0x2211)[2] end
 local function slot(name)
   local f = fam()
   return luaotfload.aux.slot_of_name(node.family_font(f, 0), name), f
@@ -1141,9 +1141,14 @@ function ntxmathotf.setlitebm(t)
   end
   L.map = m
 end
+ntxmathotf.umchar = {["Angstrom"]=true,["Bumpeq"]=true,["Cap"]=true,["Coloneq"]=true,["Cup"]=true,["Doteq"]=true,["Finv"]=true,["Game"]=true,["Im"]=true,["Leftarrow"]=true,["Leftrightarrow"]=true,["Lleftarrow"]=true,["Lsh"]=true,["Nearrow"]=true,["Nwarrow"]=true,["Re"]=true,["Rightarrow"]=true,["Rrightarrow"]=true,["Rsh"]=true,["Searrow"]=true,["Subset"]=true,["Supset"]=true,["Swarrow"]=true,["VDash"]=true,["Vdash"]=true,["Vvdash"]=true,["Zbar"]=true,["aleph"]=true,["amalg"]=true,["angle"]=true,["approx"]=true,["approxeq"]=true,["ast"]=true,["asymp"]=true,["backsim"]=true,["backsimeq"]=true,["barwedge"]=true,["beth"]=true,["between"]=true,["bigstar"]=true,["bigtriangleup"]=true,["blacktriangle"]=true,["blacktriangledown"]=true,["bot"]=true,["boxast"]=true,["boxbar"]=true,["boxbslash"]=true,["boxdot"]=true,["boxminus"]=true,["boxplus"]=true,["boxtimes"]=true,["bumpeq"]=true,["cap"]=true,["cdot"]=true,["circeq"]=true,["circledast"]=true,["circledcirc"]=true,["circleddash"]=true,["clubsuit"]=true,["coloneq"]=true,["complement"]=true,["cong"]=true,["cup"]=true,["curlyeqprec"]=true,["curlyeqsucc"]=true,["curlyvee"]=true,["curlywedge"]=true,["curvearrowleft"]=true,["curvearrowright"]=true,["dagger"]=true,["daleth"]=true,["dashcolon"]=true,["dashv"]=true,["ddagger"]=true,["diagdown"]=true,["diagup"]=true,["diamondsuit"]=true,["div"]=true,["divideontimes"]=true,["doteq"]=true,["dotplus"]=true,["doublebarwedge"]=true,["downdownarrows"]=true,["downharpoonleft"]=true,["downharpoonright"]=true,["ell"]=true,["eqcirc"]=true,["eqcolon"]=true,["eqsim"]=true,["eqslantgtr"]=true,["eqslantless"]=true,["equiv"]=true,["exists"]=true,["fallingdotseq"]=true,["flat"]=true,["forall"]=true,["frown"]=true,["geq"]=true,["geqq"]=true,["geqslant"]=true,["gg"]=true,["ggg"]=true,["gimel"]=true,["gnapprox"]=true,["gneq"]=true,["gneqq"]=true,["gnsim"]=true,["gtrapprox"]=true,["gtreqless"]=true,["gtreqqless"]=true,["gtrless"]=true,["gtrsim"]=true,["heartsuit"]=true,["hslash"]=true,["imath"]=true,["in"]=true,["infty"]=true,["intercal"]=true,["jmath"]=true,["laplac"]=true,["leftarrow"]=true,["leftarrowtail"]=true,["leftharpoondown"]=true,["leftharpoonup"]=true,["leftleftarrows"]=true,["leftrightarrow"]=true,["leftrightarrows"]=true,["leftrightharpoons"]=true,["leftrightsquigarrow"]=true,["leftsquigarrow"]=true,["leftthreetimes"]=true,["leq"]=true,["leqq"]=true,["leqslant"]=true,["lessapprox"]=true,["lesseqgtr"]=true,["lesseqqgtr"]=true,["lessgtr"]=true,["lesssim"]=true,["ll"]=true,["lll"]=true,["lnapprox"]=true,["lneq"]=true,["lneqq"]=true,["lnsim"]=true,["looparrowleft"]=true,["looparrowright"]=true,["ltimes"]=true,["mathdollar"]=true,["mathparagraph"]=true,["mathsection"]=true,["measuredangle"]=true,["mho"]=true,["mid"]=true,["mp"]=true,["multimap"]=true,["multimapinv"]=true,["nLeftarrow"]=true,["nLeftrightarrow"]=true,["nRightarrow"]=true,["nVDash"]=true,["nVdash"]=true,["nabla"]=true,["napprox"]=true,["nasymp"]=true,["natural"]=true,["ncong"]=true,["ne"]=true,["nearrow"]=true,["neg"]=true,["nequiv"]=true,["nexists"]=true,["ngeq"]=true,["ngtr"]=true,["ngtrless"]=true,["ngtrsim"]=true,["ni"]=true,["nleftarrow"]=true,["nleftrightarrow"]=true,["nleq"]=true,["nless"]=true,["nlessgtr"]=true,["nlesssim"]=true,["nmid"]=true,["nni"]=true,["notin"]=true,["nparallel"]=true,["nprec"]=true,["npreccurlyeq"]=true,["nrightarrow"]=true,["nsim"]=true,["nsimeq"]=true,["nsqsubseteq"]=true,["nsqsupseteq"]=true,["nsubset"]=true,["nsubseteq"]=true,["nsucc"]=true,["nsucccurlyeq"]=true,["nsupset"]=true,["nsupseteq"]=true,["ntrianglelefteq"]=true,["ntrianglerighteq"]=true,["nvDash"]=true,["nvdash"]=true,["nwarrow"]=true,["odot"]=true,["ominus"]=true,["oplus"]=true,["oslash"]=true,["otimes"]=true,["parallel"]=true,["partial"]=true,["pitchfork"]=true,["pm"]=true,["prec"]=true,["precapprox"]=true,["preccurlyeq"]=true,["preceq"]=true,["preceqq"]=true,["precnapprox"]=true,["precneqq"]=true,["precnsim"]=true,["precsim"]=true,["propto"]=true,["rightarrow"]=true,["rightarrowtail"]=true,["rightharpoondown"]=true,["rightharpoonup"]=true,["rightleftarrows"]=true,["rightleftharpoons"]=true,["rightrightarrows"]=true,["rightsquigarrow"]=true,["rightthreetimes"]=true,["risingdotseq"]=true,["rtimes"]=true,["searrow"]=true,["setminus"]=true,["sharp"]=true,["sim"]=true,["simeq"]=true,["smile"]=true,["spadesuit"]=true,["sphericalangle"]=true,["sqcap"]=true,["sqcup"]=true,["sqsubset"]=true,["sqsubseteq"]=true,["sqsupset"]=true,["sqsupseteq"]=true,["star"]=true,["subset"]=true,["subseteq"]=true,["subseteqq"]=true,["subsetneq"]=true,["subsetneqq"]=true,["succ"]=true,["succapprox"]=true,["succcurlyeq"]=true,["succeq"]=true,["succeqq"]=true,["succnapprox"]=true,["succneqq"]=true,["succnsim"]=true,["succsim"]=true,["supset"]=true,["supseteq"]=true,["supseteqq"]=true,["supsetneq"]=true,["supsetneqq"]=true,["swarrow"]=true,["times"]=true,["top"]=true,["triangledown"]=true,["triangleleft"]=true,["trianglelefteq"]=true,["triangleq"]=true,["triangleright"]=true,["trianglerighteq"]=true,["twoheadleftarrow"]=true,["twoheadrightarrow"]=true,["upharpoonleft"]=true,["upharpoonright"]=true,["uplus"]=true,["upuparrows"]=true,["vDash"]=true,["varclubsuit"]=true,["vardiamondsuit"]=true,["varheartsuit"]=true,["varnothing"]=true,["varspadesuit"]=true,["vartriangle"]=true,["vartriangleleft"]=true,["vartriangleright"]=true,["vdash"]=true,["vee"]=true,["veebar"]=true,["wedge"]=true,["wp"]=true,["wr"]=true}
 function ntxmathotf.provide(cs, cls)
   local t = token.create(cs)
   local c = t.cmdname
+  if c:find("call") and ntxmathotf.umchar[cs] then
+    local b = token.get_macro(cs)
+    if b and utf8.len(b) == 1 then c = "other_char"; t = { mode = utf8.codepoint(b) } end
+  end
   tex.setcount("MTP@def", (c == "undefined_cs" or c == "math_given" or c == "relax") and 1 or 0)
   -- unicode-math lets many commands be their character (\\therefore = U+2234): keep it, with
   -- the class mtpro2.sty gives the command (TeX's spacing depends on it)
@@ -1159,6 +1164,7 @@ ntxmathotf.byslot = {}                               -- private code -> glyph na
 function ntxmathotf.glyph(name, cls)
   local s, f = slot(name)
   if s then ntxmathotf.byslot[s] = name end
+  if s and ntxmathotf.aliased and ntxmathotf.aliased(s) then s = s + 0x100000 end
   if s then tex.sprint(string.format('\\Umathchar"%X"%X"%X ', cls, f, s)) end
 end
 function ntxmathotf.alpha(set, text)
@@ -1491,7 +1497,10 @@ function ntxmathotf.nochar()
     local t = token.create(cs)
     local c, m = t.cmdname, t.mode
     local ch
-    if c == "math_given" or c == "xmath_given" then
+    if c:find("call") then
+      local b = token.get_macro(cs)
+      if b and utf8.len(b) == 1 then ch = utf8.codepoint(b) end
+    elseif c == "math_given" or c == "xmath_given" then
       ch = type(m) == "table" and m[#m] or (type(m) == "number" and m % 0x200000) or nil
     elseif c == "other_char" or c == "letter" then      -- (\\let to the character itself:
       local mc = tex.getmathcode(m)                    -- its mathcode names it, or makes it
@@ -1576,4 +1585,55 @@ function ntxmathotf.delim(set, key, cls)
   if not g then return end
   local s, f = slot(g)
   if s then tex.sprint(string.format('\\Udelimiter"%X"%X"%X ', cls, f, s)) end
+end
+
+-- lua-unicode-math: the glyphs placed by name under alias codes while it restyles letters
+do
+  local A = 0x100000
+  local ranges = { {0x30, 0x39}, {0x41, 0x5A}, {0x61, 0x7A}, {0x131, 0x131}, {0x237, 0x237},
+    {0x391, 0x3A9}, {0x3B1, 0x3C9}, {0x3D0, 0x3F6}, {0x2202, 0x2202}, {0x2207, 0x2207} }
+  function ntxmathotf.aliased(s)
+    for _, r in ipairs(ranges) do if s >= r[1] and s <= r[2] then return true end end
+    return false
+  end
+  luatexbase.add_to_callback("luaotfload.patch_font", function(tfm)
+    if not (tfm.characters and (tfm.name or ""):find("NewTXMath", 1, true)) then return end
+    local ch = tfm.characters
+    for _, r in ipairs(ranges) do
+      for u = r[1], r[2] do if ch[u] then ch[A + u] = ch[u] end end
+    end
+  end, "ntxmath-otf.lumalias")
+  local MCHAR, MTCHAR, SUBML = node.id("math_char"), node.id("math_text_char"), node.id("sub_mlist")
+  local fields = { "nucleus", "sub", "sup", "prime", "num", "denom", "degree", "accent", "bot_accent",
+    "top_accent", "overlay_accent", "display", "text", "script", "scriptscript" }
+  local has = node.has_field
+  local function fix(n)
+    while n do
+      local id = n.id
+      if id == MCHAR or id == MTCHAR then
+        if n.char >= A then n.char = n.char - A end
+      elseif id == SUBML then
+        fix(n.head)
+      else
+        for _, f in ipairs(fields) do
+          if has(n, f) then local v = n[f]; if v then fix(v) end end
+        end
+      end
+      n = n.next
+    end
+  end
+  function ntxmathotf.lumrestore()
+    luatexbase.add_to_callback("pre_mlist_to_hlist_filter", function(head)
+      fix(head); return true
+    end, "ntxmath-otf.lumrestore")
+  end
+end
+
+-- unicode-math's mathcodes and delcodes (lua-unicode-math trial)
+function ntxmathotf.umcodes()
+  local M = ntxmathotf.mainfam
+  local mc = {[0xA1]={0,"M",0xA1},[0xB5]={7,1,0xB5},[0xBF]={0,"M",0xBF},[0xF0]={7,"M",0xF0},[0x1B5]={0,"M",0x1B5},[0x3A2]={7,"M",0x3A2},[0x3D0]={7,1,0x3D0},[0x3D2]={7,1,0x3D2},[0x3D8]={7,1,0x3D8},[0x3D9]={7,1,0x3D9},[0x3DA]={7,1,0x3DA},[0x3DB]={7,1,0x3DB},[0x3E0]={7,1,0x3E0},[0x3E1]={7,1,0x3E1},[0x428]={7,1,0x428},[0x606]={0,"M",0x606},[0x607]={0,"M",0x607},[0x608]={0,"M",0x608},[0x2010]={7,"M",0x2010},[0x2012]={0,"M",0x2012},[0x2013]={0,"M",0x2013},[0x2014]={0,"M",0x2014},[0x2016]={7,"M",0x2016},[0x204E]={0,"M",0x204E},[0x204F]={0,"M",0x204F},[0x2061]={0,"M",0x2061},[0x2062]={0,"M",0x2062},[0x2063]={0,"M",0x2063},[0x20DD]={0,"M",0x20DD},[0x20DE]={0,"M",0x20DE},[0x20DF]={0,"M",0x20DF},[0x20E4]={0,"M",0x20E4},[0x210E]={7,"M",0x210E},[0x210F]={7,"M",0x210F},[0x2126]={7,1,0x2126},[0x2129]={7,"M",0x2129},[0x213C]={0,"M",0x213C},[0x213E]={7,"M",0x213E},[0x214B]={2,"M",0x214B},[0x21A8]={0,"M",0x21A8},[0x21BA]={0,"M",0x21BA},[0x21BB]={0,"M",0x21BB},[0x21DE]={0,"M",0x21DE},[0x21DF]={0,"M",0x21DF},[0x21E0]={0,"M",0x21E0},[0x21E1]={0,"M",0x21E1},[0x21E2]={0,"M",0x21E2},[0x21E3]={0,"M",0x21E3},[0x21E6]={0,"M",0x21E6},[0x21E7]={0,"M",0x21E7},[0x21E8]={0,"M",0x21E8},[0x21E9]={0,"M",0x21E9},[0x21EA]={0,"M",0x21EA},[0x21EB]={0,"M",0x21EB},[0x21EC]={0,"M",0x21EC},[0x21ED]={0,"M",0x21ED},[0x21EE]={0,"M",0x21EE},[0x21EF]={0,"M",0x21EF},[0x21F0]={0,"M",0x21F0},[0x21F1]={0,"M",0x21F1},[0x21F2]={0,"M",0x21F2},[0x21F3]={0,"M",0x21F3},[0x2202]={7,"M",0x1D715},[0x2207]={7,"M",0x2207},[0x221A]={0,"M",0x221A},[0x221B]={0,"M",0x221B},[0x221C]={0,"M",0x221C},[0x2234]={0,"M",0x2234},[0x2235]={0,"M",0x2235},[0x22B9]={0,"M",0x22B9},[0x237C]={0,"M",0x237C},[0x23B0]={4,"M",0x23B0},[0x23B1]={5,"M",0x23B1},[0x25B2]={0,"M",0x25B2},[0x25B6]={0,"M",0x25B6},[0x25B8]={0,"M",0x25B8},[0x25B9]={0,"M",0x25B9},[0x25BC]={0,"M",0x25BC},[0x25BD]={0,"M",0x25BD},[0x25C0]={0,"M",0x25C0},[0x25C2]={0,"M",0x25C2},[0x25C3]={0,"M",0x25C3},[0x25C4]={0,"M",0x25C4},[0x25C5]={0,"M",0x25C5},[0x25CA]={0,"M",0x25CA},[0x25E6]={0,"M",0x25E6},[0x25EC]={0,"M",0x25EC},[0x25F8]={0,"M",0x25F8},[0x25F9]={0,"M",0x25F9},[0x25FA]={0,"M",0x25FA},[0x25FB]={0,"M",0x25FB},[0x25FC]={0,"M",0x25FC},[0x25FD]={0,"M",0x25FD},[0x25FE]={0,"M",0x25FE},[0x25FF]={0,"M",0x25FF},[0x2606]={0,"M",0x2606},[0x27C3]={0,"M",0x27C3},[0x27C4]={0,"M",0x27C4},[0x27C5]={4,"M",0x27C5},[0x27C6]={5,"M",0x27C6},[0x27C7]={2,"M",0x27C7},[0x27CA]={0,"M",0x27CA},[0x27CC]={0,"M",0x27CC},[0x27CE]={0,"M",0x27CE},[0x27CF]={0,"M",0x27CF},[0x292B]={0,"M",0x292B},[0x292C]={0,"M",0x292C},[0x292D]={0,"M",0x292D},[0x292E]={0,"M",0x292E},[0x292F]={0,"M",0x292F},[0x2930]={0,"M",0x2930},[0x2931]={0,"M",0x2931},[0x2932]={0,"M",0x2932},[0x2934]={0,"M",0x2934},[0x2935]={0,"M",0x2935},[0x2980]={7,"M",0x2980},[0x2982]={3,"M",0x2982},[0x29B5]={2,"M",0x29B5},[0x29CD]={2,"M",0x29CD},[0x2B00]={0,"M",0x2B00},[0x2B01]={0,"M",0x2B01},[0x2B02]={0,"M",0x2B02},[0x2B03]={0,"M",0x2B03},[0x2B04]={0,"M",0x2B04},[0x2B05]={0,"M",0x2B05},[0x2B06]={0,"M",0x2B06},[0x2B07]={0,"M",0x2B07},[0x2B08]={0,"M",0x2B08},[0x2B09]={0,"M",0x2B09},[0x2B0A]={0,"M",0x2B0A},[0x2B0B]={0,"M",0x2B0B},[0x2B0C]={0,"M",0x2B0C},[0x2B0D]={0,"M",0x2B0D},[0x2B0E]={0,"M",0x2B0E},[0x2B0F]={0,"M",0x2B0F},[0x2B10]={0,"M",0x2B10},[0x2B11]={0,"M",0x2B11},[0x2B95]={0,"M",0x2B95},[0x306E]={7,1,0x306E},[0xFE00]={7,1,0xFE00},[0xFE01]={7,1,0xFE01},[0xFE02]={7,1,0xFE02},[0xFE03]={7,1,0xFE03},[0xFE04]={7,1,0xFE04},[0xFE05]={7,1,0xFE05},[0xFE06]={7,1,0xFE06},[0xFE07]={7,1,0xFE07},[0xFE08]={7,1,0xFE08},[0xFE09]={7,1,0xFE09},[0xFE0A]={7,1,0xFE0A},[0xFE0B]={7,1,0xFE0B},[0xFE0C]={7,1,0xFE0C},[0xFE0D]={7,1,0xFE0D},[0xFE0E]={7,1,0xFE0E},[0xFE0F]={7,1,0xFE0F},[0x1D455]={7,"M",0x1D455},[0x1EE00]={7,1,0x1EE00},[0x1EE01]={7,1,0x1EE01},[0x1EE02]={7,1,0x1EE02},[0x1EE03]={7,1,0x1EE03},[0x1EE05]={7,1,0x1EE05},[0x1EE06]={7,1,0x1EE06},[0x1EE07]={7,1,0x1EE07},[0x1EE08]={7,1,0x1EE08},[0x1EE09]={7,1,0x1EE09},[0x1EE0A]={7,1,0x1EE0A},[0x1EE0B]={7,1,0x1EE0B},[0x1EE0C]={7,1,0x1EE0C},[0x1EE0D]={7,1,0x1EE0D},[0x1EE0E]={7,1,0x1EE0E},[0x1EE0F]={7,1,0x1EE0F},[0x1EE10]={7,1,0x1EE10},[0x1EE11]={7,1,0x1EE11},[0x1EE12]={7,1,0x1EE12},[0x1EE13]={7,1,0x1EE13},[0x1EE14]={7,1,0x1EE14},[0x1EE15]={7,1,0x1EE15},[0x1EE16]={7,1,0x1EE16},[0x1EE17]={7,1,0x1EE17},[0x1EE18]={7,1,0x1EE18},[0x1EE19]={7,1,0x1EE19},[0x1EE1A]={7,1,0x1EE1A},[0x1EE1B]={7,1,0x1EE1B},[0x1EE1C]={7,1,0x1EE1C},[0x1EE1D]={7,1,0x1EE1D},[0x1EE1E]={7,1,0x1EE1E},[0x1EE1F]={7,1,0x1EE1F},[0x1EE21]={7,1,0x1EE21},[0x1EE22]={7,1,0x1EE22},[0x1EE24]={7,1,0x1EE24},[0x1EE27]={7,1,0x1EE27},[0x1EE29]={7,1,0x1EE29},[0x1EE2A]={7,1,0x1EE2A},[0x1EE2B]={7,1,0x1EE2B},[0x1EE2C]={7,1,0x1EE2C},[0x1EE2D]={7,1,0x1EE2D},[0x1EE2E]={7,1,0x1EE2E},[0x1EE2F]={7,1,0x1EE2F},[0x1EE30]={7,1,0x1EE30},[0x1EE31]={7,1,0x1EE31},[0x1EE32]={7,1,0x1EE32},[0x1EE34]={7,1,0x1EE34},[0x1EE35]={7,1,0x1EE35},[0x1EE36]={7,1,0x1EE36},[0x1EE37]={7,1,0x1EE37},[0x1EE39]={7,1,0x1EE39},[0x1EE3B]={7,1,0x1EE3B},[0x1EE42]={7,1,0x1EE42},[0x1EE47]={7,1,0x1EE47},[0x1EE49]={7,1,0x1EE49},[0x1EE4B]={7,1,0x1EE4B},[0x1EE4D]={7,1,0x1EE4D},[0x1EE4E]={7,1,0x1EE4E},[0x1EE4F]={7,1,0x1EE4F},[0x1EE51]={7,1,0x1EE51},[0x1EE52]={7,1,0x1EE52},[0x1EE54]={7,1,0x1EE54},[0x1EE57]={7,1,0x1EE57},[0x1EE59]={7,1,0x1EE59},[0x1EE5B]={7,1,0x1EE5B},[0x1EE5D]={7,1,0x1EE5D},[0x1EE5F]={7,1,0x1EE5F},[0x1EE61]={7,1,0x1EE61},[0x1EE62]={7,1,0x1EE62},[0x1EE64]={7,1,0x1EE64},[0x1EE67]={7,1,0x1EE67},[0x1EE68]={7,1,0x1EE68},[0x1EE69]={7,1,0x1EE69},[0x1EE6A]={7,1,0x1EE6A},[0x1EE6C]={7,1,0x1EE6C},[0x1EE6D]={7,1,0x1EE6D},[0x1EE6E]={7,1,0x1EE6E},[0x1EE6F]={7,1,0x1EE6F},[0x1EE70]={7,1,0x1EE70},[0x1EE71]={7,1,0x1EE71},[0x1EE72]={7,1,0x1EE72},[0x1EE74]={7,1,0x1EE74},[0x1EE75]={7,1,0x1EE75},[0x1EE76]={7,1,0x1EE76},[0x1EE77]={7,1,0x1EE77},[0x1EE79]={7,1,0x1EE79},[0x1EE7A]={7,1,0x1EE7A},[0x1EE7B]={7,1,0x1EE7B},[0x1EE7C]={7,1,0x1EE7C},[0x1EE7E]={7,1,0x1EE7E},[0x1EE80]={7,1,0x1EE80},[0x1EE81]={7,1,0x1EE81},[0x1EE82]={7,1,0x1EE82},[0x1EE83]={7,1,0x1EE83},[0x1EE84]={7,1,0x1EE84},[0x1EE85]={7,1,0x1EE85},[0x1EE86]={7,1,0x1EE86},[0x1EE87]={7,1,0x1EE87},[0x1EE88]={7,1,0x1EE88},[0x1EE89]={7,1,0x1EE89},[0x1EE8B]={7,1,0x1EE8B},[0x1EE8C]={7,1,0x1EE8C},[0x1EE8D]={7,1,0x1EE8D},[0x1EE8E]={7,1,0x1EE8E},[0x1EE8F]={7,1,0x1EE8F},[0x1EE90]={7,1,0x1EE90},[0x1EE91]={7,1,0x1EE91},[0x1EE92]={7,1,0x1EE92},[0x1EE93]={7,1,0x1EE93},[0x1EE94]={7,1,0x1EE94},[0x1EE95]={7,1,0x1EE95},[0x1EE96]={7,1,0x1EE96},[0x1EE97]={7,1,0x1EE97},[0x1EE98]={7,1,0x1EE98},[0x1EE99]={7,1,0x1EE99},[0x1EE9A]={7,1,0x1EE9A},[0x1EE9B]={7,1,0x1EE9B},[0x1EEA1]={7,1,0x1EEA1},[0x1EEA2]={7,1,0x1EEA2},[0x1EEA3]={7,1,0x1EEA3},[0x1EEA5]={7,1,0x1EEA5},[0x1EEA6]={7,1,0x1EEA6},[0x1EEA7]={7,1,0x1EEA7},[0x1EEA8]={7,1,0x1EEA8},[0x1EEA9]={7,1,0x1EEA9},[0x1EEAB]={7,1,0x1EEAB},[0x1EEAC]={7,1,0x1EEAC},[0x1EEAD]={7,1,0x1EEAD},[0x1EEAE]={7,1,0x1EEAE},[0x1EEAF]={7,1,0x1EEAF},[0x1EEB0]={7,1,0x1EEB0},[0x1EEB1]={7,1,0x1EEB1},[0x1EEB2]={7,1,0x1EEB2},[0x1EEB3]={7,1,0x1EEB3},[0x1EEB4]={7,1,0x1EEB4},[0x1EEB5]={7,1,0x1EEB5},[0x1EEB6]={7,1,0x1EEB6},[0x1EEB7]={7,1,0x1EEB7},[0x1EEB8]={7,1,0x1EEB8},[0x1EEB9]={7,1,0x1EEB9},[0x1EEBA]={7,1,0x1EEBA},[0x1EEBB]={7,1,0x1EEBB}}
+  local dc = {[0x21]={"M",0x21,0,0x0},[0x28]={"M",0x28,0,0x0},[0x29]={"M",0x29,0,0x0},[0x2E]={"M",0x0,0,0x0},[0x2F]={"M",0x2F,0,0x0},[0x3C]={"M",0x27E8,0,0x0},[0x3E]={"M",0x27E9,0,0x0},[0x5B]={"M",0x5B,0,0x0},[0x5C]={"M",0x5C,0,0x0},[0x5D]={"M",0x5D,0,0x0},[0x7B]={"M",0x7B,0,0x0},[0x7C]={"M",0x7C,0,0x0},[0x7D]={"M",0x7D,0,0x0},[0x2016]={"M",0x2016,0,0x0},[0x2044]={"M",0x2F,0,0x0},[0x2191]={"M",0x2191,0,0x0},[0x2193]={"M",0x2193,0,0x0},[0x2195]={"M",0x2195,0,0x0},[0x219F]={"M",0x219F,0,0x0},[0x21A1]={"M",0x21A1,0,0x0},[0x21A5]={"M",0x21A5,0,0x0},[0x21A7]={"M",0x21A7,0,0x0},[0x21A8]={"M",0x21A8,0,0x0},[0x21BE]={"M",0x21BE,0,0x0},[0x21BF]={"M",0x21BF,0,0x0},[0x21C2]={"M",0x21C2,0,0x0},[0x21C3]={"M",0x21C3,0,0x0},[0x21C5]={"M",0x21C5,0,0x0},[0x21C8]={"M",0x21C8,0,0x0},[0x21CA]={"M",0x21CA,0,0x0},[0x21D1]={"M",0x21D1,0,0x0},[0x21D3]={"M",0x21D3,0,0x0},[0x21D5]={"M",0x21D5,0,0x0},[0x21DE]={"M",0x21DE,0,0x0},[0x21DF]={"M",0x21DF,0,0x0},[0x21E1]={"M",0x21E1,0,0x0},[0x21E3]={"M",0x21E3,0,0x0},[0x21E7]={"M",0x21E7,0,0x0},[0x21E9]={"M",0x21E9,0,0x0},[0x21EA]={"M",0x21EA,0,0x0},[0x21F3]={"M",0x21F3,0,0x0},[0x21F5]={"M",0x21F5,0,0x0},[0x2215]={"M",0x2F,0,0x0},[0x2308]={"M",0x2308,0,0x0},[0x2309]={"M",0x2309,0,0x0},[0x230A]={"M",0x230A,0,0x0},[0x230B]={"M",0x230B,0,0x0},[0x231C]={"M",0x231C,0,0x0},[0x231D]={"M",0x231D,0,0x0},[0x231E]={"M",0x231E,0,0x0},[0x231F]={"M",0x231F,0,0x0},[0x23B0]={"M",0x23B0,0,0x0},[0x23B1]={"M",0x23B1,0,0x0},[0x2772]={"M",0x2772,0,0x0},[0x2773]={"M",0x2773,0,0x0},[0x27C5]={"M",0x27C5,0,0x0},[0x27C6]={"M",0x27C6,0,0x0},[0x27E6]={"M",0x27E6,0,0x0},[0x27E7]={"M",0x27E7,0,0x0},[0x27E8]={"M",0x27E8,0,0x0},[0x27E9]={"M",0x27E9,0,0x0},[0x27EA]={"M",0x27EA,0,0x0},[0x27EB]={"M",0x27EB,0,0x0},[0x27EC]={"M",0x27EC,0,0x0},[0x27ED]={"M",0x27ED,0,0x0},[0x27EE]={"M",0x27EE,0,0x0},[0x27EF]={"M",0x27EF,0,0x0},[0x2980]={"M",0x2980,0,0x0},[0x2983]={"M",0x2983,0,0x0},[0x2984]={"M",0x2984,0,0x0},[0x2985]={"M",0x2985,0,0x0},[0x2986]={"M",0x2986,0,0x0},[0x2987]={"M",0x2987,0,0x0},[0x2988]={"M",0x2988,0,0x0},[0x2989]={"M",0x2989,0,0x0},[0x298A]={"M",0x298A,0,0x0},[0x298B]={"M",0x298B,0,0x0},[0x298C]={"M",0x298C,0,0x0},[0x298D]={"M",0x298D,0,0x0},[0x298E]={"M",0x298E,0,0x0},[0x298F]={"M",0x298F,0,0x0},[0x2990]={"M",0x2990,0,0x0},[0x2991]={"M",0x2991,0,0x0},[0x2992]={"M",0x2992,0,0x0},[0x2993]={"M",0x2993,0,0x0},[0x2994]={"M",0x2994,0,0x0},[0x2995]={"M",0x2995,0,0x0},[0x2996]={"M",0x2996,0,0x0},[0x2997]={"M",0x2997,0,0x0},[0x2998]={"M",0x2998,0,0x0},[0x29D8]={"M",0x29D8,0,0x0},[0x29D9]={"M",0x29D9,0,0x0},[0x29DA]={"M",0x29DA,0,0x0},[0x29DB]={"M",0x29DB,0,0x0},[0x29FC]={"M",0x29FC,0,0x0},[0x29FD]={"M",0x29FD,0,0x0}}
+  for c, v in pairs(mc) do tex.setmathcode(c, { v[1], v[2] == "M" and M or v[2], v[3] }) end
+  for c, v in pairs(dc) do tex.setdelcode(c, { v[1] == "M" and M or v[1], v[2], v[3] == "M" and M or v[3], v[4] }) end
 end
