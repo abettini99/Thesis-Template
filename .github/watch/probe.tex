@@ -1,0 +1,80 @@
+% Package watch (.github/workflows/nightly.yml): loads the packages the template patches, WITHOUT the
+% template, and writes a fingerprint (MD5 of the definition) of every internal command it overrides, and
+% whether every internal variable it uses still exists, to probe-fingerprints.txt. A changed line means a
+% package update rewrote code the template patches: check that patch (the audit's patch inventory).
+\DocumentMetadata{lang=en-GB, pdfversion=2.0, pdfstandard={ua-2,a-4f}, tagging=on,
+  tagging-setup={math/setup={mathml-SE,mathml-AF}}, colorprofiles={X=FOGRA39L_coated.icc}}
+\documentclass{book}
+\usepackage{amsmath}
+\usepackage[textsf]{ntxmath-otf}
+\usepackage{graphicx,xcolor,tikz,longtable,url,cancel,listings,amsthm,hyperref}
+\usepackage[chapter]{algorithm}
+\usepackage{algpseudocode}
+\usepackage[backend=biber]{biblatex}
+\usepackage[titles]{tocloft}
+\makeatletter
+\ExplSyntaxOn
+\iow_new:N \g__probe_iow
+\cs_new_protected:Npn \__probe_cs:N #1
+  {
+    \iow_now:Ne \g__probe_iow
+      {
+        \token_to_str:N #1 \c_space_tl
+        \cs_if_exist:NTF #1 { \str_mdfive_hash:e { \cs_meaning:N #1 } } { MISSING }
+      }
+  }
+\cs_new_protected:Npn \__probe_exists:N #1
+  { \iow_now:Ne \g__probe_iow { \token_to_str:N #1 \c_space_tl \cs_if_exist:NTF #1 { exists } { MISSING } } }
+\cs_new_protected:Npn \__probe_name:n #1
+  { \iow_now:Ne \g__probe_iow { #1 \c_space_tl \cs_if_exist:cTF {#1} { exists } { MISSING } } }
+\cs_new_protected:Npn \__probe_socket:n #1
+  { \iow_now:Ne \g__probe_iow { socket~#1 \c_space_tl \socket_if_exist:nTF {#1} { exists } { MISSING } } }
+\AddToHook{begindocument/end}
+  {
+    \iow_open:Nn \g__probe_iow { probe-fingerprints.txt }
+    % LaTeX kernel and latex-lab (tagging)
+    \clist_map_inline:nn
+      {
+        \@doendpe, \@make@normalcolbox, \@outputbox@removebskip, \__kernel_list_label_after:n,
+        \__math_prepare_display_end:, \@makecaption, \cleardoublepage, \@makecol,
+        \@kernel@new@label@record@testdef, \@starttoc, \__block_recipe_standalone:,
+        \__kernel_displayblock_begin:, \__tag_struct_add_AF:ee, \__tag_struct_prop_gput:nne,
+        % graphicx, hyperref, pgf
+        \Gin@setfile, \Gin@pagebox, \hyper@link, \hyper@linkstart, \hyper@linkend, \hyper@linkurl,
+        \hyper@linkfile, \hyper@link@, \pgfsys@color@rgb@fill, \pgfsys@color@rgb@stroke,
+        % listings, longtable, float, algorithmicx, amsmath, biblatex, cancel
+        \lst@makecaption, \lst@maketitle, \lst@EveryDisplay, \LT@makecaption, \LT@c@ption,
+        \fs@ruled, \floatc@ruled, \float@caption, \ALG@beginalgorithmic, \qopname,
+        \abx@MakeMarkcase, \blx@warn@bibempty, \@cancel, \@cancelto, \canto@vector,
+        % luamml (MathML)
+        \__luamml_amsmath_save_tag_with_struct_elem:N, \__luamml_amsmath_set_tag:,
+        \__luamml_amsmath_finalize_inner_table:
+      }
+      { \__probe_cs:N #1 }
+    \clist_map_inline:nn
+      {
+        \l__head_level_int, \l__head_unnumbered_bool, \l__head_name_tl, \c__template_keytypes_root_tl,
+        \l__luamml_flag_int, \l__luamml_amsmath_tag_struct_num_int, \l__math_gathersplit_bool,
+        \l__math_content_alt_tl, \l__math_content_template_tl, \l__math_texsource_template_tl,
+        \l__math_content_AF_source_tl, \l__math_content_AF_mathml_tl, \l__math_content_actual_tl,
+        \l__tag_math_alt_bool, \g_pdffile_mimetypes_prop, \@current@float@struct
+      }
+      { \__probe_exists:N #1 }
+    \__probe_name:n { c@g__tag_struct_abs_int }
+    \__probe_name:n { c__pdfmeta_colorprofile_FOGRA39L_coated.icc }
+    \clist_map_inline:nn
+      {
+        hyp/link/GoTo/Contents, hyp/link/GoToR/Contents, hyp/link/URI/Contents, block/endpe,
+        tagsupport/caption/begin, tagsupport/caption/end, tagsupport/sec/title/begin,
+        tagsupport/sec/title/end, tagsupport/math/content, tagsupport/math/luamml/mtable/tag/save,
+        tagsupport/math/luamml/mtable/tag/set, tagsupport/math/luamml/mtable/innertable/finalize,
+        build/column/baselineattach, tagsupport/parbox/before, tagsupport/parbox/after
+      }
+      { \__probe_socket:n {#1} }
+    \iow_close:N \g__probe_iow
+  }
+\ExplSyntaxOff
+\makeatother
+\begin{document}
+Probe: $a+b$.
+\end{document}

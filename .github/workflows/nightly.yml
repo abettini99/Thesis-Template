@@ -1,0 +1,114 @@
+# Nightly package watch: builds the thesis on the newest TeX Live and checks whether a package update
+# changed anything the template depends on.
+#
+#   - Builds the printer and digital editions as the final version, as the push build does.
+#   - Compiles .github/watch/probe.tex, which loads the packages the template patches without the template
+#     and fingerprints every internal command it overrides; .github/scripts/package_watch.py compares those
+#     fingerprints, and every package version in the logs, with the last known-good state in .github/watch/.
+#   - Opens (or adds to) an issue "Nightly package watch" when a build fails or a patched internal changed;
+#     version changes alone are only listed. The report and the logs are kept for 30 days.
+#   - Run it by hand (Actions tab > Nightly package watch > Run workflow) with "update baseline" ticked to
+#     record the current state as known-good, after checking the patches the report names.
+name: Nightly package watch
+
+on:
+  schedule:
+    - cron: '41 2 * * *'
+  workflow_dispatch:
+    inputs:
+      update:
+        description: Update the baseline (after checking the report)
+        type: boolean
+        default: false
+
+permissions:
+  contents: write      # to commit the baseline
+  issues: write        # to report
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    container: texlive/texlive:latest
+    steps:
+      - name: Tools
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends git python3
+      - uses: actions/checkout@v5
+      - name: Compile the edition for the printer (final version)
+        id: printer
+        continue-on-error: true
+        run: |
+          sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=printer, version=final]{thesis}/' main.tex > printer.tex
+          latexmk -interaction=nonstopmode -halt-on-error printer.tex
+      - name: Compile the digital edition (final version)
+        id: digital
+        continue-on-error: true
+        run: |
+          sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=digital, version=final]{thesis}/' main.tex > digital.tex
+          latexmk -interaction=nonstopmode -halt-on-error digital.tex
+      - name: Fingerprint the patched internals
+        id: probe
+        continue-on-error: true
+        run: |
+          cp .github/watch/probe.tex .
+          export TEXINPUTS=./template/fonts/ntxmath-otf: OPENTYPEFONTS=./template/fonts/ntxmath-otf: LUAINPUTS=./template/fonts/ntxmath-otf:
+          lualatex -interaction=nonstopmode -halt-on-error probe.tex
+      - name: Compare with the baseline
+        id: compare
+        continue-on-error: true
+        run: python3 .github/scripts/package_watch.py printer.log digital.log probe.log
+      - name: Update the baseline (by hand only)
+        if: github.event_name == 'workflow_dispatch' && inputs.update
+        run: |
+          python3 .github/scripts/package_watch.py --update printer.log digital.log probe.log
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/watch/fingerprints.txt .github/watch/versions.txt
+          git diff --cached --quiet || git commit -m "Package watch: update the baseline"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+      - name: Keep the report and the logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-watch
+          path: |
+            watch-report.md
+            probe-fingerprints.txt
+            printer.log
+            digital.log
+            probe.log
+          retention-days: 30
+      - name: Report in an issue
+        if: >-
+          !(github.event_name == 'workflow_dispatch' && inputs.update) &&
+          (steps.printer.outcome == 'failure' || steps.digital.outcome == 'failure' ||
+           steps.probe.outcome == 'failure' || steps.compare.outcome == 'failure')
+        uses: actions/github-script@v8
+        env:
+          PRINTER: ${{ steps.printer.outcome }}
+          DIGITAL: ${{ steps.digital.outcome }}
+          PROBE: ${{ steps.probe.outcome }}
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.existsSync('watch-report.md') ? fs.readFileSync('watch-report.md', 'utf8') : '';
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const builds = [['printer edition', process.env.PRINTER], ['digital edition', process.env.DIGITAL],
+                            ['fingerprint probe', process.env.PROBE]]
+              .filter(([, o]) => o === 'failure').map(([n]) => `- the ${n} did not compile`).join('\n');
+            const body = [`Nightly run of ${new Date().toISOString().slice(0, 10)}: ${run}`, builds, report]
+              .filter(Boolean).join('\n\n');
+            const title = 'Nightly package watch';
+            const { data: issues } = await github.rest.issues.listForRepo({ ...context.repo, state: 'open' });
+            const open = issues.find(i => i.title === title);
+            if (open) await github.rest.issues.createComment({ ...context.repo, issue_number: open.number, body });
+            else await github.rest.issues.create({ ...context.repo, title, body });
+      - name: Fail if anything needs a look
+        if: >-
+          !(github.event_name == 'workflow_dispatch' && inputs.update) &&
+          (steps.printer.outcome == 'failure' || steps.digital.outcome == 'failure' ||
+           steps.probe.outcome == 'failure' || steps.compare.outcome == 'failure')
+        run: exit 1
