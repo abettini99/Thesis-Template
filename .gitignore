@@ -1,6 +1,8 @@
 # LaTeX build files (Overleaf does not sync these, but local builds create them)
 *.aux
 *.bbl
+*-citation.bib
+*-citation.ris
 *.bcf
 *.blg
 *.fdb_latexmk

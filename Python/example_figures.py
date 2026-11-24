@@ -91,6 +91,11 @@ ax.set_ylim(-1.1, 1.1)
 ax.set_xticks([-1, -0.5, 0, 0.5, 1])
 ax.legend(loc="upper right")
 save(fig, "example_burgers.pdf")
+# The data behind it, attached to the figure in the PDF (\figuredata): every 8th point is plenty.
+times = (0.0, 0.25, 0.5, 1.0)
+np.savetxt(OUT / "example_burgers.csv", np.column_stack([x[::8]] + [burgers(x[::8], t) for t in times]),
+           delimiter=",", fmt="%.6g", comments="",
+           header="x," + ",".join(f"u(t={t:g})" for t in times))
 
 # --- Two panels, with the panel letters drawn in ----------------------------------------------
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(FULL_MM * MM, 0.46 * FULL_MM * MM))

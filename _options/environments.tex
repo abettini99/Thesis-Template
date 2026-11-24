@@ -164,6 +164,7 @@
   {
     alt .tl_set:N = \l__thesis_panel_alt_tl ,
     label .tl_set:N = \l__thesis_panel_label_tl ,
+    data .tl_set:N = \l__thesis_panel_data_tl ,
   }
 
 \NewDocumentEnvironment { panels } { O{} +b }
@@ -407,7 +408,7 @@
 \cs_new_protected:Npn \__thesis_panels_one:nnn #1#2#3
   {
     \group_begin:
-    \tl_clear:N \l__thesis_panel_alt_tl \tl_clear:N \l__thesis_panel_label_tl
+    \tl_clear:N \l__thesis_panel_alt_tl \tl_clear:N \l__thesis_panel_label_tl \tl_clear:N \l__thesis_panel_data_tl
     \keys_set:nn { thesis / panel } {#1}
     \tl_if_empty:NT \l__thesis_panel_alt_tl % (default: "Panel b: t = 0.35", from the label without its $)
       {
@@ -431,6 +432,8 @@
       }
     \begin{subfigure}[t]{\l__thesis_panels_wd_dim}
       \includegraphics [ alt = { \l__thesis_panel_alt_tl } , width = \l__thesis_panels_wd_dim , height = \l__thesis_panels_ht_dim ] {#2}
+      \tl_if_empty:NF \l__thesis_panel_data_tl
+        { \use:e { \exp_not:N \figuredata [ Data~of~\exp_not:V \l__thesis_panel_alt_tl ] { \exp_not:V \l__thesis_panel_data_tl } } }
       \str_case:Vn \l__thesis_panels_labels_tl
         {
           { below } { \caption {#3} }

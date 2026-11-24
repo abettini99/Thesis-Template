@@ -101,15 +101,21 @@
 \end{tabular}
 
 \bigskip
+\ifdefstring{\thesislicence}{CC0 1.0}{% public domain: no copyright line
+\noindent This work is dedicated to the public domain under \href{\thesislicenceurl}{CC0~1.0~Universal}.
+}{%
 \noindent Copyright \textcopyright\ \the\year\ by \thesisauthorinitials~\thesisauthorlastname
-\IfThesisEmpty{\thesislicence}{}{\par\noindent \thesislicence}
+\par{\raggedright\noindent % (licence names are long words: Attribution-NonCommercial-ShareAlike)
+\IfThesisEmpty{\thesislicence}{All rights reserved.}{This work is licensed under a \thesislicencename\ licence
+    (\href{\thesislicenceurl}{\thesislicencecode}).}\par}}
 
 \smallskip
 \noindent ISBN \thesisisbn
 
 \smallskip
 \noindent An electronic copy of this dissertation is available at \\
-\url{https://repository.tudelft.nl/}.
+\IfThesisEmpty{\thesisdoi}{\url{https://repository.tudelft.nl}}% (links to the dissertation's DOI once known)
+    {\href{https://doi.org/\thesisdoi}{\nolinkurl{https://repository.tudelft.nl}}}.
 }
 \cleardoublepage
 
