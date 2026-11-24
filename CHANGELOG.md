@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.0 (24 November 2026)
+Versions follow [semantic versioning](https://semver.org): a change in the last number (1.0.1) only fixes things, in the middle number (1.1.0) adds something without changing what you have, and in the first number (2.0.0) asks you to change something in your thesis when you update; the entry says what.
+
+## 1.0.0 (24 November 2026)
 
 First release of the TU Delft PhD thesis template, for **LuaLaTeX on TeX Live 2026** (Overleaf included).
 
