@@ -71,7 +71,7 @@ Set in the first line of `main.tex`, for example:
 
 | Option | Effect |
 |---|---|
-| `demy` *(default)*, `a5`, `royal`, `tudelft` | Book page size, all standard book sizes: 138 × 216 mm (metric demy octavo, close to the classic Dover paperback), 148 × 210 mm (A5), 156 × 234 mm (metric royal octavo) or 170 × 240 mm (TU Delft). Text block, margins and chapter-title size follow automatically. Demy and A5 are set in 10 pt type on 12.5 pt leading, Royal in 10 pt on 12.75 pt (its longer lines get a little more space between them), TU Delft in 11 pt on 14 pt (the same proportion of leading as the others), so its wide lines hold about as many characters as Royal's. Check that your printer offers the size. |
+| `demy` *(default)*, `a5`, `royal`, `dutch` | Book page size, all standard book sizes: 138 × 216 mm (metric demy octavo, close to the classic Dover paperback), 148 × 210 mm (A5), 156 × 234 mm (metric royal octavo) or 170 × 240 mm (the usual size of Dutch dissertations). Text block, margins and chapter-title size follow automatically. Demy and A5 are set in 10 pt type on 12.5 pt leading, Royal in 10 pt on 12.75 pt (its longer lines get a little more space between them), Dutch in 11 pt on 14 pt (the same proportion of leading as the others), so its wide lines hold about as many characters as Royal's. Check that your printer offers the size. |
 | `digital` *(default)* | For the screen, the TU Delft repository and sharing: the pages at their final size, with links in maroon (set once in `_options/formatColor.tex`; symbols and acronyms stay black, so maths is never coloured), coloured code and sideways pages shown upright. |
 | `print-preparation` | For the professional printer: a PDF/X file, the pages plus bleed on every side (see *Printing: PDF/X*; add `showtrims` only if the printer asks for crop marks). |
 | `print-showcase` | The printed book as it looks after trimming: the pages at their final size, as on paper. For checking the layout on screen. |
@@ -228,14 +228,14 @@ thesis_fonts.setup()                      # figure text in the thesis's own font
 thesis_fonts.save(fig, "Images/my_figure.pdf")
 ```
 
-The style sets text at about the caption size (8–9 pt for demy, A5 and royal; add 1 pt for TU Delft), a default size of 91.5 mm wide, and seven line colours each with its own line style (see *Colours* below). `thesis_fonts` has matplotlib set every label with LuaLaTeX, in the fonts of the text: Times, with MathTime maths when `tools/mtpro2_otf.py` has converted it into `Fonts/`, otherwise newtx. So `$\alpha$` or `$\Vert\nabla\boldsymbol{e}\Vert$` in a figure is the same glyph as in the text, and the PDF stays PDF/A-ready. `thesis_fonts.save` also makes the figure ready for print: its RGB colours are declared as sRGB and its black and greys become true grey (see *Printing: PDF/X*). `setup("newtx")` forces newtx; the figures that come with the template are made that way. Without LuaLaTeX it falls back to matplotlib's own maths in Times New Roman (or in STIX, its Times-like font, where Times New Roman is not installed). Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
+The style sets text at about the caption size (8–9 pt for demy, A5 and royal; add 1 pt for the Dutch size), a default size of 91.5 mm wide, and seven line colours each with its own line style (see *Colours* below). `thesis_fonts` has matplotlib set every label with LuaLaTeX, in the fonts of the text: Times, with MathTime maths when `tools/mtpro2_otf.py` has converted it into `Fonts/`, otherwise newtx. So `$\alpha$` or `$\Vert\nabla\boldsymbol{e}\Vert$` in a figure is the same glyph as in the text, and the PDF stays PDF/A-ready. `thesis_fonts.save` also makes the figure ready for print: its RGB colours are declared as sRGB and its black and greys become true grey (see *Printing: PDF/X*). `setup("newtx")` forces newtx; the figures that come with the template are made that way. Without LuaLaTeX it falls back to matplotlib's own maths in Times New Roman (or in STIX, its Times-like font, where Times New Roman is not installed). Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
 
 | Page size | Full text width | Half width (two side by side) |
 |---|---|---|
 | `demy` | 91.5 mm (3.60 in) | 44 mm (1.73 in) |
 | `a5` | 99.5 mm (3.92 in) | 48 mm (1.89 in) |
 | `royal` | 104.5 mm (4.11 in) | 50 mm (1.97 in) |
-| `tudelft` | 112.5 mm (4.43 in) | 54 mm (2.13 in) |
+| `dutch` | 112.5 mm (4.43 in) | 54 mm (2.13 in) |
 
 The full widths are a little under the nominal 92/100/105/113 mm, because the class rounds the text width down to whole points (demy: 261 pt = 91.7 mm); a figure made at the nominal width would stick out by a fraction of a millimetre.
 

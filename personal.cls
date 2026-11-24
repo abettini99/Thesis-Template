@@ -5,7 +5,7 @@
 %% size files). memoir's code is unchanged in memoir; the adapted copies here carry other names or
 %% replace memoir's only inside this class.
 
-%% Options. Language: british (default) or american. Page size: demy (default), a5, royal or tudelft.
+%% Options. Language: british (default) or american. Page size: demy (default), a5, royal or dutch.
 \newcommand*{\thesis@language}{british}
 \DeclareOption{british}{\renewcommand*{\thesis@language}{british}}
 \DeclareOption{american}{\renewcommand*{\thesis@language}{american}}
@@ -13,7 +13,7 @@
 \DeclareOption{demy}{\renewcommand*{\thesis@pagesize}{demy}}
 \DeclareOption{a5}{\renewcommand*{\thesis@pagesize}{a5}}
 \DeclareOption{royal}{\renewcommand*{\thesis@pagesize}{royal}}
-\DeclareOption{tudelft}{\renewcommand*{\thesis@pagesize}{tudelft}}
+\DeclareOption{dutch}{\renewcommand*{\thesis@pagesize}{dutch}}
 %% Edition: the same book pages, prepared for where they go.
 %%   digital           : final size, for the screen (maroon links, coloured code, sideways pages
 %%                       upright); for the repository, sharing and writing (default)
@@ -87,8 +87,8 @@
 
 %% Page sizes. Per size: trimmed page, type block, fore-edge and top margins, chapter-title size.
 %% The fore-edge margin is (2/3) x (page width - binding - text width); text widths give 65-77
-%% characters per line. Type: 10 pt on 12.5 pt leading (demy) or 13.2 pt (A5, royal); TU Delft 11 pt on
-%% 15 pt, as its wider lines would otherwise have over 80 characters. The chapter-title size follows
+%% characters per line. Type: 10 pt on 12.5 pt leading (demy, A5) or 12.75 pt (royal); dutch 11 pt on
+%% 14 pt, as its wider lines would otherwise have over 80 characters. The chapter-title size follows
 %% the page, so "Acknowledgements" still fits on a line. (\thesis@fontscale scales every font, maths
 %% included, should a size need it; none does now.)
 \newlength{\thesis@pagewidth}   \newlength{\thesis@pageheight}  % trimmed (final) book page
@@ -102,11 +102,12 @@
 \def\thesis@ptsize{10pt}
 \def\thesis@fontscale{1}
 \def\thesisspacing{1.1} % line spacing of the main text (\begin{Spacing} in main.tex)
-%% The four sizes are standard book sizes: metric demy octavo, A5, metric royal octavo and TU Delft's.
+%% The four sizes are standard book sizes: metric demy octavo, A5, metric royal octavo and 17 x 24 cm,
+%% the usual size of Dutch dissertations.
 \@namedef{thesis@size@demy}   {\thesis@size{138mm}{216mm}{92mm} {171mm}{26mm}  {20mm}  {28pt}\def\thesisspacing{1.0416667}}
 \@namedef{thesis@size@a5}     {\thesis@size{148mm}{210mm}{100mm}{165mm}{27.3mm}{20mm}  {30pt}\def\thesisspacing{1.0416667}}
 \@namedef{thesis@size@royal}  {\thesis@size{156mm}{234mm}{105mm}{180mm}{29.3mm}{25mm}  {33pt}\def\thesisspacing{1.0625}}
-\@namedef{thesis@size@tudelft}{\thesis@size{170mm}{240mm}{113mm}{192mm}{33.4mm}{23.9mm}{36pt}\def\thesis@ptsize{11pt}\def\thesisspacing{1.0294118}}
+\@namedef{thesis@size@dutch}  {\thesis@size{170mm}{240mm}{113mm}{192mm}{33.4mm}{23.9mm}{36pt}\def\thesis@ptsize{11pt}\def\thesisspacing{1.0294118}}
 \@nameuse{thesis@size@\thesis@pagesize}
 \edef\thesis@tmp{\noexpand\LoadClass[\thesis@ptsize,twoside,openright]{book}}\thesis@tmp
 %% The type sizes and default spacings of memoir, which the earlier versions of this class were based on

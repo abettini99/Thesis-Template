@@ -19,7 +19,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / ".github" / "readme" / "page-sizes.png"
-SIZES = [("demy", "Demy (default)"), ("a5", "A5"), ("royal", "Royal"), ("tudelft", "TU Delft")]
+SIZES = [("demy", "Demy (default)"), ("a5", "A5"), ("royal", "Royal"), ("dutch", "Dutch")]
 PAGE_TEXT = "Of the two unknowns"    # the page shown: the first text page of the sample chapter
 PX_PER_MM = 4                        # scale of the image
 GAP_MM, MARGIN_MM = 14, 10

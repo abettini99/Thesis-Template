@@ -13,7 +13,7 @@ font.family:        serif
 font.serif:         Times New Roman, STIXGeneral, Nimbus Roman, TeX Gyre Termes, DejaVu Serif
 mathtext.fontset:   stix            # Times-like maths: $\alpha$, $C_L$, $U_\infty$
 ## Sizes, set for demy, A5 and royal (10 pt text, captions 9 pt): figure text at about the caption
-## size. For TU Delft (11 pt text), add 1 to each.
+## size. For the Dutch size (11 pt text), add 1 to each.
 font.size:          9
 axes.titlesize:     9
 axes.labelsize:     9
@@ -21,7 +21,7 @@ xtick.labelsize:    8
 ytick.labelsize:    8
 legend.fontsize:    8
 
-## --- Size: full text width of the demy book (91.5 mm); A5 99.5 mm, Royal 104.5 mm, TU Delft 112.5 mm --
+## --- Size: full text width of the demy book (91.5 mm); A5 99.5 mm, Royal 104.5 mm, Dutch 112.5 mm --
 ## Change the width per figure with plt.figure(figsize=(width_in, height_in)).
 figure.figsize:     3.60, 2.23      # inches: 91.5 mm wide, golden-ratio height
 figure.dpi:         150

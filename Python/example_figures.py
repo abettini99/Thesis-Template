@@ -37,8 +37,8 @@ parser.add_argument("--maths", choices=("auto", "mathtime", "newtx"), default="a
 print("figure fonts:", thesis_fonts.setup(parser.parse_args().maths))
 
 # Text widths of the book (mm), slightly under the nominal sizes because the class rounds the
-# text width to whole points: demy 91.5, A5 99.5, Royal 104.5, TU Delft 112.5. Half width (two
-# figures side by side): demy 44, A5 48, Royal 50, TU Delft 54. These examples use the demy
+# text width to whole points: demy 91.5, A5 99.5, Royal 104.5, Dutch 112.5. Half width (two
+# figures side by side): demy 44, A5 48, Royal 50, Dutch 54. These examples use the demy
 # sizes, the narrowest, so they fit every page size.
 FULL_MM, HALF_MM = 91.5, 44.0
 MM = 1 / 25.4

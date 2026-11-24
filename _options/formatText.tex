@@ -189,7 +189,29 @@
 %% main.tex switches with \contentsstyle{frontmatter} and \contentsstyle{mainmatter}; they start a new
 %% page and write the switch at once, so it lands in the right place among the entries of
 %% \include'd chapters.
+%% tocloft adds its hooks (\cfttocprehook, ...) to \@starttoc only if \@starttoc is still LaTeX's own.
+%% Tagging redefines it; tocloft 3.0 copes with that, older versions (Overleaf's TeX Live 2026 has
+%% 2.3i) give up with a warning. So tocloft is loaded with LaTeX's own \@starttoc in place, and the
+%% hooks are then added to the tagging version, as tocloft 3.0 does.
+\let\thesis@starttoc\@starttoc
+\def\@starttoc#1{%
+ \begingroup
+   \makeatletter
+   \@input{\jobname.#1}%
+   \if@filesw
+     \expandafter\newwrite\csname tf@#1\endcsname
+     \immediate\openout \csname tf@#1\endcsname \jobname.#1\relax
+   \fi
+  \@nobreakfalse
+\endgroup}
 \RequirePackage[titles]{tocloft}
+\let\@starttoc\thesis@starttoc
+\ifdefined\cfttocprehook
+    \patchcmd\@starttoc{\begingroup}{\csname cft#1prehook\endcsname\begingroup}{}
+        {\PackageWarning{personal}{Could not add tocloft's hooks to \string\@starttoc}}%
+    \patchcmd\@starttoc{\endgroup}{\endgroup\csname cft#1posthook\endcsname}{}
+        {\PackageWarning{personal}{Could not add tocloft's hooks to \string\@starttoc}}%
+\fi
 \renewcommand{\cftdot}{}
 \renewcommand{\cftchapfont}{\headingfont\bfseries}
 \renewcommand{\cftchappagefont}{\normalfont}
