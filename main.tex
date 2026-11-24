@@ -1,12 +1,12 @@
 \newif\ifthesistagging \thesistaggingtrue
-% \thesistaggingfalse % <- uncomment while writing: untagged, each compile about 40% faster
+% \thesistaggingfalse % <- uncomment while writing: untagged, each compile about 30% faster
 \input{_options/documentmetadata}
 % The line above sets the kind of PDF from the edition chosen below: an archival (PDF/A-4f) and accessible
 % (PDF/UA-2) PDF, tagged so that screen readers can follow its structure, with MathML for every formula
-% (MathML needs the MathTime fonts; with newtx the formulas are tagged without it); for the printer
-% (print-preparation), a PDF/X-6 or PDF/X-4 file (set in _thesisinfo.tex). While writing,
-% \thesistaggingfalse leaves out the tagging: the same pages, still archival but not accessible, and the
-% log says so. Comment it out again for any version you hand in.
+% (with either maths font, newtx or MathTime); for the printer (print-preparation), a PDF/X-6 or PDF/X-4
+% file (set in _thesisinfo.tex). While writing, \thesistaggingfalse leaves out the tagging: the same
+% pages, still archival but not accessible, and the log says so. Comment it out again for any version you
+% hand in.
 \documentclass[print-preparation,thumb]{personal}
 % options:
 %   british (default), american -- language: hyphenation, quotation marks, dates
@@ -16,6 +16,7 @@
 %     print-preparation -- for the professional printer: PDF/X, with bleed (_thesisinfo.tex: standard, colour profile, bleed)
 %     print-showcase    -- the printed book as it looks after trimming: final size, as on paper
 %     print-report      -- for printing a proof at home: the pages on A4 (add letter for US Letter)
+%   letter    -- with print-report: US Letter instead of A4
 %   thumb     -- thumb tabs
 %   showtrims -- crop marks: where the page is trimmed (print-report; print-preparation: outside the bleed,
 %                only if the printer asks for them)
@@ -25,6 +26,7 @@
 %   final     -- version for the printer and repository: hides all todo notes
 %   backreferences -- each reference lists the pages it is cited on
 %   chapterbib -- every chapter ends with its own reference list
+%   sidewaysalternate -- sideways pages turned with their top towards the spine (alternating), not to the left
 
 % Maths font: newtx (Times), or MathTime Professional 2: unpack the MathTime zip and run
 % python3 tools/mtpro2_otf.py <unpacked folder> Fonts, which converts it into the Fonts folder (all mtpro2

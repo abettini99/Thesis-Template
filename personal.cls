@@ -21,7 +21,8 @@
 %%   print-showcase    : final size, as on paper: the printed book as it looks after trimming
 %%   print-report      : on an A4 sheet (letter: US Letter), for printing a proof at home; with showtrims,
 %%                       crop marks show where to cut
-%% The print editions are set for paper: links invisible, code in black and white, no rotated pages.
+%% The print editions are set for paper: links invisible (left out altogether in print-preparation, the PDF/X
+%% file), code in black and white, no rotated pages.
 \newcommand*{\thesis@edition}{digital}
 \DeclareOption{digital}{\renewcommand*{\thesis@edition}{digital}}
 \DeclareOption{print-preparation}{\renewcommand*{\thesis@edition}{print-preparation}}
@@ -80,7 +81,7 @@
 \fi}}{}% (not for the printer: that edition is never tagged)
 
 %% Public switch, for files outside the class (\ifprintversion ... \else ... \fi): true for the print
-%% editions (links invisible, code in black and white, no rotated pages), false for digital.
+%% editions (links invisible or left out, code in black and white, no rotated pages), false for digital.
 \newif\ifprintversion
 \ifdefstring{\thesis@edition}{digital}{}{\printversiontrue}
 

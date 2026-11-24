@@ -20,7 +20,7 @@ A long thesis gets slow because every chapter, figure and plot is processed on e
 3. **Keep heavy plots out of the document.** Make plots in Python (matplotlib) or similar and include them as PDF. A TikZ drawing is redrawn on every compile, so keep TikZ for small diagrams.
 4. **Keep images light.** Use vector PDF for plots and diagrams. For photos and renders, use JPG (or PNG for screenshots) at no more than about 300 dpi at the size they are printed: a figure 100 mm wide needs about 1200 pixels, not 6000.
 5. **Load only what you use.** Optional packages are listed, commented out, at the bottom of `_options/packages.tex`.
-6. **Leave out the tagging while writing.** Tagging (for the accessible PDF) makes each compile slower. Uncomment `\thesistaggingfalse` at the top of `main.tex`: the same pages, untagged, and each compile about 40% faster (about 29 s instead of 49 s for this template). The log reminds you that the PDF is not accessible; comment the line out again for any version you hand in.
+6. **Leave out the tagging while writing.** Tagging (for the accessible PDF) makes each compile slower. Uncomment `\thesistaggingfalse` at the top of `main.tex`: the same pages, untagged, and each compile pass about 30% faster (about 21 s instead of 30 s for this template). The log reminds you that the PDF is not accessible; comment the line out again for any version you hand in.
 
 ## Archival and accessible PDF (PDF/A, PDF/UA)
 
@@ -40,7 +40,7 @@ The PDF standards, roughly from least to most demanding:
 
 - **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A.
 - **Checking:** the digital, print-showcase and print-report editions pass veraPDF's PDF/A-4f and PDF/UA-2 checks. `python3 tools/check_pdf.py` checks your compiled PDF (see *Before sending it to the printer*); it runs [veraPDF](https://verapdf.org) (free) for a full validation when that is installed, otherwise have the final PDF validated once with veraPDF or Adobe Acrobat's preflight.
-- **`\DocumentMetadata`:** `\input{_options/documentmetadata}` at the top of `main.tex` (and of `propositions.tex` and `cover.tex`) switches on LaTeX's PDF management, with the standard that fits the edition named in `\documentclass` (PDF/X for `print-preparation`, PDF/A and PDF/UA otherwise). It is required: the class stops with an error without it. It also switches on tagging: the PDF is archival (PDF/A-4f) and accessible (PDF/UA-2), with its structure (headings, lists, tables, figures with their captions, footnotes, code) marked for screen readers, and MathML for every formula. `tools/check_pdf.py` runs veraPDF for both standards when it is installed. Check the result with [veraPDF](https://verapdf.org) (profiles PDF/A-4 and PDF/UA-2) or [PAC](https://pac.pdf-accessibility.org). Tagging makes each compile slower; while writing, `\thesistaggingfalse` at the top of `main.tex` builds the same pages untagged (see *Faster compiling*).
+- **`\DocumentMetadata`:** `\input{_options/documentmetadata}` at the top of `main.tex` (and of `propositions.tex` and `cover.tex`) switches on LaTeX's PDF management and tagging, with the standard that fits the edition named in `\documentclass` (PDF/X for `print-preparation`, PDF/A-4f and PDF/UA-2 otherwise). It is required: the class stops with an error without it. Besides veraPDF, [PAC](https://pac.pdf-accessibility.org) checks the accessibility. Tagging makes each compile slower; while writing, `\thesistaggingfalse` at the top of `main.tex` builds the same pages untagged (see *Faster compiling*).
 - **Metadata:** the PDF carries title, author, keywords, licence and, once filled in in `_thesisinfo.tex`, the ISBN, the DOI the TU Delft repository gives your dissertation (`\thesisdoi`) and your ORCID iD. Repositories and reference managers read them. Fields still holding their placeholder (`[978-94-...]`, the example ORCID iD) are left out. The licence is a short code, `\thesislicence{CC BY 4.0}` (or CC BY-SA, CC BY-ND, CC BY-NC, CC BY-NC-SA, CC BY-NC-ND 4.0, CC0 1.0, or empty for all rights reserved); it sets the sentence on the colophon, its link and the metadata. The colophon's link to the repository goes to your DOI once `\thesisdoi` is filled in.
 - **Attachments** (`_options/attachments.tex`): PDF/A-4f allows files inside the PDF; viewers list them in their attachments panel.
   - *Citation file:* `citation.bib` and `citation.ris` (EndNote, Zotero, Mendeley) for citing the thesis, made from `_thesisinfo.tex` on every compile.
@@ -87,7 +87,7 @@ Set in the first line of `main.tex`, for example:
 | `chapterbib` | Every chapter ends with its own reference list instead of one list at the end of the book, as is common for a thesis built from papers. |
 | `sidewaysalternate` | Sideways tables and figures (and `figurepage[landscape]`, `tablepage[landscape]`) turned with their top towards the spine, so the direction alternates between left and right pages, instead of the top at the left edge on every page (the book convention). |
 
-The print editions are set for paper: links invisible (they still work in the PDF), code in black and white.
+The print editions are set for paper: code in black and white, and links invisible (`print-showcase` and `print-report`: they still work on screen) or left out altogether (`print-preparation`: a PDF/X file has nothing clickable).
 
 ## Where things are
 
@@ -105,10 +105,13 @@ The print editions are set for paper: links invisible (they still work in the PD
 | `Chapters/00Nomenclature.tex` | Prints the nomenclature lists. |
 | `references.bib` | Bibliography database. |
 | `personal.cls` | The class: page layout, options, core packages. |
-| `_options/` | Fonts, heading styles, page styles, colours, extra packages, custom commands. |
+| `_options/` | Fonts, heading styles, page styles, colours, extra packages, custom commands; the PDF set-up: `documentmetadata.tex` (the standard of each edition), `pdfa.tex` (PDF/A and metadata), `tagging.tex` and `accessibility.tex` (PDF/UA), `attachments.tex`, `printpdf.tex` and `thesisprint.lua` (PDF/X), `digitalcover.tex` (the cover pages of the digital edition). |
 | `Fonts/` | Optional: MathTime Professional 2 for the maths (see `Fonts/README.md`). Never put it in a public repository. |
 | `_options/ntxmath-otf/` | newtx maths as OpenType fonts (`ntxmath-otf`): free, part of the template, used when MathTime is not there. |
 | `tools/` | `check_pdf.py` checks the compiled PDF before submission; `check_print.py` checks the PDF/X edition for the printer; `print_ready.py` makes figure PDFs from elsewhere ready for print; `print_pdf.py` converts the print edition to CMYK when a printer asks for it; `check_figures.py` checks each figure's printed size, text size and fonts; `check_bib.py` tidies `references.bib`; `check_hyphenation.py` lists the hyphenated words to review; `greyscale_preview.py` counts colour pages and shows the thesis in greyscale; `diff_versions.py` makes a PDF with the changes since an earlier version marked; `mtpro2_otf.py` converts MathTime Professional 2 into OpenType maths fonts (see `Fonts/README.md`); `ntxmath_otf.py` rebuilds `_options/ntxmath-otf` from newtx (with `mtpro2_otf.py` beside it, no MathTime needed); `hooks/pre-commit` refuses commits with MathTime files; `common.py` holds the code the checks share. |
+| `Python/` | `thesis.mplstyle` (the plot style), `thesis_fonts.py` (figure text in the thesis's fonts, colour maps, saving ready for print) and `example_figures.py` (the plots of the example chapter). |
+| `Images/` | Figures. `_title_images/` holds the TU Delft logo of the title page; the `example_*` files and the `grid/` and `snapshots/` folders belong to the example chapter. |
+| `.github/` | The GitHub builds (`workflows/`, see *Overleaf ↔ GitHub*) and the images in this README. |
 | `requirements.txt` | Python packages for the scripts and plots: `pip install -r requirements.txt`. |
 | `latexmkrc` | latexmk settings: LuaLaTeX, and the `Fonts/` and `_options/ntxmath-otf/` folders on TeX's search paths. |
 | `propositions.tex` | The propositions (stellingen), a separate document. |
@@ -122,7 +125,7 @@ The print editions are set for paper: links invisible (they still work in the PD
 4. **Remove the examples.** In `main.tex`, delete the lines `\include{Chapters/02Examples}` and `\include{Chapters/03InfSup}` (keep the files for reference), the references they use from `references.bib`, and, once no chapter uses `\lipsum` any more, the `lipsum` line. Replace the example appendix `A_Appendix.tex` with your own or remove its `\include`.
 5. **Your chapters.** Turn `01Introduction.tex` into your introduction, and copy `Chapters/_newChapter.tex` for every further chapter (`03Name.tex`, ...), adding an `\include` line for each in `main.tex`.
 6. **References, symbols, hyphenation.** Replace the entries in `references.bib`, define your acronyms and symbols in `_nomenclature.tex`, and add technical terms to `_hyphenation.tex` as you go (`tools/check_hyphenation.py` shows which words TeX hyphenated). Now and then, run `python3 tools/check_bib.py`: it finds duplicate entries, unused ones, missing fields and page ranges written with a hyphen, and with `--doi` it looks up missing DOIs on Crossref (`--write` adds the certain fixes).
-7. **Example files.** Delete the `Images/example_*.pdf` figures once nothing uses them; keep `Python/thesis.mplstyle` and copy `Python/example_figures.py` as a starting point for your own plots.
+7. **Example files.** Delete the example figures (`Images/example_*`, `Images/grid/`, `Images/snapshots/`) once nothing uses them (`tools/check_figures.py` lists the files no longer used); keep `Python/thesis.mplstyle` and copy `Python/example_figures.py` as a starting point for your own plots.
 8. **Propositions and cover** come at the end: see *Propositions and cover* below.
 
 ## Writing
@@ -177,8 +180,8 @@ Decide the notation once and keep it for the whole thesis; it drifts when chapte
 | Vectors and tensors | bold italic: $\boldsymbol{u}$, $\boldsymbol{\sigma}$ | `\vec{u}`, `\tensor{\sigma}` |
 | Matrices and vectors of unknowns (discrete) | upright sans-serif: $\mathsf{A}$, $\mathsf{b}$ | `\mathsf{A}` |
 | Differential operators | $\nabla p$, $\nabla\cdot\boldsymbol{u}$, $\nabla\times\boldsymbol{u}$ | `\grad`, `\div`, `\curl` |
-| Derivatives in displays | $\dfrac{\partial u}{\partial t}$, $\dfrac{\mathrm{D}u}{\mathrm{D}t}$ | `\pderiv{u}{t}`, `\sderiv{u}{t}` |
-| Derivatives inline and in weak forms | $\partial_t u$, $\partial^2_x u$ | `\cpderiv{u}{t}`, `\cpderiv[2]{u}{x}` |
+| Derivatives in displays | $\dfrac{\partial u}{\partial t}$, $\dfrac{\mathrm{D}u}{\mathrm{D}t}$ | `\pdv{u}{t}`, `\mdv{u}{t}` |
+| Derivatives inline and in weak forms | $\partial_t u$, $\partial^2_x u$ | `\cpdv{u}{t}`, `\cpdv[2]{u}{x}` |
 | Upright constants and labels | $\mathrm{d}x$, $\mathrm{e}$, $u_\mathrm{in}$ | `\mathrm{...}` for anything that is a name, not a variable |
 | Inner product | $(\boldsymbol{v}, \boldsymbol{u})_\Omega$, test function first | `\inner{\vec{v}}{\vec{u}}_\Omega` |
 | Named forms | $a(\boldsymbol{v}, \boldsymbol{u})$, $c(\boldsymbol{w}; \boldsymbol{v}, \boldsymbol{u})$ | defined once, with `\coloneqq` |
@@ -301,7 +304,7 @@ The committee usually asks for corrections, and it helps to show them what chang
 
 ## Print costs
 
-Printers usually charge every page that contains any colour as a colour page. So the print editions keep everything that appears on many pages black and white: the thumb tabs are light grey (black ink only), links are left out and code listings use bold and grey instead of colours. Colour in your own figures is fine; it only affects the pages they are on. `tools/check_print.py` lists the pages in colour (the number to quote); `tools/greyscale_preview.py` shows the thesis in greyscale.
+Printers usually charge every page that contains any colour as a colour page. So the print editions keep everything that appears on many pages black and white: the thumb tabs are light grey (black ink only), links are not coloured and code listings use bold and grey instead of colours. Colour in your own figures is fine; it only affects the pages they are on. `tools/check_print.py` lists the pages in colour (the number to quote); `tools/greyscale_preview.py` shows the thesis in greyscale.
 
 ## Overleaf ↔ GitHub
 
