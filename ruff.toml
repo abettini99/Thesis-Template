@@ -1,0 +1,12 @@
+# Ruff (https://docs.astral.sh/ruff/): checks the Python scripts for errors and keeps one layout.
+# Run before pushing changes to them:  ruff check --fix  and  ruff format
+# The GitHub workflow .github/workflows/lint.yml runs both checks on every push.
+line-length = 110
+target-version = "py310"
+
+[lint]
+# Errors and likely bugs, not style: syntax and undefined names (E9, F), likely bugs (B),
+# and sorted imports (I).
+select = ["E9", "F", "B", "I"]
+# zip() without strict=: the scripts zip sequences of the same length by construction
+ignore = ["B905"]

@@ -20,6 +20,7 @@ this lists them, alphabetically with their pages, and points out:
 Fix a wrong break by adding the word to settings/hyphenation.tex, with the right breaks marked
 (\\hyphenation{equi-lib-rium}) or none at all (\\hyphenation{Navier}). Needs Python 3.8+.
 """
+
 from __future__ import annotations
 
 import re
@@ -44,7 +45,7 @@ def read(log: Path):
                 continue
             buf = line[i:]
         if ";" in buf:
-            records.append(buf[:buf.index(";")])
+            records.append(buf[: buf.index(";")])
             buf = None
     words = defaultdict(dict)
     for r in records:
@@ -94,8 +95,13 @@ def main(argv=None) -> int:
     if len(run) >= 3:
         ladders.append(run)
     # names and terms: a capital that is not just the start of a sentence, two capitals, or a digit
-    names = [w for w in words if (w["word"][:1].isupper() and not w.get("start"))
-             or sum(c.isupper() for c in w["word"]) >= 2 or any(c.isdigit() for c in w["word"])]
+    names = [
+        w
+        for w in words
+        if (w["word"][:1].isupper() and not w.get("start"))
+        or sum(c.isupper() for c in w["word"]) >= 2
+        or any(c.isdigit() for c in w["word"])
+    ]
     short = [w for w in words if min(len(w["before"]), len(w["after"])) <= 2]
 
     def show(w):
@@ -112,10 +118,16 @@ def main(argv=None) -> int:
         issues += len(ladders)
         print("Three or more hyphenated lines in a row:")
         for run in ladders:
-            print("  " + ", ".join(f"{w['before']}-{w['after']}" for w in run) + f"   (page {run[0].get('page1', '?')})")
+            print(
+                "  "
+                + ", ".join(f"{w['before']}-{w['after']}" for w in run)
+                + f"   (page {run[0].get('page1', '?')})"
+            )
         print()
     if names:
-        print("Names, acronyms and terms with digits: check the break, or forbid it in settings/hyphenation.tex:")
+        print(
+            "Names, acronyms and terms with digits: check the break, or forbid it in settings/hyphenation.tex:"
+        )
         for w in names:
             print("  " + show(w))
         print()
@@ -129,7 +141,7 @@ def main(argv=None) -> int:
         for w in words:
             byword[(w["word"].lower(), w["before"] + "-" + w["after"])].append(w.get("page1", "?"))
         print("All hyphenated words:")
-        for (word, broken), pages in sorted(byword.items()):
+        for (_word, broken), pages in sorted(byword.items()):
             print(f"  {broken:<32} page {', '.join(str(p) for p in pages)}")
         print()
     elif words:

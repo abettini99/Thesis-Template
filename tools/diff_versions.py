@@ -13,6 +13,7 @@ followed through \\include and \\input, so the whole thesis is compared.
 Runs locally (Overleaf cannot run it): needs git, latexdiff and latexmk, which come with TeX Live.
 The result, main-diff.tex and main-diff.pdf, is ignored by git.
 """
+
 from __future__ import annotations
 
 import io
@@ -52,21 +53,38 @@ def main(argv=None) -> int:
             sys.exit(f"{args.main} does not exist in version {args.old}")
         print(f"Comparing {args.main} at {args.old} with the current files ...")
         r = subprocess.run(
-            ["latexdiff", "--flatten", "--type=UNDERLINE", "--subtype=SAFE", "--math-markup=coarse",
-             "--encoding=utf8", str(old / args.main), str(ROOT / args.main)],
-            cwd=ROOT, capture_output=True, text=True)
+            [
+                "latexdiff",
+                "--flatten",
+                "--type=UNDERLINE",
+                "--subtype=SAFE",
+                "--math-markup=coarse",
+                "--encoding=utf8",
+                str(old / args.main),
+                str(ROOT / args.main),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
         if r.returncode or not r.stdout.strip():
             sys.exit("latexdiff failed:\n" + r.stderr[-2000:])
         out.write_text(r.stdout, encoding="utf-8")
     print(f"written: {out.name}")
     if args.no_compile:
         return 0
-    r = subprocess.run(["latexmk", "-interaction=nonstopmode", "-halt-on-error", out.name],
-                       cwd=ROOT, capture_output=True, text=True)
+    r = subprocess.run(
+        ["latexmk", "-interaction=nonstopmode", "-halt-on-error", out.name],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
     pdf = out.with_suffix(".pdf")
     if r.returncode or not pdf.exists():
-        print(f"Compiling {out.name} failed: see {out.with_suffix('.log').name}. latexdiff sometimes marks up "
-              "a construct LaTeX cannot take; compile it by hand, or compare a smaller range of versions.")
+        print(
+            f"Compiling {out.name} failed: see {out.with_suffix('.log').name}. latexdiff sometimes marks up "
+            "a construct LaTeX cannot take; compile it by hand, or compare a smaller range of versions."
+        )
         return 1
     print(f"written: {pdf.name}")
     return 0

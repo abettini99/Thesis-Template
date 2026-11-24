@@ -26,6 +26,7 @@ The exit code is 1 if anything must be fixed, 0 otherwise. Needs Python 3.8+ and
 the poppler tools pdfinfo, pdffonts and pdfimages (part of TeX Live on Windows;
 "brew install poppler" on macOS; "poppler-utils" on Linux).
 """
+
 from __future__ import annotations
 
 import re
@@ -44,23 +45,25 @@ def table(text: str, skip: int = 2) -> list[list[str]]:
 
 # --- archival PDF -------------------------------------------------------------
 
-PDFA = ("4", "F")                                   # the standard the class produces: PDF/A-4f
+PDFA = ("4", "F")  # the standard the class produces: PDF/A-4f
 PDFA_NAME = f"PDF/A-{PDFA[0]}{PDFA[1].lower()}"
 
 
 def check_pdfa(pdf: Path, r: Report) -> None:
     r.section(f"Archival and accessible PDF ({PDFA_NAME}, PDF/UA-2)")
     verapdf = shutil.which("verapdf")
-    if verapdf:                     # veraPDF checks every standard the PDF declares, one line each
+    if verapdf:  # veraPDF checks every standard the PDF declares, one line each
         out = run(verapdf, "--format", "text", "--verbose", str(pdf))
-        verdicts = dict((m.group(2).lower(), m.group(1)) for m in
-                        re.finditer(r"^(PASS|FAIL) .* (\w+)\s*$", out, re.M))
-        rules = [l.strip() for l in out.splitlines()
-                 if l.strip() and not re.match(r"(PASS|FAIL) ", l)][:40] or out.strip().splitlines()[-5:]
+        verdicts = dict(
+            (m.group(2).lower(), m.group(1)) for m in re.finditer(r"^(PASS|FAIL) .* (\w+)\s*$", out, re.M)
+        )
+        rules = [l.strip() for l in out.splitlines() if l.strip() and not re.match(r"(PASS|FAIL) ", l)][
+            :40
+        ] or out.strip().splitlines()[-5:]
         named = {"4f": PDFA_NAME, "ua2": "PDF/UA-2 (accessible: tagged, for screen readers)"}
         for flavour, name in named.items():
             if flavour not in verdicts and flavour != "4f":
-                continue            # (PDF/UA only when main.tex switches tagging on)
+                continue  # (PDF/UA only when main.tex switches tagging on)
             if verdicts.get(flavour) == "PASS":
                 r.ok(f"veraPDF: {name} compliant")
             else:
@@ -73,8 +76,9 @@ def check_pdfa(pdf: Path, r: Report) -> None:
         r.ok(f"declares {PDFA_NAME}")
     else:
         r.fail(f"does not declare {PDFA_NAME} (the class sets this up: check that the build finished)")
-    try:                            # (objects may sit in compressed streams: read them with pikepdf)
+    try:  # (objects may sit in compressed streams: read them with pikepdf)
         import pikepdf
+
         doc = pikepdf.open(pdf)
         intents = [str(oi.get("/S")) for oi in doc.Root.get("/OutputIntents", [])]
         encrypted, javascript = doc.is_encrypted, "/JavaScript" in doc.Root.get("/Names", {})
@@ -95,6 +99,7 @@ def check_pdfa(pdf: Path, r: Report) -> None:
 
 # --- fonts -------------------------------------------------------------------
 
+
 def check_fonts(pdf: Path, r: Report) -> None:
     r.section("Fonts")
     rows = [row for row in table(run("pdffonts", str(pdf))) if len(row) >= 7]
@@ -108,11 +113,16 @@ def check_fonts(pdf: Path, r: Report) -> None:
     else:
         r.ok("all fonts embedded")
     if type3:
-        r.warn("Type 3 fonts, usually from a figure: some are bitmaps (blurry in print) and some printers "
-               "refuse them. In matplotlib use the template's style file (pdf.fonttype 42)", sorted(set(type3)))
+        r.warn(
+            "Type 3 fonts, usually from a figure: some are bitmaps (blurry in print) and some printers "
+            "refuse them. In matplotlib use the template's style file (pdf.fonttype 42)",
+            sorted(set(type3)),
+        )
     if nouni:
-        r.fail("fonts without a Unicode map: text in them cannot be searched or copied (PDF/A)",
-               sorted(set(nouni)))
+        r.fail(
+            "fonts without a Unicode map: text in them cannot be searched or copied (PDF/A)",
+            sorted(set(nouni)),
+        )
     else:
         r.ok("all fonts map to Unicode")
     try:
@@ -121,9 +131,11 @@ def check_fonts(pdf: Path, r: Report) -> None:
         print("        (missing glyphs not checked: pip install -r requirements.txt)")
     else:
         if hits:
-            r.fail("missing glyphs (.notdef): they print as nothing and PDF/A forbids them. In a figure from "
-                   "matplotlib 3.11+ this is usually a ligature (ff, fi, fl); tools/check_figures.py names the file",
-                   [f"page {p}: {', '.join(sorted(f))}" for p, f in sorted(hits.items())])
+            r.fail(
+                "missing glyphs (.notdef): they print as nothing and PDF/A forbids them. In a figure from "
+                "matplotlib 3.11+ this is usually a ligature (ff, fi, fl); tools/check_figures.py names the file",
+                [f"page {p}: {', '.join(sorted(f))}" for p, f in sorted(hits.items())],
+            )
         else:
             r.ok("no missing glyphs")
     figures = sorted((ROOT / "figures").rglob("*.pdf")) if (ROOT / "figures").is_dir() else []
@@ -133,8 +145,10 @@ def check_fonts(pdf: Path, r: Report) -> None:
         missing = sorted({row[0] for row in frows if row[-5] != "yes"})
         t3 = sorted({row[0] for row in frows if "Type 3" in " ".join(row)})
         if missing or t3:
-            what = ", ".join(([f"not embedded: {', '.join(missing)}"] if missing else [])
-                             + ([f"Type 3: {', '.join(t3)}"] if t3 else []))
+            what = ", ".join(
+                ([f"not embedded: {', '.join(missing)}"] if missing else [])
+                + ([f"Type 3: {', '.join(t3)}"] if t3 else [])
+            )
             bad.append(f"{fig.relative_to(ROOT)}  ({what})")
     if bad:
         r.warn("figure files with problem fonts (fix them at the source and export again)", bad)
@@ -145,6 +159,7 @@ def check_fonts(pdf: Path, r: Report) -> None:
 def missing_glyphs(pdf: Path):
     """{page: font names} of the pages that show the .notdef (missing) glyph; needs pikepdf."""
     import pikepdf
+
     hits, doc = {}, pikepdf.open(pdf)
     for n, page in enumerate(doc.pages, 1):
         font = None
@@ -158,13 +173,15 @@ def missing_glyphs(pdf: Path):
 
 # --- colour contrast ---------------------------------------------------------
 
+
 def text_colours(pdf: Path):
     """{(r, g, b): set of pages} of the colours text is set in (outside the figures); needs pikepdf."""
     import pikepdf
+
     found, doc = {}, pikepdf.open(pdf)
     for n, page in enumerate(doc.pages, 1):
         fill, stack = (0.0, 0.0, 0.0), []
-        for op, operands, res, _ in operators(page, page.get("/Resources")):
+        for op, operands, _res, _ in operators(page, page.get("/Resources")):
             nums = []
             for x in operands:
                 try:
@@ -195,24 +212,30 @@ def check_contrast(pdf: Path, r: Report) -> None:
     except ImportError:
         print("        (not checked: pip install -r requirements.txt)")
         return
+
     def contrast(rgb):
         lin = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb]
         return 1.05 / (0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2] + 0.05)
+
     low = []
     for rgb, pages in sorted(found.items(), key=lambda kv: contrast(kv[0])):
         cr = contrast(rgb)
-        if 1.15 < cr < 4.5:                      # (white text sits on something dark: not judged here)
+        if 1.15 < cr < 4.5:  # (white text sits on something dark: not judged here)
             hexa = "#" + "".join(f"{round(c * 255):02X}" for c in rgb)
             where = ", ".join(str(p) for p in sorted(pages)[:10]) + (" ..." if len(pages) > 10 else "")
             low.append(f"{hexa}: {cr:.1f}:1, on page{'s' if len(pages) > 1 else ''} {where}")
     if low:
-        r.warn("text in colours too light against white (4.5:1 needed; lines and text in figures: "
-               "tools/check_figures.py)", low)
+        r.warn(
+            "text in colours too light against white (4.5:1 needed; lines and text in figures: "
+            "tools/check_figures.py)",
+            low,
+        )
     else:
         r.ok(f"all text colours stand out against white ({len(found)} colours)")
 
 
 # --- images ------------------------------------------------------------------
+
 
 def check_images(pdf: Path, r: Report) -> None:
     r.section("Raster images")
@@ -246,18 +269,24 @@ def check_images(pdf: Path, r: Report) -> None:
     if not (low or very_low):
         r.ok(f"all images {PRINT_PPI} ppi or more at their printed size")
     if cmyk:
-        r.fail("CMYK images: they break PDF/A, which defines colour in RGB; export them as RGB "
-               "(the printer converts)", sorted(set(cmyk), key=lambda s: int(s.split()[1])))
+        r.fail(
+            "CMYK images: they break PDF/A, which defines colour in RGB; export them as RGB "
+            "(the printer converts)",
+            sorted(set(cmyk), key=lambda s: int(s.split()[1])),
+        )
     else:
         r.ok("no CMYK images (RGB and grey only, as PDF/A needs)")
 
 
 # --- LaTeX log ---------------------------------------------------------------
 
+
 def check_log(log: Path, r: Report) -> None:
     r.section(f"LaTeX log ({log.name})")
     if not log.exists():
-        r.warn(f"{log.name} not found: compile first (on Overleaf, download the log from Logs and output files)")
+        r.warn(
+            f"{log.name} not found: compile first (on Overleaf, download the log from Logs and output files)"
+        )
         return
     text = log.read_text(errors="replace")
     lines = text.splitlines()
@@ -278,20 +307,26 @@ def check_log(log: Path, r: Report) -> None:
     if missing:
         r.fail("missing characters (left out of the PDF)", [f"{c} in {f.strip()}" for c, f in missing])
     if overfull:
-        r.warn("overfull boxes (text sticking into the margin)",
-               [f"{pt} pt {where}" for pt, where in overfull])
+        r.warn(
+            "overfull boxes (text sticking into the margin)", [f"{pt} pt {where}" for pt, where in overfull]
+        )
     else:
         r.ok("no overfull boxes")
     # PDF backend warnings ("warning  (pdf inclusion): found PDF version ..."): TeX wraps them, so rejoin
     backend = []
     for i, l in enumerate(lines):
         if l.startswith("warning  ("):
-            msg = l + (lines[i + 1] if i + 1 < len(lines) and not lines[i + 1].startswith(("(", "<", "[")) else "")
+            msg = l + (
+                lines[i + 1] if i + 1 < len(lines) and not lines[i + 1].startswith(("(", "<", "[")) else ""
+            )
             backend.append(msg.replace("warning  ", "", 1))
     inclusion = [b for b in backend if "PDF version" in b]
     if inclusion:
-        r.warn("figures saved as a newer PDF version than this PDF (1.4): harmless, but to clear the warning "
-               "save them as PDF 1.4 (e.g. Inkscape: Save as PDF, version 1.4)", inclusion)
+        r.warn(
+            "figures saved as a newer PDF version than this PDF (1.4): harmless, but to clear the warning "
+            "save them as PDF 1.4 (e.g. Inkscape: Save as PDF, version 1.4)",
+            inclusion,
+        )
     rest = [b for b in backend if b not in inclusion]
     if rest:
         r.warn("PDF backend warnings", rest)
@@ -306,6 +341,7 @@ def is_pdfx(path) -> bool:
     """A PDF/X file: an output intent of the kind GTS_PDFX (read with pikepdf when it is installed)."""
     try:
         import pikepdf
+
         with pikepdf.open(path) as pdf:
             return any(str(oi.get("/S")) == "/GTS_PDFX" for oi in pdf.Root.get("/OutputIntents", []))
     except ImportError:
@@ -324,12 +360,15 @@ def main(argv=None) -> int:
     info = run("pdfinfo", str(args.pdf))
     pages = re.search(r"Pages:\s+(\d+)", info)
     size = re.search(r"Page size:\s+(.+)", info)
-    print(f"{args.pdf.name}: {pages.group(1) if pages else '?'} pages, {size.group(1).strip() if size else '?'}")
+    print(
+        f"{args.pdf.name}: {pages.group(1) if pages else '?'} pages, {size.group(1).strip() if size else '?'}"
+    )
     r = Report()
     if is_pdfx(args.pdf):
         # the print-preparation edition (PDF/X, for the printer): its own checks, then the log
         print("PDF/X (for the printer): tools/check_print.py")
         import check_print
+
         pr = check_print.check(args.pdf)
         for line in pr.facts:
             print(f"  {line}")

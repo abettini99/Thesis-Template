@@ -20,6 +20,7 @@ it names and stops, rather than write a wrong file. Check the result with tools/
 it before sending: CMYK cannot show the brightest screen colours, so saturated blues and greens come out
 a little duller (as they would at the printer). Needs pikepdf and Pillow (pip install -r requirements.txt).
 """
+
 import argparse
 import io
 import subprocess
@@ -37,7 +38,9 @@ class Unsupported(Exception):
 
 def find_fogra39():
     try:
-        out = subprocess.run(["kpsewhich", "FOGRA39L_coated.icc"], capture_output=True, text=True).stdout.strip()
+        out = subprocess.run(
+            ["kpsewhich", "FOGRA39L_coated.icc"], capture_output=True, text=True
+        ).stdout.strip()
         if out:
             return Path(out)
     except OSError:
@@ -59,8 +62,9 @@ class Converter:
         srgb = ImageCms.createProfile("sRGB")
         cmyk = ImageCms.ImageCmsProfile(io.BytesIO(profile_bytes))
         flags = ImageCms.Flags.BLACKPOINTCOMPENSATION if hasattr(ImageCms, "Flags") else 0x2000
-        self.tf = ImageCms.buildTransform(srgb, cmyk, "RGB", "CMYK",
-                                          renderingIntent=ImageCms.Intent.RELATIVE_COLORIMETRIC, flags=flags)
+        self.tf = ImageCms.buildTransform(
+            srgb, cmyk, "RGB", "CMYK", renderingIntent=ImageCms.Intent.RELATIVE_COLORIMETRIC, flags=flags
+        )
         self.cache, self.seen, self.rgbnames = {}, set(), {}
         self.count = {"colours": 0, "images": 0}
 
@@ -139,7 +143,10 @@ class Converter:
             data = fn.read_bytes()
             out = bytearray()
             for i in range(0, len(data) - 2, 3):
-                out += bytes(int(round(v * 255)) for v in self.cmyk([data[i] / 255, data[i + 1] / 255, data[i + 2] / 255]))
+                out += bytes(
+                    int(round(v * 255))
+                    for v in self.cmyk([data[i] / 255, data[i + 1] / 255, data[i + 2] / 255])
+                )
             fn.write(bytes(out))
             fn.Range = Array([0, 1] * 4)
             if "/Decode" in fn:
@@ -186,7 +193,7 @@ class Converter:
             buf = io.BytesIO()
             out.save(buf, "JPEG", quality=95)
             xo.write(buf.getvalue(), filter=Name.DCTDecode)
-            xo.Decode = Array([1, 0, 1, 0, 1, 0, 1, 0])   # Adobe's inverted CMYK JPEG
+            xo.Decode = Array([1, 0, 1, 0, 1, 0, 1, 0])  # Adobe's inverted CMYK JPEG
         else:
             xo.write(out.tobytes(), filter=None)
             if "/Decode" in xo:
@@ -215,14 +222,20 @@ class Converter:
                 self.count["colours"] += 1
             elif o in ("cs", "CS"):
                 name = operands[0]
-                space = cs_res.get(name) if name not in (Name.DeviceRGB, Name.DeviceGray, Name.DeviceCMYK, Name.Pattern) else name
+                space = (
+                    cs_res.get(name)
+                    if name not in (Name.DeviceRGB, Name.DeviceGray, Name.DeviceCMYK, Name.Pattern)
+                    else name
+                )
                 is_rgb = self.rgb_space(space) or str(name) in rgbnames
                 if o == "cs":
                     fill_rgb = is_rgb
                 else:
                     stroke_rgb = is_rgb
                 out.append(([Name.DeviceCMYK] if is_rgb else operands, op))
-            elif o in ("sc", "scn", "SC", "SCN") and ((o in ("sc", "scn") and fill_rgb) or (o in ("SC", "SCN") and stroke_rgb)):
+            elif o in ("sc", "scn", "SC", "SCN") and (
+                (o in ("sc", "scn") and fill_rgb) or (o in ("SC", "SCN") and stroke_rgb)
+            ):
                 nums = [x for x in operands if not isinstance(x, Name)]
                 if len(nums) != 3:
                     raise Unsupported(f"an RGB colour given as {o} with {len(nums)} values ({where})")
@@ -243,10 +256,10 @@ class Converter:
             return
         csd = res.get("/ColorSpace")
         if csd is not None:
-            if self.key(csd) in self.rgbnames:               # shared by several pages: done already
+            if self.key(csd) in self.rgbnames:  # shared by several pages: done already
                 return self.resources_rest(res, where)
             rgbnames = {key for key in csd.keys() if self.rgb_space(csd[key])}
-            self.rgbnames[self.key(csd)] = rgbnames          # (the content still names them)
+            self.rgbnames[self.key(csd)] = rgbnames  # (the content still names them)
             for key in list(csd.keys()):
                 if key == "/DefaultRGB":
                     del csd[key]
@@ -263,7 +276,7 @@ class Converter:
             if xo.get("/Subtype") == Name.Image:
                 self.image(xo, where)
                 if "/SMask" in xo:
-                    pass                                       # soft masks are grey: unchanged
+                    pass  # soft masks are grey: unchanged
             elif xo.get("/Subtype") == Name.Form:
                 self.form(xo, where)
         for key in list(res.get("/Pattern", {}).keys()):
@@ -309,7 +322,9 @@ class Converter:
 
 
 def main(argv):
-    ap = argparse.ArgumentParser(description="Convert the print PDF to CMYK with the printer's colour profile.")
+    ap = argparse.ArgumentParser(
+        description="Convert the print PDF to CMYK with the printer's colour profile."
+    )
     ap.add_argument("pdf", help="the print-preparation PDF (PDF/X-6 or PDF/X-4)")
     ap.add_argument("--profile", help="the printer's colour profile (.icc); default FOGRA39 (coated paper)")
     ap.add_argument("-o", "--output", help="output file (default: <name>-cmyk.pdf)")
@@ -322,8 +337,10 @@ def main(argv):
         if profile is None:
             print("error: no --profile given and FOGRA39 not found (kpsewhich FOGRA39L_coated.icc)")
             return 2
-        print("warning: converting for FOGRA39 (offset print on coated paper). Ask your printer for their colour\n"
-              "         profile: converted for another press or paper, the file has to be converted again.")
+        print(
+            "warning: converting for FOGRA39 (offset print on coated paper). Ask your printer for their colour\n"
+            "         profile: converted for another press or paper, the file has to be converted again."
+        )
     data = profile.read_bytes()
     if data[12:16] != b"prtr" or data[16:20] != b"CMYK":
         print(f"error: {profile} is not a CMYK printer profile")
@@ -353,7 +370,9 @@ def main(argv):
             if "/RegistryName" in oi and profile.name != "FOGRA39L_coated.icc":
                 del oi["/RegistryName"]
         pdf.save(dst)
-    print(f"{dst}: {conv.count['colours']} colours and {conv.count['images']} images converted to CMYK for {desc}")
+    print(
+        f"{dst}: {conv.count['colours']} colours and {conv.count['images']} images converted to CMYK for {desc}"
+    )
     print(f"check it: python3 tools/check_print.py {dst}")
     return 0
 

@@ -15,6 +15,7 @@ Two things are compared:
 Writes watch-report.md. Exit code 1 if a fingerprint changed (or the baseline is missing), 0 otherwise;
 version changes alone are reported but are no reason to fail. --update writes the new baseline.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -36,7 +37,9 @@ def versions(logs: list[Path]) -> dict[str, str]:
             continue
         for line in log.read_text(errors="replace").splitlines():
             if m := VERSION.match(line):
-                if "/" not in m.group(1) and not m.group(2).startswith("Graphic file"):   # not the thesis's files
+                if "/" not in m.group(1) and not m.group(2).startswith(
+                    "Graphic file"
+                ):  # not the thesis's files
                     found[m.group(1)] = m.group(2).strip()
             elif m := ENGINE.match(line):
                 found[m.group(1)] = m.group(2)
@@ -68,8 +71,9 @@ def diff(old: dict[str, str], new: dict[str, str]) -> list[str]:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[1],
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__.split("\n\n")[1], formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("logs", nargs="*", type=Path, help="the build logs (for the versions)")
     ap.add_argument("--fingerprints", type=Path, default=Path("probe-fingerprints.txt"))
     ap.add_argument("--update", action="store_true", help="write the new baseline")
@@ -100,16 +104,29 @@ def main(argv=None) -> int:
     if not old_fp:
         out += ["No baseline yet: run the workflow by hand with *update baseline* ticked.", ""]
     if fp_rows:
-        out += ["## Patched internals that changed", "",
-                "A package update rewrote code the template overrides. Check the patch for each (the audit's "
-                "patch inventory names the file), even if the thesis still compiles; once it is right, run "
-                "the workflow by hand with *update baseline* ticked.", "",
-                "| Command | Before | Now |", "|---|---|---|", *fp_rows, ""]
+        out += [
+            "## Patched internals that changed",
+            "",
+            "A package update rewrote code the template overrides. Check the patch for each (the audit's "
+            "patch inventory names the file), even if the thesis still compiles; once it is right, run "
+            "the workflow by hand with *update baseline* ticked.",
+            "",
+            "| Command | Before | Now |",
+            "|---|---|---|",
+            *fp_rows,
+            "",
+        ]
     else:
         out += ["No patched internal changed.", ""]
     if ver_rows:
-        out += ["## Versions that changed since the baseline", "", "| Package or file | Before | Now |",
-                "|---|---|---|", *ver_rows, ""]
+        out += [
+            "## Versions that changed since the baseline",
+            "",
+            "| Package or file | Before | Now |",
+            "|---|---|---|",
+            *ver_rows,
+            "",
+        ]
     Path("watch-report.md").write_text("\n".join(out))
     print("\n".join(out))
     return 1 if (fp_rows or not old_fp) else 0

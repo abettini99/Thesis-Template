@@ -1,18 +1,20 @@
 """Shared helpers for the scripts in tools/ (not run on its own)."""
+
 from __future__ import annotations
 
 import argparse
 import subprocess
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent          # the template's main folder
+ROOT = Path(__file__).resolve().parent.parent  # the template's main folder
 IDENTITY = (1, 0, 0, 1, 0, 0)
 
 
 def parser(doc: str) -> argparse.ArgumentParser:
     """Command-line parser described by the second paragraph of a script's docstring."""
-    return argparse.ArgumentParser(description=doc.split("\n\n")[1].strip(),
-                                   formatter_class=argparse.RawDescriptionHelpFormatter)
+    return argparse.ArgumentParser(
+        description=doc.split("\n\n")[1].strip(), formatter_class=argparse.RawDescriptionHelpFormatter
+    )
 
 
 def run(*cmd) -> str:
@@ -20,6 +22,7 @@ def run(*cmd) -> str:
     r = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
     if r.returncode != 0:
         import sys
+
         msg = (r.stderr.strip().splitlines() or [f"exit code {r.returncode}"])[-1]
         print(f"  (note: {cmd[0]} failed: {msg})", file=sys.stderr)
     return r.stdout
@@ -59,17 +62,24 @@ class Report:
 
 # --- inside a PDF (needs pikepdf) -------------------------------------------------
 
+
 def mul(a, b):
     """Product of two PDF matrices (a then b)."""
-    return [a[0] * b[0] + a[1] * b[2], a[0] * b[1] + a[1] * b[3],
-            a[2] * b[0] + a[3] * b[2], a[2] * b[1] + a[3] * b[3],
-            a[4] * b[0] + a[5] * b[2] + b[4], a[4] * b[1] + a[5] * b[3] + b[5]]
+    return [
+        a[0] * b[0] + a[1] * b[2],
+        a[0] * b[1] + a[1] * b[3],
+        a[2] * b[0] + a[3] * b[2],
+        a[2] * b[1] + a[3] * b[3],
+        a[4] * b[0] + a[5] * b[2] + b[4],
+        a[4] * b[1] + a[5] * b[3] + b[5],
+    ]
 
 
 def operators(stream, resources, ctm=IDENTITY, depth=0):
     """Every operator of a content stream as (op, operands, resources, ctm), forms included (drawn with
     their matrix and resources); ctm follows q, Q and cm."""
     import pikepdf
+
     if depth > 8:
         return
     stack = []
@@ -93,6 +103,7 @@ def operators(stream, resources, ctm=IDENTITY, depth=0):
 def shown_bytes(op, operands) -> bytes | None:
     """The character codes a text-showing operator (Tj, TJ, ', ") shows, else None."""
     import pikepdf
+
     if op not in ("Tj", "TJ", "'", '"'):
         return None
     items = operands[0] if op == "TJ" else [operands[-1]]
@@ -107,10 +118,11 @@ def notdef_count(font, data: bytes) -> int:
     """How many of the codes show the missing glyph (.notdef), which prints as nothing and PDF/A
     forbids: code 0 of a CID font, or a code a simple font's encoding maps to .notdef."""
     import pikepdf
+
     if font is None:
         return 0
     if font.get("/Subtype") == "/Type0":
-        return sum(1 for i in range(0, len(data) - 1, 2) if data[i:i + 2] == b"\0\0")
+        return sum(1 for i in range(0, len(data) - 1, 2) if data[i : i + 2] == b"\0\0")
     enc = font.get("/Encoding")
     if not (isinstance(enc, pikepdf.Dictionary) and "/Differences" in enc):
         return 0

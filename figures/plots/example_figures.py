@@ -20,20 +20,24 @@ it is in fonts/, otherwise newtx. The figures that come with the template are ma
 Include each figure without scaling, e.g. \\includegraphics[scale=1]{figures/example_burgers.pdf},
 so the text in it keeps its size. Copy this file as a starting point for your own plots.
 """
+
 import argparse
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-
 import thesis_fonts
 
 HERE = Path(__file__).parent
 OUT = HERE.parent
 plt.style.use(HERE / "thesis.mplstyle")
 parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-parser.add_argument("--maths", choices=("auto", "mathtime", "newtx"), default="auto",
-                    help="maths font in the figures (auto: MathTime if prepared in fonts/)")
+parser.add_argument(
+    "--maths",
+    choices=("auto", "mathtime", "newtx"),
+    default="auto",
+    help="maths font in the figures (auto: MathTime if prepared in fonts/)",
+)
 print("figure fonts:", thesis_fonts.setup(parser.parse_args().maths))
 
 # Text widths of the book (mm), slightly under the nominal sizes because the class rounds the
@@ -73,8 +77,8 @@ def burgers(x, t):
     if t == 0:
         return -np.sin(np.pi * x)
     s = np.sqrt(4 * NU * t)
-    y = x[:, None] - s * Z[None, :]                       # points x - eta
-    a = -np.cos(np.pi * y) / (2 * np.pi * NU)             # log of f(x - eta)
+    y = x[:, None] - s * Z[None, :]  # points x - eta
+    a = -np.cos(np.pi * y) / (2 * np.pi * NU)  # log of f(x - eta)
     a -= a.max(axis=1, keepdims=True)
     e = W[None, :] * np.exp(a)
     return -(np.sin(np.pi * y) * e).sum(axis=1) / e.sum(axis=1)
@@ -95,23 +99,29 @@ ax.legend(loc="upper right")
 save(fig, "example_burgers.pdf")
 # The data behind it, attached to the figure in the PDF (\figuredata): every 8th point is plenty.
 times = (0.0, 0.25, 0.5, 1.0)
-np.savetxt(OUT / "example_burgers.csv", np.column_stack([x[::8]] + [burgers(x[::8], t) for t in times]),
-           delimiter=",", fmt="%.6g", comments="",
-           header="x," + ",".join(f"u(t={t:g})" for t in times))
+np.savetxt(
+    OUT / "example_burgers.csv",
+    np.column_stack([x[::8]] + [burgers(x[::8], t) for t in times]),
+    delimiter=",",
+    fmt="%.6g",
+    comments="",
+    header="x," + ",".join(f"u(t={t:g})" for t in times),
+)
 
 # --- Two panels, with the panel letters drawn in ----------------------------------------------
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(FULL_MM * MM, 0.46 * FULL_MM * MM))
 t = 0.5
 ax1.plot(x, burgers(x, t), label="exact")
-xn = np.linspace(-1, 1, 17)                               # 16 linear elements
+xn = np.linspace(-1, 1, 17)  # 16 linear elements
 ax1.plot(xn, burgers(xn, t), marker="o", label="$N = 16$")
 ax1.set_xlabel(r"$x$")
 ax1.set_ylabel(r"$u$")
 ax1.set_xlim(-1, 1)
-ax1.legend(loc="lower left", handlelength=1.0, handletextpad=0.4, borderpad=0.2,
-           borderaxespad=0.1)  # the empty corner, left of the shock
+ax1.legend(
+    loc="lower left", handlelength=1.0, handletextpad=0.4, borderpad=0.2, borderaxespad=0.1
+)  # the empty corner, left of the shock
 
-N = np.array([8, 16, 32, 64, 128])                         # the errors of Table 2.2
+N = np.array([8, 16, 32, 64, 128])  # the errors of Table 2.2
 e0 = np.array([3.41e-3, 8.80e-4, 2.23e-4, 5.62e-5, 1.41e-5])
 e1 = np.array([1.08e-1, 5.46e-2, 2.74e-2, 1.37e-2, 6.87e-3])
 ax2.loglog(N, e1, marker="o")
@@ -119,7 +129,7 @@ ax2.loglog(N, e0, marker="s")
 # Lines labelled directly, which reads faster than a legend in a small panel.
 ax2.text(70, 2.6e-2, r"$\Vert\nabla \boldsymbol{e}\Vert_\Omega$")
 ax2.text(70, 1.0e-4, r"$\Vert \boldsymbol{e}\Vert_\Omega$")
-for e, order in ((e1, 1), (e0, 2)):                        # slope triangles, below each line
+for e, order in ((e1, 1), (e0, 2)):  # slope triangles, below each line
     n0, n1 = 16, 32
     y0 = e[1] * 0.45
     y1 = y0 * (n0 / n1) ** order
@@ -138,10 +148,10 @@ save(fig, "example_panels.pdf")
 fig, ax = plt.subplots(figsize=(HALF_MM * MM, 0.85 * HALF_MM * MM))
 plot_margins(fig)
 k = np.arange(0, 9)
-for step, rate in ((1, 0.18), (10, 0.32), (40, 0.45)):    # illustrative contraction rates
-    ax.semilogy(k, rate ** k, marker="o", markersize=2.5)
-    ax.text(8.6, rate ** 8, f"step {step}", va="center", fontsize=8)
-ax.axhline(1e-7, color="0.4", linewidth=0.6, linestyle="-")   # tolerance, below the curves
+for step, rate in ((1, 0.18), (10, 0.32), (40, 0.45)):  # illustrative contraction rates
+    ax.semilogy(k, rate**k, marker="o", markersize=2.5)
+    ax.text(8.6, rate**8, f"step {step}", va="center", fontsize=8)
+ax.axhline(1e-7, color="0.4", linewidth=0.6, linestyle="-")  # tolerance, below the curves
 ax.set_xlabel("iteration")
 ax.set_ylabel("residual")
 ax.set_ylim(1e-8, 2)
@@ -168,12 +178,19 @@ save(fig, "example_energy.pdf")
 alpha = np.linspace(-4, 20, 200)
 fig, ax = plt.subplots(figsize=(FULL_MM * MM, 0.62 * FULL_MM * MM))
 ax.plot(alpha, 2 * np.pi * np.radians(alpha), label="Thin-aerofoil theory")
-for thrust, label in [(0.0, "Propeller off"), (0.1, r"$T_c = 0.1$"),
-                      (0.2, r"$T_c = 0.2$"), (0.3, r"$T_c = 0.3$")]:
+for thrust, label in [
+    (0.0, "Propeller off"),
+    (0.1, r"$T_c = 0.1$"),
+    (0.2, r"$T_c = 0.2$"),
+    (0.3, r"$T_c = 0.3$"),
+]:
     cl_max = 1.1 + 2.0 * thrust
     slope = 2 * np.pi * (1 + 1.5 * thrust)
-    cl = (0.25 * thrust + cl_max * np.tanh(slope * np.radians(alpha) / cl_max)
-          - 0.002 * np.maximum(alpha - 13, 0) ** 2)
+    cl = (
+        0.25 * thrust
+        + cl_max * np.tanh(slope * np.radians(alpha) / cl_max)
+        - 0.002 * np.maximum(alpha - 13, 0) ** 2
+    )
     ax.plot(alpha, cl, label=label)
 ax.set_xlabel(r"Angle of attack $\alpha$ (deg)")
 ax.set_ylabel(r"Lift coefficient $C_L$")
@@ -185,24 +202,31 @@ save(fig, "example_plot.pdf")
 # --- Snapshots for a grid of panels (panels environment): a blob of dye carried round by a solid-body
 # rotation while it diffuses (an exact solution), one file per snapshot, without text, so the grid may
 # scale them; and the colour bar as a file of its own, at its printed size.
-SNAP_MM = 30.0                                   # drawn at about the size of a panel; scaled in the grid
+SNAP_MM = 30.0  # drawn at about the size of a panel; scaled in the grid
 n_snap, kappa = 12, 2e-3
-xs = np.linspace(-1, 1, 401)                    # 401 pixels: over 300 ppi at the size of a panel
+xs = np.linspace(-1, 1, 401)  # 401 pixels: over 300 ppi at the size of a panel
 Xs, Ys = np.meshgrid(xs, xs)
 snap_dir = OUT / "snapshots"
 snap_dir.mkdir(exist_ok=True)
 for k in range(n_snap):
-    t = k / n_snap                               # one revolution in t = 1
+    t = k / n_snap  # one revolution in t = 1
     angle = 2 * np.pi * t
     x0, y0 = 0.5 * np.cos(angle), 0.5 * np.sin(angle)
-    s2 = 0.15 ** 2 + 2 * kappa * t * 8
-    c = 0.15 ** 2 / s2 * np.exp(-((Xs - x0) ** 2 + (Ys - y0) ** 2) / (2 * s2))
+    s2 = 0.15**2 + 2 * kappa * t * 8
+    c = 0.15**2 / s2 * np.exp(-((Xs - x0) ** 2 + (Ys - y0) ** 2) / (2 * s2))
     fig = plt.figure(figsize=(SNAP_MM * MM, SNAP_MM * MM))
     fig.set_layout_engine("none")
     ax = fig.add_axes([0, 0, 1, 1])
-    ax.imshow(c, extent=(-1, 1, -1, 1), origin="lower", cmap=thesis_fonts.SEQUENTIAL, vmin=0, vmax=1,
-              interpolation="none")
-    ax.plot(0, 0, "+", color="w", markersize=4, markeredgewidth=0.6)   # the centre of rotation
+    ax.imshow(
+        c,
+        extent=(-1, 1, -1, 1),
+        origin="lower",
+        cmap=thesis_fonts.SEQUENTIAL,
+        vmin=0,
+        vmax=1,
+        interpolation="none",
+    )
+    ax.plot(0, 0, "+", color="w", markersize=4, markeredgewidth=0.6)  # the centre of rotation
     ax.set_aspect("equal")
     ax.set_axis_off()
     save(fig, f"snapshots/snap-{k + 1:02d}.pdf")
@@ -217,12 +241,19 @@ save(fig, "snapshots/colourbar.pdf")
 # --- A signed field with a diverging colour map: the vorticity of a vortex pair (two Lamb-Oseen vortices of
 # opposite sign). A diverging map is centred on zero (vmin = -vmax), so white means no rotation; blue is
 # clockwise (negative), red anticlockwise (positive).
-xv = np.linspace(-2, 2, 601)                    # 601 pixels: over 300 ppi at full width
+xv = np.linspace(-2, 2, 601)  # 601 pixels: over 300 ppi at full width
 Xv, Yv = np.meshgrid(xv, 0.6 * xv)
-omega = (np.exp(-((Xv + 0.6) ** 2 + Yv ** 2) / 0.18) - np.exp(-((Xv - 0.6) ** 2 + Yv ** 2) / 0.18))
+omega = np.exp(-((Xv + 0.6) ** 2 + Yv**2) / 0.18) - np.exp(-((Xv - 0.6) ** 2 + Yv**2) / 0.18)
 fig, ax = plt.subplots(figsize=(FULL_MM * MM, 0.42 * FULL_MM * MM))
-im = ax.imshow(omega, extent=(-2, 2, -1.2, 1.2), origin="lower", cmap=thesis_fonts.DIVERGING,
-               vmin=-1, vmax=1, interpolation="none")
+im = ax.imshow(
+    omega,
+    extent=(-2, 2, -1.2, 1.2),
+    origin="lower",
+    cmap=thesis_fonts.DIVERGING,
+    vmin=-1,
+    vmax=1,
+    interpolation="none",
+)
 ax.set_xlabel(r"$x$")
 ax.set_ylabel(r"$y$")
 ax.set_aspect("equal")
@@ -239,17 +270,17 @@ save(fig, "example_vorticity.pdf")
 #   \begin{panels}[columns=2, natural, labels=inside, xlabel={$x$}, ylabel={$u$}]
 #       \panel{figures/grid/burgers-1.pdf}{$t = 0.125$}  ...
 #   \end{panels}
-PAD_MM = 2.0      # the margin round every plot area in the files (the panels option pad, 2 mm by default)
-LEFT_MM = 6.0     # an estimate of the y tick labels' width, to size the plots (save_panels measures it)
+PAD_MM = 2.0  # the margin round every plot area in the files (the panels option pad, 2 mm by default)
+LEFT_MM = 6.0  # an estimate of the y tick labels' width, to size the plots (save_panels measures it)
 
 
 def panel_grid(nrows, ncols, width_mm=FULL_MM - 6.0, aspect=1.6, gap_mm=2.5):
     """nrows x ncols plots with shared axes, sized so that the grid LaTeX makes of the files of
     save_panels, with gap_mm between the plot areas (the panels default), is width_mm wide. The 6 mm less than the
     text width leave room for the y axis title that LaTeX sets beside the grid."""
-    pw = (width_mm - LEFT_MM - gap_mm * (ncols - 1)) / ncols   # (gap_mm: between the plot areas)
+    pw = (width_mm - LEFT_MM - gap_mm * (ncols - 1)) / ncols  # (gap_mm: between the plot areas)
     ph = pw / aspect
-    space = 20.0                                 # the plots far apart: each file holds one plot only
+    space = 20.0  # the plots far apart: each file holds one plot only
     W = LEFT_MM + ncols * (pw + space)
     H = 6.0 + nrows * (ph + space)
     fig = plt.figure(figsize=(W * MM, H * MM))
@@ -259,8 +290,11 @@ def panel_grid(nrows, ncols, width_mm=FULL_MM - 6.0, aspect=1.6, gap_mm=2.5):
         for c in range(ncols):
             x0 = LEFT_MM + space / 2 + c * (pw + space)
             y0 = 6.0 + space / 2 + (nrows - 1 - r) * (ph + space)
-            ax = fig.add_axes([x0 / W, y0 / H, pw / W, ph / H],
-                              sharex=axes[0, 0] if (r or c) else None, sharey=axes[0, 0] if (r or c) else None)
+            ax = fig.add_axes(
+                [x0 / W, y0 / H, pw / W, ph / H],
+                sharex=axes[0, 0] if (r or c) else None,
+                sharey=axes[0, 0] if (r or c) else None,
+            )
             ax.tick_params(labelbottom=(r == nrows - 1), labelleft=(c == 0))
             axes[r, c] = ax
     return fig, axes
@@ -273,6 +307,7 @@ def save_panels(fig, axes, stem):
     here (the widest and highest of each), so all files of a column, and of a row, are the same size.
     LaTeX finds those extra sizes from the file sizes."""
     from matplotlib.transforms import Bbox
+
     nrows, ncols = axes.shape
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
@@ -296,8 +331,9 @@ def save_panels(fig, axes, stem):
         for other in axes.flat:
             other.set_visible(other is ax)
         b = plot[ax]
-        box = Bbox([[b.x0 - pad - left * (c == 0), b.y0 - pad - bottom * (r == nrows - 1)],
-                    [b.x1 + pad, b.y1 + pad]])
+        box = Bbox(
+            [[b.x0 - pad - left * (c == 0), b.y0 - pad - bottom * (r == nrows - 1)], [b.x1 + pad, b.y1 + pad]]
+        )
         thesis_fonts.save(fig, OUT / f"{stem}-{k}.pdf", bbox_inches=box, transparent=True)  # (they overlap)
         print(f"saved {OUT / stem}-{k}.pdf")
     for ax in axes.flat:
@@ -311,6 +347,6 @@ for ax, t in zip(axes.flat, np.linspace(0.125, 1.0, 8)):
     ax.plot(x, burgers(x, t))
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1.15, 1.15)
-    ax.set_xticks([-0.5, 0, 0.5])               # no tick labels at the ends: they would meet
+    ax.set_xticks([-0.5, 0, 0.5])  # no tick labels at the ends: they would meet
     ax.set_yticks([-1, 0, 1])
 save_panels(fig, axes, "grid/burgers")

@@ -18,6 +18,7 @@ as the OpenType maths fonts in template/fonts/ntxmath-otf).
 Needs LuaLaTeX, pdftoppm (poppler), Pillow and fonttools. The images are pictures of the
 typeset result, like a page of a PDF, and contain no font data.
 """
+
 import os
 import subprocess
 import sys
@@ -30,7 +31,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / ".github" / "readme"
 DPI = 220
-MM = DPI / 25.4                      # pixels per millimetre
+MM = DPI / 25.4  # pixels per millimetre
 
 FONTS = [("newtx", None), ("MathTime Lite", "Lite"), ("MathTime Complete", "Complete")]
 
@@ -39,50 +40,161 @@ L = lambda names: [(n, "\\" + n) for n in names.split()]
 GROUPS = [
     ("Latin letters", 13, 11, 9, [(c, c) for c in "abcdefghijklmnopqrstuvwxyz"]),
     ("", 13, 11, 9, [(c, c) for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]),
-    ("Greek letters", 13, 11, 9, L("alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota "
-                                   "kappa lambda mu nu xi pi varpi rho varrho sigma varsigma tau upsilon phi "
-                                   "varphi chi psi omega")),
+    (
+        "Greek letters",
+        13,
+        11,
+        9,
+        L(
+            "alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota "
+            "kappa lambda mu nu xi pi varpi rho varrho sigma varsigma tau upsilon phi "
+            "varphi chi psi omega"
+        ),
+    ),
     ("", 13, 11, 9, L("Gamma Delta Theta Lambda Xi Pi Sigma Upsilon Phi Psi Omega")),
-    ("Bold (\\vec, \\tensor)", 13, 11, 9, [(c, "\\vec{%s}" % c) for c in "uvwxnfABFT"]
+    (
+        "Bold (\\vec, \\tensor)",
+        13,
+        11,
+        9,
+        [(c, "\\vec{%s}" % c) for c in "uvwxnfABFT"]
         + [(n, "\\vec{\\%s}" % n) for n in "alpha sigma tau omega nabla".split()]
-        + [("0", "\\vec{0}"), ("1", "\\vec{1}")]),
-    ("Symbols", 10, 14.3, 9, L("partial nabla infty hbar hslash ell wp aleph emptyset varnothing forall exists "
-                             "neg prime angle triangle top bot")),
-    ("Binary operators", 10, 14.3, 9, [("+", "+"), ("-", "-")] + L("pm mp times cdot circ bullet ast star "
-                             "oplus ominus otimes oslash odot cup cap uplus sqcup vee wedge setminus wr "
-                             "dagger ddagger diamond")),
-    ("Relations", 10, 14.3, 9, [("=", "="), ("<", "<"), (">", ">")] + L("le ge leqslant geqslant ll gg neq "
-                             "equiv approx sim simeq cong propto asymp doteq prec succ preceq subset supset "
-                             "subseteq supseteq subsetneq sqsubseteq in ni notin perp parallel mid vdash "
-                             "models coloneqq")),
-    ("Negated relations", 10, 14.3, 9, L("nleq ngeq nless ngtr nsubseteq nsupseteq nmid nparallel nsim "
-                             "ncong nprec nsucc nvdash")),
-    ("Arrows", 10, 14.3, 9, L("to gets leftrightarrow Rightarrow Leftarrow Leftrightarrow uparrow downarrow "
-                            "Uparrow Downarrow nearrow searrow mapsto hookrightarrow hookleftarrow "
-                            "rightharpoonup rightleftharpoons leadsto")),
+        + [("0", "\\vec{0}"), ("1", "\\vec{1}")],
+    ),
+    (
+        "Symbols",
+        10,
+        14.3,
+        9,
+        L(
+            "partial nabla infty hbar hslash ell wp aleph emptyset varnothing forall exists "
+            "neg prime angle triangle top bot"
+        ),
+    ),
+    (
+        "Binary operators",
+        10,
+        14.3,
+        9,
+        [("+", "+"), ("-", "-")]
+        + L(
+            "pm mp times cdot circ bullet ast star "
+            "oplus ominus otimes oslash odot cup cap uplus sqcup vee wedge setminus wr "
+            "dagger ddagger diamond"
+        ),
+    ),
+    (
+        "Relations",
+        10,
+        14.3,
+        9,
+        [("=", "="), ("<", "<"), (">", ">")]
+        + L(
+            "le ge leqslant geqslant ll gg neq "
+            "equiv approx sim simeq cong propto asymp doteq prec succ preceq subset supset "
+            "subseteq supseteq subsetneq sqsubseteq in ni notin perp parallel mid vdash "
+            "models coloneqq"
+        ),
+    ),
+    (
+        "Negated relations",
+        10,
+        14.3,
+        9,
+        L("nleq ngeq nless ngtr nsubseteq nsupseteq nmid nparallel nsim ncong nprec nsucc nvdash"),
+    ),
+    (
+        "Arrows",
+        10,
+        14.3,
+        9,
+        L(
+            "to gets leftrightarrow Rightarrow Leftarrow Leftrightarrow uparrow downarrow "
+            "Uparrow Downarrow nearrow searrow mapsto hookrightarrow hookleftarrow "
+            "rightharpoonup rightleftharpoons leadsto"
+        ),
+    ),
     ("", 5, 28.6, 9, L("longrightarrow longleftarrow Longrightarrow Longleftrightarrow longmapsto")),
-    ("Large operators (display)", 8, 17.9, 17, [(n, "\\displaystyle\\%s" % n) for n in
-                             "sum prod coprod int iint iiint oint bigcup bigcap bigoplus bigotimes bigodot "
-                             "bigvee bigwedge biguplus bigsqcup".split()]),
-    ("Delimiters (normal to \\Bigg)", 4, 35.75, 22, [
-        (n, "\\Biggl%s\\biggl%s\\Bigl%s\\bigl%s%s" % ((d,) * 5)) for n, d in
-        [("( )", "("), ("[ ]", "["), ("\\{ \\}", "\\{"), ("\\langle", "\\langle"), ("|", "|"),
-         ("\\|", "\\|"), ("\\lfloor", "\\lfloor"), ("\\lceil", "\\lceil")]]),
-    ("Accents and roots", 8, 17.9, 12, [("\\hat", "\\hat{a}"), ("\\tilde", "\\tilde{a}"), ("\\bar", "\\bar{a}"),
-        ("\\dot", "\\dot{a}"), ("\\ddot", "\\ddot{a}"), ("\\check", "\\check{a}"), ("\\breve", "\\breve{a}"),
-        ("\\acute", "\\acute{a}"), ("\\widehat", "\\widehat{xyz}"), ("\\widetilde", "\\widetilde{xyz}"),
-        ("\\overline", "\\overline{xy}"), ("\\overrightarrow", "\\overrightarrow{AB}"),
-        ("\\sqrt", "\\sqrt{x}"), ("\\sqrt[3]", "\\sqrt[3]{y}"), ("\\sqrt frac", "\\sqrt{\\frac{a}{b}}"),
-        ("\\binom", "\\binom{n}{k}")]),
-    ("Alphabets", 13, 11, 9, [("bb " + c, "\\mathbb{%s}" % c) for c in "NZQRC"]
+    (
+        "Large operators (display)",
+        8,
+        17.9,
+        17,
+        [
+            (n, "\\displaystyle\\%s" % n)
+            for n in "sum prod coprod int iint iiint oint bigcup bigcap bigoplus bigotimes bigodot "
+            "bigvee bigwedge biguplus bigsqcup".split()
+        ],
+    ),
+    (
+        "Delimiters (normal to \\Bigg)",
+        4,
+        35.75,
+        22,
+        [
+            (n, "\\Biggl%s\\biggl%s\\Bigl%s\\bigl%s%s" % ((d,) * 5))
+            for n, d in [
+                ("( )", "("),
+                ("[ ]", "["),
+                ("\\{ \\}", "\\{"),
+                ("\\langle", "\\langle"),
+                ("|", "|"),
+                ("\\|", "\\|"),
+                ("\\lfloor", "\\lfloor"),
+                ("\\lceil", "\\lceil"),
+            ]
+        ],
+    ),
+    (
+        "Accents and roots",
+        8,
+        17.9,
+        12,
+        [
+            ("\\hat", "\\hat{a}"),
+            ("\\tilde", "\\tilde{a}"),
+            ("\\bar", "\\bar{a}"),
+            ("\\dot", "\\dot{a}"),
+            ("\\ddot", "\\ddot{a}"),
+            ("\\check", "\\check{a}"),
+            ("\\breve", "\\breve{a}"),
+            ("\\acute", "\\acute{a}"),
+            ("\\widehat", "\\widehat{xyz}"),
+            ("\\widetilde", "\\widetilde{xyz}"),
+            ("\\overline", "\\overline{xy}"),
+            ("\\overrightarrow", "\\overrightarrow{AB}"),
+            ("\\sqrt", "\\sqrt{x}"),
+            ("\\sqrt[3]", "\\sqrt[3]{y}"),
+            ("\\sqrt frac", "\\sqrt{\\frac{a}{b}}"),
+            ("\\binom", "\\binom{n}{k}"),
+        ],
+    ),
+    (
+        "Alphabets",
+        13,
+        11,
+        9,
+        [("bb " + c, "\\mathbb{%s}" % c) for c in "NZQRC"]
         + [("cal " + c, "\\mathcal{%s}" % c) for c in "LVW"]
         + [("scr " + c, "\\mathscr{%s}" % c) for c in "FHL"]
-        + [("frak " + c, "\\mathfrak{%s}" % c) for c in "gh"]),
-    ("MathTime macros", 6, 23.8, 32, [("\\xl\\sum", "\\displaystyle\\xl\\sum"), ("\\XL\\sum", "\\displaystyle\\XL\\sum"),
-        ("\\XXL\\int", "\\displaystyle\\XXL\\int"), ("\\SQRT", "\\displaystyle\\SQRT{\\frac{a^2}{b^2}}"),
-        ("\\widearc", "\\widearc{AB}"), ("\\hm heavy", "\\hm{\\nabla\\Phi}")]),
+        + [("frak " + c, "\\mathfrak{%s}" % c) for c in "gh"],
+    ),
+    (
+        "MathTime macros",
+        6,
+        23.8,
+        32,
+        [
+            ("\\xl\\sum", "\\displaystyle\\xl\\sum"),
+            ("\\XL\\sum", "\\displaystyle\\XL\\sum"),
+            ("\\XXL\\int", "\\displaystyle\\XXL\\int"),
+            ("\\SQRT", "\\displaystyle\\SQRT{\\frac{a^2}{b^2}}"),
+            ("\\widearc", "\\widearc{AB}"),
+            ("\\hm heavy", "\\hm{\\nabla\\Phi}"),
+        ],
+    ),
 ]
-NAME_H = 3.6                          # mm, the row with the command names
+NAME_H = 3.6  # mm, the row with the command names
 
 EQUATION = r"""
 \boxed{\psi_{n\ell m} = \sqrt{\left(\frac{2}{na}\right)^{3} \frac{(n-\ell-1)!}{2n\,(n+\ell)!}}\;
@@ -114,7 +226,7 @@ PREAMBLE = r"""\documentclass[border=0pt,multi=minipage]{standalone}
 
 def grid(group, newtx):
     title, cols, w, h, items = group
-    rows = [items[i:i + cols] for i in range(0, len(items), cols)]
+    rows = [items[i : i + cols] for i in range(0, len(items), cols)]
     out = ["\\begin{minipage}{%smm}\\offinterlineskip" % (cols * w)]
     for row in rows:
         cells = []
@@ -134,25 +246,36 @@ def build(name, edition, fonts_dir, work):
     mt = "\\thesismathtimetrue" if edition else "\\thesismathtimefalse"
     pages = [grid(g, edition is None) for g in GROUPS]
     eq = "\\begin{minipage}{150mm}\\[\\begin{gathered}%s\\end{gathered}\\]\\end{minipage}" % EQUATION
-    src = (PREAMBLE % {"mt": mt, "nameh": NAME_H}
-           + "\n".join(pages + [eq]) + "\n\\end{document}\n")
+    src = PREAMBLE % {"mt": mt, "nameh": NAME_H} + "\n".join(pages + [eq]) + "\n\\end{document}\n"
     job = name.replace(" ", "_")
     (work / f"{job}.tex").write_text(src)
     env = dict(os.environ)
-    ntx = ROOT / "template" / "fonts" / "ntxmath-otf"          # newtx as OpenType maths fonts, as the class uses
+    ntx = ROOT / "template" / "fonts" / "ntxmath-otf"  # newtx as OpenType maths fonts, as the class uses
     for var in ("TEXINPUTS", "OPENTYPEFONTS", "LUAINPUTS"):
         env[var] = f"{ntx}{os.pathsep}{env.get(var, '')}"
     if fonts_dir:
         for var in ("TEXINPUTS", "OPENTYPEFONTS", "LUAINPUTS"):
             env[var] = f"{fonts_dir}{os.pathsep}{env.get(var, '')}"
-    r = subprocess.run(["lualatex", "-interaction=nonstopmode", "-halt-on-error",
-                        f"-output-directory={work}", str(work / f"{job}.tex")],
-                       cwd=ROOT, env=env, capture_output=True, text=True)
+    r = subprocess.run(
+        [
+            "lualatex",
+            "-interaction=nonstopmode",
+            "-halt-on-error",
+            f"-output-directory={work}",
+            str(work / f"{job}.tex"),
+        ],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
     if r.returncode:
         log = (work / f"{job}.log").read_text(errors="replace").splitlines()
         err = next((i for i, line in enumerate(log) if line.startswith("!")), len(log) - 8)
-        sys.exit(f"{name}: LuaLaTeX failed:\n" + "\n".join(log[err:err + 8]))
-    subprocess.run(["pdftoppm", "-r", str(DPI), "-png", str(work / f"{job}.pdf"), str(work / job)], check=True)
+        sys.exit(f"{name}: LuaLaTeX failed:\n" + "\n".join(log[err : err + 8]))
+    subprocess.run(
+        ["pdftoppm", "-r", str(DPI), "-png", str(work / f"{job}.pdf"), str(work / job)], check=True
+    )
     return sorted(work.glob(f"{job}-*.png"))
 
 
@@ -172,21 +295,24 @@ def main():
         tmp = Path(tmp)
         tool = ROOT / "tools" / "mtpro2_otf.py"
         for src, ed in ((lite, "Lite"), (full, "Complete")):
-            if src.suffix.lower() == ".zip":            # the converter reads an unpacked folder
+            if src.suffix.lower() == ".zip":  # the converter reads an unpacked folder
                 with zipfile.ZipFile(src) as z:
                     z.extractall(tmp / f"{ed}-src")
                 src = tmp / f"{ed}-src"
-            subprocess.run([sys.executable, str(tool), str(src), str(tmp / ed)], check=True,
-                           stdout=subprocess.DEVNULL)
-        shots = {name: [Image.open(p).convert("L") for p in
-                        build(name, ed, tmp / ed if ed else None, tmp)] for name, ed in FONTS}
+            subprocess.run(
+                [sys.executable, str(tool), str(src), str(tmp / ed)], check=True, stdout=subprocess.DEVNULL
+            )
+        shots = {
+            name: [Image.open(p).convert("L") for p in build(name, ed, tmp / ed if ed else None, tmp)]
+            for name, ed in FONTS
+        }
 
     label_w, pad, grey = int(30 * MM), int(2 * MM), 110
     small, title_f = font(int(2.4 * MM)), font(int(3.2 * MM), bold=True)
 
     # symbols: per group and grid row, the three fonts above each other, then the names
     blocks = []
-    for gi, (title, cols, w, h, items) in enumerate(GROUPS):
+    for gi, (title, cols, _w, h, items) in enumerate(GROUPS):
         nrows = -(-len(items) // cols)
         hg, hn = round(h * MM), round(NAME_H * MM)
         imgs = [shots[name][gi] for name, _ in FONTS]

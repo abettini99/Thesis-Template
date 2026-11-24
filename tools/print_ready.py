@@ -16,11 +16,12 @@ figures/plots/thesis_fonts.py runs this on every figure it saves; use the script
 need it. Photos (PNG, JPEG) need nothing: LaTeX declares their RGB as sRGB itself. Running it twice on a
 file changes nothing the second time. Needs pikepdf and Pillow (pip install -r requirements.txt).
 """
+
 import sys
 from pathlib import Path
 
 import pikepdf
-from pikepdf import Name, Array, Dictionary
+from pikepdf import Array, Dictionary, Name
 
 RGB_OPS = {"rg": "g", "RG": "G"}
 
@@ -28,6 +29,7 @@ RGB_OPS = {"rg": "g", "RG": "G"}
 def srgb_profile():
     """An sRGB ICC profile (Pillow's built-in, from LittleCMS)."""
     from PIL import ImageCms
+
     return ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes()
 
 
@@ -64,7 +66,7 @@ class Fixer:
                 out.append(([operands[0]], pikepdf.Operator(RGB_OPS[o])))
                 changed = True
                 self.greys += 1
-            elif o in RGB_OPS and len(operands) == 3:               # a colour: in sRGB, explicitly
+            elif o in RGB_OPS and len(operands) == 3:  # a colour: in sRGB, explicitly
                 fill = o == "rg"
                 out.append(([Name("/thesisSRGB")], pikepdf.Operator("cs" if fill else "CS")))
                 out.append((list(operands), pikepdf.Operator("sc" if fill else "SC")))
@@ -98,7 +100,7 @@ class Fixer:
             self.xobject(res.XObject[key])
         for key in list(res.get("/Pattern", {}).keys()):
             pat = res.Pattern[key]
-            if pat.get("/PatternType") == 1:                    # tiling pattern: a content stream
+            if pat.get("/PatternType") == 1:  # tiling pattern: a content stream
                 self.form(pat)
             elif "/Shading" in pat:
                 self.shading(pat.Shading)

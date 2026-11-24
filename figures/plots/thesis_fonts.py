@@ -12,17 +12,18 @@ matplotlib's own maths in Times New Roman (or STIX, if Times New Roman is not in
 
 setup("newtx") forces newtx, e.g. for figures that go into a public repository.
 """
-import sys
+
 import os
 import shutil
+import sys
 from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.text
 
-ROOT = Path(__file__).resolve().parents[2]   # the template's main folder (this file is in figures/plots)
+ROOT = Path(__file__).resolve().parents[2]  # the template's main folder (this file is in figures/plots)
 FONTS = ROOT / "fonts"
-NTXOTF = ROOT / "template" / "fonts" / "ntxmath-otf"   # newtx as OpenType maths fonts, part of the template
+NTXOTF = ROOT / "template" / "fonts" / "ntxmath-otf"  # newtx as OpenType maths fonts, part of the template
 
 # Colour maps (thesis.mplstyle): sequential data (magnitudes) and diverging data (signed, centred on zero:
 # use vmin=-v, vmax=v, or matplotlib.colors.TwoSlopeNorm(0)). Earth is the line colour cycle.
@@ -77,7 +78,9 @@ def setup(maths="auto"):
         return _fallback()
     edition = mathtime_edition() if maths in ("auto", "mathtime") else None
     if maths == "mathtime" and edition is None:
-        raise FileNotFoundError("No MathTime fonts in fonts/: run tools/mtpro2_otf.py first (fonts/README.md)")
+        raise FileNotFoundError(
+            "No MathTime fonts in fonts/: run tools/mtpro2_otf.py first (fonts/README.md)"
+        )
     if edition:
         # LuaLaTeX finds the fonts and the package in fonts/ (latexmkrc does the same for the thesis)
         for var in ("TEXINPUTS", "OPENTYPEFONTS", "LUAINPUTS"):
@@ -93,14 +96,16 @@ def setup(maths="auto"):
     else:
         preamble = _TEXT + _NEWTX
         name = "newtx"
-    mpl.rcParams.update({
-        "pgf.texsystem": "lualatex",
-        "pgf.rcfonts": False,            # the fonts come from the preamble
-        # images (imshow, rasterised plots) without smoothing: matplotlib asks for it, but PDF/A forbids it
-        "pgf.preamble": preamble + r"\makeatletter\define@key{Gin}{interpolate}[true]{}\makeatother",
-        "text.usetex": False,
-        "font.family": "serif",
-    })
+    mpl.rcParams.update(
+        {
+            "pgf.texsystem": "lualatex",
+            "pgf.rcfonts": False,  # the fonts come from the preamble
+            # images (imshow, rasterised plots) without smoothing: matplotlib asks for it, but PDF/A forbids it
+            "pgf.preamble": preamble + r"\makeatletter\define@key{Gin}{interpolate}[true]{}\makeatother",
+            "text.usetex": False,
+            "font.family": "serif",
+        }
+    )
     _state["pgf"] = True
     return name
 
@@ -109,19 +114,25 @@ def _fallback():
     """Without LuaLaTeX: matplotlib's own text and maths in Times New Roman, if installed (Windows,
     macOS), otherwise in STIX, the Times-like font that ships with matplotlib."""
     from matplotlib import font_manager
+
     try:
         font_manager.findfont("Times New Roman", fallback_to_default=False)
     except ValueError:
-        mpl.rcParams.update({"font.family": "serif", "font.serif": ["STIXGeneral"], "mathtext.fontset": "stix"})
+        mpl.rcParams.update(
+            {"font.family": "serif", "font.serif": ["STIXGeneral"], "mathtext.fontset": "stix"}
+        )
         print("thesis_fonts: no LuaLaTeX and no Times New Roman, figure text in STIX")
         return "STIX"
     settings = {
-        "font.family": "serif", "font.serif": ["Times New Roman"],
+        "font.family": "serif",
+        "font.serif": ["Times New Roman"],
         "mathtext.fontset": "custom",
-        "mathtext.rm": "Times New Roman", "mathtext.it": "Times New Roman:italic",
-        "mathtext.bf": "Times New Roman:bold", "mathtext.bfit": "Times New Roman:bold:italic",
+        "mathtext.rm": "Times New Roman",
+        "mathtext.it": "Times New Roman:italic",
+        "mathtext.bf": "Times New Roman:bold",
+        "mathtext.bfit": "Times New Roman:bold:italic",
         "mathtext.cal": "Times New Roman:italic",  # (matplotlib looks for a "cursive" font otherwise)
-        "mathtext.fallback": "stix",     # symbols Times New Roman lacks (e.g. some arrows)
+        "mathtext.fallback": "stix",  # symbols Times New Roman lacks (e.g. some arrows)
     }
     mpl.rcParams.update({k: v for k, v in settings.items() if k in mpl.rcParams})  # bfit: 3.8+
     print("thesis_fonts: no LuaLaTeX, figure text in Times New Roman (matplotlib's own maths)")
@@ -152,6 +163,7 @@ def _print_ready(path):
     try:
         sys.path.insert(0, str(ROOT / "tools"))
         from print_ready import make_print_ready
+
         make_print_ready(path)
     except ImportError as err:
         print(f"note: {path.name} not made print-ready ({err}); pip install -r requirements.txt")

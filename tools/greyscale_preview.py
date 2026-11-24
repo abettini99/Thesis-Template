@@ -17,6 +17,7 @@ and writes main-grey.pdf, every page in greyscale, to look through. Needs Python
 poppler tools (pdftoppm, pdfinfo) and Pillow; the figure check needs pikepdf
 (pip install -r requirements.txt).
 """
+
 from __future__ import annotations
 
 import itertools
@@ -27,13 +28,12 @@ import sys
 import tempfile
 from pathlib import Path
 
+from common import ROOT, operators, parser
 from PIL import Image, ImageChops
 
-from common import ROOT, operators, parser
-
-CHROMA = 40          # max-min of R, G, B above which a pixel counts as coloured (0-255)
-MIN_PIXELS = 12      # coloured pixels a page needs (ignores stray anti-aliasing)
-SAME_GREY = 8.0      # CIE L* difference below which two colours look the same in grey
+CHROMA = 40  # max-min of R, G, B above which a pixel counts as coloured (0-255)
+MIN_PIXELS = 12  # coloured pixels a page needs (ignores stray anti-aliasing)
+SAME_GREY = 8.0  # CIE L* difference below which two colours look the same in grey
 
 
 def lightness(rgb) -> float:
@@ -50,7 +50,8 @@ def hexcol(rgb) -> str:
 def figure_colours(path: Path):
     """The distinct colours (as RGB 0..1) a figure strokes or fills with, black/grey/white left out."""
     import pikepdf
-    pdf = pikepdf.open(path)                 # (kept: a page cannot outlive its document)
+
+    pdf = pikepdf.open(path)  # (kept: a page cannot outlive its document)
     page, cols = pdf.pages[0], set()
     for op, operands, _, _ in operators(page, page.get("/Resources")):
         vals = []
@@ -66,7 +67,7 @@ def figure_colours(path: Path):
             rgb = ((1 - c) * (1 - k), (1 - m) * (1 - k), (1 - y) * (1 - k))
         else:
             continue
-        if max(rgb) - min(rgb) > 0.06:                       # a colour, not a grey
+        if max(rgb) - min(rgb) > 0.06:  # a colour, not a grey
             cols.add(tuple(round(c, 3) for c in rgb))
     return sorted(cols)
 
@@ -92,8 +93,9 @@ def main(argv=None) -> int:
         colour, pages = [], pages_in_order(tmp, "c")
         for i, p in enumerate(pages, 1):
             r, g, b = Image.open(p).convert("RGB").split()
-            chroma = ImageChops.subtract(ImageChops.lighter(ImageChops.lighter(r, g), b),
-                                         ImageChops.darker(ImageChops.darker(r, g), b))
+            chroma = ImageChops.subtract(
+                ImageChops.lighter(ImageChops.lighter(r, g), b), ImageChops.darker(ImageChops.darker(r, g), b)
+            )
             if chroma.point(lambda v: 255 if v > CHROMA else 0).histogram()[255] >= MIN_PIXELS:
                 colour.append(i)
         pages = len(pages)
@@ -103,13 +105,16 @@ def main(argv=None) -> int:
         print()
 
         out = args.pdf.with_name(args.pdf.stem + "-grey.pdf")
-        subprocess.run(["pdftoppm", "-r", str(args.dpi), "-gray", "-png", str(args.pdf), str(tmp / "g")], check=True)
+        subprocess.run(
+            ["pdftoppm", "-r", str(args.dpi), "-gray", "-png", str(args.pdf), str(tmp / "g")], check=True
+        )
         imgs = [Image.open(p).convert("L") for p in pages_in_order(tmp, "g")]
         imgs[0].save(out, save_all=True, append_images=imgs[1:], resolution=args.dpi)
         print(f"greyscale preview: {out.name}\n")
 
     figures = sorted((ROOT / "figures").glob("**/*.pdf")) if (ROOT / "figures").is_dir() else []
     import importlib.util
+
     if importlib.util.find_spec("pikepdf") is None:
         print("figure colours not checked: pip install -r requirements.txt")
         return 0
@@ -117,21 +122,31 @@ def main(argv=None) -> int:
     for fig in figures:
         try:
             cols = figure_colours(fig)
-        except Exception as e:                          # an unusual PDF: report, keep going
+        except Exception as e:  # an unusual PDF: report, keep going
             print(f"  ?     {fig.relative_to(ROOT)}: could not read ({e.__class__.__name__})")
             continue
-        pairs = [(a, b) for a, b in itertools.combinations(cols, 2) if abs(lightness(a) - lightness(b)) < SAME_GREY]
+        pairs = [
+            (a, b) for a, b in itertools.combinations(cols, 2) if abs(lightness(a) - lightness(b)) < SAME_GREY
+        ]
         if pairs:
             alike_total += 1
             print(f"  NOTE  {fig.relative_to(ROOT)}: colours that print as the same grey:")
             for a, b in pairs:
-                print(f"          {hexcol(a)} and {hexcol(b)} (lightness {lightness(a):.0f} and {lightness(b):.0f})")
+                print(
+                    f"          {hexcol(a)} and {hexcol(b)} (lightness {lightness(a):.0f} and {lightness(b):.0f})"
+                )
         else:
-            what = (f"{len(cols)} colour{'' if len(cols) == 1 else 's'}, distinct in grey" if cols else "no colour")
+            what = (
+                f"{len(cols)} colour{'' if len(cols) == 1 else 's'}, distinct in grey"
+                if cols
+                else "no colour"
+            )
             print(f"  OK    {fig.relative_to(ROOT)}: {what}")
     if alike_total:
-        print("\nFine if those lines or areas also differ in line style, marker or hatching "
-              "(the template's matplotlib style gives every colour its own line style).")
+        print(
+            "\nFine if those lines or areas also differ in line style, marker or hatching "
+            "(the template's matplotlib style gives every colour its own line style)."
+        )
     return 0
 
 

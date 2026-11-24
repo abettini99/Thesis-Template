@@ -21,6 +21,7 @@ It reports:
 and DOIs that Crossref matched on title and year. The old file is kept as references.bib.bak.
 Needs only Python 3.8+.
 """
+
 from __future__ import annotations
 
 import difflib
@@ -52,6 +53,7 @@ WANTS_DOI = {"article", "inproceedings", "incollection", "book"}
 
 # --- reading the .bib file -------------------------------------------------------
 
+
 class Entry:
     def __init__(self, kind, key, start, end, fields):
         self.kind, self.key, self.start, self.end, self.fields = kind, key, start, end, fields
@@ -71,7 +73,7 @@ def read_value(text, i):
             elif text[j] == "}" and text[j - 1] != "\\":
                 depth -= 1
                 if depth == 0:
-                    return text[i + 1:j], j + 1
+                    return text[i + 1 : j], j + 1
             j += 1
         raise ValueError("unbalanced braces")
     if text[i] == '"':
@@ -82,7 +84,7 @@ def read_value(text, i):
             elif text[j] == "}":
                 depth -= 1
             elif text[j] == '"' and depth == 0:
-                return text[i + 1:j], j + 1
+                return text[i + 1 : j], j + 1
             j += 1
         raise ValueError("unterminated quote")
     m = re.match(r"[^,}\s]+", text[i:])
@@ -96,7 +98,7 @@ def parse(text):
         if kind in ("comment", "preamble", "string"):
             continue
         line = text.count("\n", 0, m.start()) + 1
-        km = re.match(r"\s*([^,\s]+)\s*,", text[m.end():])
+        km = re.match(r"\s*([^,\s]+)\s*,", text[m.end() :])
         if not km:
             errors.append(f"line {line}: @{kind} without a key")
             continue
@@ -110,7 +112,7 @@ def parse(text):
                 i_name = i
                 fm = re.match(r"([\w:+.-]+)\s*=\s*", text[i:])
                 if not fm:
-                    raise ValueError(f"cannot read the field at '{text[i:i + 20].strip()}'")
+                    raise ValueError(f"cannot read the field at '{text[i : i + 20].strip()}'")
                 name, vstart = fm.group(1).lower(), i + fm.end()
                 value, i = read_value(text, vstart)
                 fields[name] = (value.strip(), vstart, i, i_name)
@@ -132,6 +134,7 @@ def year_of(e):
 
 
 # --- Crossref ---------------------------------------------------------------------
+
 
 def crossref_doi(e):
     """Look the title up on Crossref; return (doi, title found, similarity) or None."""
@@ -155,10 +158,13 @@ def crossref_doi(e):
 
 # --- report -----------------------------------------------------------------------
 
+
 def main(argv=None) -> int:
     ap = parser(__doc__)
     ap.add_argument("bib", nargs="?", type=Path, default=ROOT / "references.bib")
-    ap.add_argument("--bcf", type=Path, default=ROOT / "main.bcf", help="biblatex control file (default main.bcf)")
+    ap.add_argument(
+        "--bcf", type=Path, default=ROOT / "main.bcf", help="biblatex control file (default main.bcf)"
+    )
     ap.add_argument("--doi", action="store_true", help="look up missing DOIs on Crossref")
     ap.add_argument("--write", action="store_true", help="write the safe fixes into the .bib file")
     args = ap.parse_args(argv)
@@ -173,7 +179,7 @@ def main(argv=None) -> int:
     keys = {}
     for e in entries:
         keys.setdefault(e.key.lower(), []).append(e)
-    for k, es in keys.items():
+    for _k, es in keys.items():
         if len(es) > 1:
             problems += 1
             print(f"  FAIL  key used {len(es)} times: {es[0].key}")
@@ -195,7 +201,7 @@ def main(argv=None) -> int:
         print(f"  note  {args.bcf.name} not found: compile once to check cited and unused entries")
 
     seen_doi, seen_title = {}, {}
-    fixes = []                                   # (start, end, replacement) in the .bib text
+    fixes = []  # (start, end, replacement) in the .bib text
     lookups = []
     for e in entries:
         doi = e.get("doi").strip()
@@ -217,7 +223,9 @@ def main(argv=None) -> int:
         if pages and re.fullmatch(r"\s*\w+\s*-\s*\w+\s*", pages[0]) and "--" not in pages[0]:
             new = re.sub(r"\s*-\s*", "--", pages[0].strip())
             print(f"  WARN  {e.key}: pages {pages[0]} -> {new} (an en dash, as in 12--18)")
-            fixes.append((pages[1] + 1, pages[2] - 1, new) if text[pages[1]] in "{\"" else (pages[1], pages[2], new))
+            fixes.append(
+                (pages[1] + 1, pages[2] - 1, new) if text[pages[1]] in '{"' else (pages[1], pages[2], new)
+            )
 
         url = e.fields.get("url")
         if url and re.match(r"https?://(dx\.)?doi\.org/", url[0]):
@@ -234,13 +242,15 @@ def main(argv=None) -> int:
             lookups.append(e)
 
     if lookups:
-        print(f"  WARN  no DOI ({len(lookups)}): {', '.join(e.key for e in lookups)}"
-              + ("" if args.doi else "  (--doi looks them up)"))
+        print(
+            f"  WARN  no DOI ({len(lookups)}): {', '.join(e.key for e in lookups)}"
+            + ("" if args.doi else "  (--doi looks them up)")
+        )
     if args.doi:
         for e in lookups:
             try:
                 found = crossref_doi(e)
-            except Exception as ex:                  # offline, rate limit, ...
+            except Exception as ex:  # offline, rate limit, ...
                 print(f"        {e.key}: Crossref lookup failed ({ex.__class__.__name__})")
                 continue
             if not found:
@@ -248,14 +258,16 @@ def main(argv=None) -> int:
                 continue
             doi, title, sim, year = found
             sure = sim >= 0.95 and (not year_of(e) or year == year_of(e))
-            print(f"        {e.key}: {'match' if sure else 'possible match'} doi = {{{doi}}}"
-                  + ("" if sure else f"  (\"{title}\", {year}; check it)"))
+            print(
+                f"        {e.key}: {'match' if sure else 'possible match'} doi = {{{doi}}}"
+                + ("" if sure else f'  ("{title}", {year}; check it)')
+            )
             if sure:
                 pos = e.end - 1
                 while text[pos - 1] in " \t\n":
                     pos -= 1
                 comma = "" if text[pos - 1] == "," else ","
-                line = text[text.rfind("\n", 0, pos) + 1:pos]
+                line = text[text.rfind("\n", 0, pos) + 1 : pos]
                 indent = re.match(r"[ \t]*", line).group(0) or "    "
                 fixes.append((pos, pos, f"{comma}\n{indent}doi = {{{doi}}}"))
 

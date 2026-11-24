@@ -73,3 +73,6 @@ digital.pdf
 *.xdv
 creationdate.lua
 *-cmyk.pdf
+
+# Ruff cache
+.ruff_cache/

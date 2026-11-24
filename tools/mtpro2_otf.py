@@ -36,12 +36,13 @@ and, for its pixel comparison, Pillow; it runs OTS if opentype-sanitizer is inst
 The fonts and the generated support files contain MTPro2 data: for your own use under the
 MTPro2 EULA (embedding the fonts in PDFs is fine). Do not redistribute them.
 """
+
 from __future__ import annotations
 
 import argparse
 import copy
-import functools
 import datetime
+import functools
 import math
 import os
 import re
@@ -54,14 +55,14 @@ import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from fontTools.cffLib.specializer import commandsToProgram, specializeCommands
 from fontTools.fontBuilder import FontBuilder
+from fontTools.misc.psCharStrings import T1OutlineExtractor, T2CharString
 from fontTools.otlLib import builder as otl
 from fontTools.otlLib.builder import buildMathTable
 from fontTools.pens.boundsPen import BoundsPen
 from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
-from fontTools.cffLib.specializer import commandsToProgram, specializeCommands
-from fontTools.misc.psCharStrings import T1OutlineExtractor, T2CharString
 from fontTools.pens.transformPen import TransformPen
 from fontTools.t1Lib import T1Font
 from fontTools.ttLib import TTFont, newTable
@@ -78,6 +79,7 @@ BUILD_TIME = int(datetime.datetime(2009, 4, 27, tzinfo=datetime.timezone.utc).ti
 # 1. TeX inputs: TFM files and NFSS declarations
 # ======================================================================
 
+
 @dataclass
 class TFMChar:
     width: float
@@ -92,10 +94,10 @@ class TFMChar:
 class TFM:
     design_size: float
     chars: dict[int, TFMChar]
-    params: list[float]                          # params[5] x-height, [22] axis, ...
+    params: list[float]  # params[5] x-height, [22] axis, ...
     kerns: dict[tuple[int, int], float]
     nextlarger: dict[int, int]
-    exten: dict[int, tuple[int, int, int, int]]   # top, mid, bot, rep
+    exten: dict[int, tuple[int, int, int, int]]  # top, mid, bot, rep
 
 
 def read_tfm(path: Path) -> TFM:
@@ -103,17 +105,26 @@ def read_tfm(path: Path) -> TFM:
     d = path.read_bytes()
     lf, lh, bc, ec, nw, nh, nd, ni, nl, nk, ne, np_ = struct.unpack(">12H", d[:24])
     fix = lambda b: struct.unpack(">i", b)[0] / 2**20
-    words = lambda off, n: [d[off + 4 * i: off + 4 * i + 4] for i in range(n)]
+    words = lambda off, n: [d[off + 4 * i : off + 4 * i + 4] for i in range(n)]
     off = 24
-    header = words(off, lh); off += 4 * lh
-    ci = words(off, ec - bc + 1); off += 4 * (ec - bc + 1)
-    W = [fix(w) for w in words(off, nw)]; off += 4 * nw
-    H = [fix(w) for w in words(off, nh)]; off += 4 * nh
-    D = [fix(w) for w in words(off, nd)]; off += 4 * nd
-    I = [fix(w) for w in words(off, ni)]; off += 4 * ni
-    LK = words(off, nl); off += 4 * nl
-    K = [fix(w) for w in words(off, nk)]; off += 4 * nk
-    E = words(off, ne); off += 4 * ne
+    header = words(off, lh)
+    off += 4 * lh
+    ci = words(off, ec - bc + 1)
+    off += 4 * (ec - bc + 1)
+    W = [fix(w) for w in words(off, nw)]
+    off += 4 * nw
+    H = [fix(w) for w in words(off, nh)]
+    off += 4 * nh
+    D = [fix(w) for w in words(off, nd)]
+    off += 4 * nd
+    I = [fix(w) for w in words(off, ni)]
+    off += 4 * ni
+    LK = words(off, nl)
+    off += 4 * nl
+    K = [fix(w) for w in words(off, nk)]
+    off += 4 * nk
+    E = words(off, ne)
+    off += 4 * ne
     P = [0.0] + [fix(w) for w in words(off, np_)]
     chars, nextl, exten, kerns = {}, {}, {}, {}
     for i, (wi, hd, it, rem) in enumerate(ci):
@@ -125,7 +136,7 @@ def read_tfm(path: Path) -> TFM:
             nextl[c] = rem
         elif tag == 3:
             exten[c] = tuple(E[rem])
-    for c, ch in chars.items():                 # lig/kern programs: we only need kerns
+    for c, ch in chars.items():  # lig/kern programs: we only need kerns
         if ch.tag != 1:
             continue
         pc = ch.remainder
@@ -161,13 +172,13 @@ def active_text(src: str, flags: dict[str, bool]) -> str:
     \\ifmtp@... use `flags`; every \\ifx is taken as false (option switches
     like \\ifx\\Gamma s or \\ifx\\mathbb i are off by default); other \\if..
     tokens (inside macro bodies) are kept as-is."""
-    out, stack = [], []          # stack entries: (kind, active_before, branch_true)
+    out, stack = [], []  # stack entries: (kind, active_before, branch_true)
     active = True
     pos = 0
     tok = re.compile(r"\\newif\\if[A-Za-z@]+|\\if([A-Za-z@]*)|\\else\b|\\fi\b|\\or\b")
-    depth = 0                    # brace depth: \ifx in a macro body is not an option switch
+    depth = 0  # brace depth: \ifx in a macro body is not an option switch
     for m in tok.finditer(src):
-        seg = src[pos:m.start()]
+        seg = src[pos : m.start()]
         depth += brace_balance(seg)
         if active:
             out.append(seg)
@@ -236,8 +247,8 @@ def _toplevel(src: str, pos: int) -> bool:
 
 @dataclass
 class Decl:
-    kind: str          # symbol | delimiter | accent | radical
-    cmd: str           # "\\sum" or a character like "+"
+    kind: str  # symbol | delimiter | accent | radical
+    cmd: str  # "\\sum" or a character like "+"
     cls: str
     fam: str
     slot: int
@@ -274,7 +285,7 @@ def parse_fonts(texts: list[str]):
             sizes = re.findall(r"<\s*([\d.]*)\s*-\s*([\d.]*)\s*>\s*([A-Za-z0-9]+)", spec)
             if sizes:
                 by = {}
-                for lo, hi, name in sizes:
+                for lo, _hi, name in sizes:
                     lo = float(lo) if lo else 0.0
                     by[lo] = name
                 ordered = [by[k] for k in sorted(by)]  # small -> large
@@ -309,8 +320,10 @@ def read_delimiter_defs(text: str) -> dict[str, dict[str, tuple]]:
 
 def read_alt_letters(text: str) -> dict[str, dict[str, int]]:
     """\\MTPsetupScript etc.: {setup: {letter: slot}} from \\let\\altX=\\MTP@X + slot decls."""
-    slots = {m.group(1): tex_number(m.group(2)) for m in re.finditer(
-        r"\\DeclareMathSymbol\{\\MTP@(\w)\}\{\\mathalpha\}\{letters\}\{([^}]+)\}", text)}
+    slots = {
+        m.group(1): tex_number(m.group(2))
+        for m in re.finditer(r"\\DeclareMathSymbol\{\\MTP@(\w)\}\{\\mathalpha\}\{letters\}\{([^}]+)\}", text)
+    }
     out = {}
     for m in re.finditer(r"\\newcommand\{\\MTPsetup(\w+)\}\{%?(.*?)\}\n", text, re.S):
         name, body = m.groups()
@@ -341,14 +354,19 @@ def read_cbrace_slots(text: str) -> dict[str, list[tuple[str, int, float]]]:
         first = re.search(r"\\ifnum\\pointcount@<(\d+)(.*?)\\else\s*\\ifnum", body, re.S)
         if first:
             limit = int(first.group(1))
-            pairs = re.findall(r"\\ifdim\\wd\\z@<(\d+)pt\s*\\def\\thebrace@\{\\hbox\{\\MTEXE@\\char(\d+)\}", first.group(2))
+            pairs = re.findall(
+                r"\\ifdim\\wd\\z@<(\d+)pt\s*\\def\\thebrace@\{\\hbox\{\\MTEXE@\\char(\d+)\}", first.group(2)
+            )
             refs += [("E", int(c), int(pt) / 10) for pt, c in pairs]
             last = re.findall(r"\\MTEXE@\\char(\d+)\}", first.group(2))[-1]
             refs.append(("E", int(last), float(limit)))
         prev = None
-        for blk in re.finditer(r"(?:\\ifnum\\pointcount@<(\d+)\s*)?\\advance\\pointcount@(\d+)"
-                               r"(?:\s*\\ifnum\\pointcount@>(\d+)\s*\\pointcount@\d+\s*\\fi)?"
-                               r"\s*\\def\\thebrace@\{\\hbox\{\\MTEX([AEFG])@", body):
+        for blk in re.finditer(
+            r"(?:\\ifnum\\pointcount@<(\d+)\s*)?\\advance\\pointcount@(\d+)"
+            r"(?:\s*\\ifnum\\pointcount@>(\d+)\s*\\pointcount@\d+\s*\\fi)?"
+            r"\s*\\def\\thebrace@\{\\hbox\{\\MTEX([AEFG])@",
+            body,
+        ):
             hi, add, cap, font = blk.groups()
             lo = prev if prev is not None else 4
             add = int(add)
@@ -357,14 +375,19 @@ def read_cbrace_slots(text: str) -> dict[str, list[tuple[str, int, float]]]:
                 prev = int(hi)
             else:
                 top = int(cap) if cap else lo + add
-                refs += [(font, pc + add, pc + 1.0 if pc + add < top else 1000.0)
-                         for pc in range(lo, top - add + 1)]
+                refs += [
+                    (font, pc + add, pc + 1.0 if pc + add < top else 1000.0)
+                    for pc in range(lo, top - add + 1)
+                ]
         out[name] = refs
     return out
 
+
 def read_unicode_table(path: Path) -> dict[str, tuple[int, str]]:
     out = {}
-    for m in re.finditer(r'\\UnicodeMathSymbol\{"([0-9A-F]+)\}\{\\(\w+)\s*\}\{\\(\w+)\}', path.read_text(encoding="utf-8")):
+    for m in re.finditer(
+        r'\\UnicodeMathSymbol\{"([0-9A-F]+)\}\{\\(\w+)\s*\}\{\\(\w+)\}', path.read_text(encoding="utf-8")
+    ):
         cp, cmd, cls = m.groups()
         out.setdefault(cmd, (int(cp, 16), cls))
     return out
@@ -396,7 +419,10 @@ def read_widearc(text: str) -> list[tuple[str, int]]:
     m = re.search(r"\\def\\widearc#1\{(.*?)\n\\newbox", text, re.S)
     if not m:
         return []
-    return [(f, int(s, 16)) for f, s in re.findall(r"\\textfont3=\\MTEX([AEFG])@\s*\$\\mathaccent\"03([0-9A-F]{2})", m.group(1))]
+    return [
+        (f, int(s, 16))
+        for f, s in re.findall(r"\\textfont3=\\MTEX([AEFG])@\s*\$\\mathaccent\"03([0-9A-F]{2})", m.group(1))
+    ]
 
 
 def read_um_aliases(path: Path) -> tuple[dict[str, str], dict[str, int]]:
@@ -407,7 +433,10 @@ def read_um_aliases(path: Path) -> tuple[dict[str, str], dict[str, int]]:
         al.setdefault(a, b)
     for a, b in re.findall(r"\\cs_set_protected:Npn\s*\\(\w+)\s*\{\s*\\(\w+)\s*\}", text):
         al.setdefault(a, b)
-    rm = {c: int(h, 16) for c, h in re.findall(r"\\__um_remap_symbol:nnn\s*\{`\\(.)\}\s*\{\\\w+\}\s*\{\"([0-9A-F]+)\}", text)}
+    rm = {
+        c: int(h, 16)
+        for c, h in re.findall(r"\\__um_remap_symbol:nnn\s*\{`\\(.)\}\s*\{\\\w+\}\s*\{\"([0-9A-F]+)\}", text)
+    }
     return al, rm
 
 
@@ -430,7 +459,7 @@ def braced(text: str, i: int) -> tuple[str, int]:
             continue
         depth += {"{": 1, "}": -1}.get(text[j], 0)
         if depth == 0:
-            return text[i + 1:j], j + 1
+            return text[i + 1 : j], j + 1
         j += 1
     raise ValueError("unbalanced braces")
 
@@ -451,18 +480,31 @@ def read_amsmath_variants(sty: str, amsmath: Path | None) -> dict[str, str]:
     return out
 
 
-CLASSIC_KERNEL = ("rightarrowfill", "leftarrowfill", "downbracefill", "upbracefill",
-                  "overrightarrow", "overleftarrow", "overbrace", "underbrace")
-CLASSIC_AMSMATH = ("overrightarrow", "overleftarrow", "overleftrightarrow",
-                   "underrightarrow", "underleftarrow", "underleftrightarrow")
+CLASSIC_KERNEL = (
+    "rightarrowfill",
+    "leftarrowfill",
+    "downbracefill",
+    "upbracefill",
+    "overrightarrow",
+    "overleftarrow",
+    "overbrace",
+    "underbrace",
+)
+CLASSIC_AMSMATH = (
+    "overrightarrow",
+    "overleftarrow",
+    "overleftrightarrow",
+    "underrightarrow",
+    "underleftarrow",
+    "underleftrightarrow",
+)
 
 
 def read_classic_defs(text: str, names, ams: bool = False) -> dict[str, str]:
     """LaTeX's / amsmath's definitions of the constructions unicode-math replaces by
     stretchy OpenType glyphs (arrows over formulas, braces): {name: TeX definition}."""
     out = {}
-    pat = (r"\\ams@(?:re)?newcommand\{\\(\w+)\}(\[\d\])?" if ams else
-           r"\\DeclareRobustCommand\\(\w+)(\[\d\])?")
+    pat = r"\\ams@(?:re)?newcommand\{\\(\w+)\}(\[\d\])?" if ams else r"\\DeclareRobustCommand\\(\w+)(\[\d\])?"
     for m in re.finditer(pat, text):
         if m.group(1) in names and m.group(1) not in out:
             j = m.end()
@@ -486,25 +528,60 @@ def kpse(name: str) -> Path | None:
 # 2. Unicode: which character each LaTeX command stands for
 # ======================================================================
 
-GREEK = ("alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa varkappa "
-         "lambda mu nu xi omicron pi varpi rho varrho sigma varsigma tau upsilon phi varphi chi psi omega "
-         "Alpha Beta Gamma Delta Epsilon Zeta Eta Theta varTheta Iota Kappa Lambda Mu Nu Xi Omicron Pi "
-         "Rho Sigma Tau Upsilon Phi Chi Psi Omega varbeta vardelta digamma Digamma").split()
+GREEK = (
+    "alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa varkappa "
+    "lambda mu nu xi omicron pi varpi rho varrho sigma varsigma tau upsilon phi varphi chi psi omega "
+    "Alpha Beta Gamma Delta Epsilon Zeta Eta Theta varTheta Iota Kappa Lambda Mu Nu Xi Omicron Pi "
+    "Rho Sigma Tau Upsilon Phi Chi Psi Omega varbeta vardelta digamma Digamma"
+).split()
 ALPHABETS = {  # tag: (uppercase base, lowercase base, digits base, holes in the Unicode block)
     "italic": (0x1D434, 0x1D44E, None, {"h": 0x210E}),
     "bolditalic": (0x1D468, 0x1D482, None, {}),
     "bold": (0x1D400, 0x1D41A, 0x1D7CE, {}),
-    "script": (0x1D49C, 0x1D4B6, None, {"B": 0x212C, "E": 0x2130, "F": 0x2131, "H": 0x210B, "I": 0x2110,
-                                        "L": 0x2112, "M": 0x2133, "R": 0x211B, "e": 0x212F, "g": 0x210A,
-                                        "o": 0x2134}),
+    "script": (
+        0x1D49C,
+        0x1D4B6,
+        None,
+        {
+            "B": 0x212C,
+            "E": 0x2130,
+            "F": 0x2131,
+            "H": 0x210B,
+            "I": 0x2110,
+            "L": 0x2112,
+            "M": 0x2133,
+            "R": 0x211B,
+            "e": 0x212F,
+            "g": 0x210A,
+            "o": 0x2134,
+        },
+    ),
     "boldscript": (0x1D4D0, 0x1D4EA, None, {}),
     "frak": (0x1D504, 0x1D51E, None, {"C": 0x212D, "H": 0x210C, "I": 0x2111, "R": 0x211C, "Z": 0x2128}),
     "boldfrak": (0x1D56C, 0x1D586, None, {}),
-    "bb": (0x1D538, 0x1D552, 0x1D7D8, {"C": 0x2102, "H": 0x210D, "N": 0x2115, "P": 0x2119, "Q": 0x211A,
-                                       "R": 0x211D, "Z": 0x2124}),
+    "bb": (
+        0x1D538,
+        0x1D552,
+        0x1D7D8,
+        {"C": 0x2102, "H": 0x210D, "N": 0x2115, "P": 0x2119, "Q": 0x211A, "R": 0x211D, "Z": 0x2124},
+    ),
 }
-LATIN_GREEK = {"A": 0x391, "B": 0x392, "E": 0x395, "Z": 0x396, "H": 0x397, "I": 0x399, "K": 0x39A,
-               "M": 0x39C, "N": 0x39D, "O": 0x39F, "P": 0x3A1, "T": 0x3A4, "X": 0x3A7, "o": 0x3BF}
+LATIN_GREEK = {
+    "A": 0x391,
+    "B": 0x392,
+    "E": 0x395,
+    "Z": 0x396,
+    "H": 0x397,
+    "I": 0x399,
+    "K": 0x39A,
+    "M": 0x39C,
+    "N": 0x39D,
+    "O": 0x39F,
+    "P": 0x3A1,
+    "T": 0x3A4,
+    "X": 0x3A7,
+    "o": 0x3BF,
+}
 
 
 def alpha_cp(tag: str, ch: str) -> int | None:
@@ -543,7 +620,7 @@ class Unicode:
         if name not in self.table and self.aliases.get(name) in self.table:
             name = self.aliases[name]
         if name not in self.table and name.endswith("op") and name[:-2] in self.table:
-            name = name[:-2]                                   # \intop -> \int
+            name = name[:-2]  # \intop -> \int
         up_prefixed = name.startswith("up") and name[2:] in GREEK
         base = name[2:] if up_prefixed else name
         if base in GREEK:
@@ -559,7 +636,7 @@ class Unicode:
         stem = re.sub(r"op$", "", name)
         cands = [name, stem]
         for pre in ("var", "sl", "up", "thick", "short", "small", "big"):
-            cands += [n[len(pre):] for n in (name, stem) if n.startswith(pre)]
+            cands += [n[len(pre) :] for n in (name, stem) if n.startswith(pre)]
         cands += [name.replace("vert", "", 1), re.sub(r"slant$", "", name), re.sub(r"char$", "", name)]
         for c in cands:
             if c in self.table:
@@ -573,19 +650,20 @@ class Unicode:
 # 3. Inputs, read once and shared by all weights
 # ======================================================================
 
+
 @dataclass
 class Inputs:
     files: dict[str, Path]
-    sty: str                 # mtpro2.sty as is
-    act: str                 # mtpro2.sty with the default option branches only
+    sty: str  # mtpro2.sty as is
+    act: str  # mtpro2.sty with the default option branches only
     fds: list[str]
-    decls: list              # effective math declarations (fontmath.ltx + mtpro2.sty)
-    symfonts: dict           # symbol font -> {version: (text, script, scriptscript) fonts}
-    skew: dict[str, int]     # font -> \skewchar
+    decls: list  # effective math declarations (fontmath.ltx + mtpro2.sty)
+    symfonts: dict  # symbol font -> {version: (text, script, scriptscript) fonts}
+    skew: dict[str, int]  # font -> \skewchar
     uni: Unicode
     complete: bool
     amsmath_defs: dict[str, str]
-    classic: dict[str, dict[str, str]]       # "kernel"/"amsmath" -> {name: definition}
+    classic: dict[str, dict[str, str]]  # "kernel"/"amsmath" -> {name: definition}
 
     @classmethod
     def load(cls, folder: Path) -> "Inputs":
@@ -601,16 +679,30 @@ class Inputs:
         flags = {"mtp@full": complete, "mtp@ams": complete, "mtp@greekalpha": True, "mtp@slops": False}
         act = active_text(sty, flags)
         decls = parse_decls(active_text(fm.read_text(encoding="latin-1"), {})) + parse_decls(act)
-        last = {(d.kind, d.cmd): i for i, d in enumerate(decls)}   # a later declaration wins
+        last = {(d.kind, d.cmd): i for i, d in enumerate(decls)}  # a later declaration wins
         decls = [d for i, d in enumerate(decls) if i in set(last.values())]
         symfonts, _ = parse_fonts([act] + fds)
         aliases, remaps = read_um_aliases(uml)
-        return cls(files, sty, act, fds, decls, symfonts, font_skewchars([act] + fds),
-                   Unicode(read_unicode_table(um), aliases, remaps), complete,
-                   read_amsmath_variants(sty, kpse("amsmath.sty")),
-                   {"kernel": read_classic_defs(fm.read_text(encoding="latin-1"), CLASSIC_KERNEL),
-                    "amsmath": read_classic_defs(kpse("amsmath.sty").read_text(encoding="latin-1"),
-                                                 CLASSIC_AMSMATH, ams=True) if kpse("amsmath.sty") else {}})
+        return cls(
+            files,
+            sty,
+            act,
+            fds,
+            decls,
+            symfonts,
+            font_skewchars([act] + fds),
+            Unicode(read_unicode_table(um), aliases, remaps),
+            complete,
+            read_amsmath_variants(sty, kpse("amsmath.sty")),
+            {
+                "kernel": read_classic_defs(fm.read_text(encoding="latin-1"), CLASSIC_KERNEL),
+                "amsmath": read_classic_defs(
+                    kpse("amsmath.sty").read_text(encoding="latin-1"), CLASSIC_AMSMATH, ams=True
+                )
+                if kpse("amsmath.sty")
+                else {},
+            },
+        )
 
 
 class Source:
@@ -660,6 +752,7 @@ class Source:
 # 4. Glyphs
 # ======================================================================
 
+
 class HintedT1Extractor(T1OutlineExtractor):
     """Type 1 outline extractor that also records the stem hints: ("hintset", (stems,))
     entries in the RecordingPen, before the first path element they apply to. Hint
@@ -697,7 +790,7 @@ class HintedT1Extractor(T1OutlineExtractor):
 
     def op_callothersubr(self, index):
         if len(self.operandStack) >= 2 and self.operandStack[-1] == 3:
-            self.newset = True                      # hint replacement
+            self.newset = True  # hint replacement
         super().op_callothersubr(index)
 
     def _flush(self):
@@ -722,23 +815,27 @@ def hinted_charstring(t2: T2CharStringPen, sets: list) -> T2CharString:
     """The charstring of a pen whose commands contain ("_hints", n) markers (n: index into
     sets, each a list of (kind, position, width) stems): all stems declared once, and a
     hintmask wherever the active set changes (CFF's form of Type 1 hint replacement)."""
-    def edge(st):                                   # (ghost hints: width -20 or -21)
+
+    def edge(st):  # (ghost hints: width -20 or -21)
         k, pos, w = st
         return (pos, pos) if w in (-20, -21) else (min(pos, pos + w), max(pos, pos + w))
+
     clean = []
-    for hs in sets:                                 # each set: no overlaps, sane values
+    for hs in sets:  # each set: no overlaps, sane values
         keep = {"h": [], "v": []}
         # (MTPro2 writes many stems top edge first, with a negative width; CFF wants the
         # lower edge first, a negative width meaning a ghost hint, -20 or -21)
         hs = [(k, pos + w, -w) if w < 0 and w not in (-20, -21) else (k, pos, w) for k, pos, w in hs]
         for st in hs:
             lo, hi = edge(st)
-            if max(abs(lo), abs(hi)) < 16000 and all(hi < a or lo > b for a, b in
-                                                     (edge(t) for t in keep[st[0]])):
+            if max(abs(lo), abs(hi)) < 16000 and all(
+                hi < a or lo > b for a, b in (edge(t) for t in keep[st[0]])
+            ):
                 keep[st[0]].append(st)
         clean.append(keep["h"] + keep["v"])
-    stems = {k: sorted({st for hs in clean for st in hs if st[0] == k}, key=lambda t: (edge(t), t))
-             for k in "hv"}
+    stems = {
+        k: sorted({st for hs in clean for st in hs if st[0] == k}, key=lambda t: (edge(t), t)) for k in "hv"
+    }
     cmds = []
     for k in "hv":
         args, last = [], 0
@@ -768,13 +865,15 @@ def hinted_charstring(t2: T2CharStringPen, sets: list) -> T2CharString:
 class ShortPen:
     """Splits segments so that no coordinate difference exceeds what a CFF charstring can
     hold as an integer (32767 units; the 8x extension glyphs are larger than that)."""
+
     LIMIT = 30000
 
     def __init__(self, pen):
         self.pen, self.cur = pen, (0, 0)
 
     def moveTo(self, p):
-        self.pen.moveTo(p); self.cur = p
+        self.pen.moveTo(p)
+        self.cur = p
 
     def lineTo(self, p):
         (x0, y0), n = self.cur, 1
@@ -794,10 +893,12 @@ class ShortPen:
             self.curveTo(a, d, f)
             self.curveTo(e, c, p3)
             return
-        self.pen.curveTo(p1, p2, p3); self.cur = p3
+        self.pen.curveTo(p1, p2, p3)
+        self.cur = p3
 
     def qCurveTo(self, *pts):
-        self.pen.qCurveTo(*pts); self.cur = pts[-1]
+        self.pen.qCurveTo(*pts)
+        self.cur = pts[-1]
 
     def closePath(self):
         self.pen.closePath()
@@ -813,26 +914,26 @@ class ShortPen:
 class Ref:
     font: str
     slot: int
-    scale: int = 1           # the extension fonts are used at 2x, 4x and 8x size
+    scale: int = 1  # the extension fonts are used at 2x, 4x and 8x size
 
 
 @dataclass
 class Glyph:
     name: str
-    ref: Ref | None          # None: composed or donor glyph
-    width: float = 0         # advance (TFM width, adjusted by the stages below)
-    height: float = 0        # TeX box (TFM), moved with dy
+    ref: Ref | None  # None: composed or donor glyph
+    width: float = 0  # advance (TFM width, adjusted by the stages below)
+    height: float = 0  # TeX box (TFM), moved with dy
     depth: float = 0
-    italic: float = 0        # italic correction left for the MATH table
+    italic: float = 0  # italic correction left for the MATH table
     accent: float | None = None
-    mkern: float = 0         # bottom-right math kern (TeX's subscript tuck)
-    dy: float = 0            # vertical shift baked into the outline
-    tex_box: bool = False    # bounding box extended to the TFM box
+    mkern: float = 0  # bottom-right math kern (TeX's subscript tuck)
+    dy: float = 0  # vertical shift baked into the outline
+    tex_box: bool = False  # bounding box extended to the TFM box
     shifted: bool = False
     widened: bool = False
     charstring: object = None
     bounds: tuple | None = None
-    parts: list = field(default_factory=list)   # composed glyphs: (glyph, dx, dy)
+    parts: list = field(default_factory=list)  # composed glyphs: (glyph, dx, dy)
 
 
 # ======================================================================
@@ -840,22 +941,43 @@ class Glyph:
 # ======================================================================
 
 # Unicode's bracket pieces, for the glyphs of assembled delimiters
-_P = lambda top, rep, bot, mid=None: {k: v for k, v in (("top", top), ("rep", rep), ("bot", bot),
-                                                        ("mid", mid)) if v}
-PIECES = {0x28: _P(0x239B, 0x239C, 0x239D), 0x29: _P(0x239E, 0x239F, 0x23A0),
-          0x5B: _P(0x23A1, 0x23A2, 0x23A3), 0x5D: _P(0x23A4, 0x23A5, 0x23A6),
-          0x7B: _P(0x23A7, 0x23AA, 0x23A9, 0x23A8), 0x7D: _P(0x23AB, 0x23AA, 0x23AD, 0x23AC),
-          0x2308: _P(0x23A1, 0x23A2, None), 0x2309: _P(0x23A4, 0x23A5, None),
-          0x230A: _P(None, 0x23A2, 0x23A3), 0x230B: _P(None, 0x23A5, 0x23A6),
-          0x7C: _P(None, 0x23D0, None), 0x2016: _P(None, 0x2016, None),
-          0x222B: _P(0x2320, 0x23AE, 0x2321), 0x221A: _P(None, 0x23D0, 0x23B7),
-          0x2191: _P(0x2191, 0x23D0, None), 0x2193: _P(None, 0x23D0, 0x2193),
-          0x2195: _P(0x2191, 0x23D0, 0x2193), 0x21D1: _P(0x21D1, 0x2016, None),
-          0x21D3: _P(None, 0x2016, 0x21D3), 0x21D5: _P(0x21D1, 0x2016, 0x21D3)}
+_P = lambda top, rep, bot, mid=None: {
+    k: v for k, v in (("top", top), ("rep", rep), ("bot", bot), ("mid", mid)) if v
+}
+PIECES = {
+    0x28: _P(0x239B, 0x239C, 0x239D),
+    0x29: _P(0x239E, 0x239F, 0x23A0),
+    0x5B: _P(0x23A1, 0x23A2, 0x23A3),
+    0x5D: _P(0x23A4, 0x23A5, 0x23A6),
+    0x7B: _P(0x23A7, 0x23AA, 0x23A9, 0x23A8),
+    0x7D: _P(0x23AB, 0x23AA, 0x23AD, 0x23AC),
+    0x2308: _P(0x23A1, 0x23A2, None),
+    0x2309: _P(0x23A4, 0x23A5, None),
+    0x230A: _P(None, 0x23A2, 0x23A3),
+    0x230B: _P(None, 0x23A5, 0x23A6),
+    0x7C: _P(None, 0x23D0, None),
+    0x2016: _P(None, 0x2016, None),
+    0x222B: _P(0x2320, 0x23AE, 0x2321),
+    0x221A: _P(None, 0x23D0, 0x23B7),
+    0x2191: _P(0x2191, 0x23D0, None),
+    0x2193: _P(None, 0x23D0, 0x2193),
+    0x2195: _P(0x2191, 0x23D0, 0x2193),
+    0x21D1: _P(0x21D1, 0x2016, None),
+    0x21D3: _P(None, 0x2016, 0x21D3),
+    0x21D5: _P(0x21D1, 0x2016, 0x21D3),
+}
 LEGACY_EXTRA = {"mt2exa": 1, "mt2exe": 2, "mt2exf": 4, "mt2exg": 8, "mt2xl": 1, "mt2xxxl": 2}
 EXT_FONTS = {"A": ("exa", 1), "E": ("exe", 2), "F": ("exf", 4), "G": ("exg", 8)}
-CLASSES = {"\\mathord": 0, "\\mathalpha": 0, "\\mathop": 1, "\\mathbin": 2, "\\mathrel": 3,
-           "\\mathopen": 4, "\\mathclose": 5, "\\mathpunct": 6}
+CLASSES = {
+    "\\mathord": 0,
+    "\\mathalpha": 0,
+    "\\mathop": 1,
+    "\\mathbin": 2,
+    "\\mathrel": 3,
+    "\\mathopen": 4,
+    "\\mathclose": 5,
+    "\\mathpunct": 6,
+}
 
 
 class MathFontBuild:
@@ -866,20 +988,20 @@ class MathFontBuild:
         self.glyphs: dict[str, Glyph] = {}
         self.by_ref: dict[Ref, str] = {}
         self.cmap: dict[int, str] = {}
-        self.ssty: dict[str, list[str]] = {}             # glyph -> [script, scriptscript]
-        self.vvar: dict[str, list[str]] = {}             # vertical size variants
-        self.hvar: dict[str, list[str]] = {}             # horizontal size variants
+        self.ssty: dict[str, list[str]] = {}  # glyph -> [script, scriptscript]
+        self.vvar: dict[str, list[str]] = {}  # vertical size variants
+        self.hvar: dict[str, list[str]] = {}  # horizontal size variants
         self.vasm: dict[str, list] = {}
-        self.radtop = {}   # radical top piece -> its TeX height (font units)                  # vertical assemblies
-        self.commands: dict[str, tuple[str, str]] = {}   # mtpro2.sty command -> (class, glyph)
+        self.radtop = {}  # radical top piece -> its TeX height (font units)                  # vertical assemblies
+        self.commands: dict[str, tuple[str, str]] = {}  # mtpro2.sty command -> (class, glyph)
         self.cmd_src: dict[str, tuple[str, int]] = {}
         self.glyph_cls: dict[str, str] = {}
-        self.forced: set[str] = set()                    # commands mtpro2.sty deliberately replaces
-        self.variants: dict[str, dict[str, str]] = {}    # per-use sets for the package
+        self.forced: set[str] = set()  # commands mtpro2.sty deliberately replaces
+        self.variants: dict[str, dict[str, str]] = {}  # per-use sets for the package
         self.kerns: dict[tuple[str, str], int] = {}
-        self.limits: dict[str, str] = {}                 # operator -> its twin for \\limits
+        self.limits: dict[str, str] = {}  # operator -> its twin for \\limits
         self.tex_params: dict[str, int] = {}
-        self.fallback: dict[str, str] = {}               # weight font -> regular font
+        self.fallback: dict[str, str] = {}  # weight font -> regular font
         self.from_fallback: set[str] = set()
         for vers in inp.symfonts.values():
             base = vers.get("normal")
@@ -891,7 +1013,7 @@ class MathFontBuild:
     def fam(self, fam: str):
         """(text, script, scriptscript) fonts of a symbol font in this weight."""
         v = self.inp.symfonts.get(fam, {})
-        return v.get(self.weight, v.get("normal"))      # (heavy letters: the normal ones, as in TeX)
+        return v.get(self.weight, v.get("normal"))  # (heavy letters: the normal ones, as in TeX)
 
     def trip(self, a, b, c):
         return (a, b, c) if self.src.has(a) else None
@@ -904,28 +1026,40 @@ class MathFontBuild:
             sources = [(g.ref, 0, g.dy)]
         else:
             sources = [(self.glyphs[n].ref, dx, dy + self.glyphs[n].dy) for n, dx, dy in g.parts]
-        sets = []                                   # hint sets (single-source glyphs only)
+        sets = []  # hint sets (single-source glyphs only)
         for ref, dx, dy in sources:
             o, sc = self.src.outline(ref.font, ref.slot), ref.scale
             tp, tb = TransformPen(pen, (sc, 0, 0, sc, dx, dy)), TransformPen(bp, (sc, 0, 0, sc, dx, dy))
             for op, args in o.value:
                 if op == "hintset":
-                    if g.ref is not None:           # scaled and shifted with the outline
-                        hs = [(k, pos + w, -w) if w < 0 and w not in (-20, -21) else (k, pos, w)
-                              for k, pos, w in args[0]]     # (lower edge first, see below)
-                        sets.append([(k, round(pos * sc + (dy if k == "h" else dx)),
-                                      w if w in (-20, -21) else round(w * sc)) for k, pos, w in hs])
+                    if g.ref is not None:  # scaled and shifted with the outline
+                        hs = [
+                            (k, pos + w, -w) if w < 0 and w not in (-20, -21) else (k, pos, w)
+                            for k, pos, w in args[0]
+                        ]  # (lower edge first, see below)
+                        sets.append(
+                            [
+                                (
+                                    k,
+                                    round(pos * sc + (dy if k == "h" else dx)),
+                                    w if w in (-20, -21) else round(w * sc),
+                                )
+                                for k, pos, w in hs
+                            ]
+                        )
                         t2._commands.append(("_hints", len(sets) - 1))
                     continue
                 getattr(tp, op)(*args)
                 getattr(tb, op)(*args)
         g.bounds = bp.bounds
-        if g.tex_box and g.bounds:              # zero-area contours at TeX's box (invisible)
+        if g.tex_box and g.bounds:  # zero-area contours at TeX's box (invisible)
             x = round(g.bounds[0])
             lo, hi = g.bounds[1], g.bounds[3]
             for y in (g.height, -g.depth):
                 if y > hi + 0.5 or y < lo - 0.5:
-                    pen.moveTo((x, round(y))); pen.lineTo((x + 1, round(y))); pen.closePath()
+                    pen.moveTo((x, round(y)))
+                    pen.lineTo((x + 1, round(y)))
+                    pen.closePath()
                     lo, hi = min(lo, round(y)), max(hi, round(y))
             g.bounds = (g.bounds[0], lo, g.bounds[2], hi)
         g.charstring = hinted_charstring(t2, sets) if sets else t2.getCharString()
@@ -938,7 +1072,7 @@ class MathFontBuild:
             fb = self.fallback.get(ref.font)
             if fb and self.src.glyph_ok(fb, ref.slot):
                 self.by_ref[ref] = self.add(Ref(fb, ref.slot, ref.scale), name)
-                self.from_fallback.add(self.by_ref[ref])    # (no glyph of this weight)
+                self.from_fallback.add(self.by_ref[ref])  # (no glyph of this weight)
                 return self.by_ref[ref]
             return None
         name = base = re.sub(r"[^A-Za-z0-9._]", "_", name)[:60]
@@ -949,7 +1083,7 @@ class MathFontBuild:
         g = Glyph(name, ref, t.width * s, t.height * s, t.depth * s, t.italic * s)
         skew = self.inp.skew.get(ref.font)
         kern = self.src.tfm(ref.font).kerns.get((ref.slot, skew)) if skew is not None else None
-        if kern is not None:            # TeX centres accents over width + italic correction
+        if kern is not None:  # TeX centres accents over width + italic correction
             g.accent = (g.width + g.italic) / 2 + kern * s
         self.draw(g)
         self.glyphs[name] = g
@@ -1042,23 +1176,32 @@ class MathFontBuild:
         (U+27C2): the second character gets a copy of its own (same outline,
         box, kerns, script sizes and delimiter sizes), so each copies as itself."""
         import copy
+
         # (and \\setminus, U+2216, with \\backslash, U+005C, whose larger sizes it then gets)
-        for keep, other in ((0x22C5, 0xB7), (0x2225, 0x2016), (0x2223, 0x7C), (0x22A5, 0x27C2), (0x2216, 0x5C)):
+        for keep, other in (
+            (0x22C5, 0xB7),
+            (0x2225, 0x2016),
+            (0x2223, 0x7C),
+            (0x22A5, 0x27C2),
+            (0x2216, 0x5C),
+        ):
             g = self.cmap.get(other)
             new = gname(other)
             if not g or g != self.cmap.get(keep) or new in self.glyphs or self.glyphs[g].ref is None:
                 continue
-            for src, dst in [(g, new)] + [(a, f"{new}.ssty{i}") for i, a in enumerate(self.ssty.get(g, []), 1)]:
+            for src, dst in [(g, new)] + [
+                (a, f"{new}.ssty{i}") for i, a in enumerate(self.ssty.get(g, []), 1)
+            ]:
                 if src in self.glyphs and dst not in self.glyphs:
                     c = copy.copy(self.glyphs[src])
                     c.name = dst
                     self.glyphs[dst] = c
             if g in self.ssty:
                 self.ssty[new] = [f"{new}.ssty{i}" for i in range(1, len(self.ssty[g]) + 1)]
-            if g in self.vvar:                  # (the larger sizes: named after the delimiter)
+            if g in self.vvar:  # (the larger sizes: named after the delimiter)
                 ren = {}
                 for old in [v for v in self.vvar[g][1:] if v.startswith(g + ".v")]:
-                    nn = new + old[len(g):]
+                    nn = new + old[len(g) :]
                     if nn not in self.glyphs:
                         c = self.glyphs.pop(old)
                         c.name = nn
@@ -1100,8 +1243,9 @@ class MathFontBuild:
                 continue
             cmd = d.cmd.lstrip("\\")
             cp = uni.for_command(d.cmd, d.slot, d.fam) or next(
-                (c for c in (uni.for_command("\\" + a) for a in lets.get(cmd, [])) if c), None)
-            if d.cmd == "\\mtp@@z":                       # zswash: swash z, copies as z
+                (c for c in (uni.for_command("\\" + a) for a in lets.get(cmd, [])) if c), None
+            )
+            if d.cmd == "\\mtp@@z":  # zswash: swash z, copies as z
                 name = gname(alpha_cp("italic", "z")) + ".swash"
             elif cp:
                 name = gname(cp)
@@ -1119,15 +1263,16 @@ class MathFontBuild:
                 for a in lets.get(cmd, []):
                     if a not in self.commands and a.isalpha():
                         self.commands[a], self.cmd_src[a] = (d.cls, g), (d.fam, d.slot)
-        for a, b in read_op_aliases(self.inp.sty).items():   # \slsum -> \slsumop
+        for a, b in read_op_aliases(self.inp.sty).items():  # \slsum -> \slsumop
             if b in self.commands and a not in self.commands:
                 self.commands[a], self.cmd_src[a] = self.commands[b], self.cmd_src[b]
-        self.forced = set(re.findall(r"\\let\\(\w+)\\@undefined[^\n]*\n\\DeclareMathSymbol\{\\\1\}",
-                                     self.inp.act))
+        self.forced = set(
+            re.findall(r"\\let\\(\w+)\\@undefined[^\n]*\n\\DeclareMathSymbol\{\\\1\}", self.inp.act)
+        )
 
     def greek_and_composites(self):
         uni, letters = self.inp.uni, self.fam("letters")
-        m = re.search(r"\\ifx\\Gamma s(.*?)\\else", self.inp.sty, re.S)   # italic capital Greek
+        m = re.search(r"\\ifx\\Gamma s(.*?)\\else", self.inp.sty, re.S)  # italic capital Greek
         if m:
             for d in parse_decls(m.group(1)):
                 cp = uni.get("mit" + d.cmd.lstrip("\\"))
@@ -1142,8 +1287,9 @@ class MathFontBuild:
             g = self.compose(gname(cp), parts(dot), width(dot))
             self.set_cmap(cp, g)
             if g and self.ssty.get(dot):
-                alts = [self.compose(f"{g}.ssty{j}", parts(a), width(a))
-                        for j, a in enumerate(self.ssty[dot], 1)]
+                alts = [
+                    self.compose(f"{g}.ssty{j}", parts(a), width(a)) for j, a in enumerate(self.ssty[dot], 1)
+                ]
                 if all(alts):
                     self.ssty[g] = alts
 
@@ -1153,32 +1299,54 @@ class MathFontBuild:
         def AX(n):
             h = self.glyphs[n]
             return h.height - (h.height + h.depth) / 2
+
         if cd:
-            seq(0x22EF, cd, lambda n: [(n, i * (W(n) + thin), 0) for i in range(3)], lambda n: 3 * W(n) + 2 * thin)
+            seq(
+                0x22EF,
+                cd,
+                lambda n: [(n, i * (W(n) + thin), 0) for i in range(3)],
+                lambda n: 3 * W(n) + 2 * thin,
+            )
             seq(0x22EE, cd, lambda n: [(n, 0, 400 * i + 60 - AX(n)) for i in range(3)], W)
-            seq(0x22F1, cd, lambda n: [(n, thin / 6 + i * (W(n) + thin / 3), 700 - 300 * i - AX(n))
-                                       for i in range(3)], lambda n: 3 * W(n) + thin)
+            seq(
+                0x22F1,
+                cd,
+                lambda n: [(n, thin / 6 + i * (W(n) + thin / 3), 700 - 300 * i - AX(n)) for i in range(3)],
+                lambda n: 3 * W(n) + thin,
+            )
         if ld:
-            seq(0x2026, ld, lambda n: [(n, i * (W(n) + thin), 0) for i in range(3)], lambda n: 3 * W(n) + 2 * thin)
+            seq(
+                0x2026,
+                ld,
+                lambda n: [(n, i * (W(n) + thin), 0) for i in range(3)],
+                lambda n: 3 * W(n) + 2 * thin,
+            )
         # Greek letters that look like Latin ones (unicode-math needs the whole range)
         for lat, gr in LATIN_GREEK.items():
-            it_gr = uni.get("mit" + (unicodedata.name(chr(gr)).split()[-1].capitalize() if lat.isupper()
-                                     else "omicron"))
+            it_gr = uni.get(
+                "mit" + (unicodedata.name(chr(gr)).split()[-1].capitalize() if lat.isupper() else "omicron")
+            )
             if it_gr:
                 self.set_cmap(it_gr, self.cmap.get(alpha_cp("italic", lat)))
-        for up, it in ((0x2202, 0x1D715), (0x2207, 0x1D6FB)):   # italic partial/nabla code points
+        for up, it in ((0x2202, 0x1D715), (0x2207, 0x1D6FB)):  # italic partial/nabla code points
             self.set_cmap(it, self.cmap.get(up))
-        pr = self.cmap.get(0x2032)                  # '' and ''' as TeX sets them: primes side by side
+        pr = self.cmap.get(0x2032)  # '' and ''' as TeX sets them: primes side by side
         if pr:
             for cp, k in ((0x2033, 2), (0x2034, 3), (0x2057, 4)):
                 # (in a script TeX adds each prime's italic correction)
+                # (W, parts and comp are used within this pass of the loop only)
                 W = lambda n: self.glyphs[n].width + self.glyphs[n].italic
-                parts = lambda n: [(n, i * W(n), 0) for i in range(k)]
-                def comp(name, n):                  # (the prime's box, not the ink's)
-                    c = self.compose(name, parts(n), k * W(n))
+                parts = lambda n: [(n, i * W(n), 0) for i in range(k)]  # noqa: B023
+
+                def comp(name, n):  # (the prime's box, not the ink's)
+                    c = self.compose(name, parts(n), k * W(n))  # noqa: B023
                     if c:
-                        self.glyphs[c].height, self.glyphs[c].depth = self.glyphs[n].height, self.glyphs[n].depth
+                        self.glyphs[c].height, self.glyphs[c].depth = (
+                            self.glyphs[n].height,
+                            self.glyphs[n].depth,
+                        )
                     return c
+
                 g = comp(gname(cp), pr)
                 if g:
                     self.set_cmap(cp, g, force=True)
@@ -1193,18 +1361,23 @@ class MathFontBuild:
                 root = self.commands.get(d.cmd.lstrip("\\"), (None, None))[1]
                 if root:
                     refs, _ = self.chain(self.fam(d.fam)[0], d.slot)
-                    self.vvar[root] = [v for v in (self.add(r, f"{root}.v{i}") for i, r in enumerate(refs)) if v]
+                    self.vvar[root] = [
+                        v for v in (self.add(r, f"{root}.v{i}") for i, r in enumerate(refs)) if v
+                    ]
 
     def delimiter(self, root_name: str, small, large, override=None, dup=False) -> str | None:
         """Small size, NEXTLARGER chain and extensible recipe of one delimiter."""
-        g = self.add_sized(self.fam(small[0]), small[1], root_name, dup=dup) \
-            if small and self.fam(small[0]) else None
+        g = (
+            self.add_sized(self.fam(small[0]), small[1], root_name, dup=dup)
+            if small and self.fam(small[0])
+            else None
+        )
         fonts = self.fam(large[0])
         if not fonts:
             return g
         refs, ext = self.chain(fonts[0], large[1]) if override is None else override(fonts[0])
         if ext and (len(refs) > 1 or getattr(self, "tex_ext", False)):
-            refs = refs[:-1]            # TeX never sets the extensible character itself
+            refs = refs[:-1]  # TeX never sets the extensible character itself
         names = [n for n in (self.add(r, f"{g or root_name}.v{i}", dup) for i, r in enumerate(refs)) if n]
         g = g or (names[0] if names else None)
         if not g:
@@ -1222,37 +1395,51 @@ class MathFontBuild:
                 # copies as its pieces, not as several '(')
                 ch = tf.chars[slot]
                 name = f"{gname(roles[role])}.{root_name}" if role in roles else f"{g}.p{slot}"
-                return (self.add(Ref(font, slot, scale), name), int(role == "rep"),
-                        (ch.height + ch.depth) * UPM * scale)
+                return (
+                    self.add(Ref(font, slot, scale), name),
+                    int(role == "rep"),
+                    (ch.height + ch.depth) * UPM * scale,
+                )
+
             rp = piece(rep, "rep")
-            if top:                                     # (TeX's radical rule over a sign built
-                tp = piece(top, "top")                  # from pieces: its top piece's height)
+            if top:  # (TeX's radical rule over a sign built
+                tp = piece(top, "top")  # from pieces: its top piece's height)
                 if tp[0]:
                     self.radtop[tp[0]] = tf.chars[top].height * UPM * scale
             if not (top or mid or bot):
-                parts = [(rp[0], 0, rp[2]), rp]          # OpenType needs one fixed part
+                parts = [(rp[0], 0, rp[2]), rp]  # OpenType needs one fixed part
             else:
-                parts = ([piece(bot, "bot")] if bot else []) + [rp] + \
-                        ([piece(mid, "mid"), rp] if mid else []) + ([piece(top, "top")] if top else [])
+                parts = (
+                    ([piece(bot, "bot")] if bot else [])
+                    + [rp]
+                    + ([piece(mid, "mid"), rp] if mid else [])
+                    + ([piece(top, "top")] if top else [])
+                )
             self.vasm[g] = parts
-            if getattr(self, "tex_ext", False) and small and self.glyphs[g].ref is not None and \
-                    self.glyphs[g].ref.font == font and self.glyphs[g].ref.slot in tf.exten:
+            if (
+                getattr(self, "tex_ext", False)
+                and small
+                and self.glyphs[g].ref is not None
+                and self.glyphs[g].ref.font == font
+                and self.glyphs[g].ref.slot in tf.exten
+            ):
                 # the small character is itself extensible (\lmoustache): TeX builds it from
                 # pieces at every size, the smallest being the fixed pieces alone
                 fixed = [p for p in parts if not p[1]] or parts[:1]
                 G = self.glyphs
-                y, comp = 0, []                  # (bottom up, boxes stacked as TeX stacks them)
+                y, comp = 0, []  # (bottom up, boxes stacked as TeX stacks them)
                 for i, (n, _, _) in enumerate(fixed):
                     if i:
                         y += G[fixed[i - 1][0]].height + G[n].depth
                     comp.append((n, 0, y))
-                rep = next((p[0] for p in parts if p[1]), fixed[0][0])     # (TeX: the box is as wide
-                c = self.compose(f"{g}.min", comp, G[rep].width + G[rep].italic)   # as the repeated piece)
+                rep = next((p[0] for p in parts if p[1]), fixed[0][0])  # (TeX: the box is as wide
+                c = self.compose(f"{g}.min", comp, G[rep].width + G[rep].italic)  # as the repeated piece)
                 if c:
                     cg = G[c]
                     cg.depth, cg.height = G[fixed[0][0]].depth, y + G[fixed[-1][0]].height
                     self.vvar[c], self.vasm[c] = [c], parts
-                    self.vvar.pop(g, None); self.vasm.pop(g, None)
+                    self.vvar.pop(g, None)
+                    self.vasm.pop(g, None)
                     return c
         return g
 
@@ -1274,20 +1461,28 @@ class MathFontBuild:
         def morphed_fix(cs, curly_large):
             """MTPro2's TFM chains the morphed braces wrongly (182 has no successor, 183 runs
             through the even slots). Intended: even slots for {, odd for }."""
+
             def f(font):
                 tfm = self.src.tfm(font)
                 slots = [k for k in range(182 if cs == "lbrace" else 183, 190, 2) if k in tfm.chars]
                 return [Ref(font, k) for k in slots], self.chain(font, curly_large)[1]
+
             return f
+
         styles = read_delimiter_defs(self.inp.act)
         curly = styles.get("curlybraces", {})
         for style, defs in styles.items():
             tag = style.replace("braces", "")
-            for cs, (cls, f1, s1, f2, s2) in defs.items():
+            for cs, (_cls, f1, s1, f2, s2) in defs.items():
                 cp = 0x7B if cs == "lbrace" else 0x7D
                 fix = morphed_fix(cs, curly[cs][4]) if tag == "morphed" and cs in curly else None
-                g = self.delimiter(gname(cp) if tag == "curly" else f"{gname(cp)}.{tag}",
-                                   (fam_names[f1], s1), (fam_names[f2], s2), fix, dup=tag != "curly")
+                g = self.delimiter(
+                    gname(cp) if tag == "curly" else f"{gname(cp)}.{tag}",
+                    (fam_names[f1], s1),
+                    (fam_names[f2], s2),
+                    fix,
+                    dup=tag != "curly",
+                )
                 if g:
                     if tag == "curly":
                         self.set_cmap(cp, g, force=True)
@@ -1310,14 +1505,14 @@ class MathFontBuild:
             refs, _ = self.chain(fonts[0], d.slot)
             hv = [g] + [self.add(r, f"{g}.h{i}") for i, r in enumerate(refs[1:], 1)]
             w = pair.get(d.cmd.lstrip("\\"))
-            for letter in ("AEFG" if w in wide else ""):
+            for letter in "AEFG" if w in wide else "":
                 fname, scale = EXT_FONTS[letter]
                 font = self.fam("largesymbols")[0].replace("exa", fname) if letter == "A" else "mt2" + fname
                 if self.src.has(font):
                     refs, _ = self.chain(font, wide[w], scale)
                     hv += [self.add(r, f"{g}.{fname}{r.slot}") for r in refs]
             hv = sorted(dict.fromkeys(h for h in hv if h), key=lambda n: self.glyphs[n].width)
-            for h in hv + self.ssty.get(g, []):         # (and the script sizes' accents)
+            for h in hv + self.ssty.get(g, []):  # (and the script sizes' accents)
                 self.glyphs[h].accent = self.glyphs[h].width / 2
             self.hvar[g] = hv
         # mtpro2.sty's other accents (\\dotup .. \\ddddotup, \\what, \\wwtilde, ...): no
@@ -1329,15 +1524,23 @@ class MathFontBuild:
             fonts = self.fam(d.fam)
             # the name gives the glyph its text (ToUnicode, MathML): the combining accent
             base = name.lstrip("w").removesuffix("up")
-            cp = {"hat": 0x302, "tilde": 0x303, "bar": 0x304, "check": 0x30C, "dot": 0x307,
-                  "ddot": 0x308, "dddot": 0x20DB, "ddddot": 0x20DC}.get(base)
+            cp = {
+                "hat": 0x302,
+                "tilde": 0x303,
+                "bar": 0x304,
+                "check": 0x30C,
+                "dot": 0x307,
+                "ddot": 0x308,
+                "dddot": 0x20DB,
+                "ddddot": 0x20DC,
+            }.get(base)
             g = self.add_sized(fonts, d.slot, (f"uni{cp:04X}.mtp_" if cp else "mtp.acc.") + name)
             if not g:
                 continue
             refs, _ = self.chain(fonts[0], d.slot)
             hv = [g] + [self.add(r, f"{g}.h{i}") for i, r in enumerate(refs[1:], 1)]
             hv = sorted(dict.fromkeys(h for h in hv if h), key=lambda n: self.glyphs[n].width)
-            for h in hv + self.ssty.get(g, []):         # (and the script sizes' accents)
+            for h in hv + self.ssty.get(g, []):  # (and the script sizes' accents)
                 self.glyphs[h].accent = self.glyphs[h].width / 2
             self.hvar[hv[0]] = hv
             self.variants.setdefault("accent", {})[name] = hv[0]
@@ -1397,7 +1600,7 @@ class MathFontBuild:
                 continue
             twins = []
             for n in vs:
-                for x in [n] + self.ssty.get(n, []):   # (with its script sizes' twins)
+                for x in [n] + self.ssty.get(n, []):  # (with its script sizes' twins)
                     if x + ".limits" not in self.glyphs:
                         t = copy.copy(self.glyphs[x])
                         t.name = x + ".limits"
@@ -1407,7 +1610,7 @@ class MathFontBuild:
                 twins.append(n + ".limits")
             self.vvar[twins[0]] = twins
             self.limits[root] = twins[0]
-            todo += [x for n in vs for x in [n] + self.ssty.get(n, [])]   # (script sizes too)
+            todo += [x for n in vs for x in [n] + self.ssty.get(n, [])]  # (script sizes too)
         for n in dict.fromkeys(todo):
             g = self.glyphs[n]
             if g.ref is not None and g.italic > 0 and not g.widened:
@@ -1423,28 +1626,37 @@ class MathFontBuild:
                     cp = alpha_cp(tag, chr(c))
                     if cp:
                         self.set_cmap(cp, self.add_sized(fonts, c, gname(cp)), force=True)
-        alphabet("script", self.trip(*(("mt2bmst", "mt2bmss", "mt2bmsf") if w else ("mt2mst", "mt2mss", "mt2msf"))))
+
+        alphabet(
+            "script", self.trip(*(("mt2bmst", "mt2bmss", "mt2bmsf") if w else ("mt2mst", "mt2mss", "mt2msf")))
+        )
         alphabet("boldscript", self.trip("mt2bmst", "mt2bmss", "mt2bmsf"))
-        alphabet("frak", self.trip(*(("mt2bmft", "mt2bmfs", "mt2bmff") if w else ("mt2mft", "mt2mfs", "mt2mff"))))
+        alphabet(
+            "frak", self.trip(*(("mt2bmft", "mt2bmfs", "mt2bmff") if w else ("mt2mft", "mt2mfs", "mt2mff")))
+        )
         alphabet("boldfrak", self.trip("mt2bmft", "mt2bmfs", "mt2bmff"))
         alphabet("bb", self.trip("mt2bbt", "mt2bbs", "mt2bbf"), digits=True)
         alphabet("bold", self.trip("mt2mbt", "mt2mbs", "mt2mbf"), digits=True)
         alphabet("bolditalic", self.trip("mt2bmit", "mt2bmis", "mt2bmif"))
-        if src.has("mt2bbit"):                       # the five double-struck italic letters
+        if src.has("mt2bbit"):  # the five double-struck italic letters
             for ch, cp in (("D", 0x2145), ("d", 0x2146), ("e", 0x2147), ("i", 0x2148), ("j", 0x2149)):
                 self.set_cmap(cp, self.add_sized(("mt2bbit", "mt2bbis", "mt2bbif"), ord(ch), gname(cp)), True)
-        if src.has("mt2bmit"):                       # bold Greek from the bold letters font
-            m = re.search(r"\\ifx\\Gamma s(.*?)\\else", self.inp.sty, re.S)   # (slanted capitals)
+        if src.has("mt2bmit"):  # bold Greek from the bold letters font
+            m = re.search(r"\\ifx\\Gamma s(.*?)\\else", self.inp.sty, re.S)  # (slanted capitals)
             for d in parse_decls(m.group(1)) if m else []:
                 cp = uni.get("mbfit" + d.cmd.lstrip("\\"))
                 if cp:
-                    self.set_cmap(cp, self.add_sized(("mt2bmit", "mt2bmis", "mt2bmif"), d.slot, gname(cp)), True)
+                    self.set_cmap(
+                        cp, self.add_sized(("mt2bmit", "mt2bmis", "mt2bmif"), d.slot, gname(cp)), True
+                    )
             for d in self.inp.decls:
                 nm = d.cmd.lstrip("\\")
                 if d.kind == "symbol" and d.fam == "letters" and nm in GREEK:
                     cp = uni.get(("mbfit" if nm[0].islower() else "mbf") + nm)
                     if cp:
-                        self.set_cmap(cp, self.add_sized(("mt2bmit", "mt2bmis", "mt2bmif"), d.slot, gname(cp)), True)
+                        self.set_cmap(
+                            cp, self.add_sized(("mt2bmit", "mt2bmis", "mt2bmif"), d.slot, gname(cp)), True
+                        )
 
     def alternates(self):
         """Per-use sets for the package (no code points; names start with the base character)."""
@@ -1460,6 +1672,7 @@ class MathFontBuild:
                     g = self.add_sized(fonts, only[ch] if only else c, f"{gname(cp)}.{setname}")
                     if g:
                         self.variants.setdefault(setname, {})[ch] = g
+
         alt = read_alt_letters(self.inp.sty)
         scr = ("mt2bmst", "mt2bmss", "mt2bmsf") if w else ("mt2mst", "mt2mss", "mt2msf")
         frk = ("mt2bmft", "mt2bmfs", "mt2bmff") if w else ("mt2mft", "mt2mfs", "mt2mff")
@@ -1509,7 +1722,7 @@ class MathFontBuild:
             skip.update(v)
         for parts in self.vasm.values():
             skip.update(p[0] for p in parts)
-        skip.update([x for n in list(skip) for x in self.ssty.get(n, [])])   # (their script sizes)
+        skip.update([x for n in list(skip) for x in self.ssty.get(n, [])])  # (their script sizes)
         for n, g in self.glyphs.items():
             if n not in skip and g.ref is not None and g.italic > 0 and not g.widened:
                 ic = g.italic
@@ -1555,19 +1768,27 @@ class MathFontBuild:
                 for g in (self.glyphs[n] for n in vs if root not in skip):
                     if g.bounds and g.ref is not None:
                         tfm, ink = g.height + g.depth, g.bounds[3] - g.bounds[1]
-                        if tfm >= 0.8 * ink and tfm < thr <= ink + 0.5:   # (skip broken TFM boxes)
+                        if tfm >= 0.8 * ink and tfm < thr <= ink + 0.5:  # (skip broken TFM boxes)
                             new = max(new, ink + 1)
             return new
+
         # in em; x-height and axis differ between MTPro2's text, script and scriptscript fonts
         sizes = [self.src.tfm(f).params for f in self.fam("symbols")]
-        self.tex_params = {"sup1": sp[13], "sub2": sp[17], "supdrop": sp[18], "subdrop": sp[19],
-                           "delim1": clear_ink(sp[20] * UPM) / UPM, "delim2": clear_ink(sp[21] * UPM) / UPM,
-                           "xheight": [p[5] for p in sizes], "axis": [p[22] for p in sizes],
-                           "opspacing5": self.src.tfm(self.fam("largesymbols")[0]).params[13],
-                           # (accents from the extension font are lowered by its x-height)
-                           "xheight3": self.src.tfm(self.fam("largesymbols")[0]).params[5]}
+        self.tex_params = {
+            "sup1": sp[13],
+            "sub2": sp[17],
+            "supdrop": sp[18],
+            "subdrop": sp[19],
+            "delim1": clear_ink(sp[20] * UPM) / UPM,
+            "delim2": clear_ink(sp[21] * UPM) / UPM,
+            "xheight": [p[5] for p in sizes],
+            "axis": [p[22] for p in sizes],
+            "opspacing5": self.src.tfm(self.fam("largesymbols")[0]).params[13],
+            # (accents from the extension font are lowered by its x-height)
+            "xheight3": self.src.tfm(self.fam("largesymbols")[0]).params[5],
+        }
         rad = next((d for d in self.inp.decls if d.kind == "radical"), None)
-        if rad and self.fam(rad.fam):        # TeX's radical rule: the small sign's height per size
+        if rad and self.fam(rad.fam):  # TeX's radical rule: the small sign's height per size
             signs = [self.src.tfm(f).chars[rad.slot] for f in self.fam(rad.fam)]
             self.tex_params["radrule"] = [c.height for c in signs]
             self.tex_params["radsign"] = [c.height + c.depth for c in signs]
@@ -1589,7 +1810,7 @@ class MathFontBuild:
         th, xh = X(8), S(5)
         disp = 1300
         sumg = self.cmap.get(0x2211)
-        if sumg and len(self.vvar.get(sumg, [])) > 1:      # display size of \sum must qualify
+        if sumg and len(self.vvar.get(sumg, [])) > 1:  # display size of \sum must qualify
             g = self.glyphs[self.vvar[sumg][1]]
             disp = round(g.bounds[3] - g.bounds[1]) - 1
         # (LuaTeX takes the first size at least this tall: every operator's display size
@@ -1605,32 +1826,62 @@ class MathFontBuild:
         if big and small and max(small) + 20 < min(big) - 20:
             disp = round(min(disp, min(big) - 20))
         return {
-            "ScriptPercentScaleDown": 70, "ScriptScriptPercentScaleDown": 55,
+            "ScriptPercentScaleDown": 70,
+            "ScriptScriptPercentScaleDown": 55,
             "DelimitedSubFormulaMinHeight": round(1.3 * S(6)),
-            "DisplayOperatorMinHeight": disp, "MathLeading": 150,
-            "AxisHeight": S(22), "AccentBaseHeight": xh, "FlattenedAccentBaseHeight": round(xh * 1.45),
-            "SubscriptShiftDown": S(16), "SubscriptTopMax": round(0.8 * xh), "SubscriptBaselineDropMin": S(19),
-            "SuperscriptShiftUp": S(14), "SuperscriptShiftUpCramped": S(15),   # display style: package
-            "SuperscriptBottomMin": round(xh / 4), "SuperscriptBaselineDropMax": S(18),
-            "SubSuperscriptGapMin": 4 * th, "SuperscriptBottomMaxWithSubscript": round(0.8 * xh),
+            "DisplayOperatorMinHeight": disp,
+            "MathLeading": 150,
+            "AxisHeight": S(22),
+            "AccentBaseHeight": xh,
+            "FlattenedAccentBaseHeight": round(xh * 1.45),
+            "SubscriptShiftDown": S(16),
+            "SubscriptTopMax": round(0.8 * xh),
+            "SubscriptBaselineDropMin": S(19),
+            "SuperscriptShiftUp": S(14),
+            "SuperscriptShiftUpCramped": S(15),  # display style: package
+            "SuperscriptBottomMin": round(xh / 4),
+            "SuperscriptBaselineDropMax": S(18),
+            "SubSuperscriptGapMin": 4 * th,
+            "SuperscriptBottomMaxWithSubscript": round(0.8 * xh),
             "SpaceAfterScript": 50,
-            "UpperLimitGapMin": X(9), "UpperLimitBaselineRiseMin": X(11),
-            "LowerLimitGapMin": X(10), "LowerLimitBaselineDropMin": X(12),
-            "StackTopShiftUp": S(10), "StackTopDisplayStyleShiftUp": S(8),
-            "StackBottomShiftDown": S(12), "StackBottomDisplayStyleShiftDown": S(11),
-            "StackGapMin": 3 * th, "StackDisplayStyleGapMin": 7 * th,
-            "StretchStackTopShiftUp": X(11), "StretchStackBottomShiftDown": X(12),
-            "StretchStackGapAboveMin": X(9), "StretchStackGapBelowMin": X(10),
-            "FractionNumeratorShiftUp": S(9), "FractionNumeratorDisplayStyleShiftUp": S(8),
-            "FractionDenominatorShiftDown": S(12), "FractionDenominatorDisplayStyleShiftDown": S(11),
-            "FractionNumeratorGapMin": th, "FractionNumDisplayStyleGapMin": 3 * th, "FractionRuleThickness": th,
-            "FractionDenominatorGapMin": th, "FractionDenomDisplayStyleGapMin": 3 * th,
-            "SkewedFractionHorizontalGap": 350, "SkewedFractionVerticalGap": 96,
-            "OverbarVerticalGap": 3 * th, "OverbarRuleThickness": th, "OverbarExtraAscender": th,
-            "UnderbarVerticalGap": 3 * th, "UnderbarRuleThickness": th, "UnderbarExtraDescender": th,
-            "RadicalVerticalGap": th + round(th / 4), "RadicalDisplayStyleVerticalGap": th + round(xh / 4),
-            "RadicalRuleThickness": th, "RadicalExtraAscender": th,
-            "RadicalKernBeforeDegree": 278, "RadicalKernAfterDegree": -556, "RadicalDegreeBottomRaisePercent": 60,
+            "UpperLimitGapMin": X(9),
+            "UpperLimitBaselineRiseMin": X(11),
+            "LowerLimitGapMin": X(10),
+            "LowerLimitBaselineDropMin": X(12),
+            "StackTopShiftUp": S(10),
+            "StackTopDisplayStyleShiftUp": S(8),
+            "StackBottomShiftDown": S(12),
+            "StackBottomDisplayStyleShiftDown": S(11),
+            "StackGapMin": 3 * th,
+            "StackDisplayStyleGapMin": 7 * th,
+            "StretchStackTopShiftUp": X(11),
+            "StretchStackBottomShiftDown": X(12),
+            "StretchStackGapAboveMin": X(9),
+            "StretchStackGapBelowMin": X(10),
+            "FractionNumeratorShiftUp": S(9),
+            "FractionNumeratorDisplayStyleShiftUp": S(8),
+            "FractionDenominatorShiftDown": S(12),
+            "FractionDenominatorDisplayStyleShiftDown": S(11),
+            "FractionNumeratorGapMin": th,
+            "FractionNumDisplayStyleGapMin": 3 * th,
+            "FractionRuleThickness": th,
+            "FractionDenominatorGapMin": th,
+            "FractionDenomDisplayStyleGapMin": 3 * th,
+            "SkewedFractionHorizontalGap": 350,
+            "SkewedFractionVerticalGap": 96,
+            "OverbarVerticalGap": 3 * th,
+            "OverbarRuleThickness": th,
+            "OverbarExtraAscender": th,
+            "UnderbarVerticalGap": 3 * th,
+            "UnderbarRuleThickness": th,
+            "UnderbarExtraDescender": th,
+            "RadicalVerticalGap": th + round(th / 4),
+            "RadicalDisplayStyleVerticalGap": th + round(xh / 4),
+            "RadicalRuleThickness": th,
+            "RadicalExtraAscender": th,
+            "RadicalKernBeforeDegree": 278,
+            "RadicalKernAfterDegree": -556,
+            "RadicalDegreeBottomRaisePercent": 60,
         }
 
 
@@ -1638,9 +1889,31 @@ class MathFontBuild:
 # 6. Writing the OpenType font
 # ======================================================================
 
-DONOR_CPS = list(range(0x41, 0x5B)) + list(range(0x61, 0x7B)) + [
-    0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x2C, 0x2E, 0x40, 0x5F, 0x7E, 0xA3, 0xA5, 0xA7, 0xB6,
-    0xB0, 0xC5, 0xB5]                 # (degree, Angstrom, micro: siunitx's units in maths)
+DONOR_CPS = (
+    list(range(0x41, 0x5B))
+    + list(range(0x61, 0x7B))
+    + [
+        0x21,
+        0x22,
+        0x23,
+        0x24,
+        0x25,
+        0x26,
+        0x27,
+        0x2C,
+        0x2E,
+        0x40,
+        0x5F,
+        0x7E,
+        0xA3,
+        0xA5,
+        0xA7,
+        0xB6,
+        0xB0,
+        0xC5,
+        0xB5,
+    ]
+)  # (degree, Angstrom, micro: siunitx's units in maths)
 # unit signs that are a letter of the font (siunitx): micro and ohm as MTPro2's upright mu
 # and Omega, the Angstrom sign as the A with ring
 UNIT_ALIASES = {0xB5: 0x3BC, 0x2126: 0x3A9, 0x212B: 0xC5}
@@ -1708,7 +1981,7 @@ def write_otf(B: MathFontBuild, family: str, donor: dict | None, copyright: str 
     for n, g in B.glyphs.items():
         cs[n] = g.charstring
         metrics[n] = (min(max(0, round(g.width)), 32767), round(g.bounds[0]) if g.bounds else 0)
-    cmap = B.cmap                     # donor and Latin-Greek entries join the build's cmap
+    cmap = B.cmap  # donor and Latin-Greek entries join the build's cmap
     for sign, letter in UNIT_ALIASES.items():
         if sign not in cmap and letter in cmap:
             cmap[sign] = cmap[letter]
@@ -1716,20 +1989,33 @@ def write_otf(B: MathFontBuild, family: str, donor: dict | None, copyright: str 
         if cp not in cmap:
             order.append(n)
             cs[n], metrics[n], cmap[cp] = c, (w, lsb), n
-    for lat, gr in LATIN_GREEK.items():                   # upright Alpha etc. = upright A etc.
+    for lat, gr in LATIN_GREEK.items():  # upright Alpha etc. = upright A etc.
         if gr not in cmap and ord(lat) in cmap:
             cmap[gr] = cmap[ord(lat)]
-    for sign, letter in UNIT_ALIASES.items():             # (those from the donor: Angstrom)
+    for sign, letter in UNIT_ALIASES.items():  # (those from the donor: Angstrom)
         if sign not in cmap and letter in cmap:
             cmap[sign] = cmap[letter]
     fb = FontBuilder(UPM, isTTF=False)
     fb.setupGlyphOrder(order)
     fb.setupCharacterMap(cmap)
     ps = family.replace(" ", "")
-    t1p = B.src.private(B.fam("letters")[0])        # alignment zones of the main (italic) font
-    private = {k: t1p[k] for k in ("BlueValues", "OtherBlues", "StdHW", "StdVW", "StemSnapH",
-                                   "StemSnapV", "BlueScale", "BlueShift", "BlueFuzz", "ForceBold")
-               if k in t1p}
+    t1p = B.src.private(B.fam("letters")[0])  # alignment zones of the main (italic) font
+    private = {
+        k: t1p[k]
+        for k in (
+            "BlueValues",
+            "OtherBlues",
+            "StdHW",
+            "StdVW",
+            "StemSnapH",
+            "StemSnapV",
+            "BlueScale",
+            "BlueShift",
+            "BlueFuzz",
+            "ForceBold",
+        )
+        if k in t1p
+    }
     private = {k: (list(v) if isinstance(v, (list, tuple)) else v) for k, v in private.items()}
     for k in ("StdHW", "StdVW"):
         if k in private:
@@ -1737,32 +2023,55 @@ def write_otf(B: MathFontBuild, family: str, donor: dict | None, copyright: str 
     fb.setupCFF(ps, {"FullName": family, "FamilyName": family, "Weight": "Regular"}, cs, private)
     fb.setupHorizontalMetrics(metrics)
     fb.setupHorizontalHeader(ascent=900, descent=-300)
-    fb.setupNameTable({"familyName": family, "styleName": "Regular", "psName": ps,
-                       "uniqueFontIdentifier": ps, "fullName": family, "version": "Version 1.0",
-                       "copyright": copyright})
-    fb.setupOS2(sTypoAscender=900, sTypoDescender=-300, usWinAscent=1100, usWinDescent=400,
-                usWeightClass={"normal": 400, "bold": 700, "heavy": 900}[B.weight])
+    fb.setupNameTable(
+        {
+            "familyName": family,
+            "styleName": "Regular",
+            "psName": ps,
+            "uniqueFontIdentifier": ps,
+            "fullName": family,
+            "version": "Version 1.0",
+            "copyright": copyright,
+        }
+    )
+    fb.setupOS2(
+        sTypoAscender=900,
+        sTypoDescender=-300,
+        usWinAscent=1100,
+        usWinDescent=400,
+        usWeightClass={"normal": 400, "bold": 700, "heavy": 900}[B.weight],
+    )
     fb.setupPost()
     font = fb.font
     font["head"].created = font["head"].modified = BUILD_TIME
     gmap = font.getReverseGlyphMap()
     if B.ssty:
-        font["GSUB"] = layout_table("GSUB", "ssty", otl.buildLookup([otl.buildAlternateSubstSubtable(B.ssty)]))
+        font["GSUB"] = layout_table(
+            "GSUB", "ssty", otl.buildLookup([otl.buildAlternateSubstSubtable(B.ssty)])
+        )
     if B.kerns:
         pairs = {k: (otl.buildValue({"XAdvance": v}), None) for k, v in B.kerns.items()}
         font["GPOS"] = layout_table("GPOS", "kern", otl.buildLookup(otl.buildPairPosGlyphs(pairs, gmap)))
     G = B.glyphs
     vv = {r: [(n, math.floor(G[n].height + G[n].depth)) for n in v] for r, v in B.vvar.items() if v}
     hv = {r: [(n, math.floor(G[n].width)) for n in v] for r, v in B.hvar.items() if v}
-    va = {r: ([(n, ext, 0, 0, math.floor(adv)) for n, ext, adv in parts], 0)   # TeX: no overlap
-          for r, parts in B.vasm.items()}
+    va = {
+        r: ([(n, ext, 0, 0, math.floor(adv)) for n, ext, adv in parts], 0)  # TeX: no overlap
+        for r, parts in B.vasm.items()
+    }
     extended = {n for v in B.vvar.values() for n in v[1:]} | {p[0] for ps_ in B.vasm.values() for p in ps_}
-    buildMathTable(font, constants=B.math_constants(),
-                   italicsCorrections={n: round(g.italic) for n, g in G.items() if round(g.italic)},
-                   topAccentAttachments={n: round(g.accent) for n, g in G.items() if g.accent is not None},
-                   extendedShapes=extended,
-                   mathKerns={n: {"BottomRight": ([], [round(g.mkern)])} for n, g in G.items() if g.mkern},
-                   minConnectorOverlap=0, vertGlyphVariants=vv, horizGlyphVariants=hv, vertGlyphAssembly=va)
+    buildMathTable(
+        font,
+        constants=B.math_constants(),
+        italicsCorrections={n: round(g.italic) for n, g in G.items() if round(g.italic)},
+        topAccentAttachments={n: round(g.accent) for n, g in G.items() if g.accent is not None},
+        extendedShapes=extended,
+        mathKerns={n: {"BottomRight": ([], [round(g.mkern)])} for n, g in G.items() if g.mkern},
+        minConnectorOverlap=0,
+        vertGlyphVariants=vv,
+        horizGlyphVariants=hv,
+        vertGlyphAssembly=va,
+    )
     return font
 
 
@@ -1770,43 +2079,71 @@ def write_otf(B: MathFontBuild, family: str, donor: dict | None, copyright: str 
 # 7. Companion package (mtpro2-otf.sty / .lua / -variants.lua)
 # ======================================================================
 
+
 def lua_str(s: str) -> str:
     return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
 def variants_lua(B: MathFontBuild) -> str:
     """Glyph-name tables used at run time (names are identical in all weights)."""
-    out = ["-- mtpro2-otf-variants.lua: generated by mtpro2_otf.py (glyph names only, no font data)", "return {"]
+    out = [
+        "-- mtpro2-otf-variants.lua: generated by mtpro2_otf.py (glyph names only, no font data)",
+        "return {",
+    ]
     for setname, d in sorted(B.variants.items()):
-        out.append(f"  [{lua_str(setname)}]={{" + ",".join(f"[{lua_str(k)}]={lua_str(v)}"
-                                                           for k, v in sorted(d.items())) + "},")
-    out.append("  limits={" + ",".join(f"[{lua_str(a)}]={lua_str(b)}" for a, b in sorted(B.limits.items())) + "},")
+        out.append(
+            f"  [{lua_str(setname)}]={{"
+            + ",".join(f"[{lua_str(k)}]={lua_str(v)}" for k, v in sorted(d.items()))
+            + "},"
+        )
+    out.append(
+        "  limits={" + ",".join(f"[{lua_str(a)}]={lua_str(b)}" for a, b in sorted(B.limits.items())) + "},"
+    )
     for w, prm in getattr(B, "weight_params", {}).items():
         lua = lambda v: "{" + ",".join(f"{x:.7f}" for x in v) + "}" if isinstance(v, list) else f"{v:.7f}"
-        out.append(f"  [{lua_str('texparams:' + w)}]={{" + ",".join(f"{k}={lua(v)}" for k, v in sorted(prm.items())) + "},")
+        out.append(
+            f"  [{lua_str('texparams:' + w)}]={{"
+            + ",".join(f"{k}={lua(v)}" for k, v in sorted(prm.items()))
+            + "},"
+        )
     for w, cps in getattr(B, "nobold", {}).items():
         out.append(f"  [{lua_str('nobold:' + w)}]={{" + ",".join(f"[{cp}]=true" for cp in cps) + "},")
     # unicode-math's symbol commands whose character the fonts lack (\\iiiint, \\Colon, ...)
-    miss = sorted((c, cp) for c, (cp, _cls) in B.inp.uni.table.items()
-                  if cp not in B.cmap and re.fullmatch(r"[A-Za-z]+", c))
+    miss = sorted(
+        (c, cp)
+        for c, (cp, _cls) in B.inp.uni.table.items()
+        if cp not in B.cmap and re.fullmatch(r"[A-Za-z]+", c)
+    )
     out.append("  missing={" + ",".join(f"{c}={cp}" for c, cp in miss) + "},")
-    if getattr(B, "accent_xheight", None):          # (accents placed by their own fonts' x-heights)
+    if getattr(B, "accent_xheight", None):  # (accents placed by their own fonts' x-heights)
         out.append("  accentxh=true,")
     # bm.sty finds bold families only for LaTeX's four preset ones (operators, letters,
     # symbols, largesymbols; no families are left for more): a symbol from any other family it sets in a box, with
     # \boldmath, which places scripts differently (\bm{\Gamma}^2 with newtx, \bm{\sum}_i)
-    direct = {"operators", "operatorsX", "letters", "symbols", "largesymbols"}   # (LaTeX's four preset families)
+    direct = {
+        "operators",
+        "operatorsX",
+        "letters",
+        "symbols",
+        "largesymbols",
+    }  # (LaTeX's four preset families)
     boxed, plain = set(), set()
     for d in B.inp.decls:
         if d.kind == "symbol" and len(d.cmd) > 1:
             cp = B.inp.uni.for_command(d.cmd, d.slot, d.fam)
             if cp:
                 (plain if d.fam in direct else boxed).add(cp)
-    out.append("  radtop={" + ",".join(f"[{lua_str(k)}]={v:.4f}" for k, v in sorted(getattr(B, "radtop", {}).items())) + "},")
+    out.append(
+        "  radtop={"
+        + ",".join(f"[{lua_str(k)}]={v:.4f}" for k, v in sorted(getattr(B, "radtop", {}).items()))
+        + "},"
+    )
     out.append("  bmbox={" + ",".join(f"[{cp}]=true" for cp in sorted(boxed - plain)) + "},")
     if B.tex_params:
         lua = lambda v: "{" + ",".join(f"{x:.7f}" for x in v) + "}" if isinstance(v, list) else f"{v:.7f}"
-        out.append("  texparams={" + ",".join(f"{k}={lua(v)}" for k, v in sorted(B.tex_params.items())) + "},")
+        out.append(
+            "  texparams={" + ",".join(f"{k}={lua(v)}" for k, v in sorted(B.tex_params.items())) + "},"
+        )
     out.append("}")
     return "\n".join(out) + "\n"
 
@@ -1815,10 +2152,15 @@ def packed_lua(source: str, header: list[str]) -> str:
     """A Lua module stored compressed (zlib + base64, both built into LuaTeX)."""
     import base64
     import zlib
+
     data = base64.b64encode(zlib.compress(source.encode(), 9)).decode()
-    lines = "\n".join(data[i:i + 100] for i in range(0, len(data), 100))
-    return "\n".join(header) + "\nreturn load(zlib.decompress(mime.unb64((([[\n" + lines + \
-        "\n]]):gsub('%s', '')))))()\n"
+    lines = "\n".join(data[i : i + 100] for i in range(0, len(data), 100))
+    return (
+        "\n".join(header)
+        + "\nreturn load(zlib.decompress(mime.unb64((([[\n"
+        + lines
+        + "\n]]):gsub('%s', '')))))()\n"
+    )
 
 
 def tfm_lua(builds: dict[str, MathFontBuild], weights: dict | None = None) -> str:
@@ -1827,10 +2169,12 @@ def tfm_lua(builds: dict[str, MathFontBuild], weights: dict | None = None) -> st
     Dimensions are TFM fix_words (2^-20 design size), scaled at load time as TeX does."""
     fw = lambda v: str(round(v * 2**20))
     W = weights or WEIGHTS
-    out = ["-- mtpro2-otf-tfm.lua: generated by mtpro2_otf.py (TeX metrics and glyph names, no outlines)",
-           "-- per font: K = kern values; c[slot] = {width, height, depth, italic, glyph index, raise,",
-           "--   nextlarger, {top,mid,bot,rep}, {slot, kern index, ...}}  (fix_words)",
-           "return {"]
+    out = [
+        "-- mtpro2-otf-tfm.lua: generated by mtpro2_otf.py (TeX metrics and glyph names, no outlines)",
+        "-- per font: K = kern values; c[slot] = {width, height, depth, italic, glyph index, raise,",
+        "--   nextlarger, {top,mid,bot,rep}, {slot, kern index, ...}}  (fix_words)",
+        "return {",
+    ]
     done = set()
     for w, B in builds.items():
         for font, scale in B.legacy_fonts().items():
@@ -1838,7 +2182,7 @@ def tfm_lua(builds: dict[str, MathFontBuild], weights: dict | None = None) -> st
                 continue
             done.add(font)
             t = B.src.tfm(font)
-            gid = {n: i for i, n in enumerate(B.glyphs, 1)}         # glyph index in the font
+            gid = {n: i for i, n in enumerate(B.glyphs, 1)}  # glyph index in the font
             kvals = sorted({k for k in t.kerns.values()})
             kidx = {k: i + 1 for i, k in enumerate(kvals)}
             bychar: dict[int, list] = {}
@@ -1851,14 +2195,18 @@ def tfm_lua(builds: dict[str, MathFontBuild], weights: dict | None = None) -> st
                     continue
                 ext = t.exten.get(slot)
                 kern = bychar.get(slot)
-                chars.append(f"[{slot}]={{{fw(c.width)},{fw(c.height)},{fw(c.depth)},{fw(c.italic)},"
-                             f"{gid[g]},{fw(B.glyphs[g].dy / (UPM * scale))},"
-                             f"{t.nextlarger.get(slot, 'false')},"
-                             f"{'{' + ','.join(map(str, ext)) + '}' if ext else 'false'},"
-                             f"{'{' + ','.join(map(str, kern)) + '}' if kern else 'false'}}}")
-            out.append(f"  [{lua_str(font)}]={{otf={lua_str(W[w][1])},scale={scale},"
-                       f"ds={fw(t.design_size / 16)},p={{{','.join(fw(p) for p in t.params[1:])}}},"
-                       f"K={{{','.join(fw(k) for k in kvals)}}},c={{")
+                chars.append(
+                    f"[{slot}]={{{fw(c.width)},{fw(c.height)},{fw(c.depth)},{fw(c.italic)},"
+                    f"{gid[g]},{fw(B.glyphs[g].dy / (UPM * scale))},"
+                    f"{t.nextlarger.get(slot, 'false')},"
+                    f"{'{' + ','.join(map(str, ext)) + '}' if ext else 'false'},"
+                    f"{'{' + ','.join(map(str, kern)) + '}' if kern else 'false'}}}"
+                )
+            out.append(
+                f"  [{lua_str(font)}]={{otf={lua_str(W[w][1])},scale={scale},"
+                f"ds={fw(t.design_size / 16)},p={{{','.join(fw(p) for p in t.params[1:])}}},"
+                f"K={{{','.join(fw(k) for k in kvals)}}},c={{"
+            )
             out.append("    " + ",\n    ".join(chars) + "}},")
     out.append("}")
     return "\n".join(out) + "\n"
@@ -1870,12 +2218,15 @@ def dims_lua(builds: dict[str, MathFontBuild], weights: dict | None = None) -> s
     the package puts TeX's dimensions back when the font is loaded."""
     num = lambda v: f"{v:.3f}".rstrip("0").rstrip(".")
     W = weights or WEIGHTS
-    out = ["-- mtpro2-otf-dims.lua: generated by mtpro2_otf.py (glyph metrics only, no outlines)",
-           "-- per font: glyph index, width, height, depth (font units), repeated", "return {"]
+    out = [
+        "-- mtpro2-otf-dims.lua: generated by mtpro2_otf.py (glyph metrics only, no outlines)",
+        "-- per font: glyph index, width, height, depth (font units), repeated",
+        "return {",
+    ]
     for w, B in builds.items():
         vals = []
-        for gid, g in enumerate(B.glyphs.values(), 1):         # glyph 0 is .notdef
-            if g.ref is not None or g.parts:                    # (composites: the exact width)
+        for gid, g in enumerate(B.glyphs.values(), 1):  # glyph 0 is .notdef
+            if g.ref is not None or g.parts:  # (composites: the exact width)
                 vals += [str(gid), num(max(g.width, 0)), num(g.height), num(g.depth)]
         out.append(f"  [{lua_str(W[w][0].replace(' ', ''))}]={{" + ",".join(vals) + "},")
     # per font: which glyph italic x is in the text/script/scriptscript instance (they differ by
@@ -1903,7 +2254,7 @@ def dims_lua(builds: dict[str, MathFontBuild], weights: dict | None = None) -> s
                 vals.append(str(round(raw * 2**20)) if abs(got - raw * sc) < 1e-6 else "false")
             if any(v != "false" for v in vals):
                 fw += [str(gid[n]), str(g.ref.scale)] + vals
-        acc = []                       # accent attachments, unrounded (TeX's accent offsets)
+        acc = []  # accent attachments, unrounded (TeX's accent offsets)
         for n, g in B.glyphs.items():
             if g.accent is not None and n in gid:
                 acc += [str(gid[n]), f"{g.accent:.4f}".rstrip("0").rstrip(".")]
@@ -1929,23 +2280,25 @@ def dims_lua(builds: dict[str, MathFontBuild], weights: dict | None = None) -> s
                 at = B.src.tfm(A.ref.font)
                 if A.ref.slot not in at.nextlarger and A.ref.slot not in at.exten:
                     novar.append(str(gid[a]))
-        tuck = []                      # subscript tucks (italic corrections) as TFM fix_words
+        tuck = []  # subscript tucks (italic corrections) as TFM fix_words
         for n, g in B.glyphs.items():
             if g.mkern and g.ref is not None and n in gid:
                 t = B.src.tfm(g.ref.font).chars.get(g.ref.slot)
                 if t is not None and abs(t.italic * UPM * g.ref.scale + g.mkern) < 1e-6:
                     tuck += [str(gid[n]), str(g.ref.scale), str(round(t.italic * 2**20))]
-        axh = []                       # accents' own fonts' x-heights (builds that set them)
+        axh = []  # accents' own fonts' x-heights (builds that set them)
         for n, xhv in getattr(B, "accent_xheight", {}).items():
             if n in gid:
                 axh += [str(gid[n]), f"{xhv:.7f}"]
-        out.append(f"    [{lua_str(W[w][0].replace(' ', ''))}]={{probe={{{','.join(map(str, probe))}}},"
-                   f"accxh={{{','.join(axh)}}},tuck={{{','.join(tuck)}}},"
-                   f"xheight={{{','.join(f'{v:.7f}' for v in xh)}}},"
-                   f"optical={{{','.join(map(str, trip))}}},"
-                   f"accent={{{','.join(acc)}}},"
-                   f"fix={{{','.join(fw)}}},"
-                   f"novar={{{','.join(novar)}}}}},")
+        out.append(
+            f"    [{lua_str(W[w][0].replace(' ', ''))}]={{probe={{{','.join(map(str, probe))}}},"
+            f"accxh={{{','.join(axh)}}},tuck={{{','.join(tuck)}}},"
+            f"xheight={{{','.join(f'{v:.7f}' for v in xh)}}},"
+            f"optical={{{','.join(map(str, trip))}}},"
+            f"accent={{{','.join(acc)}}},"
+            f"fix={{{','.join(fw)}}},"
+            f"novar={{{','.join(novar)}}}}},"
+        )
     out.append("  },")
     out.append("}")
     return "\n".join(out) + "\n"
@@ -1960,19 +2313,27 @@ def command_defs(B: MathFontBuild) -> tuple[list[str], list[str]]:
         fam, slot = B.cmd_src.get(cmd, ("symbols", 0))
         cp = B.inp.uni.for_command("\\" + cmd, slot, fam)
         line = f"\\MTP@sym\\{cmd}{{{g}}}{{{CLASSES.get(cls, 0)}}}"
-        alias = B.inp.uni.aliases.get(cmd)       # unicode-math: \hbar -> \hslash, ...
+        alias = B.inp.uni.aliases.get(cmd)  # unicode-math: \hbar -> \hslash, ...
         umcls = B.inp.uni.table.get(cmd, (None, None))[1]
-        if cmd in B.forced or not cp or (cp in B.cmap and B.cmap[cp] != g) or \
-                (alias and B.commands.get(alias, (None, None))[1] != g) or \
-                (umcls and getattr(B, "keep_class", False) and "\\" + umcls != cls
-                 and not (umcls == "mathalpha" and cls == "\\mathord")):
-            over.append(line)    # mtpro2.sty replaces LaTeX's definition / unicode-math shows another glyph
+        if (
+            cmd in B.forced
+            or not cp
+            or (cp in B.cmap and B.cmap[cp] != g)
+            or (alias and B.commands.get(alias, (None, None))[1] != g)
+            or (
+                umcls
+                and getattr(B, "keep_class", False)
+                and "\\" + umcls != cls
+                and not (umcls == "mathalpha" and cls == "\\mathord")
+            )
+        ):
+            over.append(line)  # mtpro2.sty replaces LaTeX's definition / unicode-math shows another glyph
         else:
-            prov.append(line)    # define only if LaTeX/unicode-math lacks it
+            prov.append(line)  # define only if LaTeX/unicode-math lacks it
     return over, prov
 
 
-LUA = r'''-- mtpro2-otf.lua: run-time helper for mtpro2-otf.sty (picks MTPro2 glyphs by name)
+LUA = r"""-- mtpro2-otf.lua: run-time helper for mtpro2-otf.sty (picks MTPro2 glyphs by name)
 mtpro2otf = mtpro2otf or {}
 mtpro2otf.litebm = mtpro2otf.litebm or {}
 mtpro2otf.vfchars = {}                             -- virtual fonts: font id -> characters
@@ -3551,10 +3912,10 @@ function mtpro2otf.delim(set, key, cls)
   local s, f = slot(g)
   if s then tex.sprint(string.format('\\Udelimiter"%X"%X"%X ', cls, f, s)) end
 end
-'''
+"""
 
 
-STY = r'''%% mtpro2-otf.sty -- MathTime Pro 2 as OpenType (built by mtpro2_otf.py) for LuaLaTeX
+STY = r"""%% mtpro2-otf.sty -- MathTime Pro 2 as OpenType (built by mtpro2_otf.py) for LuaLaTeX
 %% Loads MTPro2Math(-Bold/-Heavy).otf with unicode-math and restores MTPro2's extras:
 %%   \xl \XL \XXL \XXXL, \bm \hm, \altC..\altz, \mathcurly, \mathbbdark, \mathbbholey,
 %%   \mathbbholeydark, \mathbbitalic, \mathbbholeyitalic, \mathfrakalt, \mathcurlyalt,
@@ -4121,7 +4482,7 @@ STY = r'''%% mtpro2-otf.sty -- MathTime Pro 2 as OpenType (built by mtpro2_otf.p
   \else \let\sum\upsum\let\prod\upprod\let\coprod\upcoprod \fi}
 
 \endinput
-'''
+"""
 
 
 def classic_defs(B: MathFontBuild) -> str:
@@ -4144,10 +4505,13 @@ def legacy_tex(builds: dict[str, MathFontBuild]) -> tuple[str, str]:
     act, legacy = B.inp.act, set()
     for b in builds.values():
         legacy.update(b.legacy_fonts())
-    vf = lambda text: re.sub(r"\b(mt2\w+)\b", lambda m: "mtp2vf:" + m.group(1) if m.group(1) in legacy
-                             else m.group(1), text)
-    out = ["% mtpro2-otf-legacy.tex: generated by mtpro2_otf.py from your mtpro2.sty - keep private",
-           "% 1. LaTeX's symbol fonts (letters, symbols, largesymbols, AMSa) on the virtual fonts"]
+    vf = lambda text: re.sub(
+        r"\b(mt2\w+)\b", lambda m: "mtp2vf:" + m.group(1) if m.group(1) in legacy else m.group(1), text
+    )
+    out = [
+        "% mtpro2-otf-legacy.tex: generated by mtpro2_otf.py from your mtpro2.sty - keep private",
+        "% 1. LaTeX's symbol fonts (letters, symbols, largesymbols, AMSa) on the virtual fonts",
+    ]
     shapes = set()
     for line in act.splitlines():
         m = re.match(r"\\DeclareFontShape\{(\w+)\}\{(\w+)\}\{(\w+)\}\{(\w+)\}\{([^}]*)\}", line)
@@ -4157,7 +4521,7 @@ def legacy_tex(builds: dict[str, MathFontBuild]) -> tuple[str, str]:
                 shapes.add(m.group(1, 2, 3, 4))
                 out.append(vf(line))
     encfam = {(e, f) for e, f, _, _ in shapes}
-    heads = {"enc": [], "fam": []}                  # encodings, then families, before the shapes
+    heads = {"enc": [], "fam": []}  # encodings, then families, before the shapes
     for line in act.splitlines():
         m = re.match(r"\\Declare(?:FontEncoding|FontSubstitution)\{(\w+)\}", line)
         if m and any(e == m.group(1) for e, _ in encfam):
@@ -4168,9 +4532,14 @@ def legacy_tex(builds: dict[str, MathFontBuild]) -> tuple[str, str]:
     out[2:2] = heads["enc"] + heads["fam"]
     for line in act.splitlines():
         arg = r"\s*\{(\w+)\}"
-        m = (re.match(r"\\DeclareSymbolFont" + arg + "()" + arg * 4, line) or
-             re.match(r"\\SetSymbolFont" + arg * 6, line))
-        if m and m.group(1) in ("letters", "symbols", "largesymbols", "AMSa") and m.group(3, 4, 5, 6) in shapes:
+        m = re.match(r"\\DeclareSymbolFont" + arg + "()" + arg * 4, line) or re.match(
+            r"\\SetSymbolFont" + arg * 6, line
+        )
+        if (
+            m
+            and m.group(1) in ("letters", "symbols", "largesymbols", "AMSa")
+            and m.group(3, 4, 5, 6) in shapes
+        ):
             out.append(line)
     out.append("% 2. the extension fonts mtpro2.sty loads directly")
     m = re.search(r"\\dimen@\\f@size pt\n(.*?\\def\\getpoints@[^\n]*\n)", act, re.S)
@@ -4181,35 +4550,45 @@ def legacy_tex(builds: dict[str, MathFontBuild]) -> tuple[str, str]:
     defs = []
     for d in B.inp.decls:
         if d.kind == "delimiter" and d.fam in LEGACY_FAMS and d.fam2 in LEGACY_FAMS:
-            code = (f'"{CLASSES.get(d.cls, 0):X}{LEGACY_FAMS[d.fam]:X}{d.slot:02X}'
-                    f'{LEGACY_FAMS[d.fam2]:X}{d.slot2:02X}')
+            code = (
+                f'"{CLASSES.get(d.cls, 0):X}{LEGACY_FAMS[d.fam]:X}{d.slot:02X}'
+                f"{LEGACY_FAMS[d.fam2]:X}{d.slot2:02X}"
+            )
             if len(d.cmd) == 1:
-                defs.append(f"\\delcode`\\{d.cmd}={'"' + code[2:]}")
+                defs.append(f'\\delcode`\\{d.cmd}="{code[2:]}')
             else:
                 defs.append(f"\\def{d.cmd}{{\\delimiter{code} }}")
     out.append("\\def\\MTP@legacydelims{%\n" + "%\n".join(defs) + "%\n}")
     out.append("\\endinput")
-    fonts_part, out = "\n".join(out) + "\n", [
-        "% mtpro2-otf-macros.tex: generated by mtpro2_otf.py from your mtpro2.sty - keep private",
-        "% mtpro2.sty's own macros, verbatim (they use the virtual fonts of mtpro2-otf-legacy.tex)"]
+    fonts_part, out = (
+        "\n".join(out) + "\n",
+        [
+            "% mtpro2-otf-macros.tex: generated by mtpro2_otf.py from your mtpro2.sty - keep private",
+            "% mtpro2.sty's own macros, verbatim (they use the virtual fonts of mtpro2-otf-legacy.tex)",
+        ],
+    )
     for name in ("curlybraces", "straightbraces", "morphedbraces"):
         m = re.search(r"\\def\\" + name + r"\{.*?\n.*?\n", act)
         if m:
             out.append(m.group(0).rstrip())
-    sty = B.inp.sty             # as written (the region has no option conditionals)
-    i = sty.find("\\newbox\\prePbox@")              # from \PARENS's helpers ...
-    k = max(sty.find("\\def\\undercbrace#1", i), sty.find("\\def\\overcbrace#1", i))   # ... to the braces
+    sty = B.inp.sty  # as written (the region has no option conditionals)
+    i = sty.find("\\newbox\\prePbox@")  # from \PARENS's helpers ...
+    k = max(sty.find("\\def\\undercbrace#1", i), sty.find("\\def\\overcbrace#1", i))  # ... to the braces
     if i >= 0 and k > 0:
-        region = sty[i:braced(sty, sty.index("{", k))[1]]
+        region = sty[i : braced(sty, sty.index("{", k))[1]]
         m = re.search(r"\\begingroup\s*\\catcode`\\_=13.*?\\mathcode`\\_=\\string\"8000", B.inp.sty, re.S)
-        if m:                   # the subscript correction (active only with catcode 12 '_')
+        if m:  # the subscript correction (active only with catcode 12 '_')
             region += "\n" + m.group(0)
         region = region.replace("\\curlybraces\\EXtest@@", "\\curlybraces\\MTP@legacydelims\\EXtest@@")
         # (\\{ and \\} are \\lbrace and \\rbrace to mtpro2.sty; with unicode-math they are
         # macros of their own: \\LEFTRIGHT\\{\\} must still take its brace path)
-        region = region.replace("\\else\\specdelim@false\\fi",
-                                "\\else\\ifx#1\\{\\specdelim@true\\else\\ifx#1\\}\\specdelim@true"
-                                "\\else\\specdelim@false\\fi\\fi\\fi", 1)
+        region = region.replace(
+            "\\else\\specdelim@false\\fi",
+            "\\else\\ifx#1\\{\\specdelim@true\\else\\ifx#1\\}\\specdelim@true"
+            "\\else\\specdelim@false\\fi\\fi\\fi",
+            1,
+        )
+
         # mtpro2.sty measures delimiters with trial displays, \vbox{$$..$$}, and picks the
         # last boxes of the display line. Displays inside a box break tagged PDF (paragraph
         # hooks) and, in longtable cells, loop forever: the same measurement, by Lua, on an
@@ -4219,19 +4598,30 @@ def legacy_tex(builds: dict[str, MathFontBuild]) -> tuple[str, str]:
             # \\unhbox level how many \\lastbox in a row (\\PEX@: the last box of the last
             # box, the right delimiter; \\SQEX@: the box before the last in the radical, its sign)
             levels = [seg.count("\\lastbox") for seg in m.group(3).split("\\hbox{\\unhbox")[1:]]
-            return ("\\setbox\\%s\\hbox{\\MTP@legacydelims$\\m@th\\displaystyle %s$}%%\n\\setbox\\z@\\hbox{#1}"
-                    "\\directlua{mtpro2otf.extest(\"%s\",\\number\\%s,\"%s\")}}"
-                    % (m.group(1), m.group(2), ",".join(map(str, levels)), m.group(1), m.group(4)))
-        region = re.sub(r"\\setbox\\(Pbox@|Sbox@)\\vbox\{\$\$((?:(?!\\def).)*?)\$\$\}%\n((?:(?!\\def).)*?)\\setbox(?:\\z@|0)\\hbox\{#1\}%\n\s*"
-                        r"\\ifdim\\dp\\(?:Pbox@|Sbox@)>\\dp(?:\\z@|0)\s*\\global\\(PEX@|SQEX@)true\\else\s*"
-                        r"\\global\\(?:PEX@|SQEX@)false\\fi\}+", extest, region, flags=re.S)
+            return (
+                "\\setbox\\%s\\hbox{\\MTP@legacydelims$\\m@th\\displaystyle %s$}%%\n\\setbox\\z@\\hbox{#1}"
+                '\\directlua{mtpro2otf.extest("%s",\\number\\%s,"%s")}}'
+                % (m.group(1), m.group(2), ",".join(map(str, levels)), m.group(1), m.group(4))
+            )
+
+        region = re.sub(
+            r"\\setbox\\(Pbox@|Sbox@)\\vbox\{\$\$((?:(?!\\def).)*?)\$\$\}%\n((?:(?!\\def).)*?)\\setbox(?:\\z@|0)\\hbox\{#1\}%\n\s*"
+            r"\\ifdim\\dp\\(?:Pbox@|Sbox@)>\\dp(?:\\z@|0)\s*\\global\\(PEX@|SQEX@)true\\else\s*"
+            r"\\global\\(?:PEX@|SQEX@)false\\fi\}+",
+            extest,
+            region,
+            flags=re.S,
+        )
         # (formulas the macros typeset to measure or to box parts: \\m@th marks them as such
         # for tagged PDF, which then does not tag them as formulas of their own)
         region = re.sub(r"\{\$(?!\$)(?!\\m@th)", r"{$\\m@th ", region)
         # the big operators of \\xl/\\XL: a nucleus \\textstyle\\vcenter{...} is the same box as
         # \\hbox{$\\vcenter{...}$}, without a formula inside the operator (MathML <mo>)
-        region = re.sub(r"\\mathop\{\\hbox\{\$\\m@th \\vcenter\{(\\hbox\{(?:[^{}]|\{[^{}]*\})*\})\}\$\}\}",
-                        r"\\mathop{\\textstyle\\vcenter{\1}}", region)
+        region = re.sub(
+            r"\\mathop\{\\hbox\{\$\\m@th \\vcenter\{(\\hbox\{(?:[^{}]|\{[^{}]*\})*\})\}\$\}\}",
+            r"\\mathop{\\textstyle\\vcenter{\1}}",
+            region,
+        )
         out.append(region.rstrip())
     out.append("\\endinput")
     return fonts_part, mathml_hooks("\n".join(out) + "\n")
@@ -4241,20 +4631,23 @@ def mathml_hooks(tex: str) -> str:
     """Tagged PDF: mtpro2.sty's macros that build a formula from boxes (\\PARENS, \\ccases,
     \\overcbrace, \\SQRT, ...) save the MathML of their argument and give the result its
     MathML (\\MTP@mml, mtpro2-otf.sty; no-ops without luamml). The boxes are unchanged."""
+
     def sub(old, new, count=1):
         nonlocal tex
         if tex.count(old) != count:
             print(f"warning: MathML hook not applied ({old[:40]!r}...)", file=sys.stderr)
             return
         tex = tex.replace(old, new)
+
     # \\LEFTRIGHT@ (\\PARENS, \\LEFTRIGHT with the special delimiters, \\ccases): a fence. The
     # argument's MathML is saved at the end of its formula (formulas inside it come first)
-    sub("\\def\\LEFTRIGHT@#1#2#3{\\setbox\\LRbox@\\vc@nt@r{#3}%\n \\EXtest@{\\vc@nt@r{#3}}%\n"
+    sub(
+        "\\def\\LEFTRIGHT@#1#2#3{\\setbox\\LRbox@\\vc@nt@r{#3}%\n \\EXtest@{\\vc@nt@r{#3}}%\n"
         " \\vcenter{\\hbox{\\curlybraces\\MTP@legacydelims\\EXtest@@$\\displaystyle\\left#1\\box\\LRbox@\\right#2$}}}%",
         "\\def\\LEFTRIGHT@{\\MTP@fence{fence}}\n"
         "\\def\\LEFTRIGHT@@{\\MTP@fence{fence0}}% (\\LEFTRIGHT's closing part: the delimiter only)\n"
-        "\\def\\MTP@fence#1#2#3#4{\\MTP@mml{\"#1\",\"\\luaescapestring{\\detokenize{#2}}\","
-        "\"\\luaescapestring{\\detokenize{#3}}\"}{\\csname MTP@k@#1\\endcsname\\LEFTRIGHT@b#2#3{#4}}}\n"
+        '\\def\\MTP@fence#1#2#3#4{\\MTP@mml{"#1","\\luaescapestring{\\detokenize{#2}}",'
+        '"\\luaescapestring{\\detokenize{#3}}"}{\\csname MTP@k@#1\\endcsname\\LEFTRIGHT@b#2#3{#4}}}\n'
         "\\expandafter\\let\\csname MTP@k@fence\\endcsname\\relax\n"
         "\\expandafter\\def\\csname MTP@k@fence0\\endcsname{\\let\\MTP@mmlsave\\relax}% (nothing saved)\n"
         "\\def\\LEFTRIGHT@b#1#2#3{%\n"
@@ -4263,68 +4656,104 @@ def mathml_hooks(tex: str) -> str:
         " \\vcenter{\\hbox{\\curlybraces\\MTP@legacydelims\\EXtest@@\\MTP@msave$\\m@th\\mathsurround\\MTP@msv\\displaystyle\\left#1\\box\\LRbox@\\right#2$}}}%\n"
         "% (a formula that only puts boxes together: \\m@th marks it as not one of its own for\n"
         "% tagged PDF, \\mathsurround stays as it was)\n"
-        "\\def\\MTP@msave{\\edef\\MTP@msv{\\the\\mathsurround\\relax}}")
+        "\\def\\MTP@msave{\\edef\\MTP@msv{\\the\\mathsurround\\relax}}",
+    )
     # (the closing parts' phantoms: LaTeX's \\vphantom, without the tagged PDF phantom of
     # tagged LaTeX, which would repeat the argument's structure)
     sub("\\LEFTRIGHT@.#2{\\vphantom{\\vc@nt@r{#3}}}%", "\\LEFTRIGHT@@.#2{\\MTP@vphantom{\\vc@nt@r{#3}}}%")
-    sub("  \\left.%\n  \\vphantom{\\vc@nt@r{#3}}%\n", "  \\left.%\n  \\MTP@mmlhide{\\MTP@vphantom{\\vc@nt@r{#3}}}%\n")
-    sub("\\def\\MTP@msave{", "\\def\\MTP@vphantom{\\mathpalette\\MTP@vph}\n"
+    sub(
+        "  \\left.%\n  \\vphantom{\\vc@nt@r{#3}}%\n",
+        "  \\left.%\n  \\MTP@mmlhide{\\MTP@vphantom{\\vc@nt@r{#3}}}%\n",
+    )
+    sub(
+        "\\def\\MTP@msave{",
+        "\\def\\MTP@vphantom{\\mathpalette\\MTP@vph}\n"
         "\\def\\MTP@vph#1#2{\\setbox\\z@\\hbox{\\csname measuring@true\\endcsname$\\m@th#1{#2}$}\\setbox\\tw@\\null\\ht\\tw@\\ht\\z@\\dp\\tw@\\dp\\z@\\box\\tw@}\n"
-        "\\def\\MTP@msave{")
+        "\\def\\MTP@msave{",
+    )
     # (\\LEFTRIGHT's argument, a box with a formula (\\MTP@mmlin: its MathML kept with it)
     sub("\\LEFTRIGHT@#1.{\\vc@nt@r{#3}}%", "\\LEFTRIGHT@#1.{\\MTP@vcin{#3}}%")
-    sub("\\def\\vc@nt@r#1{\\hbox{$\\m@th \\vcenter{\\hbox{$\\m@th \\displaystyle{#1}$}}$}}",
+    sub(
+        "\\def\\vc@nt@r#1{\\hbox{$\\m@th \\vcenter{\\hbox{$\\m@th \\displaystyle{#1}$}}$}}",
         "\\def\\vc@nt@r#1{\\hbox{$\\m@th \\vcenter{\\hbox{$\\m@th \\displaystyle{#1}$}}$}}\n"
-        "\\def\\MTP@vcin#1{\\hbox{$\\m@th\\MTP@mmlin \\vcenter{\\hbox{$\\m@th\\MTP@mmlin \\displaystyle{#1}$}}$}}")
+        "\\def\\MTP@vcin#1{\\hbox{$\\m@th\\MTP@mmlin \\vcenter{\\hbox{$\\m@th\\MTP@mmlin \\displaystyle{#1}$}}$}}",
+    )
     # \\overcbrace, \\undercbrace: the brace over/under the argument (the operator's nucleus)
-    sub("\\mathop{\\vbox{\\ialign{\\hfil##\\hfil\\cr\\noalign{\\kern3\\p@}\\thebrace@\\crcr\n"
+    sub(
+        "\\mathop{\\vbox{\\ialign{\\hfil##\\hfil\\cr\\noalign{\\kern3\\p@}\\thebrace@\\crcr\n"
         " \\noalign{\\kern3\\p@\\nointerlineskip}$\\displaystyle#1$\\crcr}}}\\limits}",
-        "\\MTP@mml{\"over\"}{\\mathop{\\vbox{\\ialign{\\hfil##\\hfil\\cr\\noalign{\\kern3\\p@}\\thebrace@\\crcr\n"
-        " \\noalign{\\kern3\\p@\\nointerlineskip}$\\displaystyle#1\\MTP@mmlsave$\\crcr}}}}\\limits}")
-    sub("\\mathop{\\vtop{\\ialign{\\hfil##\\hfil\\cr$\\displaystyle#1$\\crcr\\noalign\n"
+        '\\MTP@mml{"over"}{\\mathop{\\vbox{\\ialign{\\hfil##\\hfil\\cr\\noalign{\\kern3\\p@}\\thebrace@\\crcr\n'
+        " \\noalign{\\kern3\\p@\\nointerlineskip}$\\displaystyle#1\\MTP@mmlsave$\\crcr}}}}\\limits}",
+    )
+    sub(
+        "\\mathop{\\vtop{\\ialign{\\hfil##\\hfil\\cr$\\displaystyle#1$\\crcr\\noalign\n"
         "  {\\vskip3pt\\nointerlineskip}\\thebrace@\\cr\\noalign{\\kern3pt}}}}\\limits}",
-        "\\MTP@mml{\"under\"}{\\mathop{\\vtop{\\ialign{\\hfil##\\hfil\\cr$\\displaystyle#1\\MTP@mmlsave$\\crcr\\noalign\n"
-        "  {\\vskip3pt\\nointerlineskip}\\thebrace@\\cr\\noalign{\\kern3pt}}}}}\\limits}")
+        '\\MTP@mml{"under"}{\\mathop{\\vtop{\\ialign{\\hfil##\\hfil\\cr$\\displaystyle#1\\MTP@mmlsave$\\crcr\\noalign\n'
+        "  {\\vskip3pt\\nointerlineskip}\\thebrace@\\cr\\noalign{\\kern3pt}}}}}\\limits}",
+    )
     # \\SQRT (no index): a square root
-    sub("\\def\\SQR@@T#1{\\setbox\\SQRTbox@\\hbox{$\\m@th \\displaystyle{#1}$}%\n\\SQtest@{#1}%\n"
-        "\\hbox{\\SQtest@@$\\displaystyle\\radical\"270370{\\box\\SQRTbox@}$}}",
-        "\\def\\SQR@@T#1{\\MTP@mml{\"sqrt\"}{\\setbox\\SQRTbox@\\hbox{$\\m@th \\displaystyle{#1}\\MTP@mmlsave$}%\n\\SQtest@{#1}%\n"
-        "\\hbox{\\SQtest@@\\MTP@msave$\\m@th\\mathsurround\\MTP@msv\\displaystyle\\radical\"270370{\\box\\SQRTbox@}$}}}")
+    sub(
+        "\\def\\SQR@@T#1{\\setbox\\SQRTbox@\\hbox{$\\m@th \\displaystyle{#1}$}%\n\\SQtest@{#1}%\n"
+        '\\hbox{\\SQtest@@$\\displaystyle\\radical"270370{\\box\\SQRTbox@}$}}',
+        '\\def\\SQR@@T#1{\\MTP@mml{"sqrt"}{\\setbox\\SQRTbox@\\hbox{$\\m@th \\displaystyle{#1}\\MTP@mmlsave$}%\n\\SQtest@{#1}%\n'
+        '\\hbox{\\SQtest@@\\MTP@msave$\\m@th\\mathsurround\\MTP@msv\\displaystyle\\radical"270370{\\box\\SQRTbox@}$}}}',
+    )
     # \\SQRT[n] (\\ROOT n\\OF): a root with an index
-    sub("\\def\\ROOT#1\\OF#2{\\setbox\\rootbox\\hbox{$\\m@th\\scriptscriptstyle{#1}$}%",
-        "\\def\\ROOT#1\\OF#2{\\MTP@mmlindex\\setbox\\rootbox\\hbox{$\\m@th\\scriptscriptstyle{#1}\\MTP@mmlsavei$}%")
+    sub(
+        "\\def\\ROOT#1\\OF#2{\\setbox\\rootbox\\hbox{$\\m@th\\scriptscriptstyle{#1}$}%",
+        "\\def\\ROOT#1\\OF#2{\\MTP@mmlindex\\setbox\\rootbox\\hbox{$\\m@th\\scriptscriptstyle{#1}\\MTP@mmlsavei$}%",
+    )
     # (in each branch of TeX's \\mathchoice: see \\MTP@mmlroot in mtpro2-otf.sty)
-    sub("\\def\\R@@T#1#2{\\setbox\\z@\\hbox{$\\m@th \\UPROOT@\\z@\\LEFTROOT@\\z@\\m@th#1\\SQR@@T{#2}$}%",
-        "\\def\\R@@T#1#2{\\MTP@mmlroot\\setbox\\z@\\hbox{$\\m@th \\UPROOT@\\z@\\LEFTROOT@\\z@\\m@th#1\\SQR@@T{#2}\\MTP@mmlsave$}%")
-    sub("\\mkern1mu\\kern.13\\dimen@\\mkern-\\LEFTROOT@ mu\n\\raise.5\\dimen@ii\\copy\\rootbox % was .44\n"
+    sub(
+        "\\def\\R@@T#1#2{\\setbox\\z@\\hbox{$\\m@th \\UPROOT@\\z@\\LEFTROOT@\\z@\\m@th#1\\SQR@@T{#2}$}%",
+        "\\def\\R@@T#1#2{\\MTP@mmlroot\\setbox\\z@\\hbox{$\\m@th \\UPROOT@\\z@\\LEFTROOT@\\z@\\m@th#1\\SQR@@T{#2}\\MTP@mmlsave$}%",
+    )
+    sub(
+        "\\mkern1mu\\kern.13\\dimen@\\mkern-\\LEFTROOT@ mu\n\\raise.5\\dimen@ii\\copy\\rootbox % was .44\n"
         "\\mkern-1mu\\kern-.13\\dimen@\\mkern\\LEFTROOT@ mu\\box\\z@\\kern-\\wd\\rootbox",
         "\\MTP@mmlhide{\\mkern1mu\\kern.13\\dimen@\\mkern-\\LEFTROOT@ mu\n\\raise.5\\dimen@ii\\copy\\rootbox % was .44\n"
-        "\\mkern-1mu\\kern-.13\\dimen@\\mkern\\LEFTROOT@ mu}\\MTP@mmlmark{\\box\\z@}\\MTP@mmlhide{\\kern-\\wd\\rootbox}")
+        "\\mkern-1mu\\kern-.13\\dimen@\\mkern\\LEFTROOT@ mu}\\MTP@mmlmark{\\box\\z@}\\MTP@mmlhide{\\kern-\\wd\\rootbox}",
+    )
     # (the delimiter tests typeset the argument once more, only to measure it: no MathML kept;
     # tagged LaTeX skips formulas while amsmath's \\ifmeasuring@ is true)
-    sub("\\def\\EXtest@#1{\\setbox\\prePbox@\\hbox{$\\m@th \\displaystyle{#1}$}%",
-        "\\def\\EXtest@#1{\\setbox\\prePbox@\\hbox{\\let\\MTP@mmlin\\relax\\csname measuring@true\\endcsname$\\m@th \\displaystyle{#1}$}%")
-    sub("\\def\\SQtest@#1{\\setbox\\preSbox@\\hbox{$\\m@th \\displaystyle{#1}$}%",
-        "\\def\\SQtest@#1{\\setbox\\preSbox@\\hbox{\\csname measuring@true\\endcsname$\\m@th \\displaystyle{#1}$}%")
+    sub(
+        "\\def\\EXtest@#1{\\setbox\\prePbox@\\hbox{$\\m@th \\displaystyle{#1}$}%",
+        "\\def\\EXtest@#1{\\setbox\\prePbox@\\hbox{\\let\\MTP@mmlin\\relax\\csname measuring@true\\endcsname$\\m@th \\displaystyle{#1}$}%",
+    )
+    sub(
+        "\\def\\SQtest@#1{\\setbox\\preSbox@\\hbox{$\\m@th \\displaystyle{#1}$}%",
+        "\\def\\SQtest@#1{\\setbox\\preSbox@\\hbox{\\csname measuring@true\\endcsname$\\m@th \\displaystyle{#1}$}%",
+    )
     # \\xl, \\XL, ... look ahead for limits: an active _ (underscore.sty) is a subscript
     # too (\\MTP@us: the active _'s meaning when the look-ahead runs)
-    sub("\\else\\ifcat\\sbviii@\\noexpand\\next\n\\def\\next@##1{\\getxlowerlim@}%\n",
+    sub(
+        "\\else\\ifcat\\sbviii@\\noexpand\\next\n\\def\\next@##1{\\getxlowerlim@}%\n",
         "\\else\\ifcat\\sbviii@\\noexpand\\next\n\\def\\next@##1{\\getxlowerlim@}%\n"
-        "\\else\\ifx\\next\\MTP@us\n\\def\\next@##1{\\getxlowerlim@}%\n")
-    sub("\\def\\getxlims@{%\n", "\\begingroup\\catcode`\\_=13 \\gdef\\MTP@letus{\\let\\MTP@us=_}\\endgroup\n"
-        "\\def\\getxlims@{\\MTP@letus\n")
+        "\\else\\ifx\\next\\MTP@us\n\\def\\next@##1{\\getxlowerlim@}%\n",
+    )
+    sub(
+        "\\def\\getxlims@{%\n",
+        "\\begingroup\\catcode`\\_=13 \\gdef\\MTP@letus{\\let\\MTP@us=_}\\endgroup\n"
+        "\\def\\getxlims@{\\MTP@letus\n",
+    )
     sub("\\def\\getxlowerlim@@{%\n", "\\def\\getxlowerlim@@{\\MTP@letus\n")
-    sub("\\let\\next@\\uselims@\n\\fi\\fi\\fi\\fi\\fi\\fi\n\\next@}",
-        "\\let\\next@\\uselims@\n\\fi\\fi\\fi\\fi\\fi\\fi\\fi\n\\next@}")
-    sub("\\else\\ifcat\\sbviii@\\noexpand\\next\n\\def\\next@##1##2{\\def\\lowerlim@{##2}\\uselims@}%\n"
+    sub(
+        "\\let\\next@\\uselims@\n\\fi\\fi\\fi\\fi\\fi\\fi\n\\next@}",
+        "\\let\\next@\\uselims@\n\\fi\\fi\\fi\\fi\\fi\\fi\\fi\n\\next@}",
+    )
+    sub(
+        "\\else\\ifcat\\sbviii@\\noexpand\\next\n\\def\\next@##1##2{\\def\\lowerlim@{##2}\\uselims@}%\n"
         "\\else\n\\let\\next@\\uselims@ % have limits now\n\\fi\\fi\\fi",
         "\\else\\ifcat\\sbviii@\\noexpand\\next\n\\def\\next@##1##2{\\def\\lowerlim@{##2}\\uselims@}%\n"
         "\\else\\ifx\\next\\MTP@us\n\\def\\next@##1##2{\\def\\lowerlim@{##2}\\uselims@}%\n"
-        "\\else\n\\let\\next@\\uselims@ % have limits now\n\\fi\\fi\\fi\\fi")
+        "\\else\n\\let\\next@\\uselims@ % have limits now\n\\fi\\fi\\fi\\fi",
+    )
     # the active _ of the subscriptcorrection option: only with that option (these macros come
     # at \\begin{document}, after packages such as underscore.sty that define an active _)
-    sub("\\begingroup\n \\catcode`\\_=13\n \\gdef_{\\futurelet\\next\\s@@b}\n\\endgroup",
-        "\\ifMTP@sbcorr\\begingroup\n \\catcode`\\_=13\n \\gdef_{\\futurelet\\next\\s@@b}\n\\endgroup\\fi")
+    sub(
+        "\\begingroup\n \\catcode`\\_=13\n \\gdef_{\\futurelet\\next\\s@@b}\n\\endgroup",
+        "\\ifMTP@sbcorr\\begingroup\n \\catcode`\\_=13\n \\gdef_{\\futurelet\\next\\s@@b}\n\\endgroup\\fi",
+    )
     return tex
 
 
@@ -4334,9 +4763,12 @@ def ams_fallbacks(B: MathFontBuild) -> list[str]:
     out = []
     for name in ("amsfonts.sty", "amssymb.sty"):
         p = kpse(name)
-        for cmd in re.findall(r"\\Declare(?:MathSymbol|MathDelimiter)\{?\\(\w+)\}?", p.read_text(
-                encoding="latin-1")) if p else []:
-            if cmd not in out and cmd.isalpha() and cmd not in B.commands:   # (not mtpro2.sty's)
+        for cmd in (
+            re.findall(r"\\Declare(?:MathSymbol|MathDelimiter)\{?\\(\w+)\}?", p.read_text(encoding="latin-1"))
+            if p
+            else []
+        ):
+            if cmd not in out and cmd.isalpha() and cmd not in B.commands:  # (not mtpro2.sty's)
                 out.append(cmd)
     return out
 
@@ -4349,10 +4781,12 @@ def colon_defs(B: MathFontBuild) -> str:
         out.append("\\def\\Colon{\\MATHT@dblcolon}%")
     if 0x2239 not in B.cmap:
         out.append("\\def\\dashcolon{\\MATHT@dashcolon}%")
-    if 0x2A74 not in B.cmap:          # (mathtools' legacycolonsymbols option: \\Coloneq is ::-)
-        out.append("\\csname MH_if_boolean_legacycolonsymbols:\\endcsname\\def\\Coloneq{\\MATHT@dblcolondash}%\n"
-                   "  \\else\\def\\Coloneq{\\MATHT@dblcoloneq}\\fi")
-    if 0x23B4 not in B.cmap:          # (mathtools' \\overbracket, \\underbracket, as unicode-math says)
+    if 0x2A74 not in B.cmap:  # (mathtools' legacycolonsymbols option: \\Coloneq is ::-)
+        out.append(
+            "\\csname MH_if_boolean_legacycolonsymbols:\\endcsname\\def\\Coloneq{\\MATHT@dblcolondash}%\n"
+            "  \\else\\def\\Coloneq{\\MATHT@dblcoloneq}\\fi"
+        )
+    if 0x23B4 not in B.cmap:  # (mathtools' \\overbracket, \\underbracket, as unicode-math says)
         out.append("\\let\\overbracket\\MToverbracket\\let\\underbracket\\MTunderbracket%")
     return "\n".join("  " + o for o in out)
 
@@ -4364,13 +4798,26 @@ def text_chars(B: MathFontBuild) -> dict[int, int]:
     # letters: \\mathrm and operator names (the operators font in both packages); digits unless
     # declared in another font (mtpro2.sty: its letters font)
     t = {c: c for c in [*range(65, 91), *range(97, 123)]}
-    t.update({c: c for c in range(48, 58) if not any(d.kind == "symbol" and d.cmd == chr(c) and d.fam not in
-                                                     ("operators", "operatorsX") for d in B.inp.decls)})
+    t.update(
+        {
+            c: c
+            for c in range(48, 58)
+            if not any(
+                d.kind == "symbol" and d.cmd == chr(c) and d.fam not in ("operators", "operatorsX")
+                for d in B.inp.decls
+            )
+        }
+    )
     # code points other declarations use (\\lbrace: U+007B, whose default mathcode is operators)
-    ops = ("operators", "operatorsX")                   # (ntx: its operators font, renamed)
-    other = {cp for d in B.inp.decls if d.fam not in ops and len(d.cmd) > 1
-             for cp in [B.inp.uni.for_command(d.cmd, d.slot, d.fam)] if cp}
-    special = set(map(ord, "{}$&#^_%~\\"))              # never typeset through their mathcode
+    ops = ("operators", "operatorsX")  # (ntx: its operators font, renamed)
+    other = {
+        cp
+        for d in B.inp.decls
+        if d.fam not in ops and len(d.cmd) > 1
+        for cp in [B.inp.uni.for_command(d.cmd, d.slot, d.fam)]
+        if cp
+    }
+    special = set(map(ord, "{}$&#^_%~\\"))  # never typeset through their mathcode
     for d in B.inp.decls:
         if d.kind == "symbol" and d.fam in ops and not (len(d.cmd) == 1 and ord(d.cmd) in special):
             cp = B.inp.uni.for_command(d.cmd, d.slot, d.fam)
@@ -4385,27 +4832,51 @@ def text_chars(B: MathFontBuild) -> dict[int, int]:
 def make_sty(B: MathFontBuild, date: str) -> str:
     over, prov = command_defs(B)
     z = B.commands.get("mtp@@z", (None, ""))[1]
-    return (STY.replace("@@DATE@@", date).replace("@@OVERRIDES@@", "%\n".join(over) + "%")
-            .replace("@@PROVIDES@@", "%\n".join(prov) + "%").replace("@@ZSWASH@@", z)
-            .replace("@@EDITION@@", "Complete" if B.inp.complete else "Lite")
-            .replace("@@VERSION@@", PACKAGE_VERSION)
-            .replace("@@AMSLIST@@", ",".join(ams_fallbacks(B)) if not B.inp.complete else "")
-            .replace("@@CLASSIC@@", classic_defs(B))
-            .replace("@@MTTEXT@@", ",".join(f"[{c}]={v}" for c, v in text_chars(B).items()))
-            .replace("@@COLONS@@", colon_defs(B))
-            .replace("@@MATHSIZES@@", "\n".join(re.findall(r"^\\(?:def\\default\w*ratio\{[^}]*\}|DeclareMathSizes(?:\s*\{[^}]*\}){4})",
-                                                       B.inp.sty, re.M)))
-            .replace("@@AMSMATH@@", "%\n".join(f"\\renewcommand{{\\{c}}}{{{d.strip()}}}" for c, d in
-                                              sorted(B.inp.amsmath_defs.items())) + "%"))
+    return (
+        STY.replace("@@DATE@@", date)
+        .replace("@@OVERRIDES@@", "%\n".join(over) + "%")
+        .replace("@@PROVIDES@@", "%\n".join(prov) + "%")
+        .replace("@@ZSWASH@@", z)
+        .replace("@@EDITION@@", "Complete" if B.inp.complete else "Lite")
+        .replace("@@VERSION@@", PACKAGE_VERSION)
+        .replace("@@AMSLIST@@", ",".join(ams_fallbacks(B)) if not B.inp.complete else "")
+        .replace("@@CLASSIC@@", classic_defs(B))
+        .replace("@@MTTEXT@@", ",".join(f"[{c}]={v}" for c, v in text_chars(B).items()))
+        .replace("@@COLONS@@", colon_defs(B))
+        .replace(
+            "@@MATHSIZES@@",
+            "\n".join(
+                re.findall(
+                    r"^\\(?:def\\default\w*ratio\{[^}]*\}|DeclareMathSizes(?:\s*\{[^}]*\}){4})",
+                    B.inp.sty,
+                    re.M,
+                )
+            ),
+        )
+        .replace(
+            "@@AMSMATH@@",
+            "%\n".join(
+                f"\\renewcommand{{\\{c}}}{{{d.strip()}}}" for c, d in sorted(B.inp.amsmath_defs.items())
+            )
+            + "%",
+        )
+    )
 
 
 # ======================================================================
 # 8. Driver
 # ======================================================================
 
-WEIGHTS = {"normal": ("MTPro2 Math", "MTPro2Math.otf"), "bold": ("MTPro2 Math Bold", "MTPro2Math-Bold.otf"),
-           "heavy": ("MTPro2 Math Heavy", "MTPro2Math-Heavy.otf")}
-DONORS = {"normal": "texgyretermes-regular.otf", "bold": "texgyretermes-bold.otf", "heavy": "texgyretermes-bold.otf"}
+WEIGHTS = {
+    "normal": ("MTPro2 Math", "MTPro2Math.otf"),
+    "bold": ("MTPro2 Math Bold", "MTPro2Math-Bold.otf"),
+    "heavy": ("MTPro2 Math Heavy", "MTPro2Math-Heavy.otf"),
+}
+DONORS = {
+    "normal": "texgyretermes-regular.otf",
+    "bold": "texgyretermes-bold.otf",
+    "heavy": "texgyretermes-bold.otf",
+}
 
 
 def weight_data(builds: dict[str, MathFontBuild]) -> MathFontBuild:
@@ -4417,9 +4888,17 @@ def weight_data(builds: dict[str, MathFontBuild]) -> MathFontBuild:
     for w, B in builds.items():
         if w != "normal":
             sz = [B.src.tfm(f).params for f in B.fam("symbols")]
-            reg.weight_params[w] = {k: [p[i] for p in sz] for k, i in
-                                    (("num1", 8), ("num2", 9), ("denom1", 11), ("denom2", 12),
-                                     ("xheight", 5), ("axis", 22))}
+            reg.weight_params[w] = {
+                k: [p[i] for p in sz]
+                for k, i in (
+                    ("num1", 8),
+                    ("num2", 9),
+                    ("denom1", 11),
+                    ("denom2", 12),
+                    ("xheight", 5),
+                    ("axis", 22),
+                )
+            }
             reg.weight_params[w]["rule"] = B.src.tfm(B.fam("largesymbols")[0]).params[8]
     reg.nobold = {}
     for w, B in builds.items():
@@ -4428,14 +4907,22 @@ def weight_data(builds: dict[str, MathFontBuild]) -> MathFontBuild:
         # (a TeX family without fonts of this weight, like the letters for \\hm)
         lighter = {f for fam, v in reg.inp.symfonts.items() if w not in v for f in v.get("normal", ())}
         cps = {cp for cp, g in B.cmap.items() if g in B.from_fallback}
-        cps |= {cp for cp, g in reg.cmap.items()
-                if g in reg.glyphs and reg.glyphs[g].ref and reg.glyphs[g].ref.font in lighter}
+        cps |= {
+            cp
+            for cp, g in reg.cmap.items()
+            if g in reg.glyphs and reg.glyphs[g].ref and reg.glyphs[g].ref.font in lighter
+        }
         reg.nobold[w] = sorted(cps)
     return reg
 
 
-def convert(folder: Path, out: Path, weights=("normal", "bold", "heavy"), donor: Path | None = None,
-            quiet: bool = False) -> dict[str, MathFontBuild]:
+def convert(
+    folder: Path,
+    out: Path,
+    weights=("normal", "bold", "heavy"),
+    donor: Path | None = None,
+    quiet: bool = False,
+) -> dict[str, MathFontBuild]:
     inp = Inputs.load(folder)
     src = Source(inp.files)
     out.mkdir(parents=True, exist_ok=True)
@@ -4453,12 +4940,24 @@ def convert(folder: Path, out: Path, weights=("normal", "bold", "heavy"), donor:
     if "normal" in builds:
         reg = weight_data(builds)
         (out / "mtpro2-otf-variants.lua").write_text(variants_lua(reg))
-        (out / "mtpro2-otf-dims.lua").write_text(packed_lua(dims_lua(builds), [
-            "-- mtpro2-otf-dims.lua: generated by mtpro2_otf.py: TeX's glyph boxes by glyph index",
-            "-- (metrics only, compressed; contains MTPro2 data: keep private)"]))
-        (out / "mtpro2-otf-tfm.lua").write_text(packed_lua(tfm_lua(builds), [
-            "-- mtpro2-otf-tfm.lua: generated by mtpro2_otf.py: MTPro2's TFM metrics with the glyph",
-            "-- index of each character (no outlines, compressed; contains MTPro2 data: keep private)"]))
+        (out / "mtpro2-otf-dims.lua").write_text(
+            packed_lua(
+                dims_lua(builds),
+                [
+                    "-- mtpro2-otf-dims.lua: generated by mtpro2_otf.py: TeX's glyph boxes by glyph index",
+                    "-- (metrics only, compressed; contains MTPro2 data: keep private)",
+                ],
+            )
+        )
+        (out / "mtpro2-otf-tfm.lua").write_text(
+            packed_lua(
+                tfm_lua(builds),
+                [
+                    "-- mtpro2-otf-tfm.lua: generated by mtpro2_otf.py: MTPro2's TFM metrics with the glyph",
+                    "-- index of each character (no outlines, compressed; contains MTPro2 data: keep private)",
+                ],
+            )
+        )
         fonts_part, macros_part = legacy_tex(builds)
         (out / "mtpro2-otf-legacy.tex").write_text(fonts_part, encoding="latin-1")
         (out / "mtpro2-otf-macros.tex").write_text(macros_part, encoding="latin-1")
@@ -4474,8 +4973,14 @@ def convert(folder: Path, out: Path, weights=("normal", "bold", "heavy"), donor:
 
 MANIFEST = "mtpro2-otf-manifest.txt"
 WRITTEN = [WEIGHTS[w][1] for w in ("normal", "bold", "heavy")] + [
-    "mtpro2-otf.sty", "mtpro2-otf.lua", "mtpro2-otf-variants.lua", "mtpro2-otf-dims.lua",
-    "mtpro2-otf-tfm.lua", "mtpro2-otf-legacy.tex", "mtpro2-otf-macros.tex"]
+    "mtpro2-otf.sty",
+    "mtpro2-otf.lua",
+    "mtpro2-otf-variants.lua",
+    "mtpro2-otf-dims.lua",
+    "mtpro2-otf-tfm.lua",
+    "mtpro2-otf-legacy.tex",
+    "mtpro2-otf-macros.tex",
+]
 
 
 def write_manifest(out: Path, names: list[str]):
@@ -4488,8 +4993,9 @@ def write_manifest(out: Path, names: list[str]):
             n = line.strip()
             if n and not n.startswith("#") and "/" not in n and n not in names and (out / n).is_file():
                 (out / n).unlink()
-    old.write_text("# files written by mtpro2_otf.py (contain MTPro2 data: keep private)\n"
-                   + "\n".join(names) + "\n")
+    old.write_text(
+        "# files written by mtpro2_otf.py (contain MTPro2 data: keep private)\n" + "\n".join(names) + "\n"
+    )
 
 
 # ======================================================================
@@ -4498,241 +5004,242 @@ def write_manifest(out: Path, names: list[str]):
 # ======================================================================
 
 SELFTEST_FORMULAS = [
-    'x^2',
-    'x_i^2',
-    'x_{i,j}^{k+1}',
-    'e^{-x^2}',
+    "x^2",
+    "x_i^2",
+    "x_{i,j}^{k+1}",
+    "e^{-x^2}",
     "f'(x)",
     "f''(y)",
-    'a_{n_k}',
-    '2^{2^n}',
-    '\\frac{a}{b}',
-    '\\frac{1}{1+x^2}',
-    '\\displaystyle\\frac{a}{b}',
-    '\\displaystyle\\frac{\\partial^2 u}{\\partial x^2}',
-    '\\tfrac12',
-    '\\dfrac{n!}{k!(n-k)!}',
-    '\\binom{n}{k}',
-    '\\displaystyle\\binom{n}{k}',
-    '\\sqrt{x}',
-    '\\sqrt{x^2+y^2}',
-    '\\sqrt[3]{x}',
-    '\\displaystyle\\sqrt{\\frac{a}{b}}',
-    '\\sqrt{\\sqrt{x}}',
-    '\\sum_{i=1}^n a_i',
-    '\\displaystyle\\sum_{i=1}^n a_i',
-    '\\displaystyle\\prod_{k=1}^\\infty',
-    '\\displaystyle\\int_0^1 f(x)\\,dx',
-    '\\int_0^\\infty',
-    '\\displaystyle\\oint_C',
-    '\\displaystyle\\iint_D',
-    '\\displaystyle\\lim_{n\\to\\infty}',
-    '\\displaystyle\\max_{x\\in X}',
-    '\\displaystyle\\bigcup_{i\\in I}A_i',
-    '\\left(\\frac{a}{b}\\right)',
-    '\\left[\\frac{a}{b}\\right]',
-    '\\left\\{\\frac{a}{b}\\right\\}',
-    '\\left|\\frac{a}{b}\\right|',
-    '\\left\\langle\\frac{a}{b}\\right\\rangle',
-    '\\displaystyle\\left(\\sum_{i=1}^n a_i\\right)',
-    '\\bigl(x\\bigr)',
-    '\\Bigl(x\\Bigr)',
-    '\\biggl(x\\biggr)',
-    '\\Biggl(x\\Biggr)',
-    '\\Bigl[x\\Bigr]',
-    '\\Bigl\\{x\\Bigr\\}',
-    '\\Bigl\\langle x\\Bigr\\rangle',
-    '\\Bigl| x\\Bigr|',
-    '\\Bigl\\| x\\Bigr\\|',
-    '\\hat{x}',
-    '\\hat{A}',
-    '\\bar{z}',
-    '\\vec{v}',
-    '\\tilde{n}',
-    '\\dot{x}\\ddot{y}',
-    '\\widehat{AB}',
-    '\\widetilde{xyz}',
-    '\\overline{x+y}',
-    '\\underline{x+y}',
-    'a+b-c',
-    'a\\le b\\ge c',
-    'a=b\\ne c',
-    'x\\in A\\subseteq B',
-    'f\\colon X\\to Y',
-    'a\\cdot b\\times c',
-    '(a,b]',
-    '\\{x\\mid x>0\\}',
-    '\\|x\\|',
-    '\\mathbb{R}^n',
-    '\\mathcal{O}(n)',
-    '\\mathfrak{g}',
-    '\\alpha\\beta\\gamma\\delta',
-    '\\Gamma\\Delta\\Theta',
-    '\\varGamma\\varSigma\\varUpsilon\\varOmega_i x',
-    '\\overline I_l+\\underline{f}_i',
+    "a_{n_k}",
+    "2^{2^n}",
+    "\\frac{a}{b}",
+    "\\frac{1}{1+x^2}",
+    "\\displaystyle\\frac{a}{b}",
+    "\\displaystyle\\frac{\\partial^2 u}{\\partial x^2}",
+    "\\tfrac12",
+    "\\dfrac{n!}{k!(n-k)!}",
+    "\\binom{n}{k}",
+    "\\displaystyle\\binom{n}{k}",
+    "\\sqrt{x}",
+    "\\sqrt{x^2+y^2}",
+    "\\sqrt[3]{x}",
+    "\\displaystyle\\sqrt{\\frac{a}{b}}",
+    "\\sqrt{\\sqrt{x}}",
+    "\\sum_{i=1}^n a_i",
+    "\\displaystyle\\sum_{i=1}^n a_i",
+    "\\displaystyle\\prod_{k=1}^\\infty",
+    "\\displaystyle\\int_0^1 f(x)\\,dx",
+    "\\int_0^\\infty",
+    "\\displaystyle\\oint_C",
+    "\\displaystyle\\iint_D",
+    "\\displaystyle\\lim_{n\\to\\infty}",
+    "\\displaystyle\\max_{x\\in X}",
+    "\\displaystyle\\bigcup_{i\\in I}A_i",
+    "\\left(\\frac{a}{b}\\right)",
+    "\\left[\\frac{a}{b}\\right]",
+    "\\left\\{\\frac{a}{b}\\right\\}",
+    "\\left|\\frac{a}{b}\\right|",
+    "\\left\\langle\\frac{a}{b}\\right\\rangle",
+    "\\displaystyle\\left(\\sum_{i=1}^n a_i\\right)",
+    "\\bigl(x\\bigr)",
+    "\\Bigl(x\\Bigr)",
+    "\\biggl(x\\biggr)",
+    "\\Biggl(x\\Biggr)",
+    "\\Bigl[x\\Bigr]",
+    "\\Bigl\\{x\\Bigr\\}",
+    "\\Bigl\\langle x\\Bigr\\rangle",
+    "\\Bigl| x\\Bigr|",
+    "\\Bigl\\| x\\Bigr\\|",
+    "\\hat{x}",
+    "\\hat{A}",
+    "\\bar{z}",
+    "\\vec{v}",
+    "\\tilde{n}",
+    "\\dot{x}\\ddot{y}",
+    "\\widehat{AB}",
+    "\\widetilde{xyz}",
+    "\\overline{x+y}",
+    "\\underline{x+y}",
+    "a+b-c",
+    "a\\le b\\ge c",
+    "a=b\\ne c",
+    "x\\in A\\subseteq B",
+    "f\\colon X\\to Y",
+    "a\\cdot b\\times c",
+    "(a,b]",
+    "\\{x\\mid x>0\\}",
+    "\\|x\\|",
+    "\\mathbb{R}^n",
+    "\\mathcal{O}(n)",
+    "\\mathfrak{g}",
+    "\\alpha\\beta\\gamma\\delta",
+    "\\Gamma\\Delta\\Theta",
+    "\\varGamma\\varSigma\\varUpsilon\\varOmega_i x",
+    "\\overline I_l+\\underline{f}_i",
     "L''_{x'''}",
-    'A_1+A_2+\\dotsb',
-    '\\infty\\partial\\nabla',
-    '\\cdots\\ldots',
-    '\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}',
-    '\\begin{cases}1&x>0\\\\0&x\\le0\\end{cases}',
-    'x_1^2+x_2^2',
-    '\\lim_{x\\to0}\\frac{\\sin x}{x}',
-    '\\displaystyle\\sum_{\\substack{i<j\\\\i,j\\in S}} a_{ij}',
-    'e^{i\\pi}+1=0',
-    '\\int\\!\\!\\int f',
-    '\\frac{\\frac{a}{b}}{\\frac{c}{d}}',
-    '\\displaystyle\\frac{1}{\\sqrt{2\\pi}}',
-    '\\left(\\frac{\\displaystyle\\sum_{i}x_i}{n}\\right)^{\\!2}',
-    '\\Biggl\\{\\biggl[\\Bigl(\\bigl(x\\bigr)\\Bigr)\\biggr]\\Biggr\\}',
-    '\\left\\lfloor\\frac{n}{2}\\right\\rfloor',
-    '\\left\\lceil x\\right\\rceil',
-    '\\left.\\frac{df}{dx}\\right|_{x=0}',
-    '\\overbrace{a+b+c}^{n}',
-    '\\underbrace{x+\\cdots+x}_{k}',
-    '\\overrightarrow{AB}',
-    '\\bar{\\bar{x}}',
-    '\\hat{\\imath}\\,\\vec{\\jmath}',
-    '\\tilde{\\mathcal{A}}',
-    '\\widetilde{abcdef}',
-    '\\check{c}\\breve{u}\\acute{e}\\grave{a}',
-    'A\\otimes B\\oplus C',
-    'f\\circ g',
-    'a\\equiv b\\pmod{n}',
-    'x\\mapsto x^2',
-    'A\\Rightarrow B\\iff C',
-    '\\forall\\epsilon>0\\;\\exists\\delta',
-    '\\aleph_0<2^{\\aleph_0}',
-    '\\hbar\\omega',
-    '\\ell^p',
-    '\\Re z+\\Im z',
-    '\\varphi\\vartheta\\varepsilon\\varrho',
-    '\\Sigma\\Pi\\Omega\\Xi',
-    '\\mathbf{v}\\cdot\\mathbf{w}',
-    '\\bm{\\alpha}+\\bm{x}',
-    '\\mathrm{d}x\\,\\mathrm{d}y',
-    '\\sin^2\\theta+\\cos^2\\theta',
-    '\\log_2 n',
-    '\\det A^{-1}',
-    '\\begin{bmatrix}1&0\\\\0&1\\end{bmatrix}',
-    '\\begin{vmatrix}a&b\\\\c&d\\end{vmatrix}',
-    '\\displaystyle\\int_{-\\infty}^{\\infty}e^{-x^2}\\,dx=\\sqrt{\\pi}',
-    '\\sum\\nolimits_{k} a_k',
-    '\\prod_{p}\\frac{1}{1-p^{-s}}',
-    '\\displaystyle\\bigcap_{n=1}^\\infty A_n',
-    '\\displaystyle\\bigoplus_{i} V_i',
-    '\\coprod_i X_i',
-    '\\langle x,y\\rangle',
-    '\\lvert x\\rvert',
-    '\\lVert x\\rVert',
-    'a\\mid b\\nmid c',
-    'x\\leqslant y\\geqslant z',
-    'A\\subsetneq B\\supseteq C',
-    '\\emptyset\\varnothing',
-    'x\\notin\\mathbb{Q}',
-    'n!\\binom{n}{k}^{-1}',
-    '\\sqrt[n]{x^n+y^n}',
-    '\\sqrt{1+\\sqrt{1+\\sqrt{x}}}',
-    '\\displaystyle\\lim_{n\\to\\infty}\\Bigl(1+\\frac1n\\Bigr)^n',
-    'f^{(n)}(x)',
-    'x^{y^{z}}',
-    '{}_2F_1',
-    '\\dot{x}=Ax+Bu',
-    '\\nabla\\times\\mathbf{E}=-\\partial_t\\mathbf{B}',
-    '\\xl\\sum_{i=1}^n',
-    '\\XL\\int_0^1',
-    '\\overcbrace{a+b+c+d}^{4}',
-    'x\\longrightarrow y\\longleftarrow z',
-    'A\\Longrightarrow B\\Longleftarrow C',
-    'f\\colon A\\hookrightarrow B',
-    'a\\doteq b',
-    'x\\longmapsto y',
-    'P\\Longleftrightarrow Q',
-    '\\hbar\\neq\\hslash',
-    '\\PARENS{\\frac{a}{b}}',
-    '\\PARENS{\\displaystyle\\sum_{i=1}^n\\frac{x_i}{y_i}}',
-    '\\widehat{xyz}',
-    '\\widetilde{ABCDEFGH}',
-    '\\widecheck{uv}',
-    '\\widearc{AB}',
-    '\\SQRT{x}',
-    '\\SQRT[3]{x^2+1}',
-    '\\LEFTRIGHT\\langle\\rangle{\\frac{a}{b}}',
-    '\\ccases{1&x>0\\\\0&x\\le0}',
-    '\\undercbrace{x_1+x_2+x_3}_{n}',
-    '\\overcbrace{a+b+c+d+e+f+g+h+i}^{9}',
-    '\\XXXL\\int_0^1',
-    '\\XXL\\bigcup_{i}',
-    '\\left(x\\right)',
-    '\\left\\langle x\\right\\rangle',
-    '\\hat{f}\\tilde{g}\\bar{h}\\vec{k}',
-    '\\mathscr{C\\altC}\\mathcal{G}',
-    '\\mathscr{\\altC\\altG\\altz}',
-    '\\mathfrak{\\altY\\alty}',
-    '\\bm{x+\\alpha}\\hm{y}',
-    '\\mathbb{RN}',
-    '\\Biggl\\{x\\Biggr\\}',
-    'x_{\\hat{a}}',
-    'e^{\\tilde{x}+\\bar{y}}',
-    '2^{\\vec{v}}',
-    'x_{\\widehat{ab}}',
-    '\\frac{\\hat{a}}{\\dot{b}}',
-    'f_{\\frac12}',
-    'f_{(a)}',
-    'P_{\\mathrm{ab}}',
-    'V_{\\!a}',
-    'T_{-1}',
-    'x_{\\alpha}^{\\hat b}',
-    '\\Gamma_{i}^{j}',
-    '\\hat{x}_i',
-    '\\tilde{V}_{i}^{2}',
-    '{x}_i',
-    'f_{\\mathbb{R}}',
-    'y_{\\sqrt{a}}',
-    'x^{\\sqrt{\\frac{a}{b}}}',
-    'e^{\\sqrt[3]{x}}',
-    '\\frac{\\sqrt{a}}{\\sqrt{b}}',
-    'x_{\\sqrt{y_{\\sqrt{z}}}}',
-    '\\boldmath x+\\alpha\\sum_{i}',
-    '\\mathversion{heavy}\\sum_{i}\\int',
-    '\\bm{\\hat{x}}_i',
-    '\\bm{x}_i',
-    '\\displaystyle\\int\\limits_0^1 f',
-    '\\displaystyle\\sum\\nolimits_{i} a_i',
-    '\\sum\\limits_{i=1}^n',
-    '\\displaystyle\\slsum_{i=1}^n\\slprod_k',
-    '\\textstyle\\slsum\\limits_{i}',
-    '\\bm{\\alpha}_k',
-    '\\bm{\\Gamma}^2',
-    '\\hm{y}_j',
-    '\\bm{\\tilde{n}}',
-    '\\bm{\\sum}',
-    '\\bm{2\\pi r}',
-    '\\bm{\\mathcal{A}}+\\bm{\\partial f}',
-    '\\bm{\\int_0^1 f}',
-    'a\\bm{\\le}b',
-    '\\bm{\\epsilon\\varepsilon\\phi\\varphi\\vartheta\\ell}',
-    '\\bm{a^{2}_{k}}',
-    '\\bm{\\sqrt{y}}',
-    'x_{\\bm{v}+\\bm{w}}',
-    '\\bm{A}\\bm{x}=\\bm{b}',
-    '\\mathbf{A}^{T}\\mathbf{x}',
-    '\\mathrm{d}x\\wedge\\mathrm{d}y',
-    '\\mathit{diff}',
-    '\\operatorname{tr}(A)',
-    '\\lim\\sup_{n}x_n',
-    '\\left(\\begin{array}{cc}a&b\\\\c&d\\end{array}\\right)',
-    '\\sum_{\\substack{0\\le i\\le m\\\\0<j<n}}P(i,j)',
-    '\\int_{\\partial\\Omega}u\\,\\nabla v\\cdot n\\,ds',
-    '\\|u\\|_{H^1(\\Omega)}^2',
+    "A_1+A_2+\\dotsb",
+    "\\infty\\partial\\nabla",
+    "\\cdots\\ldots",
+    "\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}",
+    "\\begin{cases}1&x>0\\\\0&x\\le0\\end{cases}",
+    "x_1^2+x_2^2",
+    "\\lim_{x\\to0}\\frac{\\sin x}{x}",
+    "\\displaystyle\\sum_{\\substack{i<j\\\\i,j\\in S}} a_{ij}",
+    "e^{i\\pi}+1=0",
+    "\\int\\!\\!\\int f",
+    "\\frac{\\frac{a}{b}}{\\frac{c}{d}}",
+    "\\displaystyle\\frac{1}{\\sqrt{2\\pi}}",
+    "\\left(\\frac{\\displaystyle\\sum_{i}x_i}{n}\\right)^{\\!2}",
+    "\\Biggl\\{\\biggl[\\Bigl(\\bigl(x\\bigr)\\Bigr)\\biggr]\\Biggr\\}",
+    "\\left\\lfloor\\frac{n}{2}\\right\\rfloor",
+    "\\left\\lceil x\\right\\rceil",
+    "\\left.\\frac{df}{dx}\\right|_{x=0}",
+    "\\overbrace{a+b+c}^{n}",
+    "\\underbrace{x+\\cdots+x}_{k}",
+    "\\overrightarrow{AB}",
+    "\\bar{\\bar{x}}",
+    "\\hat{\\imath}\\,\\vec{\\jmath}",
+    "\\tilde{\\mathcal{A}}",
+    "\\widetilde{abcdef}",
+    "\\check{c}\\breve{u}\\acute{e}\\grave{a}",
+    "A\\otimes B\\oplus C",
+    "f\\circ g",
+    "a\\equiv b\\pmod{n}",
+    "x\\mapsto x^2",
+    "A\\Rightarrow B\\iff C",
+    "\\forall\\epsilon>0\\;\\exists\\delta",
+    "\\aleph_0<2^{\\aleph_0}",
+    "\\hbar\\omega",
+    "\\ell^p",
+    "\\Re z+\\Im z",
+    "\\varphi\\vartheta\\varepsilon\\varrho",
+    "\\Sigma\\Pi\\Omega\\Xi",
+    "\\mathbf{v}\\cdot\\mathbf{w}",
+    "\\bm{\\alpha}+\\bm{x}",
+    "\\mathrm{d}x\\,\\mathrm{d}y",
+    "\\sin^2\\theta+\\cos^2\\theta",
+    "\\log_2 n",
+    "\\det A^{-1}",
+    "\\begin{bmatrix}1&0\\\\0&1\\end{bmatrix}",
+    "\\begin{vmatrix}a&b\\\\c&d\\end{vmatrix}",
+    "\\displaystyle\\int_{-\\infty}^{\\infty}e^{-x^2}\\,dx=\\sqrt{\\pi}",
+    "\\sum\\nolimits_{k} a_k",
+    "\\prod_{p}\\frac{1}{1-p^{-s}}",
+    "\\displaystyle\\bigcap_{n=1}^\\infty A_n",
+    "\\displaystyle\\bigoplus_{i} V_i",
+    "\\coprod_i X_i",
+    "\\langle x,y\\rangle",
+    "\\lvert x\\rvert",
+    "\\lVert x\\rVert",
+    "a\\mid b\\nmid c",
+    "x\\leqslant y\\geqslant z",
+    "A\\subsetneq B\\supseteq C",
+    "\\emptyset\\varnothing",
+    "x\\notin\\mathbb{Q}",
+    "n!\\binom{n}{k}^{-1}",
+    "\\sqrt[n]{x^n+y^n}",
+    "\\sqrt{1+\\sqrt{1+\\sqrt{x}}}",
+    "\\displaystyle\\lim_{n\\to\\infty}\\Bigl(1+\\frac1n\\Bigr)^n",
+    "f^{(n)}(x)",
+    "x^{y^{z}}",
+    "{}_2F_1",
+    "\\dot{x}=Ax+Bu",
+    "\\nabla\\times\\mathbf{E}=-\\partial_t\\mathbf{B}",
+    "\\xl\\sum_{i=1}^n",
+    "\\XL\\int_0^1",
+    "\\overcbrace{a+b+c+d}^{4}",
+    "x\\longrightarrow y\\longleftarrow z",
+    "A\\Longrightarrow B\\Longleftarrow C",
+    "f\\colon A\\hookrightarrow B",
+    "a\\doteq b",
+    "x\\longmapsto y",
+    "P\\Longleftrightarrow Q",
+    "\\hbar\\neq\\hslash",
+    "\\PARENS{\\frac{a}{b}}",
+    "\\PARENS{\\displaystyle\\sum_{i=1}^n\\frac{x_i}{y_i}}",
+    "\\widehat{xyz}",
+    "\\widetilde{ABCDEFGH}",
+    "\\widecheck{uv}",
+    "\\widearc{AB}",
+    "\\SQRT{x}",
+    "\\SQRT[3]{x^2+1}",
+    "\\LEFTRIGHT\\langle\\rangle{\\frac{a}{b}}",
+    "\\ccases{1&x>0\\\\0&x\\le0}",
+    "\\undercbrace{x_1+x_2+x_3}_{n}",
+    "\\overcbrace{a+b+c+d+e+f+g+h+i}^{9}",
+    "\\XXXL\\int_0^1",
+    "\\XXL\\bigcup_{i}",
+    "\\left(x\\right)",
+    "\\left\\langle x\\right\\rangle",
+    "\\hat{f}\\tilde{g}\\bar{h}\\vec{k}",
+    "\\mathscr{C\\altC}\\mathcal{G}",
+    "\\mathscr{\\altC\\altG\\altz}",
+    "\\mathfrak{\\altY\\alty}",
+    "\\bm{x+\\alpha}\\hm{y}",
+    "\\mathbb{RN}",
+    "\\Biggl\\{x\\Biggr\\}",
+    "x_{\\hat{a}}",
+    "e^{\\tilde{x}+\\bar{y}}",
+    "2^{\\vec{v}}",
+    "x_{\\widehat{ab}}",
+    "\\frac{\\hat{a}}{\\dot{b}}",
+    "f_{\\frac12}",
+    "f_{(a)}",
+    "P_{\\mathrm{ab}}",
+    "V_{\\!a}",
+    "T_{-1}",
+    "x_{\\alpha}^{\\hat b}",
+    "\\Gamma_{i}^{j}",
+    "\\hat{x}_i",
+    "\\tilde{V}_{i}^{2}",
+    "{x}_i",
+    "f_{\\mathbb{R}}",
+    "y_{\\sqrt{a}}",
+    "x^{\\sqrt{\\frac{a}{b}}}",
+    "e^{\\sqrt[3]{x}}",
+    "\\frac{\\sqrt{a}}{\\sqrt{b}}",
+    "x_{\\sqrt{y_{\\sqrt{z}}}}",
+    "\\boldmath x+\\alpha\\sum_{i}",
+    "\\mathversion{heavy}\\sum_{i}\\int",
+    "\\bm{\\hat{x}}_i",
+    "\\bm{x}_i",
+    "\\displaystyle\\int\\limits_0^1 f",
+    "\\displaystyle\\sum\\nolimits_{i} a_i",
+    "\\sum\\limits_{i=1}^n",
+    "\\displaystyle\\slsum_{i=1}^n\\slprod_k",
+    "\\textstyle\\slsum\\limits_{i}",
+    "\\bm{\\alpha}_k",
+    "\\bm{\\Gamma}^2",
+    "\\hm{y}_j",
+    "\\bm{\\tilde{n}}",
+    "\\bm{\\sum}",
+    "\\bm{2\\pi r}",
+    "\\bm{\\mathcal{A}}+\\bm{\\partial f}",
+    "\\bm{\\int_0^1 f}",
+    "a\\bm{\\le}b",
+    "\\bm{\\epsilon\\varepsilon\\phi\\varphi\\vartheta\\ell}",
+    "\\bm{a^{2}_{k}}",
+    "\\bm{\\sqrt{y}}",
+    "x_{\\bm{v}+\\bm{w}}",
+    "\\bm{A}\\bm{x}=\\bm{b}",
+    "\\mathbf{A}^{T}\\mathbf{x}",
+    "\\mathrm{d}x\\wedge\\mathrm{d}y",
+    "\\mathit{diff}",
+    "\\operatorname{tr}(A)",
+    "\\lim\\sup_{n}x_n",
+    "\\left(\\begin{array}{cc}a&b\\\\c&d\\end{array}\\right)",
+    "\\sum_{\\substack{0\\le i\\le m\\\\0<j<n}}P(i,j)",
+    "\\int_{\\partial\\Omega}u\\,\\nabla v\\cdot n\\,ds",
+    "\\|u\\|_{H^1(\\Omega)}^2",
     "u''(x)+u'(x)",
-    '\\mathcal{L}\\{f\\}(s)',
-    '\\overline{\\overline{AB}}',
-    '\\underline{\\underline{x}}',
-    'x\\overset{!}{=}y',
-    '\\xrightarrow{f}',
-    '\\stackrel{\\mathrm{def}}{=}',
+    "\\mathcal{L}\\{f\\}(s)",
+    "\\overline{\\overline{AB}}",
+    "\\underline{\\underline{x}}",
+    "x\\overset{!}{=}y",
+    "\\xrightarrow{f}",
+    "\\stackrel{\\mathrm{def}}{=}",
 ]
+
 
 def stress_formulas(inp: "Inputs") -> list[tuple[str, str]]:
     """--stress: many more formulas, (family, formula), grouped by where TeX and OpenType math
@@ -4744,8 +5251,6 @@ def stress_formulas(inp: "Inputs") -> list[tuple[str, str]]:
     syms = [d for d in inp.decls if d.kind == "symbol" and d.cmd.startswith("\\") and "@" not in d.cmd]
     cls = {d.cmd: d.cls for d in syms}
     ords = [d.cmd for d in syms if d.cls in ("\\mathord", "\\mathalpha")]
-    bins = [d.cmd for d in syms if d.cls == "\\mathbin"]
-    rels = [d.cmd for d in syms if d.cls == "\\mathrel"]
     ops = [d.cmd for d in syms if d.cls == "\\mathop"]
     latin = [chr(c) for c in range(65, 91)] + [chr(c) for c in range(97, 123)]
     greek = [c for c in ords if c.lstrip("\\") in GREEK]
@@ -4766,10 +5271,23 @@ def stress_formulas(inp: "Inputs") -> list[tuple[str, str]]:
     for k in letters + [c for c in ords if c not in greek][:80]:
         add("scripts", f"{k}_i", f"{k}^2", f"{k}_i^2", f"{k}_{{ij}}^{{2}}")
     for k in ["f", "T", "V", "W", "P", "Y", "\\Gamma", "\\Upsilon", "\\Psi", "\\beta", "\\rho"]:
-        add("scripts-compound", f"{k}_{{\\frac12}}", f"{k}_{{\\sqrt{{x}}}}", f"{k}_{{\\mbox{{a}}}}",
-            f"{k}_{{}}^2", f"{k}_{{\\scriptscriptstyle i}}", f"{k}_{{x_i}}", f"{k}_{{(n)}}",
-            f"{k}_{{.}}", f"{k}'", f"{k}''_i", f"{k}^{{\\prime}}_{{\\!i}}", f"{{{k}}}_i",
-            f"\\mathop{{{k}}}\\nolimits_i", f"{k}_{{\\left(x\\right)}}")
+        add(
+            "scripts-compound",
+            f"{k}_{{\\frac12}}",
+            f"{k}_{{\\sqrt{{x}}}}",
+            f"{k}_{{\\mbox{{a}}}}",
+            f"{k}_{{}}^2",
+            f"{k}_{{\\scriptscriptstyle i}}",
+            f"{k}_{{x_i}}",
+            f"{k}_{{(n)}}",
+            f"{k}_{{.}}",
+            f"{k}'",
+            f"{k}''_i",
+            f"{k}^{{\\prime}}_{{\\!i}}",
+            f"{{{k}}}_i",
+            f"\\mathop{{{k}}}\\nolimits_i",
+            f"{k}_{{\\left(x\\right)}}",
+        )
     # 3. accents on letters (italic corrections, skew kerns, scripts, sizes)
     accents = [d.cmd for d in inp.decls if d.kind == "accent" and "@" not in d.cmd]
     for a in accents:
@@ -4783,20 +5301,42 @@ def stress_formulas(inp: "Inputs") -> list[tuple[str, str]]:
     by_slot = {d.slot: d.cmd for d in syms if d.fam == "letters"}
     for c in latin:
         by_slot.setdefault(ord(c), c)
-    kerns = sorted(((abs(k), a, b) for (a, b), k in inp_kerns(inp).items()
-                    if a in by_slot and b in by_slot), reverse=True)
+    kerns = sorted(
+        ((abs(k), a, b) for (a, b), k in inp_kerns(inp).items() if a in by_slot and b in by_slot),
+        reverse=True,
+    )
     for _, a, b in kerns[:150]:
         add("kern", f"{by_slot[a]} {by_slot[b]}", f"{by_slot[a]} {by_slot[b]}_i")
     add("kern", "\\partial f", "\\partial_x f", "A\\Alpha V", "x|y|", "x\\mid y", "\\nabla f")
     # 5. operators: limits, display/text, scripts
     for o in ops:
-        add("operator", f"{o}_{{i=1}}^n", f"\\displaystyle{o}_{{i=1}}^n", f"\\displaystyle{o}\\limits_i",
-            f"{o}\\limits_{{i}}^{{n}}", f"\\displaystyle{o}\\nolimits_i^n", f"x_{{{o}_i}}")
+        add(
+            "operator",
+            f"{o}_{{i=1}}^n",
+            f"\\displaystyle{o}_{{i=1}}^n",
+            f"\\displaystyle{o}\\limits_i",
+            f"{o}\\limits_{{i}}^{{n}}",
+            f"\\displaystyle{o}\\nolimits_i^n",
+            f"x_{{{o}_i}}",
+        )
     # 6. growing symbols: every delimiter around content of increasing height
-    delims = [d.cmd for d in inp.decls if d.kind == "delimiter" and "@" not in d.cmd] + ["(", "[", "|", "\\|", "/"]
-    tall = ["x", "x^2", "\\frac{a}{b}", "\\dfrac{a}{b}", "\\frac{\\frac{a}{b}}{c}",
-            "\\begin{matrix}a\\\\b\\\\c\\end{matrix}", "\\begin{matrix}a\\\\b\\\\c\\\\d\\\\e\\end{matrix}",
-            "\\begin{matrix}a\\\\b\\\\c\\\\d\\\\e\\\\f\\\\g\\\\h\\end{matrix}"]
+    delims = [d.cmd for d in inp.decls if d.kind == "delimiter" and "@" not in d.cmd] + [
+        "(",
+        "[",
+        "|",
+        "\\|",
+        "/",
+    ]
+    tall = [
+        "x",
+        "x^2",
+        "\\frac{a}{b}",
+        "\\dfrac{a}{b}",
+        "\\frac{\\frac{a}{b}}{c}",
+        "\\begin{matrix}a\\\\b\\\\c\\end{matrix}",
+        "\\begin{matrix}a\\\\b\\\\c\\\\d\\\\e\\end{matrix}",
+        "\\begin{matrix}a\\\\b\\\\c\\\\d\\\\e\\\\f\\\\g\\\\h\\end{matrix}",
+    ]
     for d in dict.fromkeys(delims):
         for t in tall:
             add("delimiter", f"\\left{d} {t}\\right.")
@@ -4807,24 +5347,92 @@ def stress_formulas(inp: "Inputs") -> list[tuple[str, str]]:
         add("radical", f"\\sqrt{{{t}}}", f"\\sqrt[3]{{{t}}}", f"x_{{\\sqrt{{{t}}}}}", f"x^{{\\sqrt{{{t}}}}}")
     # 8. fractions and stacks in every style
     for st in ("\\displaystyle", "\\textstyle", "\\scriptstyle", "\\scriptscriptstyle"):
-        add("fraction", f"{st}\\frac{{a}}{{b}}", f"{st}\\binom{{n}}{{k}}", f"{st}{{a\\atop b}}",
-            f"{st}\\frac{{x^2}}{{y_i}}", f"{st}\\overline{{x}}", f"{st}\\underline{{y}}",
-            f"{st}\\overbrace{{a+b}}^{{n}}", f"{st}\\underbrace{{a+b}}_{{n}}", f"{st}\\stackrel{{a}}{{=}}",
-            f"{st}\\sqrt{{x}}", f"{st} x_i^2", f"{st}\\hat{{x}}")
+        add(
+            "fraction",
+            f"{st}\\frac{{a}}{{b}}",
+            f"{st}\\binom{{n}}{{k}}",
+            f"{st}{{a\\atop b}}",
+            f"{st}\\frac{{x^2}}{{y_i}}",
+            f"{st}\\overline{{x}}",
+            f"{st}\\underline{{y}}",
+            f"{st}\\overbrace{{a+b}}^{{n}}",
+            f"{st}\\underbrace{{a+b}}_{{n}}",
+            f"{st}\\stackrel{{a}}{{=}}",
+            f"{st}\\sqrt{{x}}",
+            f"{st} x_i^2",
+            f"{st}\\hat{{x}}",
+        )
     # 8b. alphabets: grouping (scripts attach to the whole), kerns, the alternates
-    for al in ("\\mathscr", "\\mathcal", "\\mathfrak", "\\mathbb", "\\mathbf", "\\mathrm",
-               "\\mathit", "\\mathsf", "\\mathtt", "\\mathcurly", "\\mathbbdark"):
-        add("alphabet", f"{al}{{A}}", f"{al}{{AB}}^2", f"{al}{{xy}}_i", f"x{al}{{T}}y",
-            f"{al}{{A}}{al}{{V}}", f"\\hat{{{al}{{A}}}}", f"{al}{{A}}'")
-    add("alphabet", "\\mathscr{\\altC\\altG\\altz}", "\\mathfrak{\\altY\\alty\\altx}",
-        "\\mathcurly{\\altG\\altM\\altN\\altQ\\altY}", "\\mathcal{\\altC}x",
-        "\\mathscr{A\\altL}^2", "\\mathfrak{g}_{\\altY}")
+    for al in (
+        "\\mathscr",
+        "\\mathcal",
+        "\\mathfrak",
+        "\\mathbb",
+        "\\mathbf",
+        "\\mathrm",
+        "\\mathit",
+        "\\mathsf",
+        "\\mathtt",
+        "\\mathcurly",
+        "\\mathbbdark",
+    ):
+        add(
+            "alphabet",
+            f"{al}{{A}}",
+            f"{al}{{AB}}^2",
+            f"{al}{{xy}}_i",
+            f"x{al}{{T}}y",
+            f"{al}{{A}}{al}{{V}}",
+            f"\\hat{{{al}{{A}}}}",
+            f"{al}{{A}}'",
+        )
+    add(
+        "alphabet",
+        "\\mathscr{\\altC\\altG\\altz}",
+        "\\mathfrak{\\altY\\alty\\altx}",
+        "\\mathcurly{\\altG\\altM\\altN\\altQ\\altY}",
+        "\\mathcal{\\altC}x",
+        "\\mathscr{A\\altL}^2",
+        "\\mathfrak{g}_{\\altY}",
+    )
     # 9. \bm on all of the above kinds
-    for f in ["x", "\\alpha", "\\Gamma", "2", "+", "=", "\\le", "\\sum", "\\int", "\\partial",
-              "\\nabla", "\\infty", "\\hat{x}", "\\vec{v}", "\\widehat{xy}", "x_i^2", "\\frac{a}{b}",
-              "\\sqrt{x}", "\\sqrt[3]{x}", "\\left(x\\right)", "(x)", "\\sum_{i=1}^n x_i",
-              "\\mathcal{A}", "\\mathbb{R}", "\\mathfrak{g}", "\\mathrm{d}", "\\mathbf{x}",
-              "f'", "\\cdot", "\\times", "\\{x\\}", "|x|", "\\langle x\\rangle", "\\ell", "\\imath"]:
+    for f in [
+        "x",
+        "\\alpha",
+        "\\Gamma",
+        "2",
+        "+",
+        "=",
+        "\\le",
+        "\\sum",
+        "\\int",
+        "\\partial",
+        "\\nabla",
+        "\\infty",
+        "\\hat{x}",
+        "\\vec{v}",
+        "\\widehat{xy}",
+        "x_i^2",
+        "\\frac{a}{b}",
+        "\\sqrt{x}",
+        "\\sqrt[3]{x}",
+        "\\left(x\\right)",
+        "(x)",
+        "\\sum_{i=1}^n x_i",
+        "\\mathcal{A}",
+        "\\mathbb{R}",
+        "\\mathfrak{g}",
+        "\\mathrm{d}",
+        "\\mathbf{x}",
+        "f'",
+        "\\cdot",
+        "\\times",
+        "\\{x\\}",
+        "|x|",
+        "\\langle x\\rangle",
+        "\\ell",
+        "\\imath",
+    ]:
         add("bm", f"\\bm{{{f}}}", f"a\\bm{{{f}}}b", f"x_{{\\bm{{{f}}}}}")
     add("bm", "\\hm{x+\\alpha}", "\\hm{\\sum}", "\\hm{\\partial f}", "\\bm{x}\\hm{x}x")
     # 10. mtpro2.sty's macros
@@ -4832,11 +5440,27 @@ def stress_formulas(inp: "Inputs") -> list[tuple[str, str]]:
         for x in ("\\xl", "\\XL", "\\XXL", "\\XXXL"):
             add("macro", f"{x}{o}_{{i=1}}^n")
     for t in ("x", "\\frac{a}{b}", "\\dfrac{a}{b}", "\\begin{matrix}a\\\\b\\\\c\\end{matrix}"):
-        add("macro", f"\\PARENS{{{t}}}", f"\\LEFTRIGHT[]{{{t}}}", f"\\LEFTRIGHT\\{{\\}}{{{t}}}",
-            f"\\LEFTRIGHT\\langle\\rangle{{{t}}}", f"\\LEFTRIGHT||{{{t}}}", f"\\SQRT{{{t}}}", f"\\SQRT[n]{{{t}}}")
-    add("macro", "\\ccases{1&x>0\\\\0&x\\le0}", "\\ccases{a&b\\\\c&d\\\\e&f}",
-        "\\overcbrace{a+b}^{2}", "\\undercbrace{a+b+c}_{3}", "\\widearc{AB}", "\\widearc{ABCD}",
-        "\\ROOT 3\\OF{x}", "\\UPROOT{2}\\LEFTROOT{-1}\\SQRT[3]{x}")
+        add(
+            "macro",
+            f"\\PARENS{{{t}}}",
+            f"\\LEFTRIGHT[]{{{t}}}",
+            f"\\LEFTRIGHT\\{{\\}}{{{t}}}",
+            f"\\LEFTRIGHT\\langle\\rangle{{{t}}}",
+            f"\\LEFTRIGHT||{{{t}}}",
+            f"\\SQRT{{{t}}}",
+            f"\\SQRT[n]{{{t}}}",
+        )
+    add(
+        "macro",
+        "\\ccases{1&x>0\\\\0&x\\le0}",
+        "\\ccases{a&b\\\\c&d\\\\e&f}",
+        "\\overcbrace{a+b}^{2}",
+        "\\undercbrace{a+b+c}_{3}",
+        "\\widearc{AB}",
+        "\\widearc{ABCD}",
+        "\\ROOT 3\\OF{x}",
+        "\\UPROOT{2}\\LEFTROOT{-1}\\SQRT[3]{x}",
+    )
     return out
 
 
@@ -4928,11 +5552,12 @@ def same_layout(a: dict, b: dict, tol: float = 0.01) -> str | None:
         return f"width {a['box'][0]:.3f}pt vs {b['box'][0]:.3f}pt"
     ia = sorted(a["items"], key=lambda t: (round(t[1], 1), round(t[2], 1)))
     ib = sorted(b["items"], key=lambda t: (round(t[1], 1), round(t[2], 1)))
-    if len(ia) != len(ib):      # composed glyphs (\cdots, '') - compare the extents
+    if len(ia) != len(ib):  # composed glyphs (\cdots, '') - compare the extents
         ext = lambda its: (min(t[1] for t in its), max(t[1] + t[3] for t in its))
         ea, eb = ext(ia), ext(ib)
         ok = all(abs(x - y) <= tol for x, y in zip(ea, eb))
         return None if ok else f"extent {ea[0]:.2f}-{ea[1]:.2f}pt vs {eb[0]:.2f}-{eb[1]:.2f}pt"
+
     def offset(p, q):
         dy, dh, dd = q[2] - p[2], q[4] - p[4], q[5] - p[5]
         if p[0] == "G" and abs(dh + dd) < 0.03 and abs(dh) > 0.03:
@@ -4941,8 +5566,9 @@ def same_layout(a: dict, b: dict, tol: float = 0.01) -> str | None:
         if p[0] == "R":
             d = max(d, abs(q[3] - p[3]), abs(dh), abs(dd))
         return d if p[0] == q[0] else 1e9
+
     worst, left = 0.0, list(ib)
-    for p in ia:                # pair every item with the nearest one of the same kind
+    for p in ia:  # pair every item with the nearest one of the same kind
         q = min(left, key=lambda q: offset(p, q))
         left.remove(q)
         worst = max(worst, offset(p, q))
@@ -4963,11 +5589,22 @@ T1_SCALE = r"""\directlua{
 # Greek in every style the packages' options choose (slantedGreek: italic capitals), with the
 # upright constants of ISO 80000-2 (\uppi, \mathrm{e}, \mathrm{i})
 GREEK_FORMULAS = [
-    r"\Gamma\Delta\Theta\Lambda\Xi\Pi\Sigma\Upsilon\Phi\Psi\Omega", r"\Gamma_i^2+\Omega^{n}_{k}",
-    r"x\Delta y\,\Delta t", r"\mathrm{\Gamma\Delta\Omega}", r"\mathbf{\Gamma\Omega}",
-    r"\bm{\Gamma}\bm{\Omega}_i", r"\bm{\Delta}x", r"\upGamma\upDelta\upOmega", r"\uppi r^2",
-    r"\mathrm{e}^{\mathrm{i}\uppi}+1=0", r"\alpha\beta\gamma\pi\omega", r"\bm{\alpha}\bm{\pi}",
-    r"\hat{\Gamma}\tilde{\Omega}_k", r"\dot{\Phi}(t)", r"\sum_{\Gamma}\Psi", r"f(\Lambda)\,d\Theta",
+    r"\Gamma\Delta\Theta\Lambda\Xi\Pi\Sigma\Upsilon\Phi\Psi\Omega",
+    r"\Gamma_i^2+\Omega^{n}_{k}",
+    r"x\Delta y\,\Delta t",
+    r"\mathrm{\Gamma\Delta\Omega}",
+    r"\mathbf{\Gamma\Omega}",
+    r"\bm{\Gamma}\bm{\Omega}_i",
+    r"\bm{\Delta}x",
+    r"\upGamma\upDelta\upOmega",
+    r"\uppi r^2",
+    r"\mathrm{e}^{\mathrm{i}\uppi}+1=0",
+    r"\alpha\beta\gamma\pi\omega",
+    r"\bm{\alpha}\bm{\pi}",
+    r"\hat{\Gamma}\tilde{\Omega}_k",
+    r"\dot{\Phi}(t)",
+    r"\sum_{\Gamma}\Psi",
+    r"f(\Lambda)\,d\Theta",
 ]
 
 # A document like a thesis: tagged PDF/UA-2 with MathML, babel, fontspec, microtype (protrusion
@@ -5061,8 +5698,14 @@ end, "doctest")
 """
 
 
-def doctest(work: Path, t1: str, otf: str, env: dict, label: str,
-            text: str = r"\usepackage{fontspec}\setmainfont{TeX Gyre Termes}") -> int:
+def doctest(
+    work: Path,
+    t1: str,
+    otf: str,
+    env: dict,
+    label: str,
+    text: str = r"\usepackage{fontspec}\setmainfont{TeX Gyre Termes}",
+) -> int:
     """Typeset DOCTEST_BODY with the Type 1 set-up (t1) and the OpenType one (otf): errors,
     tagging warnings, pages, and where every glyph outside maths lands (within 0.01pt)."""
     (work / "doctest-dump.lua").write_text(DOCTEST_LUA)
@@ -5072,24 +5715,40 @@ def doctest(work: Path, t1: str, otf: str, env: dict, label: str,
     res = {}
     for job in ("doc_t1", "doc_otf"):
         for _ in range(2):
-            subprocess.run(["lualatex", "-interaction=nonstopmode", job + ".tex"], cwd=work, env=env,
-                           capture_output=True, text=True, timeout=1800)
+            subprocess.run(
+                ["lualatex", "-interaction=nonstopmode", job + ".tex"],
+                cwd=work,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=1800,
+            )
         log = (work / f"{job}.log").read_text(errors="replace") if (work / f"{job}.log").exists() else ""
         dump = (work / f"{job}.doc").read_text().split("\n") if (work / f"{job}.doc").exists() else []
-        res[job] = {"errors": len(re.findall(r"^! |^\[\\directlua\]:\d+:", log, re.M)),   # (Lua errors too)
-                    "tagwarn": len(re.findall(r"(?:Package|Module) (?:tagpdf|luamml|latex-lab)\S* Warning", log)),
-                    "glyphs": [tuple(map(int, l.split())) for l in dump if l]}
+        res[job] = {
+            "errors": len(re.findall(r"^! |^\[\\directlua\]:\d+:", log, re.M)),  # (Lua errors too)
+            "tagwarn": len(re.findall(r"(?:Package|Module) (?:tagpdf|luamml|latex-lab)\S* Warning", log)),
+            "glyphs": [tuple(map(int, l.split())) for l in dump if l],
+        }
     a, b = res["doc_t1"]["glyphs"], res["doc_otf"]["glyphs"]
     pages = lambda g: max((x[0] for x in g), default=0)
-    moved = [(u, v) for u, v in zip(a, b) if u[1] != v[1] or u[0] != v[0] or abs(u[2] - v[2]) > 655 or abs(u[3] - v[3]) > 655]
+    moved = [
+        (u, v)
+        for u, v in zip(a, b)
+        if u[1] != v[1] or u[0] != v[0] or abs(u[2] - v[2]) > 655 or abs(u[3] - v[3]) > 655
+    ]
     worst = max([max(abs(u[2] - v[2]), abs(u[3] - v[3])) for u, v in zip(a, b)] or [0]) / 65536
     ok = len(a) == len(b) and not moved and res["doc_otf"]["errors"] == 0
-    print(f"document ({label}): {'same' if ok else 'DIFFERENT'}: pages {pages(a)}/{pages(b)}, "
-          f"text glyphs {len(a)}/{len(b)}, moved {len(moved)} (max {worst:.3f}pt); "
-          f"errors {res['doc_t1']['errors']}/{res['doc_otf']['errors']}, "
-          f"tagging warnings {res['doc_t1']['tagwarn']}/{res['doc_otf']['tagwarn']} (Type 1/OpenType)")
+    print(
+        f"document ({label}): {'same' if ok else 'DIFFERENT'}: pages {pages(a)}/{pages(b)}, "
+        f"text glyphs {len(a)}/{len(b)}, moved {len(moved)} (max {worst:.3f}pt); "
+        f"errors {res['doc_t1']['errors']}/{res['doc_otf']['errors']}, "
+        f"tagging warnings {res['doc_t1']['tagwarn']}/{res['doc_otf']['tagwarn']} (Type 1/OpenType)"
+    )
     for u, v in moved[:5]:
-        print(f"  page {u[0]} {chr(u[1])!r} at ({u[2] / 65536:.2f}, {u[3] / 65536:.2f}) -> ({v[2] / 65536:.2f}, {v[3] / 65536:.2f})")
+        print(
+            f"  page {u[0]} {chr(u[1])!r} at ({u[2] / 65536:.2f}, {u[3] / 65536:.2f}) -> ({v[2] / 65536:.2f}, {v[3] / 65536:.2f})"
+        )
     # \qty{4.5}{\degree}: its width, the text a reader copies, and its MathML (tagged PDF): the
     # width of the Type 1 set-up's {}^{\circ}, but the character U+00B0
     deg = {}
@@ -5113,8 +5772,10 @@ def doctest(work: Path, t1: str, otf: str, env: dict, label: str,
     (wa, ca, ma), (wb, cb, mb) = deg["doc_t1"], deg["doc_otf"]
     dok = wa is not None and wb is not None and abs(wa - wb) < 0.01 and "°" in cb and "°</mi>" in mb
     ok = ok and dok
-    print(f"  \\qty{{4.5}}{{\\degree}}: {'ok' if dok else 'DIFFERENT'}: width {wa}/{wb}pt, copied "
-          f"{ca!r}/{cb!r} (Type 1/OpenType)")
+    print(
+        f"  \\qty{{4.5}}{{\\degree}}: {'ok' if dok else 'DIFFERENT'}: width {wa}/{wb}pt, copied "
+        f"{ca!r}/{cb!r} (Type 1/OpenType)"
+    )
     print(f"    MathML Type 1:   {ma}")
     print(f"    MathML OpenType: {mb}")
     # PDF/A-4f and PDF/UA-2 validation, when veraPDF is installed (https://verapdf.org)
@@ -5123,9 +5784,20 @@ def doctest(work: Path, t1: str, otf: str, env: dict, label: str,
         res = []
         for flavour, label in (("4f", "PDF/A-4f"), ("ua2", "PDF/UA-2")):
             for job in ("doc_t1", "doc_otf"):
-                r = subprocess.run([vera, "--flavour", flavour, "--format", "text", f"{job}.pdf"], cwd=work,
-                                   capture_output=True, text=True, timeout=600)
-                verdict = "pass" if re.search(r"^PASS", r.stdout, re.M) else "FAIL" if re.search(r"^FAIL", r.stdout, re.M) else "?"
+                r = subprocess.run(
+                    [vera, "--flavour", flavour, "--format", "text", f"{job}.pdf"],
+                    cwd=work,
+                    capture_output=True,
+                    text=True,
+                    timeout=600,
+                )
+                verdict = (
+                    "pass"
+                    if re.search(r"^PASS", r.stdout, re.M)
+                    else "FAIL"
+                    if re.search(r"^FAIL", r.stdout, re.M)
+                    else "?"
+                )
                 res.append(f"{label} {'Type 1' if job == 'doc_t1' else 'OpenType'} {verdict}")
                 ok = ok and not (job == "doc_otf" and verdict == "FAIL")
         print("  veraPDF: " + ", ".join(res))
@@ -5134,9 +5806,16 @@ def doctest(work: Path, t1: str, otf: str, env: dict, label: str,
     return 0 if ok else 1
 
 
-def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: str | None = None,
-             scale: float = 1.0, stress: bool = False, size: float | None = None,
-             document: bool = False) -> int:
+def selftest(
+    folder: Path,
+    work: Path | None = None,
+    dpi: int = 600,
+    options: str | None = None,
+    scale: float = 1.0,
+    stress: bool = False,
+    size: float | None = None,
+    document: bool = False,
+) -> int:
     """Build the fonts, typeset SELFTEST_FORMULAS with the Type 1 fonts (mtpro2.sty) and the
     OpenType fonts (mtpro2-otf.sty); compare where TeX placed every glyph and rule, and the
     rendered pages (which also differ where the rasteriser hints the Type 1 fonts)."""
@@ -5150,12 +5829,14 @@ def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: st
         print("(Pillow not installed: skipping the pixel comparison)")
     import os
     import tempfile
+
     work = Path(work or tempfile.mkdtemp(prefix="mtpro2-selftest-")).resolve()
     work.mkdir(parents=True, exist_ok=True)
     print(f"building the fonts in {work}")
-    convert(folder, work / "Fonts", quiet=True)     # in a subfolder, found through TEXINPUTS
-    try:                                            # optional: pip install opentype-sanitizer
+    convert(folder, work / "Fonts", quiet=True)  # in a subfolder, found through TEXINPUTS
+    try:  # optional: pip install opentype-sanitizer
         import ots
+
         for p in sorted((work / "Fonts").glob("MTPro2Math*.otf")):
             r = ots.sanitize(str(p), os.devnull, capture_output=True, text=True)
             print(f"OTS (font validator): {p.name}: {'OK' if r.returncode == 0 else r.stderr.strip()}")
@@ -5165,14 +5846,19 @@ def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: st
     opts = f"[{options}]" if options else "[complete,mtpscr,mtpcal,mtpfrak,mtpbb]" if complete else "[lite]"
     # (\\mathrm{\\Gamma}, \\mathbf{\\Gamma}: mtpro2.sty takes them from the text font's slots 0-10,
     # which hold no Greek in TU or T1: no reference)
-    formulas = list(SELFTEST_FORMULAS) + [f for f in GREEK_FORMULAS if f not in SELFTEST_FORMULAS
-                                          and not re.match(r"\\math(rm|bf)\{\\[A-Z]", f)]
+    formulas = list(SELFTEST_FORMULAS) + [
+        f for f in GREEK_FORMULAS if f not in SELFTEST_FORMULAS and not re.match(r"\\math(rm|bf)\{\\[A-Z]", f)
+    ]
     family = {f: "greek" if f in GREEK_FORMULAS else "basic" for f in formulas}
-    if stress:                                  # (layout only: no pixel comparison)
+    if stress:  # (layout only: no pixel comparison)
         for fam, f in stress_formulas(Inputs.load(folder)):
             # (Lite: the Type 1 reference takes \\bm from newtx's math italic, whose slots
             # match MTPro2's letters font only for letters, Greek and digits)
-            if not complete and fam == "bm" and re.search(r"[^\\a-zA-Z0-9{}_ ^]|\\(?!bm|hm|alpha|Gamma|ell|imath|partial)", f):
+            if (
+                not complete
+                and fam == "bm"
+                and re.search(r"[^\\a-zA-Z0-9{}_ ^]|\\(?!bm|hm|alpha|Gamma|ell|imath|partial)", f)
+            ):
                 continue
             if f not in family:
                 family[f] = fam
@@ -5185,55 +5871,85 @@ def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: st
         # Greek, and \hm is \bm as with bm.sty when there is no heavy version)
         pat = r"\\hm\b" if "slantedGreek" in (options or "") else r"\\bm\{\\[A-Z]|\\hm\b"
         if not subprocess.run(["kpsewhich", "ntxbmi.tfm"], capture_output=True, text=True).stdout.strip():
-            pat = r"\\[bh]m\b"   # (no newtx: no bold letters for the Type 1 reference)
+            pat = r"\\[bh]m\b"  # (no newtx: no bold letters for the Type 1 reference)
             print("(newtx not installed: skipping the \\bm formulas)")
         formulas = [f for f in formulas if not re.search(pat, f)]
     fs = (r"\fontsize{%g}{%g}\selectfont" % (size, size * 1.2)) if size else ""
-    body = "\n".join(r"\setbox0\hbox{" + fs + r"$%s$}\directlua{selftestdump(0)}"
-                     r"\shipout\vbox to 3cm{\kern2cm\hbox{\kern0.5cm\smash{\box0}}\vss}"
-                     r"\setbox2\vbox{\noindent\hbox{}\par}" % f
-                     for f in formulas)
+    body = "\n".join(
+        r"\setbox0\hbox{" + fs + r"$%s$}\directlua{selftestdump(0)}"
+        r"\shipout\vbox to 3cm{\kern2cm\hbox{\kern0.5cm\smash{\box0}}\vss}"
+        r"\setbox2\vbox{\noindent\hbox{}\par}" % f
+        for f in formulas
+    )
     (work / "selftest-dump.lua").write_text(SELFTEST_LUA)
-    t1_scale = T1_SCALE % scale if scale != 1 else ""      # Type 1: scaled as the fonts load
+    t1_scale = T1_SCALE % scale if scale != 1 else ""  # Type 1: scaled as the fonts load
     otf_opts = opts if scale == 1 else f"[{opts.strip('[]')},scale={scale}]"
     # Lite: the AMS symbols, blackboard bold and Fraktur from amssymb, script from Euler, as the
     # package (and the thesis template's Type 1 set-up) does
     lite_t1 = "" if complete else r"\usepackage{amssymb}"
     # (and bm without bold MTPro2 fonts: newtx bold letters, the text font's bold digits,
     # bold alphabets, poor man's bold for the rest)
-    lite_t1b = "" if complete else (r"\DeclareMathAlphabet{\mathscr}{U}{eus}{m}{n}"
-        r"\SetMathAlphabet{\mathscr}{bold}{U}{eus}{b}{n}"
-        r"\SetSymbolFont{letters}{bold}{OML}{ntxmi}{b}{it}"
-        r"\SetSymbolFont{symbols}{bold}{LMP2}{mtt}{m}{n}"
-        r"\SetSymbolFont{largesymbols}{bold}{LMP3}{mtt}{m}{n}"
-        r"\SetSymbolFont{operators}{bold}{\encodingdefault}{\rmdefault}{b}{n}")   # (bold \mathrm)
-    (work / "st_t1.tex").write_text(SELFTEST_DOC % (t1_scale + r"\pdfextension mapfile{+mtpro2.map}" + lite_t1 +
-                                                    r"\usepackage%s{mtpro2}" % opts + lite_t1b + r"\usepackage{bm}", body))
+    lite_t1b = (
+        ""
+        if complete
+        else (
+            r"\DeclareMathAlphabet{\mathscr}{U}{eus}{m}{n}"
+            r"\SetMathAlphabet{\mathscr}{bold}{U}{eus}{b}{n}"
+            r"\SetSymbolFont{letters}{bold}{OML}{ntxmi}{b}{it}"
+            r"\SetSymbolFont{symbols}{bold}{LMP2}{mtt}{m}{n}"
+            r"\SetSymbolFont{largesymbols}{bold}{LMP3}{mtt}{m}{n}"
+            r"\SetSymbolFont{operators}{bold}{\encodingdefault}{\rmdefault}{b}{n}"
+        )
+    )  # (bold \mathrm)
+    (work / "st_t1.tex").write_text(
+        SELFTEST_DOC
+        % (
+            t1_scale
+            + r"\pdfextension mapfile{+mtpro2.map}"
+            + lite_t1
+            + r"\usepackage%s{mtpro2}" % opts
+            + lite_t1b
+            + r"\usepackage{bm}",
+            body,
+        )
+    )
     (work / "st_otf.tex").write_text(SELFTEST_DOC % (r"\usepackage%s{mtpro2-otf}" % otf_opts, body))
     mt = str(folder.resolve()) + "//"
-    env = dict(os.environ, TEXINPUTS=f"./Fonts:.:{mt}:", TFMFONTS=f".:{mt}:", T1FONTS=f".:{mt}:",
-               TEXFONTMAPS=f".:{mt}:")         # (the package needs nothing but TEXINPUTS)
+    env = dict(
+        os.environ,
+        TEXINPUTS=f"./Fonts:.:{mt}:",
+        TFMFONTS=f".:{mt}:",
+        T1FONTS=f".:{mt}:",
+        TEXFONTMAPS=f".:{mt}:",
+    )  # (the package needs nothing but TEXINPUTS)
     env.pop("OPENTYPEFONTS", None)
     env.pop("LUAINPUTS", None)
     skipped = set()
     for job in ("st_t1", "st_otf"):
-        subprocess.run(["lualatex", "-interaction=nonstopmode", job + ".tex"],
-                       cwd=work, env=env, capture_output=True, text=True)
+        subprocess.run(
+            ["lualatex", "-interaction=nonstopmode", job + ".tex"],
+            cwd=work,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
         log = (work / f"{job}.log").read_text(errors="replace") if (work / f"{job}.log").exists() else ""
         if not (work / f"{job}.pdf").exists():
             print(f"error: {job}.tex failed, see {work / job}.log")
             return 1
         tex = (work / f"{job}.tex").read_text().splitlines()
         start = next(i for i, l in enumerate(tex) if l.startswith("\\setbox0")) + 1
-        for m in re.finditer(r"^l\.(\d+) ", log, re.M):    # formulas with TeX errors
+        for m in re.finditer(r"^l\.(\d+) ", log, re.M):  # formulas with TeX errors
             if 0 <= int(m.group(1)) - start < len(formulas):
                 skipped.add(int(m.group(1)) - start)
     pa, pb = selftest_positions(work / "st_t1.pos"), selftest_positions(work / "st_otf.pos")
     keep = [i for i in range(len(formulas)) if i not in skipped]
     n = len(keep)
     layout = {i: same_layout(pa[i], pb[i]) for i in keep}
-    print(f"layout: {sum(m is None for m in layout.values())}/{n} formulas with every glyph and rule "
-          f"where TeX puts it (within 0.01pt)")
+    print(
+        f"layout: {sum(m is None for m in layout.values())}/{n} formulas with every glyph and rule "
+        f"where TeX puts it (within 0.01pt)"
+    )
     if stress:
         fams = {}
         for i in keep:
@@ -5245,13 +5961,26 @@ def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: st
         if msg:
             print(f"  {formulas[i]:55s} {msg}")
     if skipped:
-        print(f"  ({len(skipped)} formulas skipped: TeX errors, e.g. commands your fonts lack: "
-              + ", ".join(formulas[i] for i in sorted(skipped)[:3]) + (", ..." if len(skipped) > 3 else "") + ")")
+        print(
+            f"  ({len(skipped)} formulas skipped: TeX errors, e.g. commands your fonts lack: "
+            + ", ".join(formulas[i] for i in sorted(skipped)[:3])
+            + (", ..." if len(skipped) > 3 else "")
+            + ")"
+        )
     doc_rc = 0
     if document:
-        doc_rc = doctest(work, t1_scale + r"\pdfextension mapfile{+mtpro2.map}" + lite_t1 + r"\usepackage%s{mtpro2}" % opts
-                         + lite_t1b + r"\usepackage{bm}", r"\usepackage%s{mtpro2-otf}" % otf_opts, env,
-                         f"options {opts.strip('[]')}" + (f", scale {scale}" if scale != 1 else ""))
+        doc_rc = doctest(
+            work,
+            t1_scale
+            + r"\pdfextension mapfile{+mtpro2.map}"
+            + lite_t1
+            + r"\usepackage%s{mtpro2}" % opts
+            + lite_t1b
+            + r"\usepackage{bm}",
+            r"\usepackage%s{mtpro2-otf}" % otf_opts,
+            env,
+            f"options {opts.strip('[]')}" + (f", scale {scale}" if scale != 1 else ""),
+        )
     if Image is None:
         return 0 if all(m is None for m in layout.values()) and not doc_rc else 1
     for job in ("st_t1", "st_otf"):
@@ -5271,8 +6000,14 @@ def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: st
             same += 1
         else:
             report.append((formulas[i], diff))
-            ov = Image.merge("RGB", [ImageChops.invert(b.convert("L")), ImageChops.invert(
-                ImageChops.logical_or(a, b).convert("L")), ImageChops.invert(a.convert("L"))])
+            ov = Image.merge(
+                "RGB",
+                [
+                    ImageChops.invert(b.convert("L")),
+                    ImageChops.invert(ImageChops.logical_or(a, b).convert("L")),
+                    ImageChops.invert(a.convert("L")),
+                ],
+            )
             ov.save(work / f"diff-{i + 1:02d}.png")
     print(f"pixels: {same}/{n} formulas render the same at {dpi} dpi (ink difference < 2%)")
     for f, d in report:
@@ -5283,26 +6018,45 @@ def selftest(folder: Path, work: Path | None = None, dpi: int = 600, options: st
 
 
 def cli(argv=None) -> int:
-    if argv is None and os.environ.get("PYTHONHASHSEED") != "0":   # (the same fonts on every run)
+    if argv is None and os.environ.get("PYTHONHASHSEED") != "0":  # (the same fonts on every run)
         os.execve(sys.executable, [sys.executable] + sys.argv, dict(os.environ, PYTHONHASHSEED="0"))
-    ap = argparse.ArgumentParser(description="Convert MathTime Pro 2 to OpenType MATH (+ mtpro2-otf package).")
+    ap = argparse.ArgumentParser(
+        description="Convert MathTime Pro 2 to OpenType MATH (+ mtpro2-otf package)."
+    )
     ap.add_argument("mtpro2", type=Path, help="folder with your MTPro2 files (searched recursively)")
     ap.add_argument("output", type=Path, nargs="?", help="output folder")
     ap.add_argument("--weights", default="regular,bold,heavy", help="comma list of regular,bold,heavy")
-    ap.add_argument("--donor", type=Path, help="upright Times-like OTF for Latin letters (default: TeX Gyre Termes)")
+    ap.add_argument(
+        "--donor", type=Path, help="upright Times-like OTF for Latin letters (default: TeX Gyre Termes)"
+    )
     ap.add_argument("--zip", action="store_true", help="also write OUTPUT.zip")
     ap.add_argument("--selftest", action="store_true", help="compare against the Type 1 fonts (pixel test)")
     ap.add_argument("--work", type=Path, help="work folder for --selftest (default: a temporary folder)")
     ap.add_argument("--options", help="package options for --selftest, e.g. complete,zswash,slantedGreek")
-    ap.add_argument("--scale", type=float, default=1.0, help="--selftest with all maths fonts at this size factor")
-    ap.add_argument("--stress", action="store_true", help="--selftest with about 3000 more generated formulas")
+    ap.add_argument(
+        "--scale", type=float, default=1.0, help="--selftest with all maths fonts at this size factor"
+    )
+    ap.add_argument(
+        "--stress", action="store_true", help="--selftest with about 3000 more generated formulas"
+    )
     ap.add_argument("--size", type=float, help="--selftest at this font size in pt (default: 10)")
-    ap.add_argument("--document", action="store_true", help="--selftest also with a thesis-like document (tagged "
-                    "PDF/UA-2, babel, fontspec, microtype, siunitx, hyperref)")
+    ap.add_argument(
+        "--document",
+        action="store_true",
+        help="--selftest also with a thesis-like document (tagged "
+        "PDF/UA-2, babel, fontspec, microtype, siunitx, hyperref)",
+    )
     a = ap.parse_args(argv)
     if a.selftest:
-        return selftest(a.mtpro2, a.work, options=a.options, scale=a.scale, stress=a.stress, size=a.size,
-                        document=a.document)
+        return selftest(
+            a.mtpro2,
+            a.work,
+            options=a.options,
+            scale=a.scale,
+            stress=a.stress,
+            size=a.size,
+            document=a.document,
+        )
     if not a.output:
         ap.error("OUTPUT folder required")
     weights = tuple({"regular": "normal"}.get(w.strip(), w.strip()) for w in a.weights.split(","))
@@ -5310,9 +6064,10 @@ def cli(argv=None) -> int:
     if a.zip:
         z = a.output.with_suffix(".zip")
         with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED) as zf:
-            for n in [MANIFEST] + [l for l in (a.output / MANIFEST).read_text().splitlines()
-                                   if l and not l.startswith("#")]:
-                zf.write(a.output / n, n)                 # only what the converter wrote
+            for n in [MANIFEST] + [
+                l for l in (a.output / MANIFEST).read_text().splitlines() if l and not l.startswith("#")
+            ]:
+                zf.write(a.output / n, n)  # only what the converter wrote
         print(f"zip written: {z}")
     print("Keep the output private: modified MTPro2 fonts are for your own use only.")
     return 0

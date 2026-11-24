@@ -17,6 +17,7 @@ the rules that matter for a thesis made with this template. Send the file throug
 file check as well; most printers offer one free. Exit status 1 when there are errors. Needs pikepdf and
 Pillow (pip install -r requirements.txt).
 """
+
 import re
 import sys
 from collections import defaultdict
@@ -25,15 +26,21 @@ import pikepdf
 from pikepdf import Name
 
 MM = 72 / 25.4
-HAIRLINE = 0.1 * MM          # pt
+HAIRLINE = 0.1 * MM  # pt
 PPI_WARN, PPI_ERROR = 300, 225
 
 
 def mat_mul(m, n):
     a, b, c, d, e, f = m
     a2, b2, c2, d2, e2, f2 = n
-    return (a * a2 + b * c2, a * b2 + b * d2, c * a2 + d * c2, c * b2 + d * d2,
-            e * a2 + f * c2 + e2, e * b2 + f * d2 + f2)
+    return (
+        a * a2 + b * c2,
+        a * b2 + b * d2,
+        c * a2 + d * c2,
+        c * b2 + d * d2,
+        e * a2 + f * c2 + e2,
+        e * b2 + f * d2 + f2,
+    )
 
 
 def scale(m):
@@ -53,8 +60,13 @@ class Report:
 
 
 def is_rgb(cs):
-    return cs == Name.DeviceRGB or (isinstance(cs, pikepdf.Array) and len(cs) and cs[0] == Name.Indexed
-                                     and len(cs) > 1 and cs[1] == Name.DeviceRGB)
+    return cs == Name.DeviceRGB or (
+        isinstance(cs, pikepdf.Array)
+        and len(cs)
+        and cs[0] == Name.Indexed
+        and len(cs) > 1
+        and cs[1] == Name.DeviceRGB
+    )
 
 
 def is_iccrgb(cs):
@@ -80,6 +92,7 @@ def figure_index(folder, skip):
     figure's content unchanged, so a figure in the thesis can be traced to its file."""
     import hashlib
     from pathlib import Path
+
     index = {}
     for f in Path(folder).rglob("*.pdf"):
         if f.resolve() == Path(skip).resolve() or f.stat().st_size > 20_000_000 or ".git" in f.parts:
@@ -87,10 +100,15 @@ def figure_index(folder, skip):
         try:
             with pikepdf.open(f) as doc:
                 for n, page in enumerate(doc.pages):
-                    data = b"".join(c.read_bytes() for c in page.obj.Contents) \
-                        if isinstance(page.obj.get("/Contents"), pikepdf.Array) else page.obj.Contents.read_bytes()
+                    data = (
+                        b"".join(c.read_bytes() for c in page.obj.Contents)
+                        if isinstance(page.obj.get("/Contents"), pikepdf.Array)
+                        else page.obj.Contents.read_bytes()
+                    )
                     rel = str(f.relative_to(folder))
-                    index[hashlib.sha1(data).hexdigest()] = rel + (f" (page {n + 1})" if len(doc.pages) > 1 else "")
+                    index[hashlib.sha1(data).hexdigest()] = rel + (
+                        f" (page {n + 1})" if len(doc.pages) > 1 else ""
+                    )
         except Exception:
             pass
     return index
@@ -101,7 +119,7 @@ class Walker:
         self.pdf, self.r = pdf, report
         self.colour_pages = set()
         self.figures = figures or {}
-        self.thin = defaultdict(set)              # (figure file, width in mm) -> pages
+        self.thin = defaultdict(set)  # (figure file, width in mm) -> pages
 
     def where(self, page, src):
         lab = self.labels[page]
@@ -110,7 +128,7 @@ class Walker:
 
     def run(self):
         self.labels = []
-        for i, p in enumerate(self.pdf.pages):
+        for p in self.pdf.pages:
             try:
                 self.labels.append(str(p.label))
             except Exception:
@@ -121,8 +139,11 @@ class Walker:
         for (src, width), pages in sorted(self.thin.items(), key=lambda kv: min(kv[1])):
             pages = sorted(pages)
             where = ", ".join(str(p + 1) for p in pages[:8]) + (" ..." if len(pages) > 8 else "")
-            self.r.add("warnings", f"lines thinner than 0.1 mm ({width:.2f} mm) on page{'s' if len(pages) > 1 else ''} "
-                       f"{where}" + (f", in {src}" if src else ""))
+            self.r.add(
+                "warnings",
+                f"lines thinner than 0.1 mm ({width:.2f} mm) on page{'s' if len(pages) > 1 else ''} "
+                f"{where}" + (f", in {src}" if src else ""),
+            )
 
     @staticmethod
     def has_default(res):
@@ -133,15 +154,21 @@ class Walker:
         """Device RGB: an error. With sRGB as the page's default it is still sRGB to a reader that applies
         the default, but a preflight may read it literally; without it, it is unmanaged colour."""
         how = "device RGB, sRGB only by default" if default_rgb else "RGB not declared as sRGB"
-        self.r.add("errors", f"{how} ({what}): {self.where(page, src)}"
-                   + ("; run tools/print_ready.py on that file" if src else ""))
+        self.r.add(
+            "errors",
+            f"{how} ({what}): {self.where(page, src)}"
+            + ("; run tools/print_ready.py on that file" if src else ""),
+        )
 
     def group(self, page, obj, src):
         """A transparency group that blends in device RGB: the colours it mixes are unmanaged."""
         grp = obj.get("/Group") if hasattr(obj, "get") else None
         if isinstance(grp, pikepdf.Dictionary) and is_rgb(grp.get("/CS")):
-            self.r.add("warnings", f"transparency blended in device RGB (/Group /CS): {self.where(page, src)}"
-                       + ("; run tools/print_ready.py on that file" if src else ""))
+            self.r.add(
+                "warnings",
+                f"transparency blended in device RGB (/Group /CS): {self.where(page, src)}"
+                + ("; run tools/print_ready.py on that file" if src else ""),
+            )
 
     def stream(self, page, obj, res, ctm, src, default_rgb, depth=0):
         if depth > 12:
@@ -208,7 +235,9 @@ class Walker:
                 if kind == "rgb":
                     self.rgb_unmanaged(page, src, "colour space", default_rgb)
                 elif kind == "missing":
-                    self.r.add("errors", f"colour space {operands[0]} used but not defined: {self.where(page, src)}")
+                    self.r.add(
+                        "errors", f"colour space {operands[0]} used but not defined: {self.where(page, src)}"
+                    )
                 if o == "cs":
                     gs["fill"] = (kind, ())
             elif o in ("sc", "scn", "SC", "SCN") and operands:
@@ -223,11 +252,14 @@ class Walker:
                 kind_now = gs["fill"][0] if o in ("sc", "scn") else None
                 need = {"rgb": 3, "iccrgb": 3, "k": 4, "g": 1}.get(kind_now)
                 if need and len(nums) != need and not any(isinstance(x, Name) for x in operands):
-                    self.r.add("errors", f"a colour with {len(nums)} values in a {need}-value colour space: "
-                                         f"{self.where(page, src)}")
+                    self.r.add(
+                        "errors",
+                        f"a colour with {len(nums)} values in a {need}-value colour space: "
+                        f"{self.where(page, src)}",
+                    )
                 if o in ("sc", "scn") and len(nums) == 3:
                     gs["fill"] = (gs["fill"][0], tuple(nums))
-                if o in ("scn", "SCN") and isinstance(operands[-1], Name):   # a pattern
+                if o in ("scn", "SCN") and isinstance(operands[-1], Name):  # a pattern
                     pat = res.get("/Pattern", {}).get(operands[-1]) if res is not None else None
                     if pat is not None and int(pat.get("/PatternType", 0)) == 2:
                         sh = pat.get("/Shading")
@@ -235,8 +267,15 @@ class Walker:
                             self.rgb_unmanaged(page, src, "shading pattern", default_rgb)
                     elif pat is not None and int(pat.get("/PatternType", 0)) == 1:
                         pres = pat.get("/Resources")
-                        self.stream(page, pat, pres if pres is not None else res, gs["ctm"], src,
-                                    self.has_default(pres) if pres is not None else default_rgb, depth + 1)
+                        self.stream(
+                            page,
+                            pat,
+                            pres if pres is not None else res,
+                            gs["ctm"],
+                            src,
+                            self.has_default(pres) if pres is not None else default_rgb,
+                            depth + 1,
+                        )
             elif o in ("S", "s", "B", "B*", "b", "b*"):
                 width = gs["w"] * scale(gs["ctm"])
                 if width < HAIRLINE:
@@ -250,11 +289,15 @@ class Walker:
             elif o in ("Tj", "TJ", "'", '"') and gs["intext"]:
                 kind, comps = gs["fill"]
                 size = gs["tsize"] * scale(gs["ctm"])
-                rich = (kind in ("rgb", "iccrgb") and comps and max(comps) < 0.25) or \
-                       (kind == "k" and len(comps) == 4 and comps[3] > 0.7 and max(comps[:3]) > 0.1)
+                rich = (kind in ("rgb", "iccrgb") and comps and max(comps) < 0.25) or (
+                    kind == "k" and len(comps) == 4 and comps[3] > 0.7 and max(comps[:3]) > 0.1
+                )
                 if rich and size < 12:
-                    self.r.add("warnings", f"small text in rich black (all four inks): {self.where(page, src)}"
-                               + ("; run tools/print_ready.py on that file" if src else ""))
+                    self.r.add(
+                        "warnings",
+                        f"small text in rich black (all four inks): {self.where(page, src)}"
+                        + ("; run tools/print_ready.py on that file" if src else ""),
+                    )
             elif o == "INLINE IMAGE" and operands:
                 cs = getattr(operands[0], "colorspace", None)
                 if str(cs) in ("/DeviceRGB", "/RGB"):
@@ -275,15 +318,25 @@ class Walker:
                     m = tuple(float(x) for x in xo.get("/Matrix", [1, 0, 0, 1, 0, 0]))
                     xres = xo.get("/Resources")
                     name = src
-                    if "/PTEX.PageNumber" in xo:                  # a placed PDF figure: which file?
+                    if "/PTEX.PageNumber" in xo:  # a placed PDF figure: which file?
                         import hashlib
+
                         try:
-                            name = self.figures.get(hashlib.sha1(xo.read_bytes()).hexdigest(), "a placed figure")
+                            name = self.figures.get(
+                                hashlib.sha1(xo.read_bytes()).hexdigest(), "a placed figure"
+                            )
                         except Exception:
                             name = "a placed figure"
                     own = xres is not None
-                    self.stream(page, xo, xres if own else res, mat_mul(m, gs["ctm"]), name,
-                                self.has_default(xres) if own else default_rgb, depth + 1)
+                    self.stream(
+                        page,
+                        xo,
+                        xres if own else res,
+                        mat_mul(m, gs["ctm"]),
+                        name,
+                        self.has_default(xres) if own else default_rgb,
+                        depth + 1,
+                    )
 
     def image(self, page, src, xo, ctm, default_rgb):
         if xo.get("/ImageMask"):
@@ -292,9 +345,12 @@ class Walker:
         if is_rgb(cs):
             if src:
                 self.rgb_unmanaged(page, src, "image", default_rgb)
-            else:                                   # a photo placed by LaTeX: a palette PNG, most likely
-                self.r.add("errors", f"photo in device RGB (a palette PNG? save it as an RGB PNG or JPEG): "
-                                     f"{self.where(page, src)}")
+            else:  # a photo placed by LaTeX: a palette PNG, most likely
+                self.r.add(
+                    "errors",
+                    f"photo in device RGB (a palette PNG? save it as an RGB PNG or JPEG): "
+                    f"{self.where(page, src)}",
+                )
         if is_rgb(cs) or is_iccrgb(cs):
             if image_in_colour(xo):
                 self.colour_pages.add(page)
@@ -314,6 +370,7 @@ class Walker:
 
 def check(path, folder=None):
     from pathlib import Path
+
     r = Report()
     pdf = pikepdf.open(path)
     root = pdf.Root
@@ -365,9 +422,13 @@ def check(path, folder=None):
         tb = [float(x) for x in tb]
         bb = [float(x) for x in o.get("/BleedBox", o.get("/CropBox", mb))]
         eps = 0.01
-        if not (bb[0] <= tb[0] + eps and bb[1] <= tb[1] + eps and bb[2] >= tb[2] - eps and bb[3] >= tb[3] - eps):
+        if not (
+            bb[0] <= tb[0] + eps and bb[1] <= tb[1] + eps and bb[2] >= tb[2] - eps and bb[3] >= tb[3] - eps
+        ):
             r.add("errors", f"page {i + 1}: the trim box is not inside the bleed box")
-        if not (mb[0] <= bb[0] + eps and mb[1] <= bb[1] + eps and mb[2] >= bb[2] - eps and mb[3] >= bb[3] - eps):
+        if not (
+            mb[0] <= bb[0] + eps and mb[1] <= bb[1] + eps and mb[2] >= bb[2] - eps and mb[3] >= bb[3] - eps
+        ):
             r.add("errors", f"page {i + 1}: the bleed box is larger than the page")
         if "/Annots" in o and len(o.Annots):
             r.add("errors", f"page {i + 1}: links or other annotations (none allowed on the printed page)")
@@ -376,8 +437,11 @@ def check(path, folder=None):
     else:
         tb = [float(x) for x in pdf.pages[0].obj.TrimBox]
         bb = [float(x) for x in pdf.pages[0].obj.get("/BleedBox", tb)]
-        r.add("facts", f"trimmed page {(tb[2] - tb[0]) / MM:.1f} x {(tb[3] - tb[1]) / MM:.1f} mm, "
-                       f"bleed {(tb[0] - bb[0]) / MM:.1f} mm")
+        r.add(
+            "facts",
+            f"trimmed page {(tb[2] - tb[0]) / MM:.1f} x {(tb[3] - tb[1]) / MM:.1f} mm, "
+            f"bleed {(tb[0] - bb[0]) / MM:.1f} mm",
+        )
     # fonts
     for i, page in enumerate(pdf.pages):
         stack = [page.obj.get("/Resources")]
@@ -404,11 +468,17 @@ def check(path, folder=None):
     w = Walker(pdf, r, figure_index(folder or Path(path).resolve().parent, path))
     w.run()
     n = len(pdf.pages)
-    r.add("facts", f"{n} pages" + ("" if n % 4 == 0 else
-                                    " (printers print in sheets of 4, 8 or 16 pages and add blank ones: ask)"))
+    r.add(
+        "facts",
+        f"{n} pages"
+        + ("" if n % 4 == 0 else " (printers print in sheets of 4, 8 or 16 pages and add blank ones: ask)"),
+    )
     cp = sorted(w.colour_pages)
     if cp:
-        labels = [str(i + 1) + (f" ({w.labels[i]})" if w.labels[i] and w.labels[i] != str(i + 1) else "") for i in cp]
+        labels = [
+            str(i + 1) + (f" ({w.labels[i]})" if w.labels[i] and w.labels[i] != str(i + 1) else "")
+            for i in cp
+        ]
         r.add("facts", f"{len(cp)} pages in colour (PDF page, printed number): " + ", ".join(labels))
     else:
         r.add("facts", "no pages in colour (black and white throughout)")

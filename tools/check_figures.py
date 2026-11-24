@@ -24,20 +24,35 @@ is printed at. For each figure this reports:
 It also lists files in figures/ that the thesis does not use. Needs Python 3.8+;
 the text sizes and fonts of PDF figures need pikepdf (pip install -r requirements.txt).
 """
+
 from __future__ import annotations
 
 import math
-import subprocess
 import re
 import struct
+import subprocess
 import sys
 from pathlib import Path
 
-from common import IDENTITY, ROOT, Report, font_name, glyph_count, mul, notdef_count, operators, parser, shown_bytes
+from common import (
+    IDENTITY,
+    ROOT,
+    Report,
+    font_name,
+    glyph_count,
+    mul,
+    notdef_count,
+    operators,
+    parser,
+    shown_bytes,
+)
 
 PT_PER_MM = 72.27 / 25.4
-TIMES = re.compile(r"Times|Termes|NimbusRom|Nimbus Roman|STIX|NewTX|ntx|tx(mia|sys|exa|sy|ex)|Tinos|Liberation ?Serif|"
-                   r"MT2|MTPro|TeXGyreTermes|Symbol", re.I)
+TIMES = re.compile(
+    r"Times|Termes|NimbusRom|Nimbus Roman|STIX|NewTX|ntx|tx(mia|sys|exa|sy|ex)|Tinos|Liberation ?Serif|"
+    r"MT2|MTPro|TeXGyreTermes|Symbol",
+    re.I,
+)
 MIN_MAIN, MIN_ANY, SCALE_TOL, PRINT_PPI = 6.5, 5.0, 0.03, 300
 
 try:
@@ -52,10 +67,11 @@ def mm(pt: float) -> str:
 
 # --- the log -------------------------------------------------------------------
 
+
 def read_log(log: Path):
     lines = log.read_text(errors="replace").splitlines()
     joined, i = [], 0
-    while i < len(lines):                                  # TeX wraps log lines at 79 characters
+    while i < len(lines):  # TeX wraps log lines at 79 characters
         line = lines[i]
         if line.startswith(("Thesis figure:", "Thesis layout:")):
             while not re.search(r"\| page \S+$|fontscale [\d.]+$", line) and i + 1 < len(lines):
@@ -70,7 +86,9 @@ def read_log(log: Path):
     textwidth, caption, scale = (float(x) for x in m.groups())
     figs = []
     for l in joined:
-        f = re.match(r"Thesis figure: (.+?) \| ([\d.]+)pt x ([\d.]+)pt \| ([\d.]+)pt x ([\d.]+)pt \| page (\S+)", l)
+        f = re.match(
+            r"Thesis figure: (.+?) \| ([\d.]+)pt x ([\d.]+)pt \| ([\d.]+)pt x ([\d.]+)pt \| page (\S+)", l
+        )
         if f:
             name, nw, nh, pw, ph, page = f.groups()
             figs.append((name.strip(), float(nw), float(nh), float(pw), float(ph), page))
@@ -79,10 +97,11 @@ def read_log(log: Path):
 
 # --- inside a PDF figure ---------------------------------------------------------
 
+
 def text_sizes(path: Path):
     """Font size of every glyph on page 1 (in the figure's own points), the font names, and the
     number of missing glyphs (.notdef)."""
-    pdf = pikepdf.open(path)                 # (kept: a page cannot outlive its document)
+    pdf = pikepdf.open(path)  # (kept: a page cannot outlive its document)
     page = pdf.pages[0]
     sizes, fonts, missing = [], set(), 0
     tm = tlm = IDENTITY
@@ -106,7 +125,7 @@ def text_sizes(path: Path):
             sizes += [abs(size) * math.sqrt(abs(m[0] * m[3] - m[1] * m[2]))] * max(1, glyph_count(font, data))
             missing += notdef_count(font, data)
     if sizes and not visible_text(path):
-        sizes, fonts = [], set()             # only invisible glyphs (matplotlib's PGF output has one)
+        sizes, fonts = [], set()  # only invisible glyphs (matplotlib's PGF output has one)
     return sizes, fonts, missing
 
 
@@ -135,12 +154,12 @@ def low_contrast(path: Path):
             return (nums[0],) * 3
         if len(nums) == 3:
             return tuple(nums)
-        if len(nums) == 4:                                # CMYK, roughly
+        if len(nums) == 4:  # CMYK, roughly
             c, m, y, k = nums
             return ((1 - c) * (1 - k), (1 - m) * (1 - k), (1 - y) * (1 - k))
         return None
 
-    for op, operands, res, ctm in operators(page, page.get("/Resources")):
+    for op, operands, _res, ctm in operators(page, page.get("/Resources")):
         nums = []
         for x in operands:
             try:
@@ -159,7 +178,7 @@ def low_contrast(path: Path):
             stroke = colour(nums)
         elif op in ("S", "s", "B", "B*", "b", "b*"):
             grey = max(stroke) - min(stroke) < 0.02
-            if not (grey and min(stroke) > 0.7 and width < 0.6):          # grid lines
+            if not (grey and min(stroke) > 0.7 and width < 0.6):  # grid lines
                 found.setdefault(("lines", stroke), contrast(stroke))
         elif op in ("Tj", "TJ", "'", '"'):
             found.setdefault(("text", fill), contrast(fill))
@@ -168,8 +187,10 @@ def low_contrast(path: Path):
         need = 4.5 if kind == "text" else 3.0
         if 1.15 < cr < need:
             hexa = "#" + "".join(f"{round(c * 255):02X}" for c in rgb)
-            out.append(f"{kind} in {hexa}: contrast {cr:.1f}:1 against white ({need:g}:1 needed to stand out); "
-                       "use a darker colour (the plot style's colours all pass)")
+            out.append(
+                f"{kind} in {hexa}: contrast {cr:.1f}:1 against white ({need:g}:1 needed to stand out); "
+                "use a darker colour (the plot style's colours all pass)"
+            )
     return out
 
 
@@ -192,15 +213,16 @@ def raster_pixels(path: Path):
             if data[i] != 0xFF:
                 i += 1
                 continue
-            marker, length = data[i + 1], struct.unpack(">H", data[i + 2:i + 4])[0]
+            marker, length = data[i + 1], struct.unpack(">H", data[i + 2 : i + 4])[0]
             if marker in (0xC0, 0xC1, 0xC2):
-                h, w = struct.unpack(">HH", data[i + 5:i + 9])
+                h, w = struct.unpack(">HH", data[i + 5 : i + 9])
                 return w, h
             i += 2 + length
     return None
 
 
 # --- report ----------------------------------------------------------------------
+
 
 def main(argv=None) -> int:
     ap = parser(__doc__)
@@ -211,11 +233,11 @@ def main(argv=None) -> int:
     textwidth, caption, figs = read_log(args.log)
     print(f"Text width {mm(textwidth)}, caption text {caption:.1f} pt; {len(figs)} figure inclusions\n")
     r, seen_files = Report(), set()
-    for name, nw, nh, pw, ph, page in figs:
+    for name, nw, _nh, pw, _ph, page in figs:
         path = (ROOT / name) if (ROOT / name).exists() else Path(name)
         seen_files.add(path.resolve())
         if name.startswith("template/"):
-            continue                                     # logos are sized on purpose
+            continue  # logos are sized on purpose
         notes, scale = [], pw / nw if nw else 1
         suffix = path.suffix.lower()
         scaled = abs(scale - 1) > SCALE_TOL and suffix not in (".png", ".jpg", ".jpeg")
@@ -227,20 +249,24 @@ def main(argv=None) -> int:
             else:
                 try:
                     sizes, fonts, nmissing = text_sizes(path)
-                except Exception as e:                  # an unusual PDF: report, keep going
+                except Exception as e:  # an unusual PDF: report, keep going
                     sizes, fonts, nmissing = [], set(), 0
                     notes.append(f"could not read the PDF ({e.__class__.__name__})")
                 printed = [s * scale for s in sizes]
-                if scaled and sizes:                     # (a picture without text may be scaled)
-                    notes.append(f"printed at {scale:.0%} of its size: the text in it is scaled too. Make it "
-                                 f"{mm(min(pw, textwidth))} wide and include it without width=/scale=")
+                if scaled and sizes:  # (a picture without text may be scaled)
+                    notes.append(
+                        f"printed at {scale:.0%} of its size: the text in it is scaled too. Make it "
+                        f"{mm(min(pw, textwidth))} wide and include it without width=/scale="
+                    )
                 if printed:
                     lo, hi = min(printed), max(printed)
                     notes_text = f"text {lo:.1f}" + (f"-{hi:.1f}" if hi - lo > 0.05 else "") + " pt"
                     rounded = [round(p, 1) for p in printed]
-                    main_size = max(set(rounded), key=rounded.count)      # most of the text
+                    main_size = max(set(rounded), key=rounded.count)  # most of the text
                     if main_size < MIN_MAIN:
-                        notes.append(f"most text is {main_size:.1f} pt in print: small (aim for about {caption:.1f} pt)")
+                        notes.append(
+                            f"most text is {main_size:.1f} pt in print: small (aim for about {caption:.1f} pt)"
+                        )
                     if lo < MIN_ANY:
                         notes.append(f"some text is only {lo:.1f} pt in print: hard to read")
                     if hi > caption + 1:
@@ -248,9 +274,11 @@ def main(argv=None) -> int:
                 else:
                     notes_text = "no text (or text as outlines)"
                 if nmissing:
-                    notes.append(f"{nmissing} missing glyph(s) (.notdef): they print as nothing and fail the PDF/A "
-                                 "check. From matplotlib 3.11+ this is usually a ligature (ff, fi, fl): switch "
-                                 "them off as figures/plots/example_figures.py does, and export again")
+                    notes.append(
+                        f"{nmissing} missing glyph(s) (.notdef): they print as nothing and fail the PDF/A "
+                        "check. From matplotlib 3.11+ this is usually a ligature (ff, fi, fl): switch "
+                        "them off as figures/plots/example_figures.py does, and export again"
+                    )
                 try:
                     notes += low_contrast(path)
                 except Exception:
@@ -273,10 +301,14 @@ def main(argv=None) -> int:
         r.warn(head, notes) if notes else r.ok(head)
     images = ROOT / "figures"
     if images.is_dir():
-        unused = sorted(p.relative_to(ROOT) for p in images.rglob("*")
-                        if p.is_file() and p.suffix.lower() in (".pdf", ".png", ".jpg", ".jpeg", ".eps", ".svg")
-                        and p.resolve() not in seen_files
-                        and "_cover" not in str(p))
+        unused = sorted(
+            p.relative_to(ROOT)
+            for p in images.rglob("*")
+            if p.is_file()
+            and p.suffix.lower() in (".pdf", ".png", ".jpg", ".jpeg", ".eps", ".svg")
+            and p.resolve() not in seen_files
+            and "_cover" not in str(p)
+        )
         if unused:
             print(f"\nNot used in this build ({len(unused)}): " + ", ".join(str(u) for u in unused))
     print(f"\n{r.warnings} figure(s) to look at.")
