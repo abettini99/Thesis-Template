@@ -1,8 +1,15 @@
-\DocumentMetadata{pdfversion=2.0, pdfstandard={ua-2,a-4f}, tagging=on, tagging-setup={math/setup={mathml-SE,mathml-AF}}}
-% The line above makes an archival (PDF/A-4f) and accessible (PDF/UA-2) PDF: tagged, so that screen
+\newif\ifthesistagging \thesistaggingtrue
+% \thesistaggingfalse % <- uncomment while writing: untagged, each compile about 40% faster
+\ifthesistagging
+    \DocumentMetadata{pdfversion=2.0, pdfstandard={ua-2,a-4f}, tagging=on, tagging-setup={math/setup={mathml-SE,mathml-AF}}}
+\else
+    \DocumentMetadata{pdfversion=2.0, pdfstandard=a-4f}
+\fi
+% The lines above make an archival (PDF/A-4f) and accessible (PDF/UA-2) PDF: tagged, so that screen
 % readers can follow its structure, with MathML for every formula (MathML needs the MathTime fonts; with
-% newtx the formulas are tagged without it). Leave it as it is; for a faster, untagged build while
-% writing, \DocumentMetadata{pdfversion=2.0, pdfstandard=a-4f} also works.
+% newtx the formulas are tagged without it). While writing, \thesistaggingfalse leaves out the tagging:
+% the same pages, still archival but not accessible, and the log says so. Comment it out again for any
+% version you hand in.
 \documentclass[print-preparation,thumb,showtrims]{personal}
 % options:
 %   british (default), american -- language: hyphenation, quotation marks, dates

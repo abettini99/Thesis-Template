@@ -73,6 +73,11 @@
 \IfDocumentMetadataTF{}{%
     \ClassError{personal}{\string\DocumentMetadata\space missing}{Put
         \string\DocumentMetadata{pdfversion=2.0, pdfstandard=a-4f} on the first line, before \string\documentclass.}}
+%% Untagged on purpose (\thesistaggingfalse in main.tex, for faster compiles while writing): a reminder.
+\ifdefined\ifthesistagging\ifthesistagging\else
+    \AtEndDocument{\ClassWarningNoLine{personal}{Untagged build (\string\thesistaggingfalse\space in
+        main.tex): this PDF is not accessible (PDF/UA). Comment the line out for any version you hand in}}
+\fi\fi
 
 %% Public switch, for files outside the class (\ifprintversion ... \else ... \fi): true for the print
 %% editions (links invisible, code in black and white, no rotated pages), false for digital.
