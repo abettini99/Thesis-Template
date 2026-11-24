@@ -126,7 +126,7 @@ def check_fonts(pdf: Path, r: Report) -> None:
                    [f"page {p}: {', '.join(sorted(f))}" for p, f in sorted(hits.items())])
         else:
             r.ok("no missing glyphs")
-    figures = sorted((ROOT / "Images").rglob("*.pdf")) if (ROOT / "Images").is_dir() else []
+    figures = sorted((ROOT / "figures").rglob("*.pdf")) if (ROOT / "figures").is_dir() else []
     bad = []
     for fig in figures:
         frows = [row for row in table(run("pdffonts", str(fig))) if len(row) >= 7]
@@ -139,7 +139,7 @@ def check_fonts(pdf: Path, r: Report) -> None:
     if bad:
         r.warn("figure files with problem fonts (fix them at the source and export again)", bad)
     elif figures:
-        r.ok(f"fonts in the {len(figures)} figure PDFs in Images/ are embedded")
+        r.ok(f"fonts in the {len(figures)} figure PDFs in figures/ are embedded")
 
 
 def missing_glyphs(pdf: Path):

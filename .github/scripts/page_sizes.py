@@ -1,6 +1,6 @@
 """Compare the four page sizes of the template in one image: .github/readme/page-sizes.png.
 
-The template is compiled in each page size (print-showcase edition: the trimmed page as printed),
+The template is compiled in each page size (preview edition: the trimmed page as printed),
 the same page is taken from each, and the pages are set side by side at the same scale, with the
 measured type size, leading, lines per page and line length underneath.
 
@@ -33,8 +33,8 @@ def run(cmd, **kw):
 def build(size, outdir):
     """Compile main.tex in this page size; return the PDF and the measured metrics."""
     src = (ROOT / "main.tex").read_text()
-    src = re.sub(r"^\\documentclass\[[^\]]*\]\{personal\}",
-                 rf"\\documentclass[print-showcase,thumb,{size}]{{personal}}", src, count=1, flags=re.M)
+    src = re.sub(r"^\\documentclass\[[^\]]*\]\{thesis\}",
+                 rf"\\documentclass[edition=preview, thumbs, size={size}]{{thesis}}", src, count=1, flags=re.M)
     probe = (r"\typeout{THESIS-METRICS:\the\textwidth;\the\textheight;\csname f@size\endcsname;"
              r"\the\baselineskip;\csname thesis@fontscale\endcsname}")
     src = src.replace(r"\begin{Spacing}{\thesisspacing}", r"\begin{Spacing}{\thesisspacing}" + probe, 1)

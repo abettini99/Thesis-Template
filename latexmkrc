@@ -14,11 +14,11 @@ $hash_calc_ignore_pattern{'aux'} =
 $hash_calc_ignore_pattern{'xml'} = '^\s*<internal package="biblatex" ';
 
 # MathTime Professional 2 (optional): the OpenType fonts and the mtpro2-otf package that
-# tools/mtpro2_otf.py writes live in the Fonts folder. Add it to TeX's search paths for style files, OpenType
+# tools/mtpro2_otf.py writes live in the fonts folder. Add it to TeX's search paths for style files, OpenType
 # fonts and Lua modules. Overleaf reads this file too. Harmless when the folder holds no fonts.
-# The template's own newtx maths as OpenType (ntxmath-otf, in _options/ntxmath-otf) is found the same way.
+# The template's own newtx maths as OpenType (ntxmath-otf, in template/fonts/ntxmath-otf) is found the same way.
 foreach my $var ('TEXINPUTS', 'OPENTYPEFONTS', 'LUAINPUTS') {
-    $ENV{$var} = './Fonts' . $search_path_separator . './_options/ntxmath-otf' . $search_path_separator . ($ENV{$var} // '');
+    $ENV{$var} = './fonts' . $search_path_separator . './template/fonts/ntxmath-otf' . $search_path_separator . ($ENV{$var} // '');
 }
 
 # Local git clones: keep the pre-commit hook that refuses MathTime font files installed and up to date in

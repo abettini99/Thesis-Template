@@ -27,7 +27,7 @@ _pagesizes_*
 *-grey.pdf
 
 # MathTime Professional 2 (optional maths fonts): licensed to you alone. The originals, the zips and
-# everything tools/mtpro2_otf.py writes into Fonts/ must never be committed. See Fonts/README.md.
+# everything tools/mtpro2_otf.py writes into fonts/ must never be committed. See fonts/README.md.
 *mtp2*/
 *mtpro2*/
 *mtp2*.zip
@@ -50,17 +50,19 @@ EULA-MTPro2*
 MTPro2Math*
 mtpro2-otf*
 *mtpro2-otf-build*
-Fonts/*
-!Fonts/README.md
+fonts/*
+!fonts/README.md
+# (the folder's earlier name)
+Fonts/
 __pycache__/
 # the converters hold no font data: keep them
 !tools/mtpro2_otf.py
 !tools/ntxmath_otf.py
 # newtx maths as OpenType (ntxmath-otf): free (LaTeX Project Public License), part of the template
-!_options/ntxmath-otf/
-!_options/ntxmath-otf/NewTXMath.otf
-!_options/ntxmath-otf/NewTXMath-Bold.otf
-!_options/josefin/JosefinSans-VF.ttf
+!template/fonts/ntxmath-otf/
+!template/fonts/ntxmath-otf/NewTXMath.otf
+!template/fonts/ntxmath-otf/NewTXMath-Bold.otf
+!template/fonts/josefin/JosefinSans-VF.ttf
 
 # Build output
 main.pdf

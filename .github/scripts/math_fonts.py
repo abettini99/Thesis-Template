@@ -13,8 +13,8 @@ which are licensed and never committed. Run it locally from the template folder:
   (zips or unpacked folders)
 
 It converts both editions with tools/mtpro2_otf.py in a temporary folder and
-loads the maths exactly as the class does (_options/fontText.tex and fontMath.tex; newtx
-as the OpenType maths fonts in _options/ntxmath-otf).
+loads the maths exactly as the class does (template/fontText.tex and fontMath.tex; newtx
+as the OpenType maths fonts in template/fonts/ntxmath-otf).
 Needs LuaLaTeX, pdftoppm (poppler), Pillow and fonttools. The images are pictures of the
 typeset result, like a page of a PDF, and contain no font data.
 """
@@ -99,8 +99,8 @@ PREAMBLE = r"""\documentclass[border=0pt,multi=minipage]{standalone}
 \newif\ifthesismathtime %(mt)s
 \newif\ifthesisntxotf \ifthesismathtime\else\IfFileExists{ntxmath-otf.sty}{\thesisntxotftrue}{}\fi
 \newif\ifthesisotfmath \ifthesismathtime\thesisotfmathtrue\fi \ifthesisntxotf\thesisotfmathtrue\fi
-\input{_options/fontText}
-\input{_options/fontMath}
+\input{template/fontText}
+\input{template/fontMath}
 \makeatother
 \ifthesisotfmath\else\usepackage{bm}\fi
 \AtBeginDocument{\renewcommand{\vec}[1]{\thesisboldmath{#1}}}
@@ -139,7 +139,7 @@ def build(name, edition, fonts_dir, work):
     job = name.replace(" ", "_")
     (work / f"{job}.tex").write_text(src)
     env = dict(os.environ)
-    ntx = ROOT / "_options" / "ntxmath-otf"          # newtx as OpenType maths fonts, as the class uses
+    ntx = ROOT / "template" / "fonts" / "ntxmath-otf"          # newtx as OpenType maths fonts, as the class uses
     for var in ("TEXINPUTS", "OPENTYPEFONTS", "LUAINPUTS"):
         env[var] = f"{ntx}{os.pathsep}{env.get(var, '')}"
     if fonts_dir:

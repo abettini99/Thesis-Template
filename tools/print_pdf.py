@@ -13,7 +13,7 @@ from TeX Live) is used, with a warning.
 What it does: every RGB colour (text, lines, fills, shadings) and every RGB image is converted from sRGB
 to the printer's CMYK with their profile (relative colorimetric, with black point compensation); black
 and greys stay black ink only; the PDF's output intent becomes the printer's profile. The PDF/X version
-stays that of the input (set \\thesisprintstandard in _thesisinfo.tex before compiling: X-6, or X-4 for
+stays that of the input (set \\thesisprintstandard in settings/thesisinfo.tex before compiling: X-6, or X-4 for
 printers who cannot take PDF 2.0). Transparency stays (both PDF/X-4 and PDF/X-6 allow it); for PDF/X-1a,
 which does not, use Acrobat Pro or Ghostscript 10.05 or later. Anything it does not know how to convert,
 it names and stops, rather than write a wrong file. Check the result with tools/check_print.py and look at

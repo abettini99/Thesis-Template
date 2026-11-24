@@ -1,0 +1,177 @@
+%% =====================================================================
+%% Matrices with nicematrix: labels outside the matrix (first-row, last-col, ...), blocks
+%% (\Block{2-2}{A}), braces over parts (\OverBrace, \UnderBrace, \SubMatrix after \CodeAfter),
+%% frames, and equal column widths (NiceMatrixBlock with auto-columns-width).
+%%   \begin{pNiceMatrix}[first-row,last-col]
+%%     x & y & \\  1 & 0 & \text{row 1} \\  0 & 1 & \text{row 2}
+%%   \end{pNiceMatrix}
+%% Only the matrix environments (NiceMatrix, pNiceMatrix, bNiceMatrix, BNiceMatrix, vNiceMatrix,
+%% VNiceMatrix) are made fit for a tagged PDF; for block matrices with lines use one of them
+%% with \hline and the key vlines (e.g. [vlines=2]). Not NiceArray and NiceTabular, whose
+%% content would be lost for screen readers; for tables use multirow and makecell.
+%% amsmath's \cdots, \vdots, \ddots work in the cells as everywhere.
+%%
+%% Tagged PDF: nicematrix draws the matrix with PGF, so its MathML would be empty. The entries
+%% are therefore set once more, out of sight, as an amsmath matrix, and that MathML is used,
+%% made to match the matrix as seen (nicematrix.lua): labels and braces are read after the
+%% matrix, blocks are cells spanning rows and columns.
+%% =====================================================================
+\usepackage{nicematrix}         % https://ctan.org/pkg/nicematrix
+\makeatletter
+\NewEnvironmentCopy{thesis@nm@NiceMatrix}{NiceMatrix}
+\NewEnvironmentCopy{thesis@nm@pNiceMatrix}{pNiceMatrix}
+\NewEnvironmentCopy{thesis@nm@bNiceMatrix}{bNiceMatrix}
+\NewEnvironmentCopy{thesis@nm@BNiceMatrix}{BNiceMatrix}
+\NewEnvironmentCopy{thesis@nm@vNiceMatrix}{vNiceMatrix}
+\NewEnvironmentCopy{thesis@nm@VNiceMatrix}{VNiceMatrix}
+\makeatother
+
+\ExplSyntaxOn
+\makeatletter
+\bool_new:N \l__thesis_nm_mathml_bool
+\AddToHook{begindocument}
+  {
+    \IfPackageLoadedT{luamml}
+      {
+        \bool_set_true:N \l__thesis_nm_mathml_bool
+        \directlua{ dofile(kpse.find_file('template/nicematrix.lua')) }
+      }
+  }
+\int_new:N \g__thesis_nm_int
+\tl_new:N \l__thesis_nm_body_tl
+\tl_new:N \l__thesis_nm_after_tl
+\tl_new:N \l__thesis_nm_spec_tl
+\box_new:N \l__thesis_nm_box
+
+%% MathML of #2 (maths) under the label #1, for the MathML of the matrix only: no structure of its own
+\cs_new_protected:Npn \__thesis_nm_save:nn #1#2
+  {
+    \hbox_set:Nn \l__thesis_nm_box
+      {
+        \__thesis_nm_no_structure:
+        $ \m@th #2 \luamml_save:nNn {#1} \textstyle { mrow } \__thesis_nm_no_structure: $
+      }
+  }
+\cs_new_protected:Npn \__thesis_nm_no_structure:
+  {
+    \int_set:Nn \l__luamml_flag_int
+      { \l__luamml_flag_int - 8 * \int_mod:nn { \int_div_truncate:nn { \l__luamml_flag_int } { 8 } } { 2 } }
+  }
+%% every cell gets a marker, so that empty cells and rows keep their place in the MathML
+\cs_new_protected:Npn \__thesis_nm_cell:
+  { \luamml_annotate:nen { 1 } { nucleus = true, mathml = { [0] = 'mrow', ['thesis-cell'] = 'true' } } { { \hbox:n { } } } }
+\cs_new:Npn \__thesis_nm_before_body:w #1 \Body #2 \q_stop { \exp_not:n {#2} }
+\cs_new:Npn \__thesis_nm_split_after:w #1 \CodeAfter #2 \q_stop
+  { \tl_set:Nn \l__thesis_nm_body_tl {#1} \tl_set:Nn \l__thesis_nm_after_tl {#2} }
+
+%% a brace or sub-matrix after \CodeAfter: its kind, cells and label, for nicematrix.lua
+\cs_new_protected:Npn \__thesis_nm_note:nnnn #1#2#3#4 % kind, from, to, label
+  {
+    \int_gincr:N \g__thesis_nm_int
+    \tl_if_blank:nTF {#4}
+      { \tl_put_right:Ne \l__thesis_nm_spec_tl { { kind='#1', from='\tl_to_str:n {#2}', to='\tl_to_str:n {#3}' }, } }
+      {
+        \__thesis_nm_save:nn { thesisnm \int_use:N \g__thesis_nm_int } {#4}
+        \tl_put_right:Ne \l__thesis_nm_spec_tl
+          {
+            { kind='#1', from='\tl_to_str:n {#2}', to='\tl_to_str:n {#3}',
+              label=consume_label'thesisnm \int_use:N \g__thesis_nm_int' },
+          }
+      }
+  }
+\cs_new_protected:Npn \__thesis_nm_key:nnn #1#2#3 % keys, key, Lua name
+  { \clist_if_in:nnT {#1} {#2} { \tl_put_right:Nn \l__thesis_nm_spec_tl { #3 = true, } } }
+\cs_new:Npn \__thesis_nm_delim:N #1
+  { \str_case:nnF {#1} { {(} {p} {[} {b} {\{} {B} {|} {v} {\|} {V} {\vert} {v} {\Vert} {V} } {} }
+
+%% The entries set once more as an amsmath matrix, saved as MathML under thesisnm.
+%% #1: delimiter letter (p, b, B, v, V or empty), #2: keys, #3: body
+\cs_new_protected:Npn \__thesis_nm_mathml:nnn #1#2#3
+  {
+    \group_begin:
+      \tl_set:Nn \l__thesis_nm_body_tl {#3}
+      \tl_clear:N \l__thesis_nm_after_tl
+      \tl_if_in:NnT \l__thesis_nm_body_tl { \Body }
+        { \tl_set:Ne \l__thesis_nm_body_tl { \exp_after:wN \__thesis_nm_before_body:w \l__thesis_nm_body_tl \q_stop } }
+      \tl_if_in:NnT \l__thesis_nm_body_tl { \CodeAfter }
+        { \exp_after:wN \__thesis_nm_split_after:w \l__thesis_nm_body_tl \q_stop }
+      %% the keys for labels outside the matrix, and the language of the notes
+      \tl_set:Ne \l__thesis_nm_spec_tl
+        { lang = '\str_if_eq:eeTF { \languagename } { dutch } { nl } { en }', }
+      \clist_map_inline:nn { {first-row}{first_row}, {last-row}{last_row}, {first-col}{first_col}, {last-col}{last_col} }
+        { \__thesis_nm_key:nnn {#2} ##1 }
+      \tl_put_right:Ne \l__thesis_nm_spec_tl { notes = \c_left_brace_str }
+      %% braces and sub-matrices; everything else after \CodeAfter is drawing only
+      \hbox_set:Nn \l__thesis_nm_box
+        {
+          \DeclareDocumentCommand \OverBrace { O{} m m m O{} } { \__thesis_nm_note:nnnn { over } {##2} {##3} {##4} }
+          \DeclareDocumentCommand \UnderBrace { O{} m m m O{} } { \__thesis_nm_note:nnnn { under } {##2} {##3} {##4} }
+          \DeclareDocumentCommand \SubMatrix { m m m m O{} }
+            { \__thesis_nm_note:nnnn { \__thesis_nm_delim:N ##1 } {##2} {##3} { } }
+          \DeclareDocumentCommand \line { O{} m m O{} } { }
+          \DeclareDocumentCommand \tikz { O{} m } { }
+          \DeclareDocumentEnvironment { tikzpicture } { O{} +b } { } { }
+          \DeclareDocumentCommand \Block { O{} m D<>{} +m O{} } { }
+          \l__thesis_nm_after_tl
+          %% (the spec is filled inside this box: hand it out)
+          \tl_gset_eq:NN \g_tmpa_tl \l__thesis_nm_spec_tl
+        }
+      \tl_set:Ne \l__thesis_nm_spec_tl { \g_tmpa_tl \c_right_brace_str }
+      %% the matrix: nicematrix's commands give plain entries, a \Block a marker with its
+      %% entry, its size and whether it is drawn
+      \DeclareDocumentCommand \Block { O{} m D<>{} +m O{} }
+        {
+          \int_gincr:N \g__thesis_nm_int
+          \tl_if_blank:nF {##4} { \__thesis_nm_save:nn { thesisnm \int_use:N \g__thesis_nm_int } {##4} }
+          \tl_set:Nn \l_tmpa_tl { false }
+          \tl_if_in:nnT {##1} { draw } { \tl_set:Nn \l_tmpa_tl { true } }
+          \luamml_annotate:nen { 1 }
+            {
+              nucleus = true,
+              mathml = { [0] = 'mrow', ['thesis-span'] = '\tl_to_str:n {##2}',
+                ['thesis-draw'] = '\l_tmpa_tl'
+                \tl_if_blank:nF {##4} { , consume_label'thesisnm \int_use:N \g__thesis_nm_int' } }
+            }
+            { { \hbox:n { } } }
+        }
+      \cs_set_eq:NN \Cdots \cdots \cs_set_eq:NN \Ldots \ldots \cs_set_eq:NN \Vdots \vdots
+      \cs_set_eq:NN \Ddots \ddots \cs_set_eq:NN \Iddots \iddots
+      \cs_set_eq:NN \Hline \hline \cs_set_eq:NN \hdottedline \hline
+      \cs_set:Npn \NotEmpty { }
+      \DeclareDocumentCommand \RowStyle { O{} m } { }
+      \DeclareDocumentCommand \diagbox { m m } { ##1 }
+      \cs_set:Npn \rotate { }
+      \setcounter{MaxMatrixCols}{100}
+      \tl_replace_all:Nnn \l__thesis_nm_body_tl { & } { \__thesis_nm_cell: & }
+      \tl_replace_all:Nnn \l__thesis_nm_body_tl { \\ } { \__thesis_nm_cell: \\ }
+      \tl_put_right:Nn \l__thesis_nm_body_tl { \__thesis_nm_cell: }
+      \__thesis_nm_save:nn { thesisnm }
+        { \exp_args:NnV \use:nn { \begin{#1matrix} } \l__thesis_nm_body_tl \end{#1matrix} }
+      \tl_gset_eq:NN \g_tmpa_tl \l__thesis_nm_spec_tl
+    \group_end:
+    \tl_set_eq:NN \l__thesis_nm_spec_tl \g_tmpa_tl
+  }
+
+\clist_map_inline:nn { {}, p, b, B, v, V }
+  {
+    \RenewDocumentEnvironment { #1 NiceMatrix } { !O{} +b }
+      {
+        \bool_if:NTF \l__thesis_nm_mathml_bool
+          {
+            \__thesis_nm_mathml:nnn {#1} {##1} {##2}
+            \luamml_annotate:nen { 1 }
+              { nucleus = true, mathml = thesis_nicematrix(consume_label'thesisnm', { \l__thesis_nm_spec_tl }) }
+              {
+                {
+                  \tagpdfsetup { table/tagging = false }
+                  \int_set:Nn \l__luamml_flag_int { 0 } % (its own MathML is replaced)
+                  \begin{thesis@nm@ #1 NiceMatrix}[##1] ##2 \end{thesis@nm@ #1 NiceMatrix}
+                }
+              }
+          }
+          { \begin{thesis@nm@ #1 NiceMatrix}[##1] ##2 \end{thesis@nm@ #1 NiceMatrix} }
+      }
+      { }
+  }
+\makeatother
+\ExplSyntaxOff

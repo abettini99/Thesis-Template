@@ -108,8 +108,7 @@ def main(argv=None) -> int:
         imgs[0].save(out, save_all=True, append_images=imgs[1:], resolution=args.dpi)
         print(f"greyscale preview: {out.name}\n")
 
-    figures = sorted((ROOT / "Images").glob("**/*.pdf")) if (ROOT / "Images").is_dir() else []
-    figures = [f for f in figures if "_title_images" not in f.parts]
+    figures = sorted((ROOT / "figures").glob("**/*.pdf")) if (ROOT / "figures").is_dir() else []
     try:
         import pikepdf  # noqa: F401
     except ImportError:

@@ -1,0 +1,621 @@
+%% =====================================================================
+%% Environments for the text: key points, contributions, QR links, grids of panels, figure and table pages.
+%% (Loaded by packages.tex.)
+%% =====================================================================
+
+%% ---------------------------------------------------------------------
+%% Key points: a short list set apart between two thin rules, with a small heading, e.g. at the start
+%% or end of a chapter. Tagged as an Aside, so a screen reader announces it as a side note.
+%%   \begin{keypoints}            \begin{keypoints}[In short]
+%%       \item ...                    \item ...
+%%   \end{keypoints}              \end{keypoints}
+%% ---------------------------------------------------------------------
+\newcommand{\keypointsname}{Key points}
+\ExplSyntaxOn
+\NewDocumentEnvironment{keypoints}{ O{\keypointsname} }
+  {
+    \par \addvspace { \bigskipamount }
+    \tag_struct_begin:n { tag = Aside }
+    \hrule height 0.4pt \relax
+    \nointerlineskip \vspace { 0.6\baselineskip }
+    \noindent { \headingfont \bfseries \small \MakeUppercase {#1} } \par
+    \begin{itemize}
+  }
+  {
+    \end{itemize}
+    \par \vspace { 0.4\baselineskip }
+    \hrule height 0.4pt \relax
+    \tag_struct_end:
+    \par \addvspace { \bigskipamount }
+  }
+\ExplSyntaxOff
+
+%% ---------------------------------------------------------------------
+%% Contributions: a numbered list C1, C2, ... whose items can be referred to:
+%%   \begin{contributions}
+%%       \item An adjoint method for ... \label{c:adjoint}
+%%   \end{contributions}
+%%   ... as shown in \cref{c:adjoint}   gives "contribution C1"
+%% ---------------------------------------------------------------------
+\newlist{contributions}{enumerate}{1}
+\setlist[contributions]{label=C\arabic*, font=\bfseries, leftmargin=2.4em} % (with tagging, LaTeX's own lists take enumitem's place and know fewer keys: no ref, leftmargin=* or widest)
+\crefname{contributionsi}{contribution}{contributions}
+\Crefname{contributionsi}{Contribution}{Contributions}
+
+%% ---------------------------------------------------------------------
+%% QR links: a QR code of a web address, with the address under it, in both editions, so the pages look
+%% the same on paper and on screen; in the digital edition the code and the address are a link. For the
+%% DOIs of data and code. Tagged as a figure with alternative text.
+%%   \qrlink{https://doi.org/10.4121/00000000}     \qrlink[15mm]{...}   size (default 12 mm)
+%%   \qrlink{...}[Data]                            a short label under it instead of the address
+%% ---------------------------------------------------------------------
+\usepackage[nolinks]{qrcode} % https://ctan.org/pkg/qrcode %% (its own links are switched off: ours below)
+\ExplSyntaxOn
+\NewDocumentCommand{\qrlink}{ O{12mm} m o }
+  {
+    \leavevmode
+    \begin{tabular}[b]{@{}c@{}}
+      \href{#2}
+        {
+          \tag_struct_begin:n { tag = Figure, alt = { QR~code~linking~to~#2 } }
+          \tag_mc_begin:n { }
+          \tag_suspend:n { qrcode }
+          \color{black} \qrcode[height=#1]{#2} % black, not the link colour: the best contrast for scanning
+          \tag_resume:n { qrcode }
+          \tag_mc_end:
+          \tag_struct_end:
+        } \\
+      \footnotesize \IfNoValueTF {#3} { \url{#2} } {#3}
+    \end{tabular}
+  }
+\ExplSyntaxOff
+
+%% ---------------------------------------------------------------------
+%% Panels: a grid of plots of the same size, lined up in rows and columns, e.g. snapshots of a flow, each
+%% with a short label under it and lettered (a), (b), ... automatically, and one shared colour bar under the
+%% grid. In a figure, or in a figure page (below), where the grid is made to fit the page.
+%%   \begin{figure}[tbp]
+%%       \begin{panels}[columns=3]
+%%           \panel{figures/snap-01.pdf}{$t = 0$}
+%%           \panel[alt={...}, label={fig:snap-b}]{figures/snap-02.pdf}{$t = 0.35$}
+%%           ...
+%%           \colorbar{figures/colourbar.pdf}
+%%       \end{panels}
+%%       \caption{...}\label{fig:snapshots}
+%%   \end{figure}
+%% \cref{fig:snap-b} gives "Figure 2.9b", \subref{fig:snap-b} "(b)".
+%% Options of panels:
+%%   columns=3                  panels per row
+%%   labels=below|inside|inside-right|none   the label under each panel (default), in its top left
+%%                              (or right) corner on a white ground, or none
+%%   letters=true|false         (a), (b), ... before the labels (default true)
+%%   gap=2mm                    between the panels, across and down (natural: between the plot areas, 2.5mm)
+%%   aspect=4/3                 width / height of the panels; default: that of the first image
+%%   natural                    plots with axes: every file at its own size, not scaled, lined up on their
+%%                              plot areas (files made by save_panels in figures/plots/example_figures.py: the same
+%%                              plot area in all, the tick labels only in the left column and bottom row)
+%%   xlabel={$x$}, ylabel={$u$} one axis title under and one beside the grid, centred on the plot areas;
+%%   xlabel-sep=1pt, ylabel-sep=1.5mm   their distance from the tick labels
+%%   pad=2mm                    natural: the margin round every plot area in the files (as in save_panels)
+%% Options of \panel: alt={...} the alternative text for screen readers (default: "Panel b: " and the label),
+%% label={...} for cross-references. \colorbar[alt={...}]{file}: an image at its own size (at most the width
+%% of the grid), centred under it. Make the panels and the colour bar with the same colour scale.
+%% (For a few sub-figures of different sizes, each with a caption of its own, use subfigure instead.)
+%% ---------------------------------------------------------------------
+\ExplSyntaxOn
+\seq_new:N \g__thesis_panels_seq
+\tl_new:N \g__thesis_panels_cbar_tl
+\tl_new:N \g__thesis_panels_cbaralt_tl
+\int_new:N \l__thesis_panels_columns_int
+\int_new:N \l__thesis_panels_rows_int
+\int_new:N \l__thesis_panels_count_int
+\int_new:N \g__thesis_panels_last_int
+\tl_new:N \l__thesis_panels_labels_tl
+\bool_new:N \l__thesis_panels_letters_bool
+\dim_new:N \l__thesis_panels_gap_dim
+\tl_new:N \l__thesis_panels_aspect_tl
+\dim_new:N \l__thesis_panels_wd_dim
+\dim_new:N \l__thesis_panels_ht_dim
+\dim_new:N \l__thesis_panels_labelht_dim
+\dim_new:N \l__thesis_panels_grid_dim
+\dim_new:N \l__thesis_panels_avail_dim
+\dim_new:N \l__thesis_panels_maxht_dim      % the height the grid may take (set by figurepage; in a
+                                            % figure: the text height less room for the caption)
+\bool_new:N \l__thesis_panels_onpage_bool   % in a figure page: the colour bar goes to the foot
+\box_new:N \l__thesis_panels_cbar_box
+\box_new:N \l__thesis_panels_label_box
+\fp_new:N \l__thesis_panels_aspect_fp
+\box_new:N \l__thesis_panels_grid_box
+\int_new:N \l__thesis_panels_col_int
+\bool_new:N \l__thesis_panels_natural_bool
+\tl_new:N \l__thesis_panels_xlabel_tl
+\tl_new:N \l__thesis_panels_ylabel_tl
+\dim_new:N \l__thesis_panels_left_dim       % natural: the extra width of the left column (y tick labels)
+\dim_new:N \l__thesis_panels_bottom_dim     % natural: the extra height of the bottom row (x tick labels)
+\dim_new:N \l__thesis_panels_pad_dim        % natural: the margin round every plot area (save_panels)
+\dim_new:N \l__thesis_panels_inset_x_dim
+\bool_new:N \l__thesis_panels_gapset_bool
+\dim_new:N \l__thesis_panels_xsep_dim \dim_new:N \l__thesis_panels_ysep_dim
+\dim_new:N \l__thesis_panels_padkey_dim \dim_set:Nn \l__thesis_panels_padkey_dim { 2mm }
+\keys_define:nn { thesis / panels }
+  {
+    columns .int_set:N = \l__thesis_panels_columns_int ,
+    columns .initial:n = 2 ,
+    labels .choices:nn = { below , inside , inside-right , none } { \tl_set_eq:NN \l__thesis_panels_labels_tl \l_keys_choice_tl } ,
+    labels .initial:n = below ,
+    letters .bool_set:N = \l__thesis_panels_letters_bool ,
+    letters .initial:n = true ,
+    letters .default:n = true ,
+    gap .code:n = \dim_set:Nn \l__thesis_panels_gap_dim {#1} \bool_set_true:N \l__thesis_panels_gapset_bool ,
+    gap .initial:n = 2mm ,
+    aspect .tl_set:N = \l__thesis_panels_aspect_tl ,
+    natural .bool_set:N = \l__thesis_panels_natural_bool ,
+    natural .default:n = true ,
+    xlabel .tl_set:N = \l__thesis_panels_xlabel_tl ,
+    ylabel .tl_set:N = \l__thesis_panels_ylabel_tl ,
+    xlabel-sep .dim_set:N = \l__thesis_panels_xsep_dim ,
+    xlabel-sep .initial:n = 1pt ,
+    ylabel-sep .dim_set:N = \l__thesis_panels_ysep_dim ,
+    ylabel-sep .initial:n = 1.5mm ,
+    pad .code:n = \dim_set:Nn \l__thesis_panels_padkey_dim {#1} ,
+  }
+\keys_define:nn { thesis / colorbar } { alt .code:n = \tl_gset:Nn \g__thesis_panels_cbaralt_tl {#1} }
+\keys_define:nn { thesis / panel }
+  {
+    alt .tl_set:N = \l__thesis_panel_alt_tl ,
+    label .tl_set:N = \l__thesis_panel_label_tl ,
+    data .tl_set:N = \l__thesis_panel_data_tl ,
+  }
+
+\NewDocumentEnvironment { panels } { O{} +b }
+  {
+    \par
+    \group_begin:
+    \bool_set_false:N \l__thesis_panels_gapset_bool
+    \keys_set:nn { thesis / panels } {#1}
+    % 1. collect the panels and the colour bar
+    \seq_gclear:N \g__thesis_panels_seq
+    \tl_gclear:N \g__thesis_panels_cbar_tl
+    \RenewDocumentCommand \panel { O{} m m } { \seq_gput_right:Nn \g__thesis_panels_seq { {##1} {##2} {##3} } }
+    \RenewDocumentCommand \colorbar { O{} m }
+      {
+        \tl_gclear:N \g__thesis_panels_cbaralt_tl
+        \keys_set:nn { thesis / colorbar } {##1}
+        \tl_gset:Nn \g__thesis_panels_cbar_tl {##2}
+      }
+    \hbox_set:Nn \l_tmpa_box { \tag_suspend:n { panels } #2 \tag_resume:n { panels } }
+    \int_set:Nn \l__thesis_panels_count_int { \seq_count:N \g__thesis_panels_seq }
+    \int_compare:nNnT { \l__thesis_panels_count_int } > { 0 } { \__thesis_panels_set: }
+    \group_end:
+    % the next figure page with continued goes on with the letters
+    \int_gset:Nn \g__thesis_panels_last_int { \value { subfigure } }
+  }
+  { }
+% \panel and \colorbar outside panels
+\NewDocumentCommand \panel { O{} m m } { \msg_error:nn { thesis } { panel-outside } }
+\NewDocumentCommand \colorbar { O{} m } { \msg_error:nn { thesis } { panel-outside } }
+\msg_new:nnn { thesis } { panel-outside } { \token_to_str:N \panel\ and~ \token_to_str:N \colorbar\ belong~ inside~ a~ panels~ environment. }
+
+% the image of a panel, measured without tagging
+\cs_new_protected:Npn \__thesis_panels_measure:Nn #1#2
+  { \hbox_set:Nn #1 { \tag_suspend:n { panels } \includegraphics {#2} \tag_resume:n { panels } } }
+
+\cs_new_protected:Npn \__thesis_panels_set:
+  {
+    \int_set:Nn \l__thesis_panels_rows_int
+      { \int_div_truncate:nn { \l__thesis_panels_count_int + \l__thesis_panels_columns_int - 1 } { \l__thesis_panels_columns_int } }
+    \bool_set_eq:NN \l__thesis_subcaption_letter_bool \l__thesis_panels_letters_bool
+    \skip_set:Nn \abovecaptionskip { 3pt } % the labels close to their panels
+    % the colour bar, measured
+    \tl_if_empty:NF \g__thesis_panels_cbar_tl
+      { \__thesis_panels_measure:Nn \l__thesis_panels_cbar_box { \g__thesis_panels_cbar_tl } }
+    \bool_if:NTF \l__thesis_panels_natural_bool
+      { \__thesis_panels_size_natural: }
+      { \__thesis_panels_size_scaled: }
+    % the grid, row by row, in a box as wide as the grid
+    \vbox_set:Nn \l__thesis_panels_grid_box
+      {
+        \dim_set:Nn \hsize { \l__thesis_panels_grid_dim } \dim_set_eq:NN \linewidth \hsize
+        \skip_zero:N \parskip \skip_set:Nn \parfillskip { 0pt plus 1fil }
+        \int_zero:N \l_tmpa_int
+        \seq_map_inline:Nn \g__thesis_panels_seq
+          {
+            \int_set:Nn \l__thesis_panels_col_int { \int_mod:nn { \l_tmpa_int } { \l__thesis_panels_columns_int } }
+            \int_compare:nNnTF { \l__thesis_panels_col_int } = { 0 }
+              {
+                \int_compare:nNnF { \l_tmpa_int } = { 0 } { \par \nointerlineskip \vspace { \l__thesis_panels_gap_dim } }
+                \noindent
+              }
+              { \skip_horizontal:N \l__thesis_panels_gap_dim }
+            \__thesis_panels_one:nnn ##1
+            \int_incr:N \l_tmpa_int
+          }
+        \par
+      }
+    % the grid with the shared axis titles: y beside it, x under it, centred on the plot areas
+    \tl_if_empty:NF \l__thesis_panels_ylabel_tl
+      {
+        \hbox_set:Nn \l_tmpa_box
+          {
+            \rotatebox { 90 }
+              {
+                \hbox_to_wd:nn
+                  {
+                    \box_ht:N \l__thesis_panels_grid_box
+                    - \l__thesis_panels_bottom_dim - 2\l__thesis_panels_pad_dim
+                  }
+                  { \hss \small \l__thesis_panels_ylabel_tl \hss }
+              }
+          }
+      }
+    \noindent
+    \hbox_to_wd:nn { \linewidth }
+      {
+        \hss
+        \tl_if_empty:NF \l__thesis_panels_ylabel_tl
+          {
+            \box_move_up:nn { \l__thesis_panels_bottom_dim + \l__thesis_panels_pad_dim } { \box_use:N \l_tmpa_box }
+            \skip_horizontal:N \l__thesis_panels_ysep_dim
+          }
+        \box_use_drop:N \l__thesis_panels_grid_box
+        \hss
+      }
+    \par
+    \tl_if_empty:NF \l__thesis_panels_xlabel_tl
+      {
+        \nointerlineskip \vspace { \l__thesis_panels_xsep_dim }
+        \noindent
+        \hbox_to_wd:nn { \linewidth }
+          {
+            \hss
+            \tl_if_empty:NF \l__thesis_panels_ylabel_tl { \skip_horizontal:n { \box_wd:N \l_tmpa_box + \l__thesis_panels_ysep_dim } }
+            \skip_horizontal:n { \l__thesis_panels_left_dim + \l__thesis_panels_pad_dim }
+            \hbox_to_wd:nn
+              { \l__thesis_panels_grid_dim - \l__thesis_panels_left_dim - 2\l__thesis_panels_pad_dim }
+              { \hss \small \l__thesis_panels_xlabel_tl \hss }
+            \skip_horizontal:n { \l__thesis_panels_pad_dim }
+            \hss
+          }
+        \par
+      }
+    % the colour bar: under the grid, or at the foot of a figure page
+    \tl_if_empty:NF \g__thesis_panels_cbar_tl
+      {
+        \bool_if:NTF \l__thesis_panels_onpage_bool { \vfill } { \vspace { 2\l__thesis_panels_gap_dim } }
+        \noindent \hbox_to_wd:nn { \linewidth }
+          {
+            \hss
+            \includegraphics
+              [ alt = { \tl_if_empty:NTF \g__thesis_panels_cbaralt_tl { Colour~bar } { \g__thesis_panels_cbaralt_tl } } ,
+                width = { \dim_min:nn { \box_wd:N \l__thesis_panels_cbar_box } { \linewidth } } ]
+              { \g__thesis_panels_cbar_tl }
+            \hss
+          }
+        \par
+        \bool_if:NT \l__thesis_panels_onpage_bool { \bool_gset_true:N \g__thesis_page_filled_bool }
+      }
+  }
+% scaled: every panel the same size, from the width, made smaller if the grid would be too high
+\cs_new_protected:Npn \__thesis_panels_size_scaled:
+  {
+    \dim_zero:N \l__thesis_panels_left_dim \dim_zero:N \l__thesis_panels_bottom_dim
+    \dim_zero:N \l__thesis_panels_pad_dim
+    \tl_if_empty:NTF \l__thesis_panels_aspect_tl
+      {
+        \seq_get_left:NN \g__thesis_panels_seq \l_tmpa_tl
+        \__thesis_panels_measure:Nn \l_tmpb_box { \exp_last_unbraced:No \use_ii:nnn \l_tmpa_tl }
+        \fp_set:Nn \l__thesis_panels_aspect_fp { \box_wd:N \l_tmpb_box / \box_ht:N \l_tmpb_box }
+      }
+      { \fp_set:Nn \l__thesis_panels_aspect_fp { \l__thesis_panels_aspect_tl } }
+    \hbox_set:Nn \l__thesis_panels_label_box { \small \strut }
+    \dim_set:Nn \l__thesis_panels_labelht_dim
+      {
+        \str_if_eq:VnTF \l__thesis_panels_labels_tl { below }
+          { \box_ht:N \l__thesis_panels_label_box + \box_dp:N \l__thesis_panels_label_box + \abovecaptionskip + \belowcaptionskip + 2pt } { 0pt }
+      }
+    \bool_if:NF \l__thesis_panels_onpage_bool
+      { \dim_set:Nn \l__thesis_panels_maxht_dim { \textheight - 4\baselineskip } }
+    \dim_set:Nn \l__thesis_panels_avail_dim
+      {
+        ( \linewidth
+          - \tl_if_empty:NTF \l__thesis_panels_ylabel_tl { 0pt } { \baselineskip + \l__thesis_panels_ysep_dim }
+          - \l__thesis_panels_gap_dim * ( \l__thesis_panels_columns_int - 1 ) ) / \l__thesis_panels_columns_int
+      }
+    \dim_set_eq:NN \l__thesis_panels_wd_dim \l__thesis_panels_avail_dim
+    \dim_set:Nn \l__thesis_panels_ht_dim { \fp_to_dim:n { \l__thesis_panels_wd_dim / \l__thesis_panels_aspect_fp } }
+    \dim_set:Nn \l__thesis_panels_avail_dim
+      {
+        \l__thesis_panels_maxht_dim
+        - \l__thesis_panels_gap_dim * ( \l__thesis_panels_rows_int - 1 )
+        - \l__thesis_panels_labelht_dim * \l__thesis_panels_rows_int
+        - \tl_if_empty:NTF \l__thesis_panels_xlabel_tl { 0pt } { \baselineskip + \l__thesis_panels_xsep_dim }
+        - \tl_if_empty:NTF \g__thesis_panels_cbar_tl { 0pt }
+            { \box_ht:N \l__thesis_panels_cbar_box + \box_dp:N \l__thesis_panels_cbar_box + 2\l__thesis_panels_gap_dim }
+      }
+    \dim_compare:nNnT { \l__thesis_panels_ht_dim * \l__thesis_panels_rows_int } > { \l__thesis_panels_avail_dim }
+      {
+        \dim_set:Nn \l__thesis_panels_ht_dim { \l__thesis_panels_avail_dim / \l__thesis_panels_rows_int }
+        \dim_set:Nn \l__thesis_panels_wd_dim { \fp_to_dim:n { \l__thesis_panels_ht_dim * \l__thesis_panels_aspect_fp } }
+      }
+    \dim_set:Nn \l__thesis_panels_grid_dim
+      { \l__thesis_panels_wd_dim * \l__thesis_panels_columns_int + \l__thesis_panels_gap_dim * ( \l__thesis_panels_columns_int - 1 ) }
+  }
+% natural: every file at its own size (made by save_panels in Python: the same plot area in all, the tick
+% labels in the files of the left column and the bottom row); their extra width and height, from the sizes
+\cs_new_protected:Npn \__thesis_panels_size_natural:
+  {
+    \dim_set_eq:NN \l__thesis_panels_pad_dim \l__thesis_panels_padkey_dim
+    % gap: between the plot areas (2.5 mm unless given); the files, with their margins, overlap by the rest
+    \bool_if:NF \l__thesis_panels_gapset_bool { \dim_set:Nn \l__thesis_panels_gap_dim { 2.5mm } }
+    \dim_set:Nn \l__thesis_panels_gap_dim { \l__thesis_panels_gap_dim - 2\l__thesis_panels_pad_dim }
+    \seq_get_left:NN \g__thesis_panels_seq \l_tmpa_tl
+    \__thesis_panels_measure:Nn \l_tmpa_box { \exp_last_unbraced:No \use_ii:nnn \l_tmpa_tl }
+    \dim_zero:N \l__thesis_panels_left_dim \dim_zero:N \l__thesis_panels_bottom_dim
+    \dim_set:Nn \l__thesis_panels_grid_dim { \box_wd:N \l_tmpa_box }
+    \int_compare:nNnT { \l__thesis_panels_columns_int } > { 1 }
+      {
+        \tl_set:Ne \l_tmpb_tl { \seq_item:Nn \g__thesis_panels_seq { 2 } }
+        \__thesis_panels_measure:Nn \l_tmpb_box { \exp_last_unbraced:No \use_ii:nnn \l_tmpb_tl }
+        \dim_set:Nn \l__thesis_panels_left_dim { \box_wd:N \l_tmpa_box - \box_wd:N \l_tmpb_box }
+        \dim_set:Nn \l__thesis_panels_grid_dim
+          {
+            \box_wd:N \l_tmpa_box
+            + ( \box_wd:N \l_tmpb_box + \l__thesis_panels_gap_dim ) * ( \l__thesis_panels_columns_int - 1 )
+          }
+      }
+    \int_compare:nNnT { \l__thesis_panels_rows_int } > { 1 }
+      {
+        \tl_set:Ne \l_tmpb_tl
+          { \seq_item:Nn \g__thesis_panels_seq { ( \l__thesis_panels_rows_int - 1 ) * \l__thesis_panels_columns_int + 1 } }
+        \__thesis_panels_measure:Nn \l_tmpb_box { \exp_last_unbraced:No \use_ii:nnn \l_tmpb_tl }
+        \dim_set:Nn \l__thesis_panels_bottom_dim { \box_ht:N \l_tmpb_box - \box_ht:N \l_tmpa_box }
+      }
+  }
+% a label in the top left (or right) corner of the plot area, on a white ground: label, left or right
+\cs_new_protected:Npn \__thesis_panels_inside:nn #1#2
+  {
+    \hbox_set:Nn \l_tmpa_box
+      {
+        \small \bool_if:NT \l__thesis_panels_letters_bool
+          { ( \int_eval:n { \value { subfigure } + 1 } ) \nobreakspace } #1
+      }
+    \vbox_set:Nn \l_tmpa_box
+      {
+        % as wide as the label (at most the panel), set from the left
+        \dim_set:Nn \hsize { \dim_min:nn { \box_wd:N \l_tmpa_box + 2pt } { \l__thesis_panels_wd_dim } }
+        \dim_set:Nn \linewidth { \hsize }
+        \skip_set:Nn \abovecaptionskip { 1pt } \skip_set:Nn \belowcaptionskip { 0pt }
+        \legacy_if_set_false:n { thesis@capcentre }
+        \caption {#1}
+        \__thesis_panels_label:
+      }
+    \hbox_set:Nn \l_tmpb_box
+      {
+        \color { white } \vrule width \box_wd:N \l_tmpa_box height \box_ht:N \l_tmpa_box depth \box_dp:N \l_tmpa_box
+        \skip_horizontal:n { - \box_wd:N \l_tmpa_box } \color { black } \box_use:N \l_tmpa_box
+      }
+    \str_if_eq:nnT {#2} { right }
+      { \dim_set:Nn \l__thesis_panels_inset_x_dim { \l__thesis_panels_wd_dim - \l__thesis_panels_pad_dim - \box_wd:N \l_tmpb_box } }
+    \par \nointerlineskip
+    \vspace* { \l__thesis_panels_pad_dim - \l__thesis_panels_ht_dim }
+    \hbox:n { \skip_horizontal:N \l__thesis_panels_inset_x_dim \box_use:N \l_tmpb_box }
+    \nointerlineskip
+    \vspace* { \dim_eval:n { \l__thesis_panels_ht_dim - \l__thesis_panels_pad_dim - \box_ht:N \l_tmpb_box - \box_dp:N \l_tmpb_box } }
+  }
+% one panel: options, file, label
+\cs_new_protected:Npn \__thesis_panels_label:
+  { \tl_if_empty:NF \l__thesis_panel_label_tl { \exp_args:NV \label \l__thesis_panel_label_tl } }
+\cs_new_protected:Npn \__thesis_panels_one:nnn #1#2#3
+  {
+    \group_begin:
+    \tl_clear:N \l__thesis_panel_alt_tl \tl_clear:N \l__thesis_panel_label_tl \tl_clear:N \l__thesis_panel_data_tl
+    \keys_set:nn { thesis / panel } {#1}
+    \tl_if_empty:NT \l__thesis_panel_alt_tl % (default: "Panel b: t = 0.35", from the label without its $)
+      {
+        \tl_set:Ne \l__thesis_panel_alt_tl { \text_purify:n {#3} }
+        \tl_remove_all:Nn \l__thesis_panel_alt_tl { $ }
+        \tl_set:Ne \l__thesis_panel_alt_tl
+          {
+            Panel \bool_if:NT \l__thesis_panels_letters_bool { ~ \int_to_alph:n { \value { subfigure } + 1 } }
+            \tl_if_blank:VF \l__thesis_panel_alt_tl { : ~ \exp_not:V \l__thesis_panel_alt_tl }
+          }
+      }
+    % the size of this panel; the corner of its plot area (natural: inside the tick labels and the pad)
+    \dim_zero:N \l__thesis_panels_inset_x_dim
+    \bool_if:NT \l__thesis_panels_natural_bool
+      {
+        \__thesis_panels_measure:Nn \l_tmpb_box {#2}
+        \dim_set:Nn \l__thesis_panels_wd_dim { \box_wd:N \l_tmpb_box }
+        \dim_set:Nn \l__thesis_panels_ht_dim { \box_ht:N \l_tmpb_box }
+        \dim_set:Nn \l__thesis_panels_inset_x_dim
+          { \l__thesis_panels_pad_dim + \int_compare:nNnTF { \l__thesis_panels_col_int } = { 0 } { \l__thesis_panels_left_dim } { 0pt } }
+      }
+    \begin{subfigure}[t]{\l__thesis_panels_wd_dim}
+      \includegraphics [ alt = { \l__thesis_panel_alt_tl } , width = \l__thesis_panels_wd_dim , height = \l__thesis_panels_ht_dim ] {#2}
+      \tl_if_empty:NF \l__thesis_panel_data_tl
+        { \use:e { \exp_not:N \figuredata [ Data~of~\exp_not:V \l__thesis_panel_alt_tl ] { \exp_not:V \l__thesis_panel_data_tl } } }
+      \str_case:Vn \l__thesis_panels_labels_tl
+        {
+          { below } { \caption {#3} }
+          { inside } { \__thesis_panels_inside:nn {#3} { left } }
+          { inside-right } { \__thesis_panels_inside:nn {#3} { right } }
+          { none } { \refstepcounter { subfigure } }
+        }
+      \str_if_in:NnF \l__thesis_panels_labels_tl { inside } { \__thesis_panels_label: }
+    \end{subfigure}
+    \group_end:
+  }
+\ExplSyntaxOff
+
+%% ---------------------------------------------------------------------
+%% Figure and table pages: a figure or a table on a page of its own, as a float (the text goes on around
+%% it), e.g. a grid of panels that needs the whole page.
+%%   \begin{figurepage}                        \begin{tablepage}[landscape]
+%%       \begin{panels}[columns=2] ... \end{panels}     \caption{...}\label{tab:...}
+%%       \caption{...}\label{fig:...}                   \begin{tabular}...\end{tabular}
+%%   \end{figurepage}                          \end{tablepage}
+%% or a single large figure: \includegraphics[width=\linewidth, height=\areaheight, keepaspectratio]{...}
+%% Options:
+%%   landscape     turned sideways, like sidewaysfigure (shown upright on screen in the digital edition)
+%%   wide          also the outer margin, up to 10 mm from the edge of the page (the caption keeps the
+%%                 width of the text)
+%%   continued     (figurepage) goes on from the previous figure page: the same number, "(continued)" in
+%%                 the caption, no second entry in the list of figures, panel letters carried on
+%%   head=false    without the running head and page number (default: with them, as on every page)
+%%   align=centre  the content in the middle of the page (default: at the top); the caption, and the colour
+%%                 bar of a panel grid, stay at the foot (a table's caption at the top)
+%% \linewidth is the width of the area, \areaheight its height less room for a three-line caption. A long
+%% table that runs over several pages is an xltabular, not a table page.
+%% ---------------------------------------------------------------------
+\newlength{\areaheight}
+\ExplSyntaxOn
+\bool_new:N \l__thesis_page_landscape_bool
+\bool_new:N \l__thesis_page_wide_bool
+\bool_new:N \l__thesis_page_continued_bool
+\bool_new:N \l__thesis_page_head_bool
+\bool_new:N \l__thesis_page_centre_bool
+\bool_new:N \g__thesis_page_filled_bool
+\dim_new:N \l__thesis_page_extra_dim
+\dim_new:N \l__thesis_page_wd_dim
+\dim_new:N \l__thesis_page_ht_dim
+\keys_define:nn { thesis / page }
+  {
+    landscape .bool_set:N = \l__thesis_page_landscape_bool ,
+    landscape .default:n = true ,
+    wide .bool_set:N = \l__thesis_page_wide_bool ,
+    wide .default:n = true ,
+    continued .bool_set:N = \l__thesis_page_continued_bool ,
+    continued .default:n = true ,
+    head .bool_set:N = \l__thesis_page_head_bool ,
+    head .initial:n = true ,
+    head .default:n = true ,
+    align .choices:nn = { top , centre , center }
+      { \bool_set:Nn \l__thesis_page_centre_bool { ! \str_if_eq_p:Vn \l_keys_choice_tl { top } } } ,
+  }
+
+%% Each is a float of its own (placement p) that fills the page, so LaTeX keeps it in order with the other
+%% floats. Whether its page is a left or a right one, and which page goes without running head, is read
+%% from the previous run (it decides on which side wide goes, and which way landscape turns).
+\int_new:N \g__thesis_page_int
+\cs_new_protected:Npn \__thesis_page_mark:
+  {
+    \iow_shipout_x:cx { @auxout }
+      { \exp_not:c { thesis@pagefloat } { \int_use:N \g__thesis_page_int } { \exp_not:N \the \exp_not:N \value { page } } }
+    \bool_if:NF \l__thesis_page_head_bool
+      { \iow_shipout_x:cx { @auxout } { \exp_not:c { thesis@nohead } { \exp_not:N \the \exp_not:N \value { page } } } }
+  }
+\cs_new_protected:cpn { thesis@pagefloat } #1#2 { \cs_gset:cpn { thesis@pagefloat@#1 } {#2} }
+\cs_new_protected:cpn { thesis@nohead } #1 { \cs_gset:cpn { thesis@nohead@#1 } { } }
+\cs_new:Npn \__thesis_page_page: { \cs_if_exist_use:cF { thesis@pagefloat@ \int_use:N \g__thesis_page_int } { 1 } }
+% a page marked without head: no running head and foot
+\AddToHook { cmd/@outputpage/before }
+  {
+    \cs_if_exist:cT { thesis@nohead@ \int_use:N \value { page } }
+      { \clist_map_inline:nn { @oddhead , @evenhead , @oddfoot , @evenfoot } { \cs_set_eq:cN {##1} \prg_do_nothing: } }
+  }
+
+\NewDocumentEnvironment { figurepage } { O{} +b } { \__thesis_page:nnn { figure } {#1} {#2} } { }
+\NewDocumentEnvironment { tablepage } { O{} +b } { \__thesis_page:nnn { table } {#1} {#2} } { }
+
+\cs_new_protected:Npn \__thesis_page:nnn #1#2#3 % figure or table, options, body
+  {
+    \group_begin:
+    \int_gincr:N \g__thesis_page_int
+    \keys_set:nn { thesis / page } {#2}
+    \dim_set:Nn \l__thesis_page_extra_dim
+      { \bool_if:NTF \l__thesis_page_wide_bool { \foremargin - 10mm } { 0pt } }
+    % the area: width and height (turned: the text height wide)
+    \bool_if:NTF \l__thesis_page_landscape_bool
+      {
+        \dim_set:Nn \l__thesis_page_wd_dim { \textheight }
+        \dim_set:Nn \l__thesis_page_ht_dim { \textwidth + \l__thesis_page_extra_dim }
+      }
+      {
+        \dim_set:Nn \l__thesis_page_wd_dim { \textwidth + \l__thesis_page_extra_dim }
+        \dim_set:Nn \l__thesis_page_ht_dim { \textheight }
+      }
+    \dim_set:Nn \areaheight { \l__thesis_page_ht_dim - 4\baselineskip }
+    \begin {#1} [p]
+      \__thesis_page_mark:
+      \bool_if:NTF \l__thesis_page_landscape_bool
+        {
+          \thesisrotatepage
+          \hbox_to_wd:nn { \textwidth }
+            {
+              \int_if_even:nT { \__thesis_page_page: } { \skip_horizontal:n { - \l__thesis_page_extra_dim } }
+              \rotatebox
+                {
+                  \bool_if:nTF { \legacy_if_p:n { thesis@sidewaysalt } && \int_if_even_p:n { \__thesis_page_page: } }
+                    { -90 } { 90 }
+                }
+                { \__thesis_page_area:nn {#1} {#3} }
+              \hss
+            }
+        }
+        {
+          \int_if_even:nT { \__thesis_page_page: } { \tex_moveleft:D \l__thesis_page_extra_dim }
+          \__thesis_page_area:nn {#1} {#3}
+        }
+    \end {#1}
+    \group_end:
+  }
+% the area of the page (a minipage would start a paragraph in the tagging, inside a box)
+\cs_new_protected:Npn \__thesis_page_area:nn #1#2
+  {
+    \vbox_to_ht:nn { \l__thesis_page_ht_dim }
+      {
+        \dim_set:Nn \hsize { \l__thesis_page_wd_dim } \dim_set:Nn \linewidth { \hsize }
+        \dim_set:Nn \textwidth { \hsize } \dim_set:Nn \columnwidth { \hsize }
+        \dim_set_eq:NN \l__thesis_panels_maxht_dim \areaheight
+        \bool_set_true:N \l__thesis_panels_onpage_bool
+        \bool_gset_false:N \g__thesis_page_filled_bool
+        \bool_if:NT \l__thesis_page_centre_bool { \vfil }
+        \str_if_eq:nnTF {#1} { figure }
+          {
+            \bool_if:NT \l__thesis_page_continued_bool { \__thesis_page_continued: }
+            % the caption at the foot of the page, with the text width
+            \cs_set_eq:NN \__thesis_page_caption:w \caption
+            \RenewDocumentCommand \caption { o m }
+              {
+                \bool_if:NF \g__thesis_page_filled_bool { \vfill }
+                \__thesis_page_narrow:n
+                  {
+                    \bool_if:NTF \l__thesis_page_continued_bool
+                      { \__thesis_page_caption:w [ ] { (continued) \tl_if_blank:nF {##2} { ~ ##2 } } }
+                      { \IfValueTF {##1} { \__thesis_page_caption:w [##1] {##2} } { \__thesis_page_caption:w {##2} } }
+                  }
+                \bool_gset_true:N \g__thesis_page_captioned_bool
+              }
+            \bool_gset_false:N \g__thesis_page_captioned_bool
+            #2
+            \bool_if:NT \l__thesis_page_continued_bool
+              { \bool_if:NF \g__thesis_page_captioned_bool { \caption { } } }
+            \bool_if:NF \g__thesis_page_filled_bool { \vfill }
+          }
+          { #2 \vfill }
+        \bool_if:NT \l__thesis_page_centre_bool { \vfil }
+      }
+  }
+\bool_new:N \g__thesis_page_captioned_bool
+% the caption of a wide figure keeps the width of the text, on the text's side of the area
+\cs_new_protected:Npn \__thesis_page_narrow:n #1
+  {
+    \dim_compare:nNnTF { \l__thesis_page_extra_dim } = { 0pt }
+      {#1}
+      {
+        \group_begin:
+          \dim_set:Nn \hsize { \l__thesis_page_wd_dim - \l__thesis_page_extra_dim }
+          \dim_set_eq:NN \linewidth \hsize
+          \int_if_even:nT { \__thesis_page_page: } { \skip_set:Nn \leftskip { \l__thesis_page_extra_dim } }
+          #1
+        \group_end:
+      }
+  }
+% continued: the number of the previous figure, its panel letters carried on, not in the list of figures
+\cs_new_protected:Npn \__thesis_page_continued:
+  {
+    \addtocounter { figure } { -1 }
+    \setcounter { subfigure } { \g__thesis_panels_last_int }
+    \cs_set_eq:NN \addcontentsline \use_none:nnn
+  }
+\ExplSyntaxOff

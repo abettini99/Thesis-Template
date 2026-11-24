@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Make figure PDFs ready for print: RGB colours in sRGB, black and greys as true grey.
 
-    python3 tools/print_ready.py Images/plot.pdf [more.pdf ...]     (changes the files in place)
+    python3 tools/print_ready.py figures/plot.pdf [more.pdf ...]     (changes the files in place)
 
 A printer converts RGB to the inks of their press. They can only do that exactly when they know which
 RGB is meant: this script sets every RGB colour in a figure in sRGB (the colour space of screens and of
@@ -11,7 +11,7 @@ written as RGB (axes, tick labels, text) into true grey, which prints with black
 would become "rich black", a mix of all four inks, and small text would get coloured fringes wherever the
 four printing plates do not line up exactly. Nothing changes on screen.
 
-Python/thesis_fonts.py runs this on every figure it saves; use the script for figure PDFs made elsewhere
+figures/plots/thesis_fonts.py runs this on every figure it saves; use the script for figure PDFs made elsewhere
 (a co-author's plot, another program). tools/check_print.py finds figures in the print PDF that still
 need it. Photos (PNG, JPEG) need nothing: LaTeX declares their RGB as sRGB itself. Running it twice on a
 file changes nothing the second time. Needs pikepdf and Pillow (pip install -r requirements.txt).

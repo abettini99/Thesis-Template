@@ -1,0 +1,244 @@
+%% Headings, chapter openings, contents. Read by the class.
+%% The headings are LaTeX's own heading templates (what its tagging code needs to mark them as headings
+%% in the PDF): the instances below set their layout.
+
+%% Numbering: chapters, sections and subsections (subsubsections are unnumbered). Section numbers
+%% follow the Dutch/German convention with a trailing dot ("2.1.") in headings, the contents and
+%% running heads, but not in cross-references, so \cref gives "Section 2.1" rather than "Section 2.1.".
+\setcounter{secnumdepth}{2}
+
+%% LaTeX renamed some keys of its heading templates in its release of November 2026: the instances below
+%% are edited with the name each key has in the LaTeX that runs.
+%%   \thesis@editkeyvv{type}{instance}{template}{new key}{old key}{value for new}{value for old}
+%%   \thesis@editkey{type}{instance}{template}{new key}{old key}{value}  (the same value for both)
+%%   \thesis@ifnewheadings{true}{false}: LaTeX's heading templates of November 2026 or later
+\ExplSyntaxOn
+\prg_new_conditional:Npnn \__thesis_if_template_key:nnn #1#2#3 { p , TF }
+  {
+    \bool_lazy_and:nnTF
+      { \prop_if_exist_p:c { \c__template_keytypes_root_tl #1 / #2 } }
+      { \prop_if_in_p:cn { \c__template_keytypes_root_tl #1 / #2 } {#3} }
+      { \prg_return_true: } { \prg_return_false: }
+  }
+\cs_new_protected:Npn \thesis@editkeyvv #1#2#3#4#5#6#7
+  {
+    \__thesis_if_template_key:nnnTF {#1} {#3} {#4}
+      { \EditInstance {#1} {#2} { #4 = {#6} } }
+      { \EditInstance {#1} {#2} { #5 = {#7} } }
+  }
+\cs_new_protected:Npn \thesis@editkey #1#2#3#4#5#6 { \thesis@editkeyvv {#1}{#2}{#3}{#4}{#5}{#6}{#6} }
+\cs_new:Npn \thesis@ifnewheadings { \__thesis_if_template_key:nnnTF { heading } { display } { placement-start-code } }
+\ExplSyntaxOff
+
+%%% CHAPTER OPENINGS
+%% Chapters start on a right-hand page, in every edition, so all editions have the same page numbers.
+%% One style for every chapter-level heading (front matter, chapters, references, appendices, back
+%% matter, contents and lists), so all titles start at the same height on the page:
+%%   - a small label, "CHAPTER 3" / "APPENDIX A", in letterspaced capitals;
+%%   - the title in Source Sans Light at \chaptertitlesize, aligned right;
+%%   - unnumbered headings (Summary, Contents, References, ...) leave the label's space empty, so
+%%     their titles line up with the chapter titles.
+%% A chapter with an epigraph or abstract (\chapterprecishere{...}) gets an opening page of its own,
+%% and its text starts on the next page; with \chapterprecishere{} or without it, the text starts
+%% below the title.
+\newlength{\beforechapskip} \setlength{\beforechapskip}{40pt}
+\newlength{\midchapskip}    \setlength{\midchapskip}{1\onelineskip}
+\newlength{\afterchapskip}  \setlength{\afterchapskip}{3\onelineskip}
+\newcommand{\chaptitlefont}{\fontsize{\chaptertitlesize}{1.15\dimexpr\chaptertitlesize\relax}\headingfont}
+\newcommand{\chapnamefont}{\normalsize\runningheadcaps}
+%% The label line is a box of fixed height, so it takes the same space with or without a label.
+\newcommand{\thesis@chapterlabel}[1]{\vbox to \onelineskip{\vss\hbox to \linewidth{\hfill\chapnamefont #1}}}
+%% (also used by the title pages, template/titlepage.tex)
+\newcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+\newcommand{\thesis@chapterlabelspace}{\thesis@chapterlabel{}\par\nobreak\vskip\midchapskip}
+\ExplSyntaxOn
+\DeclareTemplateInterface{headformat}{thesischapter}{6}{}
+\DeclareTemplateCode{headformat}{thesischapter}{6} % keys, prefix, number, title, subtitle, quotation
+  { }
+  {
+    \group_begin:
+    % (the heading's structure: opened here with LaTeX's code of June 2026; from November 2026 the
+    % heading template opens it, and the text goes in without paragraphs of its own)
+    \thesis@ifnewheadings { \tagpdfparaOff }
+      { \UseTaggingSocket{sec/title/begin}{{\int_use:N\l__head_level_int}{#4}} }
+      \normalfont \parskip \z@ \parindent \z@ \interlinepenalty \@M
+      \bool_if:NTF \l__head_unnumbered_bool
+        { \MakeLinkTarget[\l__head_name_tl]{} \thesis@chapterlabel{} }
+        { \MakeLinkTarget{\l__head_name_tl} \thesis@chapterlabel{\MakeUppercase{\@chapapp}\space #3} }
+      \par \nobreak \vskip \midchapskip
+      \raggedleft \chaptitlefont #4 \par
+    \thesis@ifnewheadings { } { \UseTaggingSocket{sec/title/end} }
+    \group_end:
+  }
+\ExplSyntaxOff
+\DeclareInstance{headformat}{thesischapter}{thesischapter}{}
+\thesis@editkey{heading}{chapter}{display}{placement-start-code}{start-code}
+    {\cleardoublepage\thispagestyle{chapter}\global\@topnum\z@}
+\EditInstance{heading}{chapter}{
+    , after-penalty-vspace = \beforechapskip\thesis@ifnewheadings{+\topskip}{}
+    , after-vspace         = \afterchapskip
+    , headformat-instance  = thesischapter
+}
+%% \chapter[title in the contents][title in the running head]{title}
+\DeclareDocumentCommand\chapter{s o o m}{%
+    \IfBooleanTF{#1}
+      {\IfNoValueTF{#2}{\ParseLaTeXeHeading{chapter}{\BooleanTrue}{}{#4}}
+                       {\ParseLaTeXeHeading{chapter}{\BooleanTrue}{running={#2}}{#4}}}
+      {\IfNoValueTF{#2}
+        {\ParseLaTeXeHeading{chapter}{\BooleanFalse}{}{#4}}
+        {\IfNoValueTF{#3}
+          {\ParseLaTeXeHeading{chapter}{\BooleanFalse}{shorttitle={#2}}{#4}}
+          {\ParseLaTeXeHeading{chapter}{\BooleanFalse}{toc={#2}, bookmark={#2}, nameref={#2}, running={#3}}{#4}}}}}
+
+%% The opening page of a chapter with an epigraph or abstract: \chapterprecishere{...} right after
+%% \chapter. Set a little higher, at its own looser line spacing, and the text starts on the next page.
+%% \chapterprecishere{} (empty): no opening page, the text follows the title.
+\newdimen\prechapterprecisshift \prechapterprecisshift=-2\baselineskip
+\newcommand{\chapterprecishere}[1]{%
+    \if\relax\detokenize{#1}\relax\else
+        \vspace*{\prechapterprecisshift}\begin{Spacing}{1.10}#1\end{Spacing}%
+        \clearpage\@afterindentfalse\@afterheading
+    \fi}
+%% \chapterprecistoc{text}: a line of text under the chapter's entry in the contents
+\newcommand{\chapterprecistoc}[1]{\addtocontents{toc}{\precistoctext{#1}}}
+\DeclareRobustCommand{\precistoctext}[1]{{\nopagebreak\leftskip\cftchapindent\relax
+    \advance\leftskip\cftchapnumwidth\relax \rightskip\@tocrmarg\relax
+    \noindent\normalfont\itshape #1\par}}
+%% Chapter abstract: a short summary in italics on the chapter's opening page (inside \chapterprecishere).
+\newenvironment{chapterabstract}{\par\setlength{\parindent}{0pt}\rmfamily\itshape}{\par}
+
+%%% SECTION HEADINGS
+%% Heading levels differ by size and space, never by extra boldness:
+%%   section        semibold, 1.15 x text size, 1.5 lines above, half a line below
+%%   subsection     semibold, text size, 1 line above, a quarter line below
+%%   subsubsection  italic text font (not bold), text size, unnumbered, half a line above, a quarter line below
+%% The first paragraph after a heading is not indented, as usual in books.
+%% The number sits in a box, where microtype cannot reach its first character: the margin kern it
+%% would get at the start of the line (the A of A.1, as with the earlier class) is put in by hand.
+\def\thesis@numprotrude#1{\begingroup\edef\thesis@tmp{#1}\expandafter\thesis@numprotrude@\thesis@tmp\relax\endgroup}
+\def\thesis@numprotrude@#1#2\relax{\ifnum\lpcode\font`#1>\z@
+    \kern-\dimexpr\fontdimen6\font*\lpcode\font`#1/1000\relax\fi}
+\newcommand{\thesis@secsize}{\fontsize{\dimexpr 1.15\dimexpr\f@size pt\relax\relax}{\dimexpr 1.38\dimexpr\f@size pt\relax\relax}\selectfont}
+\EditInstance{heading}{section}{
+    , before-vspace = 1.5\onelineskip plus 0.5\onelineskip minus 0.2\onelineskip
+    , after-vspace  = 0.5\onelineskip - \parskip
+    , heading-decls = \thesis@secsize\bfseries\headingfont
+    , number-format = \thesis@numprotrude{\thesection}\thesection.
+}
+\EditInstance{heading}{subsection}{
+    , before-vspace = 1\onelineskip plus 0.3\onelineskip minus 0.1\onelineskip
+    , after-vspace  = 0.25\onelineskip - \parskip
+    , heading-decls = \bfseries\headingfont
+    , number-format = \thesis@numprotrude{\thesubsection}\thesubsection.
+}
+\EditInstance{heading}{subsubsection}{
+    , before-vspace = 0.5\onelineskip plus 0.2\onelineskip minus 0.1\onelineskip
+    , after-vspace  = 0.25\onelineskip - \parskip
+    , heading-decls = \itshape
+}
+\thesis@editkeyvv{headformat}{section}{hang}{separator-b}{number-title-sep}{\hspace{1em}}{1em}
+\thesis@editkeyvv{headformat}{subsection}{hang}{separator-b}{number-title-sep}{\hspace{1em}}{1em}
+%% Paragraph and subparagraph headings: bold, run into the text, 1.5 em before the text
+\EditInstance{heading}{paragraph}{
+    , before-vspace = 1\onelineskip
+    , heading-decls = \bfseries\headingfont
+}
+\thesis@editkey{heading}{paragraph}{runin}{after-hspace}{after-vspace}{1.5em}
+\EditInstance{heading}{subparagraph}{
+    , before-vspace = 1\onelineskip
+    , heading-decls = \bfseries\headingfont
+}
+\thesis@editkey{heading}{subparagraph}{runin}{after-hspace}{after-vspace}{1.5em}
+\EditInstance{headformat}{subparagraph}{heading-indent = 1.5em}
+
+%%% EPIGRAPHS: on the right, 60 % of the line, the source below the quotation
+%% \begin{epigraphs} \qitem{quotation}{source} ... \end{epigraphs}, or one with \epigraph{quotation}{source}
+%% (The width is 60 % of the line as memoir gave it before the page layout was set up: 341pt at
+%% 10pt, 369pt at 11pt. That is the width the earlier versions of this class used.)
+\newlength{\epigraphwidth}       \setlength{\epigraphwidth}{0.6\dimexpr\ifdim\onelineskip>12.5\p@ 369\p@\else 341\p@\fi\relax}
+\newlength{\beforeepigraphskip}  \setlength{\beforeepigraphskip}{1\baselineskip}
+\newlength{\afterepigraphskip}   \setlength{\afterepigraphskip}{1\baselineskip}
+\newcommand{\thesis@epitext}[1]{\begin{minipage}{\epigraphwidth}\begin{flushright} #1\par
+    \vspace*{1ex}\end{flushright}\end{minipage}}
+\newcommand{\thesis@episource}[1]{\begin{minipage}{\epigraphwidth}\begin{flushright} #1\par
+    \end{flushright}\end{minipage}}
+\newcommand{\epigraph}[2]{\vspace{\beforeepigraphskip}
+    {\small\begin{flushright}\begin{minipage}{\epigraphwidth}
+        \thesis@epitext{#1}\\ \thesis@episource{#2}
+        \end{minipage}\end{flushright}\vspace{\afterepigraphskip}}}
+%% (The quotations of an epigraphs environment are stacked boxes rather than a list, which LaTeX's
+%% tagging code would set with different spacing; between them the item and paragraph separation of a
+%% list in the small size, as memoir's list gave.
+%% A \\[...] after a quotation adds more.)
+\newif\ifthesis@firstqitem
+\newcommand{\thesis@episkip}[1][\z@]{\par\vspace{#1}}
+\newcommand{\qitem}[2]{\par\ifthesis@firstqitem\global\thesis@firstqitemfalse\else{\@listi\vskip\itemsep\vskip\parsep}\fi
+    \noindent\begin{minipage}{\epigraphwidth}
+    \leavevmode\thesis@epitext{#1}\\ \thesis@episource{#2}\end{minipage}}
+%% (between quotations, \\[...] is vertical space only: a line break before the next quotation's \par
+%% would leave an empty, underfull line)
+\newenvironment{epigraphs}
+    {\vspace{\beforeepigraphskip}\begin{flushright}\small
+     \begin{minipage}{\epigraphwidth}\global\thesis@firstqitemtrue
+     \def\\{\@ifstar{\thesis@episkip}{\thesis@episkip}}}
+    {\par\end{minipage}\end{flushright}\vspace{\afterepigraphskip}}
+
+%%% CONTENTS AND LISTS
+%% No dot leaders, every page number in the text font. Chapters in the heading font; the front and
+%% back matter (summary, preface, lists, acknowledgements, ...) as a compact block in regular weight.
+%% main.tex switches with \contentsstyle{frontmatter} and \contentsstyle{mainmatter}; they start a new
+%% page and write the switch at once, so it lands in the right place among the entries of
+%% \include'd chapters.
+%% tocloft adds its hooks (\cfttocprehook, ...) to \@starttoc only if \@starttoc is still LaTeX's own.
+%% Tagging redefines it; tocloft 3.0 copes with that, older versions (Overleaf's TeX Live 2026 has
+%% 2.3i) give up with a warning. So tocloft is loaded with LaTeX's own \@starttoc in place, and the
+%% hooks are then added to the tagging version, as tocloft 3.0 does.
+\let\thesis@starttoc\@starttoc
+\def\@starttoc#1{%
+ \begingroup
+   \makeatletter
+   \@input{\jobname.#1}%
+   \if@filesw
+     \expandafter\newwrite\csname tf@#1\endcsname
+     \immediate\openout \csname tf@#1\endcsname \jobname.#1\relax
+   \fi
+  \@nobreakfalse
+\endgroup}
+\RequirePackage[titles]{tocloft}
+\let\@starttoc\thesis@starttoc
+\ifdefined\cfttocprehook
+    \patchcmd\@starttoc{\begingroup}{\csname cft#1prehook\endcsname\begingroup}{}
+        {\PackageWarning{thesis}{Could not add tocloft's hooks to \string\@starttoc}}%
+    \patchcmd\@starttoc{\endgroup}{\endgroup\csname cft#1posthook\endcsname}{}
+        {\PackageWarning{thesis}{Could not add tocloft's hooks to \string\@starttoc}}%
+\fi
+\renewcommand{\cftdot}{}
+\renewcommand{\cftchapfont}{\headingfont\bfseries}
+\renewcommand{\cftchappagefont}{\normalfont}
+\renewcommand{\cftsecaftersnum}{.}
+\renewcommand{\cftsubsecaftersnum}{.}
+\setlength{\cftfigindent}{0pt} \setlength{\cfttabindent}{0pt}
+\newcommand{\tocfrontmatter}{%
+    \setlength{\cftbeforechapskip}{0pt plus 1pt}%
+    \renewcommand{\cftchapfont}{\sffamily}%
+    \par\addvspace{1em}}
+\newcommand{\tocmainmatter}{%
+    \setlength{\cftbeforechapskip}{1em plus 1pt}%
+    \renewcommand{\cftchapfont}{\headingfont\bfseries}%
+    \par\addvspace{0.5\onelineskip}}
+\newcommand{\contentsstyle}[1]{\clearpage\immediate\write\@auxout{\string\@writefile{toc}{\expandafter\string\csname toc#1\endcsname}}}
+%% Contents and lists of figures and tables: titled like the unnumbered chapters, but they start on the
+%% next page, left or right. \tableofcontents* leaves the contents themselves out of the contents.
+\DeclareInstanceCopy{heading}{thesislist}{chapter}
+\EditInstance{heading}{thesislist}{contents-extra = {}, mark-cmd = \markboth{#1}{#1}}
+\thesis@editkey{heading}{thesislist}{display}{placement-start-code}{start-code}{\thispagestyle{chapter}}
+\newcommand{\thesis@list}[4]{% starred?, file, title, mark
+    \par\begingroup
+    \IfBooleanF{#1}{\MakeLinkTarget[chapter]{}\addcontentsline{toc}{chapter}{#3}}%
+    \ParseLaTeXeHeading{thesislist}{\BooleanTrue}{running={#4}}{#3}% (the marks before the space below it)
+    \def\thesis@tmp{#2}\def\thesis@tmpb{toc}\ifx\thesis@tmp\thesis@tmpb\else\vskip10\p@\fi % the lists of figures and tables start with a chapter's gap
+    \@starttoc{#2}%
+    \endgroup}
+\DeclareDocumentCommand\tableofcontents{s}{\thesis@list{#1}{toc}{\contentsname}{\contentsname}}
+\DeclareDocumentCommand\listoffigures{s}{\thesis@list{#1}{lof}{\listfigurename}{\listfigurename}}
+\DeclareDocumentCommand\listoftables{s}{\thesis@list{#1}{lot}{\listtablename}{\listtablename}}

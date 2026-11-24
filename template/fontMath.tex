@@ -1,0 +1,81 @@
+%% Maths font, as chosen by the class (see thesis.cls and fonts/README.md): MathTime Professional 2
+%% when tools/mtpro2_otf.py has written its OpenType fonts into the fonts folder, otherwise newtx, the
+%% Times-style maths that ships with TeX Live, as OpenType fonts (ntxmath-otf, part of the template) or,
+%% when TeX cannot see those, as the classic newtxmath.
+\newcommand{\thesisboldmath}{\bm} % bold for \vec and \tensor (the package's own \bm, or bm.sty's)
+%% (with the OpenType fonts: without unicode-math's notes that mathtools' colons and brackets stay
+%% mathtools' own: the packages keep them, as with the Type 1 fonts)
+\ifthesisotfmath
+\ExplSyntaxOn
+\msg_redirect_name:nnn { unicode-math } { mathtools-colon } { none }
+\msg_redirect_name:nnn { unicode-math } { mathtools-overbracket } { none }
+\ExplSyntaxOff
+\fi
+\ifthesismathtime
+%% ---------------------------------------------------------------------------------------------
+%% MathTime Professional 2 as OpenType maths fonts (mtpro2-otf, with unicode-math): placed exactly as
+%% the classic Type 1 fonts are, every glyph maps to Unicode, and all of mtpro2's macros work (\xl..
+%% \XXXL operators, \SQRT, \widearc, \bm, \hm, ...). Complete or Lite, whichever the files were made
+%% from; Lite takes the AMS symbols, blackboard bold, Euler script and Fraktur, and newtx bold for \bm,
+%% as the Type 1 set-up does. The package's options (fonts/README.md) go in the list below.
+%%   ntxcal: \mathcal from newtx (the simpler V and W)
+%%   (add slantedGreek for italic capital Greek, as ISO 80000-2 has it for variables; here, as in most
+%%   books set in TeX, they are upright)
+%%   textsf: \mathsf (matrices \mathsf{A}, operators \mathsf{Res}) in Source Sans, the document's sans
+%%   scale:  the maths at the size of the text (1 for every page size)
+\edef\thesis@tmp{\noexpand\RequirePackage[ntxcal, textsf, scale=\thesis@fontscale]{mtpro2-otf}}\thesis@tmp
+%% (mtpro2-otf keeps the composite symbols of the Type 1 set-up itself: mathtools' colons and brackets,
+%% amsmath's \iiiint and slanted \varTheta; the units' °, µ, Å and Ω are in its fonts)
+%% (mtpro2-otf also turns maths in headings into its characters for the PDF bookmarks)
+\edef\thesismathtimeedition{\MTPOTFedition}
+\ClassInfo{thesis}{Maths font: MathTime Professional 2 \MTPOTFedition\space (OpenType, fonts/)}
+\else\ifthesisntxotf
+%% ---------------------------------------------------------------------------------------------
+%% newtx as OpenType maths fonts (ntxmath-otf, with unicode-math, in template/fonts/ntxmath-otf): every formula
+%% set exactly as with the classic newtxmath below, but the maths copies from the PDF as Unicode, and the
+%% tagged PDF gets MathML for each formula. Same options as below:
+%%   textsf: \mathsf in Source Sans, the document's sans
+%%   scale:  the maths at the size of the text (1 for every page size)
+%% (\rmdefault is newtx's Times while it loads, as for the classic newtxmath below: microtype then gives
+%% digits and operator names its Times settings, as there)
+\let\thesis@rmdefault\rmdefault
+\renewcommand{\rmdefault}{ntxtlf}
+\edef\thesis@tmp{\noexpand\RequirePackage[textsf, scale=\thesis@fontscale]{ntxmath-otf}}\thesis@tmp
+\let\rmdefault\thesis@rmdefault
+\ClassInfo{thesis}{Maths font: newtx (OpenType, template/fonts/ntxmath-otf)}
+\else
+%% ---------------------------------------------------------------------------------------------
+%% newtx (classic: when TeX cannot see template/fonts/ntxmath-otf, e.g. lualatex run without latexmk)
+%% ---------------------------------------------------------------------------------------------
+%% Math: newtxmath, the Times-style math font that matches the TeX Gyre Termes body text.
+%% Variables are italic, as is standard for Times-based documents.
+%% newtxmath takes digits, \mathrm, \mathbf, \mathit and operator names (sin, log, ...) from the current
+%% roman font. Under fontspec that font has no math encoding, so it would fall back to Computer Modern.
+%% Temporarily point it at newtx's own Times while loading, then restore the fontspec main font.
+%% Scaled like the text (1 for every page size): maths fonts via newtxmath's option, digits and
+%% operator names via newtx's text-font scaling.
+\edef\ntx@scaled{s*[\thesis@fontscale]}
+\let\thesis@rmdefault\rmdefault
+\renewcommand{\rmdefault}{ntxtlf}
+\edef\thesis@tmp{\noexpand\RequirePackage[scaled=\thesis@fontscale]{newtxmath}}\thesis@tmp
+\let\rmdefault\thesis@rmdefault
+
+%% \mathsf (e.g. matrices \mathsf{A}, operators \mathsf{Res}) in Source Sans, the document's sans-serif font.
+%% newtxmath declares it in the old OT1 encoding, for which fontspec fonts have no shapes, so TeX
+%% substituted a default font (warning "Font shape OT1/SourceSans3/m/n undefined").
+\DeclareMathAlphabet{\mathsf}{TU}{\sfdefault}{m}{n}
+\SetMathAlphabet{\mathsf}{bold}{TU}{\sfdefault}{\bfdefault}{n}
+
+%% Tagged PDF: the MathML that goes with each formula needs a Unicode (OpenType) maths font, and luamml
+%% stops the build with the classic fonts. Here the formulas are tagged without MathML.
+\ExplSyntaxOn
+\tag_if_active:T { \tagpdfsetup { math/mathml/luamml/load = false } }
+\ExplSyntaxOff
+\fi\fi
+
+%% In PDF bookmarks (maths in a heading), the alphabets and bold commands just pass their letters on
+%% (bm's \bm would stop the build there).
+\AtBeginDocument{\ifdefined\pdfstringdefDisableCommands\pdfstringdefDisableCommands{%
+    \@for\thesis@tmp:={mathrm,mathit,mathbf,mathsf,mathtt,mathcal,mathscr,mathfrak,mathbb,mathcurly,%
+        symup,symit,symbf,symsf,symtt,symcal,symscr,symfrak,symbb,bm,hm,boldsymbol}\do{%
+        \expandafter\let\csname\thesis@tmp\endcsname\@firstofone}}\fi}

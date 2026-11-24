@@ -1,6 +1,6 @@
 # Builds the thesis on every push, checks it, and keeps the PDFs.
 #
-#   - Two editions: main.pdf as main.tex sets it (print-preparation: PDF/X, for the printer) and
+#   - Two editions: main.pdf as main.tex sets it (edition=printer: PDF/X, for the printer) and
 #     digital.pdf (the digital edition: PDF/A-4f and PDF/UA-2, for the screen and the repository).
 #   - The PDFs (and logs) are kept for 30 days: Actions tab > the run > Artifacts.
 #   - They are checked with tools/check_pdf.py (veraPDF for a full PDF/A-4f and PDF/UA-2 validation of the
@@ -40,7 +40,7 @@ jobs:
         run: latexmk -interaction=nonstopmode -halt-on-error main.tex
       - name: Compile the digital edition
         run: |
-          sed -E 's/\\documentclass\[[^]]*\]\{personal\}/\\documentclass[digital,thumb]{personal}/' main.tex > digital.tex
+          sed -E 's/\\documentclass\[[^]]*\]\{thesis\}/\\documentclass[edition=digital, thumbs]{thesis}/' main.tex > digital.tex
           latexmk -interaction=nonstopmode -halt-on-error digital.tex
       - name: Keep the PDFs and the logs
         if: always()

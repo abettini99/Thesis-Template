@@ -3,32 +3,32 @@
 %% Back, spine and front on one sheet, with bleed, as printers ask for a paperback cover.
 %% Compile it on its own: in Overleaf, open this file and choose Menu > Main document > cover.tex
 %% (switch back to main.tex after), or locally run: latexmk cover.tex
-%% The texts, colours and drawing are set in _coversettings.tex (the digital edition of the thesis uses
-%% them too, for its first and last pages); title and name come from _thesisinfo.tex.
+%% The texts, colours and drawing are set in settings/cover.tex (the digital edition of the thesis uses
+%% them too, for its first and last pages); title and name come from settings/thesisinfo.tex.
 %%
-%% Before sending it to the printer (in _coversettings.tex):
+%% Before sending it to the printer (in settings/cover.tex):
 %%   1. Set the page size to the one the thesis uses.
-%%   2. Set the page count to the number of pages of the FINAL thesis PDF (main.pdf, print-preparation edition),
+%%   2. Set the page count to the number of pages of the FINAL thesis PDF (main.pdf, printer edition),
 %%      including the blank pages.
 %%   3. Ask the printer for the paper thickness (or the spine width) and set it.
 %%   4. Ask the printer how much bleed they want on the cover (often 3 to 5 mm; more for hardcovers).
 %%   5. Turn the guides off (\coverguidesfalse) and send cover.pdf.
 %% Many printers also have a cover template or calculator; check the result against it.
 %% =====================================================================
-%% For the printer: PDF/X-6 or PDF/X-4 with the printer's colour profile (set in _thesisinfo.tex, as for the
-%% thesis), set up before \documentclass; title and name from _thesisinfo.tex
+%% For the printer: PDF/X-6 or PDF/X-4 with the printer's colour profile (set in settings/thesisinfo.tex, as for the
+%% thesis), set up before \documentclass; title and name from settings/thesisinfo.tex
 \def\thesisforprinter{}
-\input{_options/documentmetadata}
+\input{template/documentmetadata}
 \def\thesispdfsuffix{ (cover)}
 \documentclass{article}
 \usepackage{fix-cm} % maths fonts at any size (the large title)
 \AddToHook{begindocument/end}{% (as fix-cm does; again, as LaTeX sets it at the start of the document)
     \DeclareFontShape{OMX}{cmex}{m}{n}{<-7.5>cmex7<7.5-8.5>cmex8<8.5-9.5>cmex9<9.5->cmex10}{}}
-\input{_options/pdfa} % title, author and language in the metadata
+\input{template/pdfa} % title, author and language in the metadata
 
 \usepackage{xcolor}
-\input{_options/formatColor}
-\input{_coversettings}
+\input{settings/colours}
+\input{settings/cover}
 
 %% ---------------------------------------------------------------------
 %% Geometry (no changes needed below this line)
@@ -50,21 +50,21 @@
 \typeout{}\typeout{Cover: spine width \coverspine\space mm, sheet \coversheetwidth\space x \coversheetheight\space mm (including \coverbleed\space mm bleed)}\typeout{}
 
 \usepackage[paperwidth=\coversheetwidth mm, paperheight=\coversheetheight mm, margin=0pt]{geometry}
-%% For the printer: the trimmed cover inside the bleed (page boxes), RGB as sRGB (_options/printpdf.tex)
-\input{_options/printpdf}
+%% For the printer: the trimmed cover inside the bleed (page boxes), RGB as sRGB (template/printpdf.tex)
+\input{template/printpdf}
 \thesisprintboxes{\coverbleed mm}{\coverbleed mm}{\dimexpr\coversheetwidth mm-2\dimexpr\coverbleed mm\relax\relax}{\coverpageheight mm}{\coverbleed mm}
 \usepackage{tikz}
 \usepackage{graphicx}
 \usepackage[british]{babel}
-\usepackage[hidelinks]{hyperref} % for the PDF metadata (_options/pdfa.tex)
+\usepackage[hidelinks]{hyperref} % for the PDF metadata (template/pdfa.tex)
 
 %% Same fonts as the thesis
 \makeatletter
 \newcommand*{\thesis@fontscale}{1}
-\input{_options/fontText}
+\input{template/fontText}
 \makeatother
 
-\input{_options/coverdesign}
+\input{settings/coverdesign}
 
 \pagestyle{empty}
 \setlength{\parindent}{0pt}
@@ -76,7 +76,7 @@
     %% One colour over the whole sheet, bleed included
     \fill[coverback] (0, 0) rectangle (\coversheetwidth, \coversheetheight);
 
-    %% Front and back (_options/coverdesign.tex)
+    %% Front and back (settings/coverdesign.tex)
     \coverfront{\coverspineright}
     \coverback{\coverbackleft}{1}
 

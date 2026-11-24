@@ -1,0 +1,108 @@
+%% =====================================================================
+%% NOMENCLATURE: define acronyms and symbols here (this file is loaded in the preamble).
+%% Use them in the text with \gls{label}: acronyms are written out in full the first time,
+%% symbols are printed as defined. The lists are printed in chapters/00Nomenclature.tex.
+%%
+%%   \nomacronym[sort]{label}{SHORT}{long form}
+%%   \nomdimless[sort]{label}{symbol}{description}{definition}
+%%   \nomlatin[sort]{label}{symbol}{description}{dimensions}{units}
+%%   \nomgreek[sort]{label}{symbol}{description}{dimensions}{units}
+%%   \nomsub[sort]{label}{symbol}{description}
+%%   \nomsuper[sort]{label}{symbol}{description}
+%%   \nomnotation[sort]{label}{symbol}{description}
+%%
+%% Symbols, dimensions and definitions are written as maths, without $...$.
+%% Write -- for a dimensionless quantity. Dimensions are only listed with the style nom-dimensions
+%% (chapters/00Nomenclature.tex); fill them in anyway, so that switching costs nothing. Labels must be unique across all lists.
+%% Latin symbols are sorted by their sort key (the label if none is given); Greek symbols,
+%% sub- and superscripts and the notation appear in the order they are defined here.
+%% Give every symbol one meaning: where two quantities share a letter, tell them apart with a
+%% subscript or another letter.
+%% =====================================================================
+
+%% Abbreviations
+\nomacronym{bem}{BEM}{blade element momentum theory}
+\nomacronym{roi}{ROI}{reality of interest}
+\nomacronym{rpm}{RPM}{revolutions per minute}
+\nomacronym{tui}{TUI}{text user interface}
+
+%% Dimensionless numbers
+\nomdimless{Fr}{\Fr}{Froude number}{U/\sqrt{g L}}
+\nomdimless{Ma}{\Ma}{Mach number}{U/a}
+\nomdimless{Re}{\Re}{Reynolds number}{U L/\nu}
+
+%% Latin symbols
+\nomlatin[A]{area}{A}{Surface area}{\Lunit^2}{\unit{\metre\squared}}
+\nomlatin[a1]{a}{a}{Axial induction factor}{--}{--}
+\nomlatin[a2]{aprime}{a'}{Azimuthal induction factor}{--}{--}
+\nomlatin[c]{chord}{c}{Chord length}{\Lunit}{\unit{\metre}}
+\nomlatin[Cd]{Cd}{C_\mathrm{d}}{Sectional drag coefficient}{--}{--}
+\nomlatin[Cl]{Cl}{C_\mathrm{l}}{Sectional lift coefficient}{--}{--}
+\nomlatin[Cp]{Cp}{C_\mathrm{P}}{Power coefficient}{--}{--}
+\nomlatin[CT]{CT}{C_\mathrm{T}}{Thrust coefficient}{--}{--}
+\nomlatin[Cv]{Cv}{c_v}{Specific heat at constant volume}{\Lunit^2\Tunit^{-2}\Qunit^{-1}}{\unit{\joule\per\kilogram\per\kelvin}}
+\nomlatin[D]{drag}{D}{Drag}{\Munit\Lunit\Tunit^{-2}}{\unit{\newton}}
+\nomlatin[f]{f}{f}{Prandtl root/tip correction factor}{--}{--}
+\nomlatin[F]{force}{F}{Force}{\Munit\Lunit\Tunit^{-2}}{\unit{\newton}}
+\nomlatin[g]{g}{g}{Gravitational acceleration}{\Lunit\Tunit^{-2}}{\unit{\metre\per\second\squared}}
+\nomlatin[h]{altitude}{h}{ISA altitude}{\Lunit}{\unit{\metre}}
+\nomlatin[ht]{enthalpy}{h_\mathrm{t}}{Specific total enthalpy}{\Lunit^2\Tunit^{-2}}{\unit{\joule\per\kilogram}}
+\nomlatin[L]{lift}{L}{Lift}{\Munit\Lunit\Tunit^{-2}}{\unit{\newton}}
+\nomlatin[n]{n}{n}{Rotational frequency}{\Tunit^{-1}}{\unit{\per\second}}
+\nomlatin[Nb]{Nb}{N_\mathrm{b}}{Number of blades}{--}{--}
+\nomlatin[Nr]{Nr}{N_\mathrm{r}}{Number of annular elements}{--}{--}
+\nomlatin[Npsi]{Npsi}{N_\psi}{Number of azimuthal elements}{--}{--}
+\nomlatin[p]{p}{p}{Static pressure}{\Munit\Lunit^{-1}\Tunit^{-2}}{\unit{\pascal}}
+\nomlatin[P]{power}{P}{Power}{\Munit\Lunit^2\Tunit^{-3}}{\unit{\watt}}
+\nomlatin[Q]{torque}{Q}{Torque}{\Munit\Lunit^2\Tunit^{-2}}{\unit{\newton\metre}}
+\nomlatin[r]{r}{r}{Radial position}{\Lunit}{\unit{\metre}}
+\nomlatin[R]{radius}{R}{Rotor radius}{\Lunit}{\unit{\metre}}
+\nomlatin[t]{t}{t}{Time}{\Tunit}{\unit{\second}}
+\nomlatin[T]{temperature}{T}{Static temperature}{\Qunit}{\unit{\kelvin}}
+\nomlatin[u]{u}{\vec{u}}{Flow velocity}{\Lunit\Tunit^{-1}}{\unit{\metre\per\second}}
+\nomlatin[Uinf]{Uinf}{U_\infty}{Free-stream velocity}{\Lunit\Tunit^{-1}}{\unit{\metre\per\second}}
+\nomlatin[Va]{Va}{V_\mathrm{a}}{Axial velocity}{\Lunit\Tunit^{-1}}{\unit{\metre\per\second}}
+\nomlatin[Vt]{Vt}{V_\mathrm{t}}{Tangential velocity}{\Lunit\Tunit^{-1}}{\unit{\metre\per\second}}
+\nomlatin[W]{W}{W}{Total effective velocity}{\Lunit\Tunit^{-1}}{\unit{\metre\per\second}}
+
+%% Greek symbols (in Greek alphabetical order)
+\nomgreek{alpha}{\alpha}{Angle of attack}{--}{\unit{\degree}}
+\nomgreek{beta}{\beta}{Blade twist angle}{--}{\unit{\degree}}
+\nomgreek{gamma}{\gamma}{Yaw angle}{--}{\unit{\degree}}
+\nomgreek{Gamma}{\Gamma}{Circulation}{\Lunit^2\Tunit^{-1}}{\unit{\metre\squared\per\second}}
+\nomgreek{epsilon}{\epsilon}{Error}{--}{--}
+\nomgreek{theta}{\theta}{Collective pitch angle}{--}{\unit{\degree}}
+\nomgreek{lambda}{\lambda}{Tip speed ratio}{--}{--}
+\nomgreek{mu}{\mu}{Dynamic viscosity}{\Munit\Lunit^{-1}\Tunit^{-1}}{\unit{\pascal\second}}
+\nomgreek{nu}{\nu}{Kinematic viscosity}{\Lunit^2\Tunit^{-1}}{\unit{\metre\squared\per\second}}
+\nomgreek{rho}{\rho}{Air density}{\Munit\Lunit^{-3}}{\unit{\kilogram\per\cubic\metre}}
+\nomgreek{sigmar}{\sigma_r}{Blade solidity}{--}{--}
+\nomgreek{tau}{\tensor{\tau}}{Viscous stress tensor}{\Munit\Lunit^{-1}\Tunit^{-2}}{\unit{\pascal}}
+\nomgreek{phi}{\phi}{Inflow angle}{--}{\unit{\degree}}
+\nomgreek{chi}{\chi}{Wake skew angle}{--}{\unit{\degree}}
+\nomgreek{psi}{\psi}{Azimuthal angle}{--}{\unit{\degree}}
+\nomgreek{omega}{\vec{\omega}}{Vorticity}{\Tunit^{-1}}{\unit{\per\second}}
+\nomgreek{Omega}{\Omega}{Angular velocity of the rotor}{\Tunit^{-1}}{\unit{\radian\per\second}}
+
+%% Subscripts and superscripts (listed together, in this order)
+\nomsub{sub-infty}{\infty}{Free stream}
+\nomsub{sub-disk}{\mathrm{disk}}{Rotor disk}
+\nomsub{sub-0}{0}{Disk averaged}
+\nomsub{sub-psibar}{\bar{\psi}}{Azimuthally averaged}
+\nomsub{sub-x}{x}{$x$-direction}
+\nomsub{sub-y}{y}{$y$-direction}
+\nomsuper{sup-n}{n}{Time step}
+\nomsuper{sup-star}{*}{Normalised with the rotor radius, $r^* = r/R$}
+
+%% Notation
+\nomnotation{not-vec}{\vec{a}, \tensor{A}}{Vector, tensor (bold)}
+\nomnotation{not-grad}{\grad}{Gradient}
+\nomnotation{not-div}{\div}{Divergence}
+\nomnotation{not-lap}{\nabla^2}{Laplacian}
+\nomnotation{not-mat}{\mathrm{D}/\mathrm{D}t}{Material derivative}
+\nomnotation{not-inner}{\inner{\cdot}{\cdot}_D}{$L^2$ inner product over the domain $D$}
+\nomnotation{not-norm}{\norm{\cdot}}{Norm}
+\nomnotation{not-abs}{\abs{\cdot}}{Absolute value}
+\nomnotation{not-dual}{\dual{\cdot}{\cdot}}{Duality pairing}
+\nomnotation{not-T}{(\cdot)\transpose}{Transpose}
+\nomnotation{not-bar}{\overline{(\cdot)}}{Average}

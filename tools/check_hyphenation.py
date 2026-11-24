@@ -17,7 +17,7 @@ this lists them, alphabetically with their pages, and points out:
                  digits: check the break, or forbid it
   short halves   breaks that leave two letters on one side
 
-Fix a wrong break by adding the word to _hyphenation.tex, with the right breaks marked
+Fix a wrong break by adding the word to settings/hyphenation.tex, with the right breaks marked
 (\\hyphenation{equi-lib-rium}) or none at all (\\hyphenation{Navier}). Needs Python 3.8+.
 """
 from __future__ import annotations
@@ -115,7 +115,7 @@ def main(argv=None) -> int:
             print("  " + ", ".join(f"{w['before']}-{w['after']}" for w in run) + f"   (page {run[0].get('page1', '?')})")
         print()
     if names:
-        print("Names, acronyms and terms with digits: check the break, or forbid it in _hyphenation.tex:")
+        print("Names, acronyms and terms with digits: check the break, or forbid it in settings/hyphenation.tex:")
         for w in names:
             print("  " + show(w))
         print()

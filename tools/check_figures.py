@@ -21,7 +21,7 @@ is printed at. For each figure this reports:
   contrast   lines and text in a PDF figure in colours too light to stand out against
              the white page (accessibility, WCAG 2.2: 3:1 for lines, 4.5:1 for text)
 
-It also lists files in Images/ that the thesis does not use. Needs Python 3.8+;
+It also lists files in figures/ that the thesis does not use. Needs Python 3.8+;
 the text sizes and fonts of PDF figures need pikepdf (pip install -r requirements.txt).
 """
 from __future__ import annotations
@@ -66,7 +66,7 @@ def read_log(log: Path):
     layout = next((l for l in joined if l.startswith("Thesis layout:")), "")
     m = re.search(r"textwidth ([\d.]+)pt \| captionsize ([\d.]+) ?pt \| fontscale ([\d.]+)", layout)
     if not m:
-        sys.exit(f"{log.name} has no figure log: compile with the template's class (personal.cls) first")
+        sys.exit(f"{log.name} has no figure log: compile with the template's class (thesis.cls) first")
     textwidth, caption, scale = (float(x) for x in m.groups())
     figs = []
     for l in joined:
@@ -214,7 +214,7 @@ def main(argv=None) -> int:
     for name, nw, nh, pw, ph, page in figs:
         path = (ROOT / name) if (ROOT / name).exists() else Path(name)
         seen_files.add(path.resolve())
-        if "_title_images" in name:
+        if name.startswith("template/"):
             continue                                     # logos are sized on purpose
         notes, scale = [], pw / nw if nw else 1
         suffix = path.suffix.lower()
@@ -250,7 +250,7 @@ def main(argv=None) -> int:
                 if nmissing:
                     notes.append(f"{nmissing} missing glyph(s) (.notdef): they print as nothing and fail the PDF/A "
                                  "check. From matplotlib 3.11+ this is usually a ligature (ff, fi, fl): switch "
-                                 "them off as Python/example_figures.py does, and export again")
+                                 "them off as figures/plots/example_figures.py does, and export again")
                 try:
                     notes += low_contrast(path)
                 except Exception:
@@ -271,11 +271,11 @@ def main(argv=None) -> int:
             notes_text = ""
         head = f"{name} (page {page}): {mm(pw)} wide" + (f", {notes_text}" if notes_text else "")
         r.warn(head, notes) if notes else r.ok(head)
-    images = ROOT / "Images"
+    images = ROOT / "figures"
     if images.is_dir():
         unused = sorted(p.relative_to(ROOT) for p in images.rglob("*")
                         if p.is_file() and p.suffix.lower() in (".pdf", ".png", ".jpg", ".jpeg", ".eps", ".svg")
-                        and p.resolve() not in seen_files and "_title_images" not in p.parts
+                        and p.resolve() not in seen_files
                         and "_cover" not in str(p))
         if unused:
             print(f"\nNot used in this build ({len(unused)}): " + ", ".join(str(u) for u in unused))

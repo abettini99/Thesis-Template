@@ -1,45 +1,41 @@
-\newif\ifthesistagging \thesistaggingtrue
-% \thesistaggingfalse % <- uncomment while writing: untagged, each compile about 30% faster
-\input{_options/documentmetadata}
-% The line above sets the kind of PDF from the edition chosen below: an archival (PDF/A-4f) and accessible
-% (PDF/UA-2) PDF, tagged so that screen readers can follow its structure, with MathML for every formula
-% (with either maths font, newtx or MathTime); for the printer (print-preparation), a PDF/X-6 or PDF/X-4
-% file (set in _thesisinfo.tex). While writing, \thesistaggingfalse leaves out the tagging: the same
-% pages, still archival but not accessible, and the log says so. Comment it out again for any version you
-% hand in.
-\documentclass[print-preparation,thumb]{personal}
-% options:
-%   british (default), american -- language: hyphenation, quotation marks, dates
-%   demy (default), a5, royal, dutch -- book page size: 138x216, 148x210, 156x234 or 170x240 mm
-%   edition (the same pages in each, with the same page numbers), one of:
-%     digital           -- for the screen and the repository: final size, maroon links, coloured code (default)
-%     print-preparation -- for the professional printer: PDF/X, with bleed (_thesisinfo.tex: standard, colour profile, bleed)
-%     print-showcase    -- the printed book as it looks after trimming: final size, as on paper
-%     print-report      -- for printing a proof at home: the pages on A4 (add letter for US Letter)
-%   letter    -- with print-report: US Letter instead of A4
-%   thumb     -- thumb tabs
-%   showtrims -- crop marks: where the page is trimmed (print-report; print-preparation: outside the bleed,
-%                only if the printer asks for them)
-%   showframe -- show construction guide (page layout)
-%   draft     -- fast compile while writing: images as boxes, overfull lines marked, line numbers,
-%                DRAFT on every page
-%   final     -- version for the printer and repository: hides all todo notes
-%   backreferences -- each reference lists the pages it is cited on
-%   chapterbib -- every chapter ends with its own reference list
-%   sidewaysalternate -- sideways pages turned with their top towards the spine (alternating), not to the left
+\input{template/documentmetadata} % the kind of PDF, from the edition chosen below
+\documentclass[edition=printer, thumbs]{thesis}
+% Options (keys; see the top of thesis.cls for the details):
+%   edition  = digital  for the screen and the repository: archival (PDF/A-4f) and accessible (PDF/UA-2),
+%                       tagged for screen readers, with MathML for every formula (default)
+%            | printer  for the professional printer: PDF/X-6 or PDF/X-4 with bleed (standard, colour
+%                       profile and bleed in settings/thesisinfo.tex)
+%            | preview  the printed book as it looks after trimming: final size, as on paper
+%            | proof    for printing a proof at home: the pages centred on A4 (paper=letter: US Letter)
+%              (the same pages, with the same page numbers, in every edition)
+%   size     = demy (default) | a5 | royal | dutch      book page 138x216, 148x210, 156x234 or 170x240 mm
+%   language = british (default) | american            hyphenation, quotation marks, dates
+%   paper    = a4 (default) | letter                   the sheet of the proof edition
+%   thumbs              thumb tabs
+%   cropmarks           crop marks: where the page is trimmed (proof; printer: outside the bleed, only if
+%                       the printer asks for them)
+%   untagged            while writing: no tagging, each compile about 30% faster; the same pages, still
+%                       archival but not accessible (the log says so). Never for a version you hand in.
+%   draft               fast compiles while writing: images as boxes, overfull lines marked, line numbers,
+%                       DRAFT on every page
+%   final               the version for the printer and the repository: hides all todo notes
+%   backreferences      each reference lists the pages it is cited on
+%   chapterbib          every chapter ends with its own reference list
+%   sidewaysalternate   sideways pages turned with their top towards the spine (alternating), not to the left
+%   showframe           show the page layout frames
 
 % Maths font: newtx (Times), or MathTime Professional 2: unpack the MathTime zip and run
-% python3 tools/mtpro2_otf.py <unpacked folder> Fonts, which converts it into the Fonts folder (all mtpro2
-% macros; LuaLaTeX via latexmk). See Fonts/README.md; its licence forbids sharing the fonts, so never put them in a public
+% python3 tools/mtpro2_otf.py <unpacked folder> fonts, which converts it into the fonts folder (all mtpro2
+% macros; LuaLaTeX via latexmk). See fonts/README.md; its licence forbids sharing the fonts, so never put them in a public
 % repository (.gitignore keeps them out of git).
 
-% The class reads _thesisinfo.tex (title, author, committee, defence date, colophon: fill it in!)
+% The class reads settings/thesisinfo.tex (title, author, committee, defence date, colophon: fill it in!)
 % and sets up the layout, fonts, headings and archival PDF. Here: packages, your own commands,
 % hyphenation and the nomenclature entries.
-\input{_options/packages}
-\input{_options/commands}
-\input{_hyphenation}     % hyphenation of technical terms and names (add to it as you write)
-\input{_nomenclature}    % acronyms and symbols for the nomenclature (fill this in!)
+\input{settings/packages}
+\input{settings/commands}
+\input{settings/hyphenation}     % hyphenation of technical terms and names (add to it as you write)
+\input{settings/nomenclature}    % acronyms and symbols for the nomenclature (fill this in!)
 
 %% Placeholder text (\lipsum) used by the example chapters. Remove once the placeholders are gone.
 \usepackage{lipsum}
@@ -47,14 +43,14 @@
 %% Compile only some chapters (much faster while writing a long thesis). Page numbers, and
 %% references to the chapters left out, are kept from the last full compile.
 %% Uncomment and list the chapters you are working on; comment out again for a full compile.
-% \includeonly{Chapters/02Examples}
+% \includeonly{chapters/02Examples}
 
 \begin{document}
 
 \pagenumbering{roman} % counted from the half-title (page i), as in books; the title pages print no number
-\input{_titlepage.tex}
+\input{template/titlepage.tex}
 
-\begin{Spacing}{\thesisspacing} % line spacing of the main text (set per page size in personal.cls)
+\begin{Spacing}{\thesisspacing} % line spacing of the main text (set per page size in thesis.cls)
 
     %% =========== %%
     %% FRONTMATTER %%
@@ -63,8 +59,8 @@
     \aliaspagestyle{chapter}{empty}
 
     \contentsstyle{frontmatter} % front matter: a compact block in the contents
-    \include{Chapters/00Summary}
-    \include{Chapters/00Preface}
+    \include{chapters/00Summary}
+    \include{chapters/00Preface}
 
     %% Contents and lists start on the next page, left or right; the summary, preface, nomenclature and
     %% every chapter start on a right-hand page.
@@ -79,7 +75,7 @@
     % \clearpage
     % \listofalgorithms % uncomment if the thesis has more than a few algorithms
 
-    \input{Chapters/00Nomenclature.tex}
+    \input{chapters/00Nomenclature.tex}
 
     %% ========== %%
     %% MAINMATTER %%
@@ -87,13 +83,13 @@
     \pagenumbering{arabic}
     \aliaspagestyle{chapter}{chapteropening}
     \contentsstyle{mainmatter}
-    \include{Chapters/01Introduction} % (each chapter file sets its page style)
+    \include{chapters/01Introduction} % (each chapter file sets its page style)
 
     %% Example chapter (every element the template supports): remove this line when you start
-    %% writing, but keep the file for reference. New chapters: copy Chapters/_newChapter.tex.
-    \include{Chapters/02Examples}
+    %% writing, but keep the file for reference. New chapters: copy chapters/_newChapter.tex.
+    \include{chapters/02Examples}
     %% Sample chapter on a real topic (the inf-sup condition): remove it with the examples.
-    \include{Chapters/03InfSup}
+    \include{chapters/03InfSup}
 
     %% One reference list at the end of the book (not with the chapterbib option: then every chapter has its own)
     \ifchapterbib\else
@@ -116,7 +112,7 @@
     \thumbson % appendices get tabs, continuing below the last chapter
 
     \clearpage
-    \include{Chapters/A_Appendix}
+    \include{chapters/A_Appendix}
 
     %% =========== %%
     %% BACK MATTER %%
@@ -126,9 +122,9 @@
     \aliaspagestyle{chapter}{empty}
     \pagestyle{frontmatter}
     \contentsstyle{frontmatter} % back matter: compact again
-    \include{Chapters/Z_Acknowledgements}
-    \include{Chapters/Z_CurriculumVitae}
-    \include{Chapters/Z_ListOfPublications}
+    \include{chapters/Z_Acknowledgements}
+    \include{chapters/Z_CurriculumVitae}
+    \include{chapters/Z_ListOfPublications}
 
     \clearpage
 \end{Spacing}

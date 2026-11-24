@@ -1,7 +1,7 @@
 # Python packages for the template's scripts:  pip install -r requirements.txt
 # (LaTeX itself needs none of these; Overleaf ignores this file.)
 #
-#   Python/example_figures.py and your own plots        matplotlib, numpy
+#   figures/plots/example_figures.py and your own plots        matplotlib, numpy
 #   tools/check_figures.py (text sizes, fonts in figures) pikepdf
 #   tools/check_print.py, print_ready.py, print_pdf.py      pikepdf, Pillow
 #   (thesis_fonts.save makes figures print-ready with them)

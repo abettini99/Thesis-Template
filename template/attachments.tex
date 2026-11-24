@@ -1,0 +1,194 @@
+%% =====================================================================
+%% Files attached to the PDF (PDF/A-4f allows any file, as an "associated file" with a description).
+%% PDF viewers list them in their attachments panel.
+%%   1. A citation file: how to cite the thesis, as BibTeX (.bib) and RIS (.ris, for EndNote, Zotero,
+%%      Mendeley), made from settings/thesisinfo.tex on every compile.
+%%   2. \figuredata[description]{file}: the data behind a figure, after its \includegraphics (or the key
+%%      data={file} of \panel). In the tagged PDF the file belongs to that image; screen readers and other
+%%      tools can offer it.
+%%   3. \supplementfile[description]{file}: any other file, attached to the document as a whole (input
+%%      files, a spreadsheet, a short script).
+%% Keep attachments small: they make the PDF larger, also in print (the printer ignores them, but they
+%% are sent along). Large data sets belong in a repository such as 4TU.ResearchData, cited with their DOI.
+%% =====================================================================
+%% For the printer (PDF/X): no attachments; the commands do nothing.
+\ifdefined\thesispdfx
+\NewDocumentCommand \figuredata { O{} m } { }
+\NewDocumentCommand \supplementfile { O{} m } { }
+\expandafter\endinput
+\fi
+\ExplSyntaxOn
+
+%% File types: PDF/A needs each attached file's type. LaTeX knows .csv, .txt, .pdf, .png, ...; a few more.
+\prop_gput_from_keyval:Nn \g_pdffile_mimetypes_prop
+  {
+    .bib  = text/x-bibtex ,
+    .ris  = application/x-research-info-systems ,
+    .dat  = text/plain ,
+    .tsv  = text/tab-separated-values ,
+    .json = application/json ,
+    .md   = text/markdown ,
+    .py   = text/x-python ,
+    .m    = text/plain ,
+    .jl   = text/plain ,
+    .zip  = application/zip ,
+    .h5   = application/x-hdf5 ,
+    .hdf5 = application/x-hdf5 ,
+    .nc   = application/x-netcdf ,
+    .npy  = application/octet-stream ,
+    .npz  = application/zip ,
+    .xlsx = application/vnd.openxmlformats-officedocument.spreadsheetml.sheet ,
+    .ods  = application/vnd.oasis.opendocument.spreadsheet ,
+  }
+
+%% Embeds file #1 as #2 (the name a reader sees), with description #3 and relationship #4 (Data,
+%% Supplement, Source, ...), as PDF object #5; lists it in the attachments panel.
+\int_new:N \g__thesis_attach_int
+\cs_new_protected:Npn \__thesis_attach:nnnnn #1#2#3#4#5
+  {
+    \group_begin:
+      \pdfdict_put:nne { l_pdffile/Filespec } { AFRelationship } { /#4 }
+      \pdf_string_from_unicode:nnN { utf8/string } {#3} \l_tmpa_str
+      \pdfdict_put:nne { l_pdffile/Filespec } { Desc } { \l_tmpa_str }
+      \pdffile_embed_file:nnn {#1} {#2} {#5}
+    \group_end:
+    \pdfmanagement_add:nne { Catalog / Names } { EmbeddedFiles } { \pdf_object_ref:n {#5} }
+  }
+\cs_generate_variant:Nn \__thesis_attach:nnnnn { eeeee }
+%% The name a reader sees: the file name without its folders.
+\cs_new_protected:Npn \__thesis_basename:nN #1#2
+  {
+    \file_parse_full_name:nNNN {#1} \l__thesis_dir_str \l__thesis_name_str \l__thesis_ext_str
+    \tl_set:Ne #2 { \l__thesis_name_str \l__thesis_ext_str }
+  }
+\str_new:N \l__thesis_dir_str \str_new:N \l__thesis_name_str \str_new:N \l__thesis_ext_str
+\tl_new:N \l__thesis_attachname_tl
+%% Attached to the document as a whole (the catalogue's list of associated files).
+\cs_new_protected:Npn \__thesis_attach_document:nnn #1#2#3 % file, description, relationship
+  {
+    \int_gincr:N \g__thesis_attach_int
+    \__thesis_basename:nN {#1} \l__thesis_attachname_tl
+    \__thesis_attach:eeeee {#1} { \l__thesis_attachname_tl } {#2} {#3}
+      { thesis/attach/ \int_use:N \g__thesis_attach_int }
+    \pdfmanagement_add:nne { Catalog } { AF }
+      { \pdf_object_ref:e { thesis/attach/ \int_use:N \g__thesis_attach_int } }
+  }
+
+%% ---------------------------------------------------------------------------------------------
+%% 3. \supplementfile[description]{file}
+\NewDocumentCommand \supplementfile { O{} m }
+  {
+    \file_if_exist:nTF {#2}
+      { \__thesis_attach_document:nnn {#2} { \tl_if_blank:nTF {#1} { Supplementary~file } {#1} } { Supplement } }
+      { \msg_error:nnn { thesis } { attach-missing } {#2} }
+  }
+\msg_new:nnn { thesis } { attach-missing } { File~`#1'~to~attach~not~found. }
+
+%% ---------------------------------------------------------------------------------------------
+%% 2. \figuredata[description]{file}: in the tagged PDF an associated file of the latest image (the last
+%% structure element tagged Figure); untagged, an associated file of the document.
+\cs_new_protected:Npn \__thesis_lastfigure:N #1 % #1 := number of the latest Figure structure element (0: none)
+  {
+    \int_set:Nn #1 { \int_use:c { c@g__tag_struct_abs_int } }
+    \bool_until_do:nn
+      {
+        \int_compare_p:nNn {#1} < { 2 }
+        || \str_if_eq_p:ee { \prop_item:cn { g__tag_struct_ \int_use:N #1 _prop } { S } } { /Figure }
+      }
+      { \int_decr:N #1 }
+    \int_compare:nNnT {#1} < { 2 } { \int_zero:N #1 }
+  }
+\int_new:N \l__thesis_figure_int
+\NewDocumentCommand \figuredata { O{} m }
+  {
+    \file_if_exist:nTF {#2}
+      {
+        \tl_set:Ne \l_tmpb_tl { \tl_if_blank:nTF {#1} { Data~of~the~figure } { \exp_not:n {#1} } }
+        \bool_set_false:N \l_tmpa_bool
+        \cs_if_exist:NT \__tag_struct_add_AF:ee { \tag_if_active:T { \bool_set_true:N \l_tmpa_bool } }
+        \bool_if:NTF \l_tmpa_bool
+          {
+            \__thesis_lastfigure:N \l__thesis_figure_int
+            \int_compare:nNnTF { \l__thesis_figure_int } = { 0 }
+              { \msg_error:nn { thesis } { figuredata-no-figure } }
+              {
+                \int_gincr:N \g__thesis_attach_int
+                \__thesis_basename:nN {#2} \l__thesis_attachname_tl
+                \__thesis_attach:eeeee {#2} { \l__thesis_attachname_tl } { \l_tmpb_tl } { Data }
+                  { thesis/attach/ \int_use:N \g__thesis_attach_int }
+                % (as tagpdf's own key AF does, for a structure element already begun)
+                \__tag_struct_add_AF:ee { \int_use:N \l__thesis_figure_int }
+                  { \pdf_object_ref:e { thesis/attach/ \int_use:N \g__thesis_attach_int } }
+                \__tag_struct_prop_gput:nne { \int_use:N \l__thesis_figure_int } { AF }
+                  { [ \tl_use:c { g__tag_struct_ \int_use:N \l__thesis_figure_int _AF_tl } ] }
+              }
+          }
+          { \__thesis_attach_document:nVn {#2} \l_tmpb_tl { Data } }
+      }
+      { \msg_error:nnn { thesis } { attach-missing } {#2} }
+  }
+\cs_generate_variant:Nn \__thesis_attach_document:nnn { nVn }
+\msg_new:nnn { thesis } { figuredata-no-figure }
+  { \token_to_str:N \figuredata\ belongs~after~the~\token_to_str:N \includegraphics\ of~the~figure~it~describes. }
+
+%% ---------------------------------------------------------------------------------------------
+%% 1. The citation file, written at the start of every compile and attached (citation.bib, citation.ris).
+\iow_new:N \g__thesis_cite_iow
+\cs_new:Npn \__thesis_plain:n #1 { \text_purify:n {#1} }
+\cs_new_protected:Npn \__thesis_citation_write:
+  {
+    \tl_set:Ne \l_tmpa_tl { \__thesis_plain:n { \thesisauthorlastname } \int_use:N \c_sys_year_int }
+    \tl_remove_all:Nn \l_tmpa_tl { ~ }
+    % BibTeX
+    \iow_open:Nn \g__thesis_cite_iow { \c_sys_jobname_str -citation.bib }
+    \iow_now:Ne \g__thesis_cite_iow { @phdthesis \c_left_brace_str \l_tmpa_tl , }
+    \iow_now:Ne \g__thesis_cite_iow
+      { \c_space_tl\c_space_tl author\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str \__thesis_plain:n { \thesisauthorlastname , ~ \thesisauthorfirstnames } \c_right_brace_str , }
+    \iow_now:Ne \g__thesis_cite_iow
+      { \c_space_tl\c_space_tl title\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str\c_left_brace_str \__thesis_plain:n { \thesispdftitle } \c_right_brace_str\c_right_brace_str , }
+    \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl school\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str Delft~University~of~Technology \c_right_brace_str , }
+    \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl address\c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str Delft,~the~Netherlands \c_right_brace_str , }
+    \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl type\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str Doctoral~dissertation \c_right_brace_str , }
+    \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl year\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str \int_use:N \c_sys_year_int \c_right_brace_str , }
+    \thesis_if_filled:nT { \thesisisbn }
+      { \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl isbn\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str \thesisisbn \c_right_brace_str , } }
+    \thesis_if_filled:nT { \thesisdoi }
+      { \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl doi\c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str \thesisdoi \c_right_brace_str , } }
+    \iow_now:Ne \g__thesis_cite_iow { \c_space_tl\c_space_tl keywords\c_space_tl \c_space_tl \c_space_tl =~\c_left_brace_str \__thesis_plain:n { \thesiskeywords } \c_right_brace_str , }
+    \iow_now:Ne \g__thesis_cite_iow { \c_right_brace_str }
+    \iow_close:N \g__thesis_cite_iow
+    % RIS
+    \iow_open:Nn \g__thesis_cite_iow { \c_sys_jobname_str -citation.ris }
+    \iow_now:Ne \g__thesis_cite_iow { TY\c_space_tl \c_space_tl -~THES }
+    \iow_now:Ne \g__thesis_cite_iow { AU\c_space_tl \c_space_tl -~\__thesis_plain:n { \thesisauthorlastname , ~ \thesisauthorfirstnames } }
+    \iow_now:Ne \g__thesis_cite_iow { TI\c_space_tl \c_space_tl -~\__thesis_plain:n { \thesispdftitle } }
+    \iow_now:Ne \g__thesis_cite_iow { PY\c_space_tl \c_space_tl -~\int_use:N \c_sys_year_int }
+    \iow_now:Ne \g__thesis_cite_iow { PB\c_space_tl \c_space_tl -~Delft~University~of~Technology }
+    \iow_now:Ne \g__thesis_cite_iow { CY\c_space_tl \c_space_tl -~Delft,~the~Netherlands }
+    \iow_now:Ne \g__thesis_cite_iow { M3\c_space_tl \c_space_tl -~Doctoral~dissertation }
+    \thesis_if_filled:nT { \thesisisbn } { \iow_now:Ne \g__thesis_cite_iow { SN\c_space_tl \c_space_tl -~\thesisisbn } }
+    \thesis_if_filled:nT { \thesisdoi }
+      {
+        \iow_now:Ne \g__thesis_cite_iow { DO\c_space_tl \c_space_tl -~\thesisdoi }
+        \iow_now:Ne \g__thesis_cite_iow { UR\c_space_tl \c_space_tl -~https://doi.org/\thesisdoi }
+      }
+    \clist_map_inline:en { \__thesis_plain:n { \thesiskeywords } }
+      { \iow_now:Ne \g__thesis_cite_iow { KW\c_space_tl \c_space_tl -~##1 } }
+    \iow_now:Ne \g__thesis_cite_iow { ER\c_space_tl \c_space_tl -~ }
+    \iow_close:N \g__thesis_cite_iow
+  }
+\cs_generate_variant:Nn \clist_map_inline:nn { en }
+\AddToHook{begindocument/end}
+  {
+    \__thesis_citation_write:
+    \int_gincr:N \g__thesis_attach_int
+    \__thesis_attach:eeeee { \c_sys_jobname_str -citation.bib } { citation.bib }
+      { How~to~cite~this~dissertation~(BibTeX) } { Supplement } { thesis/attach/ \int_use:N \g__thesis_attach_int }
+    \pdfmanagement_add:nne { Catalog } { AF } { \pdf_object_ref:e { thesis/attach/ \int_use:N \g__thesis_attach_int } }
+    \int_gincr:N \g__thesis_attach_int
+    \__thesis_attach:eeeee { \c_sys_jobname_str -citation.ris } { citation.ris }
+      { How~to~cite~this~dissertation~(RIS:~EndNote,~Zotero,~Mendeley) } { Supplement }
+      { thesis/attach/ \int_use:N \g__thesis_attach_int }
+    \pdfmanagement_add:nne { Catalog } { AF } { \pdf_object_ref:e { thesis/attach/ \int_use:N \g__thesis_attach_int } }
+  }
+\ExplSyntaxOff

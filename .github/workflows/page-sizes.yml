@@ -7,16 +7,13 @@ on:
   push:
     branches: [main]
     paths:
-      - personal.cls
+      - thesis.cls
       - main.tex
-      - _options/**
-      - _thesisinfo.tex
-      - _titlepage.tex
-      - _nomenclature.tex
-      - _hyphenation.tex
+      - template/**
+      - settings/**
       - references.bib
-      - Chapters/**
-      - Images/**
+      - chapters/**
+      - figures/**
       - .github/scripts/page_sizes.py
       - .github/workflows/page-sizes.yml
   workflow_dispatch:   # run by hand: Actions tab > Page sizes > Run workflow

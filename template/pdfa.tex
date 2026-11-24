@@ -1,0 +1,121 @@
+%% =====================================================================
+%% PDF/A-4f (archival PDF on PDF 2.0, e.g. for the TU Delft repository) with LaTeX's own PDF management.
+%% Fonts embedded, sRGB output intent, all text mapped to Unicode, and XMP metadata.
+%%
+%% The PDF management itself is switched on by \DocumentMetadata in the first line of main.tex; this file
+%% adds the language and the metadata. cover.tex has no \DocumentMetadata (it is a single page in the
+%% article class, not tagged) and loads the PDF management here, as a package.
+%%
+%% The metadata (title, author, keywords, ...) comes from settings/thesisinfo.tex, through hyperref's keys once
+%% hyperref is loaded: there is nothing to edit here.
+%% Needs: settings/thesisinfo.tex loaded first. Optional: \thesispdfsuffix (e.g. " (cover)") for the title.
+%% =====================================================================
+\chardef\thesisatcatcode=\catcode`\@ % restored at the end (this file is read inside the class too)
+\makeatletter
+\providecommand*{\thesispdfsuffix}{}
+\providecommand*{\thesis@bcp}{en-GB}
+\IfDocumentMetadataTF{}{\RequirePackage{pdfmanagement}} % (a document without \DocumentMetadata)
+\ifdefined\thesispdfx % for the printer: PDF/X (template/documentmetadata.tex), only the language here
+    \edef\thesis@tmp{\noexpand\SetKeys[document/metadata]{lang=\thesis@bcp}}
+\else
+    \edef\thesis@tmp{\noexpand\SetKeys[document/metadata]{pdfstandard=a-4f, pdfversion=2.0, lang=\thesis@bcp}}
+\fi
+\thesis@tmp
+%% Licence: the code in \thesislicence gives its name and web address (\thesislicencename,
+%% \thesislicenceurl; both empty for all rights reserved).
+\ExplSyntaxOn
+\prop_const_from_keyval:Nn \c__thesis_licences_prop
+  {
+    CC~BY~4.0       = {Creative~Commons~Attribution~4.0~International}{by/4.0} ,
+    CC~BY-SA~4.0    = {Creative~Commons~Attribution-ShareAlike~4.0~International}{by-sa/4.0} ,
+    CC~BY-ND~4.0    = {Creative~Commons~Attribution-NoDerivatives~4.0~International}{by-nd/4.0} ,
+    CC~BY-NC~4.0    = {Creative~Commons~Attribution-NonCommercial~4.0~International}{by-nc/4.0} ,
+    CC~BY-NC-SA~4.0 = {Creative~Commons~Attribution-NonCommercial-ShareAlike~4.0~International}{by-nc-sa/4.0} ,
+    CC~BY-NC-ND~4.0 = {Creative~Commons~Attribution-NonCommercial-NoDerivatives~4.0~International}{by-nc-nd/4.0} ,
+    CC0~1.0         = {Creative~Commons~CC0~1.0~Universal}{../publicdomain/zero/1.0} ,
+  }
+\msg_new:nnn { thesis } { unknown-licence }
+  {
+    Unknown~licence~`#1'~in~\token_to_str:N \thesislicence\ (settings/thesisinfo.tex).~Use~one~of~
+    CC~BY~4.0,~CC~BY-SA~4.0,~CC~BY-ND~4.0,~CC~BY-NC~4.0,~CC~BY-NC-SA~4.0,~CC~BY-NC-ND~4.0,~
+    CC0~1.0,~or~leave~it~empty~for~all~rights~reserved.
+  }
+\tl_new:N \thesislicencename
+\tl_new:N \thesislicencecode % the code, with non-breaking spaces (for the colophon)
+\tl_new:N \thesislicenceurl
+\tl_set:Ne \l_tmpa_tl { \tl_trim_spaces:e { \thesislicence } }
+\tl_if_empty:NF \l_tmpa_tl
+  {
+    \prop_get:NVNTF \c__thesis_licences_prop \l_tmpa_tl \l_tmpb_tl
+      {
+        \tl_set:Ne \thesislicencename { \exp_last_unbraced:NV \use_i:nn \l_tmpb_tl }
+        \tl_set:Ne \thesislicenceurl
+          { https://creativecommons.org/licenses/ \exp_last_unbraced:NV \use_ii:nn \l_tmpb_tl / }
+        \tl_replace_once:Nnn \thesislicenceurl { licenses/../ } { }
+        \tl_set_eq:NN \thesislicencecode \l_tmpa_tl
+        \tl_replace_all:Nnn \thesislicencecode { ~ } { \nobreakspace }
+      }
+      {
+        \msg_error:nnV { thesis } { unknown-licence } \l_tmpa_tl
+      }
+  }
+%% A field still holding its placeholder ([...], or the example ORCID iD) is left out of the metadata.
+\tl_new:N \l__thesis_field_tl
+\prg_new_protected_conditional:Npnn \thesis_if_filled:n #1 { T , F , TF }
+  {
+    \tl_set:Ne \l__thesis_field_tl { \tl_trim_spaces:e {#1} }
+    \tl_if_empty:NTF \l__thesis_field_tl
+      { \prg_return_false: }
+      {
+        \tl_if_in:NnTF \l__thesis_field_tl { [ }
+          { \prg_return_false: }
+          {
+            \str_if_eq:VnTF \l__thesis_field_tl { 0000-0000-0000-0000 }
+              { \prg_return_false: } { \prg_return_true: }
+          }
+      }
+  }
+\NewDocumentCommand \IfThesisFilledTF { m m m } { \thesis_if_filled:nTF {#1} {#2} {#3} }
+
+%% The metadata: title, author, subject, keywords, and the identifiers and licence once they are known.
+\tl_new:N \l__thesis_copyright_tl
+\AddToHook{package/hyperref/after}
+  {
+    \tl_set:Ne \l__thesis_copyright_tl
+      {
+        \str_if_eq:eeTF { \tl_trim_spaces:e { \thesislicence } } { CC0~1.0 }
+          { Dedicated~to~the~public~domain~under~\thesislicencename :~\thesislicenceurl }
+          {
+            Copyright~\the\year\space\thesisauthorfirstnames\space\thesisauthorlastname .~
+            \tl_if_empty:NTF \thesislicencename
+              { All~rights~reserved. }
+              { Licensed~under~\thesislicencename\space(\thesislicence):~\thesislicenceurl }
+          }
+      }
+    \hypersetup
+      {
+        pdftitle     = {\thesispdftitle\thesispdfsuffix},
+        pdfauthor    = {\thesisauthorfirstnames\space\thesisauthorlastname},
+        pdfsubject   = {Doctoral~dissertation,~Delft~University~of~Technology},
+        pdfkeywords  = {\thesiskeywords},
+        pdfpublisher = {Delft~University~of~Technology},
+        pdfpubtype   = book,
+        pdfcopyright = \l__thesis_copyright_tl ,
+        pdfdisplaydoctitle = true
+      }
+    \tl_if_empty:NF \thesislicenceurl { \hypersetup { pdflicenseurl = \thesislicenceurl } }
+    % (hyperref's key pdfisbn is accepted, but the PDF management of 2026 does not write it: added here)
+    \thesis_if_filled:nT { \thesisisbn }
+      { \exp_args:Ne \pdfmeta_xmp_add:n { <prism:isbn> \tl_trim_spaces:e { \thesisisbn } </prism:isbn> } }
+    \thesis_if_filled:nT { \thesisdoi }
+      {
+        \hypersetup
+          { pdfdoi = \thesisdoi , pdfidentifier = doi:\thesisdoi , pdfurl = https://doi.org/\thesisdoi }
+      }
+    \thesis_if_filled:nT { \thesisorcid } { \hypersetup { pdfcontacturl = https://orcid.org/\thesisorcid } }
+  }
+\ExplSyntaxOff
+%% The metadata goes in through hyperref: a document that does not load it (propositions.tex) loads it
+%% here, as the title is required (PDF/UA).
+\AddToHook{begindocument/before}{\@ifpackageloaded{hyperref}{}{\RequirePackage[hidelinks]{hyperref}}}
+\catcode`\@=\thesisatcatcode

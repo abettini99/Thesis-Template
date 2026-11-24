@@ -1,0 +1,129 @@
+%% Title pages of a TU Delft dissertation. All names, dates and numbers come from settings/thesisinfo.tex.
+%%   page i   : half-title
+%%   page ii  : blank
+%%   page iii : official title page (wording prescribed by TU Delft; check it against the
+%%              Graduate School's current template before printing)
+%%   page iv  : doctoral committee and colophon
+%%   page v   : dedication (optional; \thesisdedication in settings/thesisinfo.tex)
+\makeatletter
+%% Centred text starting at the height of the chapter titles
+\newcommand{\thesis@titleblock}[1]{\begingroup \parskip\z@ \parindent\z@
+    \chapterheadstart\thesis@chapterlabelspace \centering #1\endgroup}
+
+%% ---------------------------------------------------------------------
+%% Page i: half-title: the title alone (the subtitle waits for the title page), smaller than there
+%% ---------------------------------------------------------------------
+\thispagestyle{empty}
+\thesis@titleblock{\fontsize{0.75\dimexpr\chaptertitlesize\relax}{1.15\dimexpr\chaptertitlesize\relax}\headingfont
+    \thesistitle\par}
+
+%% ---------------------------------------------------------------------
+%% Page ii: blank
+%% ---------------------------------------------------------------------
+\cleardoublepage
+
+%% ---------------------------------------------------------------------
+%% Page iii: official title page
+%% ---------------------------------------------------------------------
+\thispagestyle{empty}
+\thesis@titleblock{%
+    {\fontsize{\chaptertitlesize}{1.15\dimexpr\chaptertitlesize\relax}\headingfont\thesistitle\par}
+    \bigskip
+    {\sffamily\Large\thesissubtitle\par}}
+\vfill
+\begin{center}
+    {\runningheadcaps DISSERTATION}
+
+    \bigskip
+
+    for the purpose of obtaining the degree of doctor \\
+    at Delft University of Technology \\
+    by the authority of the Rector Magnificus, \rectormagnificus, \\
+    chair of the Board for Doctorates \\
+    to be defended publicly on \\
+    \thesisdefencedate
+
+    \bigskip
+    \bigskip
+
+    by
+
+    \bigskip
+    \bigskip
+
+    {\headingfont\Large\bfseries \thesisauthorfirstnames\ \MakeUppercase{\thesisauthorlastname}}
+
+    \bigskip
+    \bigskip
+
+    \thesisdegree \\
+    born in \thesisbirthplace
+
+    \vspace*{2\bigskipamount}
+\end{center}
+
+%% ---------------------------------------------------------------------
+%% Page iv: doctoral committee and colophon
+%% ---------------------------------------------------------------------
+\clearpage
+\thispagestyle{empty}
+{\small
+\setlength{\parskip}{0pt}
+\noindent This dissertation has been approved by the promotors.
+
+\medskip
+\noindent Composition of the doctoral committee:
+
+\smallskip
+\noindent
+\begin{tabular}{@{}p{0.5\textwidth}@{}p{0.5\textwidth}@{}}
+    Rector Magnificus,  & chairperson \\
+    \thesiscommittee
+\end{tabular}
+
+\IfThesisEmpty{\thesiscommitteenote}{}{%
+    \medskip
+    \noindent \thesiscommitteenote}
+
+\vfill
+\noindent\includegraphics[height=8mm, alt={Delft University of Technology logo}]{template/images/tudelft-logo.pdf}
+
+\bigskip
+\IfThesisEmpty{\thesisfunding}{}{%
+    \noindent \thesisfunding\par\medskip}
+\noindent
+\begin{tabular}{@{}p{0.22\textwidth}@{}p{0.78\textwidth}@{}}
+    \textit{Keywords:}   & \thesiskeywords \\[\smallskipamount]
+    \IfThesisEmpty{\thesisdata}{}{\textit{Data:} & \thesisdata \\[\smallskipamount]}
+    \IfThesisEmpty{\thesiscode}{}{\textit{Code:} & \thesiscode \\[\smallskipamount]}
+    \textit{Printed by:} & \thesisprinter  \\[\smallskipamount]
+    \textit{Cover by:}   & \thesiscover    \\
+\end{tabular}
+
+\bigskip
+\ifdefstring{\thesislicence}{CC0 1.0}{% public domain: no copyright line
+\noindent This work is dedicated to the public domain under \href{\thesislicenceurl}{CC0~1.0~Universal}.
+}{%
+\noindent Copyright \textcopyright\ \the\year\ by \thesisauthorinitials~\thesisauthorlastname
+\par{\raggedright\noindent % (licence names are long words: Attribution-NonCommercial-ShareAlike)
+\IfThesisEmpty{\thesislicence}{All rights reserved.}{This work is licensed under a \thesislicencename\ licence
+    (\href{\thesislicenceurl}{\thesislicencecode}).}\par}}
+
+\smallskip
+\noindent ISBN \thesisisbn
+
+\smallskip
+\noindent An electronic copy of this dissertation is available at \\
+\IfThesisEmpty{\thesisdoi}{\url{https://repository.tudelft.nl}}% (links to the dissertation's DOI once known)
+    {\href{https://doi.org/\thesisdoi}{\nolinkurl{https://repository.tudelft.nl}}}.
+}
+\cleardoublepage
+
+%% ---------------------------------------------------------------------
+%% Page v (optional): dedication, at the height of the half-title, with a blank page behind it
+%% ---------------------------------------------------------------------
+\IfThesisEmpty{\thesisdedication}{}{%
+    \thispagestyle{empty}%
+    \thesis@titleblock{\itshape\thesisdedication\par}%
+    \cleardoublepage}
+\makeatother

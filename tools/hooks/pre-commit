@@ -9,7 +9,7 @@
 blocked=""
 nl='
 '
-# 1. by name: font formats, the MathTime package files, zips and unpacked folders, Fonts/ contents
+# 1. by name: font formats, the MathTime package files, zips and unpacked folders, fonts/ contents
 names=$(git diff --cached --name-only --diff-filter=ACMR)
 IFS="$nl"
 for f in $names; do
@@ -17,8 +17,8 @@ for f in $names; do
     base=${lower##*/}
     case "$lower" in
         fonts/readme.md) continue ;;
-        _options/ntxmath-otf/newtxmath.otf|_options/ntxmath-otf/newtxmath-bold.otf) continue ;; # free: newtx (LPPL)
-        _options/josefin/josefinsans-vf.ttf) continue ;; # free: Josefin Sans (SIL OFL), the cover font
+        template/fonts/ntxmath-otf/newtxmath.otf|template/fonts/ntxmath-otf/newtxmath-bold.otf) continue ;; # free: newtx (LPPL)
+        template/fonts/josefin/josefinsans-vf.ttf) continue ;; # free: Josefin Sans (SIL OFL), the cover font
         fonts/*|*mtp2fonts/*|*mtp2lite/*|*mtpro2/*) blocked="$blocked$nl  $f"; continue ;;
     esac
     case "$base" in
@@ -41,7 +41,7 @@ unset IFS
 
 if [ -n "$blocked" ]; then
     echo "Commit refused: MathTime Professional 2 files are licensed to you alone and must"
-    echo "not go into a repository (see Fonts/README.md). Unstage them with"
+    echo "not go into a repository (see fonts/README.md). Unstage them with"
     echo "    git restore --staged <file>"
     echo "Files:$blocked"
     exit 1
