@@ -265,6 +265,18 @@ The `print-preparation` edition is made for the printer as a **PDF/X** file, the
 \newcommand{\thesisbleed}{2mm}          % often 2 or 3 mm
 ```
 
+The PDF/X standards, roughly from oldest to newest:
+
+| Standard | Year, base | Colour | What it adds |
+|---|---|---|---|
+| PDF/X-1a | 2001/2003, PDF 1.3/1.4 | CMYK and spot colours only | Fonts embedded, no transparency, no RGB: the file is ready for one press as it is |
+| PDF/X-3 | 2002/2003, PDF 1.3/1.4 | Also RGB and Lab, with a colour profile | Colour managed: the printer converts the colours for their own press |
+| **PDF/X-4** | 2008/2010, PDF 1.6 | As PDF/X-3 | Transparency and layers kept as they are, not flattened. **← `X-4`** |
+| PDF/X-5 | 2008/2010, PDF 1.6 | As PDF/X-3 | PDF/X-4 with parts kept outside the file (images, the colour profile) |
+| **PDF/X-6** | 2020, PDF 2.0 | As PDF/X-3 | PDF/X-4 on PDF 2.0, which also allows a colour profile per page. **← `X-6` (default)** |
+
+`tools/print_pdf.py` converts either to CMYK, keeping the version (see *If the printer wants CMYK* below); PDF/X-1a is not made by the template.
+
 What the file carries:
 - **Trim and bleed:** every page says where it will be cut (the trim box) and how far the background runs past the cut (the bleed box). Crop marks are off: the printer places their own. If they ask for marks, add `showtrims`; they go in a margin outside the bleed.
 - **Colour, managed:** a screen mixes red, green and blue light, a press puts cyan, magenta, yellow and black ink on paper, and somebody has to convert one to the other. The file stays RGB, with every RGB colour (text, drawings, photos, figures) given in sRGB explicitly, so it means one exact colour, and the printer converts it for their own press and paper, which is where it is best done. Black text and greys stay grey and print with black ink only (as "rich black", a mix of all four inks, small text would get coloured fringes wherever the four printing plates do not line up exactly). The file names the press it was made for (the *output intent*): the printer's colour profile, or FOGRA39 (offset print on coated paper, the one that comes with TeX Live). For this RGB route the standard profile is fine; the printer's own is nice to have. Newer standard profiles (PSO Coated v3, PSO Uncoated v3) are free downloads from the ECI; set the file name if your printer uses one.
