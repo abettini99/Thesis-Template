@@ -6,7 +6,7 @@
 \usepackage[hidelinks]{hyperref}
 \newcommand\pkg{\textsf{ntxmath-otf}}
 \newcommand\cs[1]{\texttt{\char`\\#1}}
-\title{\pkg: newtxmath as an OpenType maths font\\[2pt]\large version 1.4}
+\title{\pkg: newtxmath as an OpenType maths font\\[2pt]\large version 1.5}
 \author{built by \texttt{ntxmath\_otf.py}}
 \date{2026/11/23}
 \begin{document}\emergencystretch=3em
@@ -148,6 +148,12 @@ It needs \TeX\ Live 2026 with \textsf{newtx}, Python~3 and \textsf{fontTools}, a
 needed).
 
 \section{Changes}
+\textbf{1.5} (2026/11/24; the fonts are unchanged):
+\begin{itemize}
+\item Faster font loading: the kerns a glyph with several code points shares (A and Alpha,
+  | and \cs{mid}) are worked out once per font, design size and feature set, and replayed for
+  every other size (a small gain with newtx, whose fonts have few kerns). The fonts' tables are unchanged, to the last kern.
+\end{itemize}
 \textbf{1.4} (2026/11/23; the fonts are unchanged):
 \begin{itemize}
 \item \textsf{siunitx}'s \cs{degree} and \cs{degreeCelsius} (the character ° in maths) keep the

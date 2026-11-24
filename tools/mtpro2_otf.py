@@ -69,7 +69,7 @@ from fontTools.ttLib.tables import otTables as ot
 
 UPM = 1000
 PACKAGE_DATE = "2026/11/23"
-PACKAGE_VERSION = "1.9"
+PACKAGE_VERSION = "1.10"
 # Fixed font timestamp (mtpro2.sty v2.3, 2009-04-27): identical input -> byte-identical fonts.
 BUILD_TIME = int(datetime.datetime(2009, 4, 27, tzinfo=datetime.timezone.utc).timestamp()) + 2082844800
 
@@ -1997,6 +1997,7 @@ local V = load("mtpro2-otf-variants")
 -- TeX's exact glyph boxes (luaotfload measures outlines: rounded, and with overshoots)
 local D = load("mtpro2-otf-dims")
 mtpro2otf.italic = {}                               -- font id -> {char -> subscript kern}
+mtpro2otf.kernplans = {}                           -- see the patch below
 mtpro2otf.accxh = {}                                -- font id -> {glyph index -> accent x-height}
 -- MTPro2's design for a size, as its .fd files choose it: 1 text (9 pt up), 2 script
 -- (7 to 9 pt), 3 scriptscript (below 7 pt); sizes before the package's scale option
@@ -2040,36 +2041,84 @@ luatexbase.add_to_callback("luaotfload.patch_font", function(tfm, spec, id)
   end
   -- a glyph with several code points (A and Alpha, \\partial's U+2202 and U+1D715, | and
   -- \\mid): luaotfload gives its kerns and math kerns to one code point only; TeX looks
-  -- characters up by the code it was given, so every code point needs them
-  local codes = {}
-  for u, c in pairs(tfm.characters) do
-    if c.index then codes[c.index] = codes[c.index] or {}; table.insert(codes[c.index], u) end
+  -- characters up by the code it was given, so every code point needs them. Which kerns are
+  -- copied depends on the font, its design and features, not on the size: worked out for
+  -- the first instance (a pass over every kern pair, about 90000 in MTPro2), replayed for
+  -- the others with this instance's values
+  local chars = tfm.characters
+  local sig = 0
+  for u, c in pairs(chars) do
+    if c.index then sig = (sig * 31 + u * 65599 + c.index) % 4503599627370496 end
   end
-  for _, us in pairs(codes) do
-    if #us > 1 then
-      local kerns, mk
-      for _, u in ipairs(us) do
-        local c = tfm.characters[u]
-        if c.kerns then kerns = kerns or {}; for v, k in pairs(c.kerns) do kerns[v] = kerns[v] or k end end
-        mk = mk or c.mathkern
-      end
-      for _, u in ipairs(us) do
-        local c = tfm.characters[u]
-        if kerns then c.kerns = c.kerns or {}; for v, k in pairs(kerns) do c.kerns[v] = c.kerns[v] or k end end
-        c.mathkern = c.mathkern or mk
-      end
+  local pkey = table.concat({ tfm.psname or "", lvl, tostring(spec and spec.specification or ""), sig }, "|")
+  local plan = mtpro2otf.kernplans[pkey]
+  if not plan then
+    plan = { merge = {}, pairs = {} }
+    local codes = {}
+    for u, c in pairs(chars) do
+      if c.index then codes[c.index] = codes[c.index] or {}; table.insert(codes[c.index], u) end
     end
-  end
-  for _, c in pairs(tfm.characters) do            -- ... and as the second of a pair too
-    if c.kerns then
-      local add = {}
-      for v, k in pairs(c.kerns) do
-        local cv = tfm.characters[v]
-        for _, w in ipairs(cv and cv.index and codes[cv.index] or {}) do
-          if w ~= v and not c.kerns[w] then add[w] = k end
+    for _, us in pairs(codes) do
+      if #us > 1 then
+        local kerns, mk, mksrc
+        for _, u in ipairs(us) do
+          local c = chars[u]
+          if c.kerns then
+            kerns = kerns or {}
+            for v in pairs(c.kerns) do kerns[v] = kerns[v] or u end   -- (the code point it comes from)
+          end
+          if not mk and c.mathkern then mk, mksrc = c.mathkern, u end
+        end
+        for _, u in ipairs(us) do
+          local c = chars[u]
+          local add = {}
+          if kerns then
+            for v, src in pairs(kerns) do if not (c.kerns and c.kerns[v]) then add[#add + 1] = { v, src } end end
+          end
+          plan.merge[#plan.merge + 1] = { u, add, (not c.mathkern) and mksrc or nil, kerns ~= nil }
         end
       end
-      for w, k in pairs(add) do c.kerns[w] = k end
+    end
+    -- (applied now, so that the pass below sees the merged kerns, as before)
+    for _, m in ipairs(plan.merge) do
+      local c = chars[m[1]]
+      if m[4] then
+        c.kerns = c.kerns or {}
+        for _, a in ipairs(m[2]) do c.kerns[a[1]] = chars[a[2]].kerns[a[1]] end
+      end
+      if m[3] then c.mathkern = chars[m[3]].mathkern end
+    end
+    for u, c in pairs(chars) do                     -- ... and as the second of a pair too (only
+      local ck = c.kerns                            -- glyphs with several code points matter)
+      if ck then
+        local add
+        for v in pairs(ck) do
+          local cv = chars[v]
+          local g = cv and cv.index and codes[cv.index]
+          if g and g[2] then
+            for _, w in ipairs(g) do
+              if w ~= v and not ck[w] then add = add or {}; add[w] = v end
+            end
+          end
+        end
+        if add then
+          for w, v in pairs(add) do ck[w] = ck[v]; plan.pairs[#plan.pairs + 1] = { u, w, v } end
+        end
+      end
+    end
+    mtpro2otf.kernplans[pkey] = plan
+  else
+    for _, m in ipairs(plan.merge) do
+      local c = chars[m[1]]
+      if m[4] then
+        c.kerns = c.kerns or {}
+        for _, a in ipairs(m[2]) do c.kerns[a[1]] = chars[a[2]].kerns[a[1]] end
+      end
+      if m[3] then c.mathkern = chars[m[3]].mathkern end
+    end
+    for _, a in ipairs(plan.pairs) do
+      local ck = chars[a[1]].kerns
+      ck[a[2]] = ck[a[3]]
     end
   end
   -- the subscript tuck (TeX's italic correction) is applied by the package, always: take the

@@ -8,7 +8,7 @@ Compile with **LuaLaTeX** on **TeX Live 2026** or later. In Overleaf: *Menu → 
 
 - LuaLaTeX lets `microtype` stretch letters very slightly, which halves the number of hyphenated lines and gives evener word spacing.
 - The bibliography uses **biblatex + biber**, which Overleaf runs automatically. The nomenclature needs no extra tool.
-- The first compile on a new machine (or a new Overleaf project) takes longer while LuaLaTeX builds its font cache.
+- The first compile on a new machine (or a new Overleaf project) takes longer while LuaLaTeX builds its font cache. If every compile stays that slow (the preamble alone taking 15 s or more, where about 6 s is normal), LuaLaTeX cannot keep its cache: run `luaotfload-tool --cache=show`, which should report a *writable path*.
 - LuaLaTeX only, TeX Live 2026 or later: the class stops with a message under pdfLaTeX or XeLaTeX, or with an older LaTeX.
 
 ## Faster compiling

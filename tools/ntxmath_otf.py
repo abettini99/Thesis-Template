@@ -871,7 +871,7 @@ NTX_WEIGHTS = {"normal": ("NewTX Math", "NewTXMath.otf"), "bold": ("NewTX Math B
 NTX_DONORS = {"normal": "texgyretermes-regular.otf", "bold": "texgyretermes-bold.otf"}
 NTX_COPYRIGHT = ("Converted from the newtx fonts (Michael Sharpe) and txfonts (Young Ryu); "
                  "LaTeX Project Public License 1.3")
-NTX_VERSION = "1.4"
+NTX_VERSION = "1.5"
 NTX_DATE = "2026/11/23"
 LEGACY_FAMS = ("letters", "symbols", "largesymbols")
 
