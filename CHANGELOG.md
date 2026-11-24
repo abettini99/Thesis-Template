@@ -2,13 +2,13 @@
 
 Versions follow [semantic versioning](https://semver.org): a change in the last number (1.0.1) only fixes things, in the middle number (1.1.0) adds something without changing what you have, and in the first number (2.0.0) asks you to change something in your thesis when you update; the entry says what.
 
-## Unreleased
+## 1.1.0 (24 November 2026)
 
 - **Cover:** a fourth colour, `coversecondary`, for the small lines (*Doctoral thesis · TU Delft*, *About the author*, the spine mark); before, they followed the text colour. Fixed: with a light text colour on a dark cover, the front title stayed black. If your `settings/cover.tex` is older, add `\colorlet{coversecondary}{covertext!75}` to it.
 - **Preview edition:** now a plain PDF (no PDF/A, tagging or attachments): it is only for looking at the trimmed book, and as a plain PDF it cannot be mistaken for the printer's file.
 - **README:** the cover in four colour schemes, with their values, under *Propositions and cover*, and links to sample PDFs.
 - **Releases:** a tag or a release published on GitHub gets the final PDFs attached: `thesis-digital.pdf`, `thesis-print.pdf`, `thesis-preview.pdf`, `cover.pdf` (without the guides), `propositions.pdf` and veraPDF's report. Before, only the digital edition, named after the tag.
-- **Continuous integration:** the README images workflow (formerly *Page sizes*) also renders the cover variants and checks each for print. A new *Lint* workflow checks the Python scripts with Ruff on every push.
+- **Continuous integration:** the README images workflow (formerly *Page sizes*) also renders the cover variants and checks each for print, and commits an image only when it looks different. A new *Lint* workflow checks the Python scripts with Ruff on every push.
 - **Python scripts:** `tools/mtpro2_otf.py` and `tools/ntxmath_otf.py` run on Python 3.10 and 3.11 again (they used syntax new in 3.12). All scripts reformatted with Ruff; what they produce is unchanged.
 
 ## 1.0.0 (24 November 2026)
