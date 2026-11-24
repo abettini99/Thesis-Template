@@ -7,9 +7,11 @@
 #   - They are checked with tools/check_pdf.py (veraPDF for a full PDF/A-4f and PDF/UA-2 validation of the
 #     digital edition; tools/check_print.py for the PDF/X edition) and with tools/check_figures.py. A run
 #     fails (red cross) if a PDF has something that must be fixed.
-#   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10) to publish the digital edition as
-#     a release: a fixed link to send to your supervisors. In a private repository only people with
-#     access to it can open the link.
+#   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10), or publish a release on GitHub,
+#     to attach the final PDFs to that release: thesis-digital.pdf (PDF/A-4f and PDF/UA-2),
+#     thesis-print.pdf (PDF/X, with bleed), thesis-preview.pdf (the trimmed book, plain PDF), cover.pdf
+#     (without the guides), propositions.pdf and veraPDF's report. A fixed link to send round; in a
+#     private repository only people with access to it can open it.
 #
 # The build uses the latest TeX Live, like Overleaf. MathTime fonts are never on GitHub, so these
 # builds always use newtx for the maths.
@@ -45,11 +47,21 @@ jobs:
         run: |
           sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=digital, version=final]{thesis}/' main.tex > digital.tex
           latexmk -interaction=nonstopmode -halt-on-error digital.tex
+      - name: Compile the preview edition (final version)
+        run: |
+          sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=preview, version=final]{thesis}/' main.tex > preview.tex
+          latexmk -interaction=nonstopmode -halt-on-error preview.tex
       - name: Compile a draft (as main.tex sets it), the propositions and the cover
         run: |
           latexmk -interaction=nonstopmode -halt-on-error main.tex
           latexmk -interaction=nonstopmode -halt-on-error propositions.tex
           latexmk -interaction=nonstopmode -halt-on-error cover.tex
+      - name: Compile the cover without the guides (tags only, for the release)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          sed 's/\\input{settings\/cover}/&\\coverguidesfalse/' cover.tex > cover-final.tex
+          grep -q 'coverguidesfalse' cover-final.tex
+          latexmk -interaction=nonstopmode -halt-on-error cover-final.tex
       - name: Keep the PDFs and the logs
         if: always()
         uses: actions/upload-artifact@v7
@@ -60,8 +72,10 @@ jobs:
             printer.log
             digital.pdf
             digital.log
+            preview.pdf
             propositions.pdf
             cover.pdf
+            cover-final.pdf
           retention-days: 30
 
   check:
@@ -113,7 +127,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag="${GITHUB_REF_NAME}"
-          cp digital.pdf "thesis-${tag}.pdf"
-          gh release create "$tag" "thesis-${tag}.pdf" --title "Thesis ${tag}" \
-            --notes "Built from ${GITHUB_SHA::7} on $(date -u +%Y-%m-%d). Maths in newtx (MathTime fonts are not on GitHub)." \
-            || gh release upload "$tag" "thesis-${tag}.pdf" --clobber
+          # names without the tag, so that releases/latest/download/thesis-digital.pdf always works
+          mkdir release
+          cp digital.pdf release/thesis-digital.pdf
+          cp printer.pdf release/thesis-print.pdf
+          cp preview.pdf release/thesis-preview.pdf
+          cp cover-final.pdf release/cover.pdf
+          cp propositions.pdf release/propositions.pdf
+          cp verapdf-report.html release/verapdf-report.html
+          # a release published on GitHub already exists: then only add the files
+          if gh release view "$tag" > /dev/null 2>&1; then
+            gh release upload "$tag" release/* --clobber
+          else
+            gh release create "$tag" release/* --title "Thesis ${tag}" \
+              --notes "Built from ${GITHUB_SHA::7} on $(date -u +%Y-%m-%d). Maths in newtx (MathTime fonts are not on GitHub)."
+          fi

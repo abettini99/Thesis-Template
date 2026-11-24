@@ -22,7 +22,7 @@
 %%       draft      : for your supervisors: the real images, todo notes and changes shown, line numbers in
 %%                    the margin (so readers can point at "p. 12, l. 31"), DRAFT and the date; not tagged
 %%       final      : to hand in and to print: todo notes and change marks hidden, no marks on the pages,
-%%                    tagged for screen readers (PDF/UA-2) in the digital, preview and proof editions
+%%                    tagged for screen readers (PDF/UA-2) in the digital and proof editions
 %%     (template/documentmetadata.tex reads version too, before the class: tagging only for final)
 %%   size     = demy (default) | a5 | royal | dutch: book page 138 x 216, 148 x 210, 156 x 234, 170 x 240 mm
 %%   english  = british (default) | american: hyphenation, quotation marks, dates

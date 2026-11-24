@@ -11,8 +11,11 @@
 %% Keep attachments small: they make the PDF larger, also in print (the printer ignores them, but they
 %% are sent along). Large data sets belong in a repository such as 4TU.ResearchData, cited with their DOI.
 %% =====================================================================
-%% For the printer (PDF/X): no attachments; the commands do nothing.
-\ifdefined\thesispdfx
+%% For the printer (PDF/X) and in the preview (a plain PDF): no attachments; the commands do nothing.
+\newif\ifthesisnoattach
+\ifdefined\thesispdfx \thesisnoattachtrue \fi
+\ifdefined\thesisplainpdf \thesisnoattachtrue \fi
+\ifthesisnoattach
 \NewDocumentCommand \figuredata { O{} m } { }
 \NewDocumentCommand \supplementfile { O{} m } { }
 \expandafter\endinput

@@ -1,8 +1,10 @@
 %% =====================================================================
 %% The PDF standard of each edition, set before \documentclass (as LaTeX requires) from the edition
 %% named in the \documentclass line that follows:
-%%   digital, preview, proof: archival, PDF/A-4f; in the final version (version=final) also accessible,
+%%   digital, proof: archival, PDF/A-4f; in the final version (version=final) also accessible,
 %%       PDF/UA-2, tagged for screen readers, with MathML (drafts are not tagged: faster compiles);
+%%   preview: a plain PDF (2.0), not tagged and without attachments: the book as printed, for looking
+%%       at, and not a PDF/X file, so that it cannot be sent to the printer by mistake (it has no bleed);
 %%   printer: PDF/X-6 or PDF/X-4 (\thesisprintstandard in settings/thesisinfo.tex),
 %%       for the printer's colour profile (\thesisprintprofile) or FOGRA39, not tagged.
 %% Read by main.tex, propositions.tex and cover.tex (always for the printer: \thesisforprinter) on their
@@ -77,6 +79,11 @@
       \DocumentMetadata { pdfversion = 2.0 , pdfstandard = a-4f }
     \fi
   }
+\cs_new_protected:Npn \__thesis_metadata_plain:
+  {
+    \cs_gset:Npn \thesisplainpdf { } % (attachments.tex tests it)
+    \DocumentMetadata { pdfversion = 2.0 }
+  }
 \tl_new:N \l__thesis_profile_tl
 \tl_new:N \l__thesis_pdfx_tl
 \tl_new:N \l__thesis_pdfversion_tl
@@ -92,12 +99,16 @@
 \msg_new:nnn { thesis } { print-standard }
   { \token_to_str:N \thesisprintstandard\ is~`#1';~use~X-6~or~X-4.~Using~X-6. }
 
-%% The class options that matter here: edition=printer (PDF/X) and version (tagged only when final)
+%% The class options that matter here: edition=printer (PDF/X) or preview (plain), and version (tagged
+%% only when final)
 \cs_new_protected:Npn \__thesis_dm_key:n #1 { }
 \cs_new_protected:Npn \__thesis_dm_keyval:nn #1#2
   {
     \str_if_eq:nnT {#1} { edition }
-      { \str_if_eq:nnTF {#2} { printer } { \bool_set_true:N \l_tmpa_bool } { \bool_set_false:N \l_tmpa_bool } }
+      {
+        \str_if_eq:nnTF {#2} { printer } { \bool_set_true:N \l_tmpa_bool } { \bool_set_false:N \l_tmpa_bool }
+        \str_if_eq:nnTF {#2} { preview } { \bool_set_true:N \l_tmpb_bool } { \bool_set_false:N \l_tmpb_bool }
+      }
     \str_if_eq:nnT {#1} { version }
       { \str_if_eq:nnTF {#2} { final } { \legacy_if_gset_true:n { thesistagging } } { \legacy_if_gset_false:n { thesistagging } } }
   }
@@ -106,12 +117,13 @@
 \RenewDocumentCommand \documentclass { o m }
   {
     \bool_set_false:N \l_tmpa_bool
+    \bool_set_false:N \l_tmpb_bool
     \legacy_if_gset_false:n { thesistagging } % (version=draft unless the options say otherwise)
     \IfValueT {#1} { \keyval_parse:NNn \__thesis_dm_key:n \__thesis_dm_keyval:nn {#1} }
     \cs_if_exist:NT \thesisforprinter { \bool_set_true:N \l_tmpa_bool } % (cover.tex: always for the printer)
     \bool_if:NTF \l_tmpa_bool
       { \__thesis_metadata_print: }
-      { \__thesis_metadata_archival: }
+      { \bool_if:NTF \l_tmpb_bool { \__thesis_metadata_plain: } { \__thesis_metadata_archival: } }
     \RenewCommandCopy \documentclass \__thesis_documentclass:
     \IfValueTF {#1} { \documentclass [#1] {#2} } { \documentclass {#2} }
   }
