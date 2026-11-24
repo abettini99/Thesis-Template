@@ -180,7 +180,7 @@ save(fig, "example_plot.pdf")
 # scale them; and the colour bar as a file of its own, at its printed size.
 SNAP_MM = 30.0                                   # drawn at about the size of a panel; scaled in the grid
 n_snap, kappa = 12, 2e-3
-xs = np.linspace(-1, 1, 161)
+xs = np.linspace(-1, 1, 401)                    # 401 pixels: over 300 ppi at the size of a panel
 Xs, Ys = np.meshgrid(xs, xs)
 snap_dir = OUT / "snapshots"
 snap_dir.mkdir(exist_ok=True)

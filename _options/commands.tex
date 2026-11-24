@@ -36,6 +36,7 @@
 %% (the caption without a full stop: "(repeated from page 13)." follows it)
 \newcommand{\repeatcaption}[2]{%
   \renewcommand{\thefigure}{\ref{#1}}%
+  \renewcommand{\theHfigure}{repeated.\arabic{chapter}.\arabic{figure}}% (a link target of its own: the next figure gets this number)
   \renewcommand{\addcontentsline}[3]{}% not in the list of figures a second time
   \caption{#2 (repeated from page~\pageref{#1}).}% caption without a full stop: one is added
   \addtocounter{figure}{-1}% So that next figure after the repeat gets the right number.
