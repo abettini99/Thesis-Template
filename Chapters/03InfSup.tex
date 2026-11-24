@@ -132,7 +132,7 @@ with the subscripts denoting the elements south-west, north-west, south-east and
 
 \begin{figure}[tbp]
     \centering
-    \begin{tikzpicture}[x=10mm, y=10mm]
+    \begin{tikzpicture}[x=10mm, y=10mm, alt={A mesh of four by four square elements, coloured like a chessboard, with plus one in the light squares and minus one in the dark squares; filled dots mark the nine interior nodes and open dots the boundary nodes, and a two by two patch around the centre node is outlined}]
         \foreach \i in {0,...,3} {
             \foreach \j in {0,...,3} {
                 \pgfmathtruncatemacro{\s}{mod(\i+\j,2)}

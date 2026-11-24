@@ -159,6 +159,7 @@
     ylabel-sep .initial:n = 1.5mm ,
     pad .code:n = \dim_set:Nn \l__thesis_panels_padkey_dim {#1} ,
   }
+\keys_define:nn { thesis / colorbar } { alt .code:n = \tl_gset:Nn \g__thesis_panels_cbaralt_tl {#1} }
 \keys_define:nn { thesis / panel }
   {
     alt .tl_set:N = \l__thesis_panel_alt_tl ,
@@ -176,7 +177,11 @@
     \tl_gclear:N \g__thesis_panels_cbar_tl
     \RenewDocumentCommand \panel { O{} m m } { \seq_gput_right:Nn \g__thesis_panels_seq { {##1} {##2} {##3} } }
     \RenewDocumentCommand \colorbar { O{} m }
-      { \tl_gset:Nn \g__thesis_panels_cbaralt_tl {##1} \tl_gset:Nn \g__thesis_panels_cbar_tl {##2} }
+      {
+        \tl_gclear:N \g__thesis_panels_cbaralt_tl
+        \keys_set:nn { thesis / colorbar } {##1}
+        \tl_gset:Nn \g__thesis_panels_cbar_tl {##2}
+      }
     \hbox_set:Nn \l_tmpa_box { \tag_suspend:n { panels } #2 \tag_resume:n { panels } }
     \int_set:Nn \l__thesis_panels_count_int { \seq_count:N \g__thesis_panels_seq }
     \int_compare:nNnT { \l__thesis_panels_count_int } > { 0 } { \__thesis_panels_set: }
