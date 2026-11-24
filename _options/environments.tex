@@ -89,7 +89,7 @@
 %%   labels=below|inside|inside-right|none   the label under each panel (default), in its top left
 %%                              (or right) corner on a white ground, or none
 %%   letters=true|false         (a), (b), ... before the labels (default true)
-%%   gap=2mm                    between the panels, across and down
+%%   gap=2mm                    between the panels, across and down (natural: between the plot areas, 2.5mm)
 %%   aspect=4/3                 width / height of the panels; default: that of the first image
 %%   natural                    plots with axes: every file at its own size, not scaled, lined up on their
 %%                              plot areas (files made by save_panels in Python/example_figures.py: the same
@@ -134,6 +134,7 @@
 \dim_new:N \l__thesis_panels_bottom_dim     % natural: the extra height of the bottom row (x tick labels)
 \dim_new:N \l__thesis_panels_pad_dim        % natural: the margin round every plot area (save_panels)
 \dim_new:N \l__thesis_panels_inset_x_dim
+\bool_new:N \l__thesis_panels_gapset_bool
 \dim_new:N \l__thesis_panels_xsep_dim \dim_new:N \l__thesis_panels_ysep_dim
 \dim_new:N \l__thesis_panels_padkey_dim \dim_set:Nn \l__thesis_panels_padkey_dim { 2mm }
 \keys_define:nn { thesis / panels }
@@ -145,7 +146,7 @@
     letters .bool_set:N = \l__thesis_panels_letters_bool ,
     letters .initial:n = true ,
     letters .default:n = true ,
-    gap .dim_set:N = \l__thesis_panels_gap_dim ,
+    gap .code:n = \dim_set:Nn \l__thesis_panels_gap_dim {#1} \bool_set_true:N \l__thesis_panels_gapset_bool ,
     gap .initial:n = 2mm ,
     aspect .tl_set:N = \l__thesis_panels_aspect_tl ,
     natural .bool_set:N = \l__thesis_panels_natural_bool ,
@@ -168,6 +169,7 @@
   {
     \par
     \group_begin:
+    \bool_set_false:N \l__thesis_panels_gapset_bool
     \keys_set:nn { thesis / panels } {#1}
     % 1. collect the panels and the colour bar
     \seq_gclear:N \g__thesis_panels_seq
@@ -337,6 +339,9 @@
 \cs_new_protected:Npn \__thesis_panels_size_natural:
   {
     \dim_set_eq:NN \l__thesis_panels_pad_dim \l__thesis_panels_padkey_dim
+    % gap: between the plot areas (2.5 mm unless given); the files, with their margins, overlap by the rest
+    \bool_if:NF \l__thesis_panels_gapset_bool { \dim_set:Nn \l__thesis_panels_gap_dim { 2.5mm } }
+    \dim_set:Nn \l__thesis_panels_gap_dim { \l__thesis_panels_gap_dim - 2\l__thesis_panels_pad_dim }
     \seq_get_left:NN \g__thesis_panels_seq \l_tmpa_tl
     \__thesis_panels_measure:Nn \l_tmpa_box { \exp_last_unbraced:No \use_ii:nnn \l_tmpa_tl }
     \dim_zero:N \l__thesis_panels_left_dim \dim_zero:N \l__thesis_panels_bottom_dim

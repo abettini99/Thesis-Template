@@ -220,11 +220,11 @@ PAD_MM = 2.0      # the margin round every plot area in the files (the panels op
 LEFT_MM = 6.0     # an estimate of the y tick labels' width, to size the plots (save_panels measures it)
 
 
-def panel_grid(nrows, ncols, width_mm=FULL_MM - 6.0, aspect=1.6, gap_mm=2.0):
-    """nrows x ncols plots with shared axes, sized so that the files of save_panels, set side by side
-    with gap_mm between them (the panels default), are width_mm wide together. The 6 mm less than the
+def panel_grid(nrows, ncols, width_mm=FULL_MM - 6.0, aspect=1.6, gap_mm=2.5):
+    """nrows x ncols plots with shared axes, sized so that the grid LaTeX makes of the files of
+    save_panels, with gap_mm between the plot areas (the panels default), is width_mm wide. The 6 mm less than the
     text width leave room for the y axis title that LaTeX sets beside the grid."""
-    pw = (width_mm - LEFT_MM - 2 * PAD_MM * ncols - gap_mm * (ncols - 1)) / ncols
+    pw = (width_mm - LEFT_MM - gap_mm * (ncols - 1)) / ncols   # (gap_mm: between the plot areas)
     ph = pw / aspect
     space = 20.0                                 # the plots far apart: each file holds one plot only
     W = LEFT_MM + ncols * (pw + space)
@@ -275,7 +275,7 @@ def save_panels(fig, axes, stem):
         b = plot[ax]
         box = Bbox([[b.x0 - pad - left * (c == 0), b.y0 - pad - bottom * (r == nrows - 1)],
                     [b.x1 + pad, b.y1 + pad]])
-        thesis_fonts.save(fig, OUT / f"{stem}-{k}.pdf", bbox_inches=box)
+        thesis_fonts.save(fig, OUT / f"{stem}-{k}.pdf", bbox_inches=box, transparent=True)  # (they overlap)
         print(f"saved {OUT / stem}-{k}.pdf")
     for ax in axes.flat:
         ax.set_visible(True)
@@ -288,6 +288,6 @@ for ax, t in zip(axes.flat, np.linspace(0.125, 1.0, 8)):
     ax.plot(x, burgers(x, t))
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1.15, 1.15)
-    ax.set_xticks([-1, 0, 1])
+    ax.set_xticks([-0.5, 0, 0.5])               # no tick labels at the ends: they would meet
     ax.set_yticks([-1, 0, 1])
 save_panels(fig, axes, "grid/burgers")

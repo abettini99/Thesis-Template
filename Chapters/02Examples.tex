@@ -570,7 +570,7 @@ A series of plots of the same kind, such as snapshots of a flow, is set as a gri
     \label{fig:snapshots-three}
 \end{figure}
 
-A grid that needs the whole page goes in a \texttt{figurepage}, a figure on a page of its own, as \cref{fig:snapshots} shows; the grid is then made to fit the page, with the colour bar and the caption at its foot. A second \texttt{figurepage} with the option \texttt{continued} would carry on with the same figure number and the letters (m), (n), \ldots. Plots that share their axes, such as \cref{fig:grid}, are set in the same way with the option \texttt{natural}: Python saves each plot in a file of its own, with the same plot area and the tick labels only on the outer plots (\file{Python/example_figures.py} shows how), and LaTeX lines them up at their own size and adds the axis titles, letters and labels. A table can have a page of its own as well, in a \texttt{tablepage}.
+A grid that needs the whole page goes in a \texttt{figurepage}, a figure on a page of its own, as \cref{fig:snapshots} shows; the grid is then made to fit the page, with the colour bar and the caption at its foot. A second \texttt{figurepage} with the option \texttt{continued} would carry on with the same figure number and the letters (m), (n), \ldots. Plots that share their axes, such as \cref{fig:grid}, in an ordinary figure, are set in the same way with the option \texttt{natural}: Python saves each plot in a file of its own, with the same plot area and the tick labels only on the outer plots (\file{Python/example_figures.py} shows how), and LaTeX lines them up at their own size and adds the axis titles, letters and labels. A table can have a page of its own as well, in a \texttt{tablepage}.
 
 \begin{figurepage}
     \begin{panels}[columns=3]
@@ -592,7 +592,7 @@ A grid that needs the whole page goes in a \texttt{figurepage}, a figure on a pa
     \label{fig:snapshots}
 \end{figurepage}
 
-\begin{figurepage}
+\begin{figure}[tbp]
     \begin{panels}[columns=2, natural, labels=inside-right, xlabel={$x$}, ylabel={$u$}]
         \panel[alt={Velocity u against position x at t = 0.125: a sine wave, slightly steepened near x = 0}]{Images/grid/burgers-1.pdf}{$t = 0.125$}
         \panel{Images/grid/burgers-2.pdf}{$t = 0.25$}
@@ -605,7 +605,7 @@ A grid that needs the whole page goes in a \texttt{figurepage}, a figure on a pa
     \end{panels}
     \caption{The viscous Burgers solution at eight times, in plots with shared axes.}
     \label{fig:grid}
-\end{figurepage}
+\end{figure}
 
 A web address that readers of the printed book should be able to follow, such as the DOI of a data set, can be given as a QR code with \verb|\qrlink|, which is a link in the digital edition as well:
 \begin{center}
