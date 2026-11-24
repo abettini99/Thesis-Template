@@ -1,122 +1,30 @@
 # Thesis template
 
-A LaTeX template for a TU Delft PhD dissertation, built on LaTeX's standard `book` class. It produces four editions of the same pages, with the same page numbers: a digital edition for the screen and the repository, one for the professional printer (PDF/X, with bleed and thumb tabs), the printed book as it looks after trimming, and a proof to print at home on A4 or US Letter.
+A LaTeX template for a TU Delft PhD dissertation. One source gives the same pages, with the same page numbers, in four editions: a **digital** edition for the screen and the TU Delft repository (archival PDF/A-4f and accessible PDF/UA-2, with MathML for every formula), a **printer** edition (PDF/X-6 or PDF/X-4, with bleed), a **preview** of the printed book after trimming, and a **proof** to print at home. Scripts in `tools/` check the PDF, the figures, the bibliography and the hyphenation before you hand it in.
 
-## Compiling
+## Getting started
 
-Compile with **LuaLaTeX** on **TeX Live 2026** or later. In Overleaf: *Menu → Settings → Compiler → LuaLaTeX*, and *TeX Live version → 2026*. Locally, `latexmk main.tex` does everything (the included `latexmkrc` selects LuaLaTeX).
+Compile with **LuaLaTeX** on **TeX Live 2026**: in Overleaf, *Menu → Settings → Compiler → LuaLaTeX* and *TeX Live version → 2026*; locally, `latexmk main.tex` (the included `latexmkrc` selects LuaLaTeX and finds the template's fonts).
 
-- LuaLaTeX lets `microtype` stretch letters very slightly, which halves the number of hyphenated lines and gives evener word spacing.
-- The bibliography uses **biblatex + biber**, which Overleaf runs automatically. The nomenclature needs no extra tool.
-- The first compile on a new machine (or a new Overleaf project) takes longer while LuaLaTeX builds its font cache. If every compile stays that slow (the preamble alone taking 15 s or more, where about 6 s is normal), LuaLaTeX cannot keep its cache: run `luaotfload-tool --cache=show`, which should report a *writable path*.
-- LuaLaTeX only, TeX Live 2026 or later: the class stops with a message under pdfLaTeX or XeLaTeX, or with an older LaTeX.
+1. **Your own copy.** Make a private repository from this template (*Use this template* on GitHub) and link it to a new Overleaf project. To take in a later version of the template, replace `template/`, `tools/` and `thesis.cls`; your settings, chapters and figures stay as they are. In a local clone, the first `latexmk` build installs a pre-commit hook that refuses any commit containing MathTime font files (see *Maths font* below).
+2. **Your details.** Fill in `settings/thesisinfo.tex` (title, names, committee, defence date, keywords, licence, ORCID, data availability) and check the options at the top of `main.tex`.
+3. **Front and back matter.** Replace the placeholder text in `chapters/00Summary.tex` (summary and samenvatting), `00Preface.tex` and the `Z_…` files (acknowledgements, CV, publications).
+4. **Remove the examples.** In `main.tex`, delete the `\include` lines of `02Examples` and `03InfSup` (keep the files to look things up), their references in `references.bib`, and the example appendix `A_Appendix.tex`. Once nothing uses them, delete the example figures; `tools/check_figures.py` lists the unused ones.
+5. **Your chapters.** Turn `01Introduction.tex` into your introduction and copy `chapters/_newChapter.tex` for every further chapter, with an `\include` line for each in `main.tex`.
+6. **References, symbols, hyphenation.** Your entries in `references.bib` (`tools/check_bib.py` finds duplicates, unused entries, missing fields and DOIs), acronyms and symbols in `settings/nomenclature.tex`, hard-to-hyphenate terms in `settings/hyphenation.tex` (`tools/check_hyphenation.py` shows what TeX hyphenated).
+7. **While writing,** compile with `version=fast-draft` (fastest) or `version=draft` (for supervisors); hand in and print with `version=final`, after going through *Before you hand it in* below. The propositions and the cover come last (see *Propositions and cover*).
 
-## Faster compiling
+## Options
 
-A long thesis gets slow because every chapter, figure and plot is processed on every compile. While writing:
-
-1. **Compile only the chapter you are working on.** In `main.tex`, uncomment `\includeonly{...}` and list the chapter(s), for example `\includeonly{chapters/03Method}`. Page numbers and references to the other chapters are kept from the last full compile. Comment it out again for a full compile. (Chapters must be added with `\include{...}`, not `\input{...}`, for this to work.)
-2. **Use `version=fast-draft` while writing.** Images are replaced by labelled boxes, overfull lines get a black bar in the margin, the tagging for screen readers is left out (each compile about 30% faster: about 21 s instead of 30 s per pass for this template), and every page says *DRAFT* with the date. `version=draft` (the default) has the real images, and line numbers in the margin so supervisors can point at "p. 12, l. 31"; `version=final` is the one you hand in. Overleaf's *Recompile → Fast [draft]* also replaces the images by boxes.
-3. **Keep heavy plots out of the document.** Make plots in Python (matplotlib) or similar and include them as PDF. A TikZ drawing is redrawn on every compile, so keep TikZ for small diagrams.
-4. **Keep images light.** Use vector PDF for plots and diagrams. For photos and renders, use JPG (or PNG for screenshots) at no more than about 300 dpi at the size they are printed: a figure 100 mm wide needs about 1200 pixels, not 6000.
-5. **Load only what you use.** Optional packages are listed, commented out, at the bottom of `settings/packages.tex`.
-
-## PDF standards
-
-The same pages come out as two kinds of PDF, each to its own standard: the digital edition (and the preview and proof editions) as an archival PDF, **PDF/A-4f**, and in the final version (`version=final`) an accessible one as well, **PDF/UA-2**; the printer edition (`edition=printer`) as **PDF/X-6**, or **PDF/X-4**. `\input{template/documentmetadata}` at the top of `main.tex` (and of `propositions.tex` and `cover.tex`) switches on LaTeX's PDF management, and tagging for PDF/UA, with the standard that fits the edition named in `\documentclass`. It is required: the class stops with an error without it. Tagging makes each compile slower, so only the final version is tagged; the drafts are the same pages without it (see *Faster compiling*).
-
-Archival and accessible PDF, roughly from least to most demanding:
-
-| Standard | Year, base | What it guarantees on top of the row above |
-|---|---|---|
-| PDF/A-1b | 2005, PDF 1.4 | Looks the same for decades: fonts embedded, colours defined, nothing external |
-| PDF/A-2b | 2011, PDF 1.7 | Newer features allowed (transparency, layers, JPEG 2000) |
-| PDF/A-2u | 2011, PDF 1.7 | All text maps to Unicode, so it can be searched and copied |
-| PDF/A-3u | 2012, PDF 1.7 | Files of any kind may be attached (data, code) |
-| **PDF/A-4f** | 2020, PDF 2.0 | The same guarantees on PDF 2.0; Unicode always required; attachments allowed. **← this template** |
-| PDF/A-2a, -4 with tags | | Tagged: headings, lists, tables and figures marked up for screen readers |
-| **PDF/UA-2 (with PDF/A-4f)** | 2024, PDF 2.0 | Fully accessible: tagged, alt text, maths as MathML. **← this template** |
-
-PDF for the printer, roughly from oldest to newest:
-
-| Standard | Year, base | Colour | What it adds |
-|---|---|---|---|
-| PDF/X-1a | 2001/2003, PDF 1.3/1.4 | CMYK and spot colours only | Fonts embedded, no transparency, no RGB: the file is ready for one press as it is |
-| PDF/X-3 | 2002/2003, PDF 1.3/1.4 | Also RGB and Lab, with a colour profile | Colour managed: the printer converts the colours for their own press |
-| **PDF/X-4** | 2008/2010, PDF 1.6 | As PDF/X-3 | Transparency and layers kept as they are, not flattened. **← `X-4`** |
-| PDF/X-5 | 2008/2010, PDF 1.6 | As PDF/X-3 | PDF/X-4 with parts kept outside the file (images, the colour profile) |
-| **PDF/X-6** | 2020, PDF 2.0 | As PDF/X-3 | PDF/X-4 on PDF 2.0, which also allows a colour profile per page. **← `X-6` (default)** |
-
-`tools/print_pdf.py` converts either to CMYK, keeping the version (see *If the printer wants CMYK* below); PDF/X-1a is not made by the template.
-
-### Archival and accessible: PDF/A, PDF/UA
-
-The digital edition is produced as **PDF/A-4f**, the current archival standard (on PDF 2.0), and as **PDF/UA-2**, the accessibility standard: fonts are embedded, colours are defined against the sRGB colour profile, every character (maths included) maps to Unicode so text can be searched and copied reliably, and the file carries standard metadata. It will display the same in decades. It is also tagged: headings, lists, tables, figures with their captions and alt text, footnotes and code are marked up for screen readers, and every formula carries MathML. This is set up in `template/pdfa.tex` with LaTeX's own PDF management, which the class loads right after reading `settings/thesisinfo.tex`; the metadata (title, author, keywords, language) comes from `settings/thesisinfo.tex`, so there is nothing to edit there.
-
-- **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A.
-- **Checking:** the digital, preview and proof editions pass veraPDF's PDF/A-4f and PDF/UA-2 checks. `python3 tools/check_pdf.py` checks your compiled PDF (see *Before sending it to the printer*); it runs [veraPDF](https://verapdf.org) (free) for a full validation when that is installed, otherwise have the final PDF validated once with veraPDF or Adobe Acrobat's preflight; [PAC](https://pac.pdf-accessibility.org) checks the accessibility as well.
-- **Metadata:** the PDF carries title, author, keywords, licence and, once filled in in `settings/thesisinfo.tex`, the ISBN, the DOI the TU Delft repository gives your dissertation (`\thesisdoi`) and your ORCID iD. Repositories and reference managers read them. Fields still holding their placeholder (`[978-94-...]`, the example ORCID iD) are left out. The licence is a short code, `\thesislicence{CC BY 4.0}` (or CC BY-SA, CC BY-ND, CC BY-NC, CC BY-NC-SA, CC BY-NC-ND 4.0, CC0 1.0, or empty for all rights reserved); it sets the sentence on the colophon, its link and the metadata. The colophon's link to the repository goes to your DOI once `\thesisdoi` is filled in.
-- **Attachments** (`template/attachments.tex`): PDF/A-4f allows files inside the PDF; viewers list them in their attachments panel.
-  - *Citation file:* `citation.bib` and `citation.ris` (EndNote, Zotero, Mendeley) for citing the thesis, made from `settings/thesisinfo.tex` on every compile.
-  - *Data of a figure:* `\figuredata[description]{figures/plot.csv}` right after the `\includegraphics` attaches the file as the data of that figure (in the tagged PDF it belongs to the image); in a `panels` grid, `\panel[data={file}]{...}{...}`.
-  - *Other files:* `\supplementfile[description]{file}` attaches any file to the thesis as a whole, e.g. the script that draws the figures.
-  - Keep them small; large data sets belong in a repository such as 4TU.ResearchData, cited with their DOI.
-- **Accessibility is partly yours:** the tagging is automatic, but screen readers can only read what you write. Give every figure alt text (see *Alt text* below), and write tables with a header row (`\toprule` ... `\midrule`, as in the Examples chapter).
-- **What else screen readers get** (`template/accessibility.tex`, no change to the pages):
-  - *Words in maths:* operator names (`\sin`, `\max`, `\DeclareMathOperator`) and `\mathword{Re}` are read as one word, not letter by letter; use `\mathword` for multi-letter names such as dimensionless numbers (the template's `\Re`, `\Ma`, ... do).
-  - *Tables:* the first row of every table float (and of `xltabular`) is its header, so each cell is read with its column heading. A header of two rows: `\tagpdfsetup{table/header-rows={1,2}}` in the table before the tabular; a first column that heads its rows: `\tagpdfsetup{table/header-columns=1}`.
-  - *Formulas:* every formula carries MathML; for one that reads badly (a large block matrix), `\formulaalt{a short description}` right before it gives screen readers that text instead.
-  - *Acronyms:* after its first use, `\gls{bem}` gives "BEM" marked with its expansion, read as "blade element momentum theory".
-  - *Units:* `\qty{10}{\metre\per\second}` is read as "10 metres per second" and `\unit{\kilo\gram}` as "kilograms", for units written with siunitx's macros (not for `\unit{m/s}`).
-  - *Contrast:* the template's colours stand out against the page (text 4.5:1 or more, lines 3:1, WCAG 2.2), and links (brick red) also against the black text (3.9:1), as colour is the only thing that marks them; `tools/check_pdf.py` and `tools/check_figures.py` report colours of your own that do not (see *Colours* under *Plots*).
-  - *Languages:* text in `\begin{otherlanguage}{dutch}` (the Dutch summary and propositions) is marked as Dutch, and a word in `\foreignlanguage{dutch}{...}` too, so screen readers switch pronunciation.
-  - *Links:* each link also carries a short description (where it goes), which PDF/UA-1 checkers such as PAC and Acrobat ask for.
-
-### For the printer: PDF/X
-
-The printer edition (`edition=printer`) is made as a **PDF/X** file, the standard for handing print files over: PDF/X-6 (on PDF 2.0) by default, or PDF/X-4 for printers whose systems do not take PDF 2.0 yet. Three settings in `settings/thesisinfo.tex`, next to the printer's name; ask your printer about each:
-
-```latex
-\newcommand{\thesisprintstandard}{X-6}  % or X-4
-\newcommand{\thesisprintprofile}{}      % the printer's colour profile (.icc); {} for FOGRA39
-\newcommand{\thesisbleed}{2mm}          % often 2 or 3 mm
-```
-
-What the file carries:
-- **Trim and bleed:** every page says where it will be cut (the trim box) and how far the background runs past the cut (the bleed box). Crop marks are off: the printer places their own. If they ask for marks, add `cropmarks`; they go in a margin outside the bleed.
-- **Colour, managed:** a screen mixes red, green and blue light, a press puts cyan, magenta, yellow and black ink on paper, and somebody has to convert one to the other. The file stays RGB, with every RGB colour (text, drawings, photos, figures) given in sRGB explicitly, so it means one exact colour, and the printer converts it for their own press and paper, which is where it is best done. Black text and greys stay grey and print with black ink only (as "rich black", a mix of all four inks, small text would get coloured fringes wherever the four printing plates do not line up exactly). The file names the press it was made for (the *output intent*): the printer's colour profile, or FOGRA39 (offset print on coated paper, the one that comes with TeX Live). For this RGB route the standard profile is fine; the printer's own is nice to have. Newer standard profiles (PSO Coated v3, PSO Uncoated v3) are free downloads from the ECI; set the file name if your printer uses one.
-- **Nothing else:** no links (nothing clickable is allowed on the printed page), no attachments, no tagging; fonts embedded. The digital edition stays the archival, accessible one.
-- **The cover and the propositions** are made the same way, with the same settings (the cover's bleed is set in `settings/cover.tex`).
-
-**Figures.** LaTeX gives the RGB on its pages in sRGB, photos (RGB PNG and JPEG) included, but it cannot reach inside an included figure PDF. Figures saved with `thesis_fonts.save` are made ready for print as they are saved. For a figure PDF made elsewhere (a co-author's plot, another program), run `python3 tools/print_ready.py figures/figure.pdf`: the same treatment, nothing changes on screen.
-
-**Check it:** `python3 tools/check_print.py main.pdf` (also run by `tools/check_pdf.py` for a PDF/X file). It reports what a printer's preflight rejects (no trim box, RGB not given in sRGB, named by figure file and page, fonts not embedded, links, images below 225 ppi) and what is worth a look (images below 300 ppi, lines thinner than 0.1 mm, small text in rich black), with the page count and the pages in colour. It is not an official PDF/X validator (those are commercial, such as Adobe Acrobat Pro's preflight): send the file through your printer's own file check as well; most printers offer one free.
-
-**If the printer wants CMYK.** Some printers ask for every colour converted to their inks in the file itself. `python3 tools/print_pdf.py main.pdf --profile printer.icc` writes `main-cmyk.pdf`: every colour and image converted with the printer's profile, black and greys still black ink only, the same PDF/X version. Ask for their profile first: CMYK is ink amounts for one press and one paper, and a file converted for another has to be converted again (without `--profile` it uses FOGRA39, with a warning). CMYK cannot show the brightest screen colours, so saturated blues and greens come out a little duller; look at the result before sending it. **PDF/X-1a** (CMYK without transparency, still asked for by some printers) is not made by these tools: it needs Adobe Acrobat Pro or Ghostscript 10.05 or later.
-
-**What to ask your printer:** which PDF/X version (PDF/X-6, PDF/X-4, PDF 2.0 or not), their colour profile (needed for CMYK, optional otherwise), RGB or CMYK, the bleed for the pages and for the cover, crop marks or none, the paper thickness (for the spine), and whether the page count must be a multiple of 4, 8 or 16 (they add blank pages at the end).
-
-## Class options
-
-Set in the `\documentclass` line of `main.tex`, as keys, for example:
-
-```latex
-\documentclass[edition=printer, version=final, size=dutch]{thesis}
-```
-
-A misspelt value stops the compile with a message that lists the choices. Thumb tabs are switched on and styled in `settings/thumbs.tex`: square, light grey with a black number; appendices continue below the last chapter, and the spacing adapts so all tabs fit on the page (it uses the chapter count from the previous compile, so compile twice after adding chapters).
-
-![The same page in the four page sizes, at the same scale, with type size, leading, lines per page and line length](.github/readme/page-sizes.png)
-
-*The same page in the four page sizes, at the same scale (preview edition). The image is regenerated every night ([`.github/scripts/page_sizes.py`](.github/scripts/page_sizes.py)).*
+Set in the `\documentclass` line of `main.tex`, as keys: `\documentclass[edition=printer, version=final, size=dutch]{thesis}`. A misspelt value stops the compile with a message that lists the choices. Thumb tabs are switched on (also in the digital edition, or only in print) and styled in `settings/thumbs.tex`.
 
 | Option | Effect |
 |---|---|
 | `edition=digital` *(default)* | For the screen, the TU Delft repository and sharing: the pages at their final size, archival (PDF/A-4f) and, as the final version, accessible (PDF/UA-2), with links in brick red (set once in `settings/colours.tex`; symbols and acronyms stay black, so maths is never coloured), coloured code and sideways pages shown upright. |
-| `edition=printer` | For the professional printer: a PDF/X file, the pages plus bleed on every side (see *For the printer: PDF/X*; add `cropmarks` only if the printer asks for them). |
+| `edition=printer` | For the professional printer: a PDF/X file, the pages plus bleed on every side (see *PDF standards* below; add `cropmarks` only if the printer asks for them). |
 | `edition=preview` | The printed book as it looks after trimming: the pages at their final size, as on paper. For checking the layout on screen. |
 | `edition=proof` | For printing a proof at home: the pages centred on an A4 sheet (`cropmarks` marks where to cut). |
-| `size=demy` *(default)*, `a5`, `royal`, `dutch` | Book page size, all standard book sizes: 138 × 216 mm (metric demy octavo, close to the classic Dover paperback), 148 × 210 mm (A5), 156 × 234 mm (metric royal octavo) or 170 × 240 mm (the usual size of Dutch dissertations). Text block, margins and chapter-title size follow automatically. Demy and A5 are set in 10 pt type on 12.5 pt leading, Royal in 10 pt on 12.75 pt (its longer lines get a little more space between them), Dutch in 11 pt on 14 pt (the same proportion of leading as the others), so its wide lines hold about as many characters as Royal's. Check that your printer offers the size. |
+| `size=demy` *(default)*, `a5`, `royal`, `dutch` | Page size: 138 × 216 mm (metric demy octavo), 148 × 210 mm (A5), 156 × 234 mm (metric royal octavo) or 170 × 240 mm (the usual Dutch dissertation size). Text block, margins and type size follow: 10 pt for the first three, 11 pt for the Dutch size, so all lines hold about 65–75 characters (see the image below). Check that your printer offers the size. |
 | `english=british` *(default)*, `american` | Hyphenation, quotation marks and dates. |
 | `paper=a4` *(default)*, `letter` | The sheet of the proof edition. |
 | `cropmarks` | Crop marks showing where the page is trimmed: on the proof sheet, or outside the bleed (printer edition, when the printer asks for them). |
@@ -127,14 +35,18 @@ A misspelt value stops the compile with a message that lists the choices. Thumb 
 
 The print editions (printer, preview, proof) are set for paper: code in black and white, and links invisible (preview and proof: they still work on screen) or left out altogether (printer: a PDF/X file has nothing clickable).
 
+![The same page in the four page sizes, at the same scale, with type size, leading, lines per page and line length](.github/readme/page-sizes.png)
+
+*The same page in the four page sizes, at the same scale (preview edition). The image is regenerated every night ([`.github/scripts/page_sizes.py`](.github/scripts/page_sizes.py)).*
+
 ## Where things are
 
-Your files and the template's are kept apart: **`settings/`, `chapters/` and `figures/` are yours** to edit; `template/`, `tools/` and `thesis.cls` are the template, which an update of the template replaces as a whole.
+Your files and the template's are kept apart: **`settings/`, `chapters/` and `figures/` are yours**; `template/`, `tools/` and `thesis.cls` are the template's.
 
 ```
 main.tex  propositions.tex  cover.tex     the three documents
 references.bib                            your bibliography
-settings/      yours: thesis details, nomenclature, hyphenation, cover, packages, commands, colours
+settings/      yours: thesis details, nomenclature, hyphenation, packages, commands, colours, thumbs, cover
 chapters/      yours: the chapters, front and back matter
 figures/       yours: the figures; figures/plots/ the Python plot style and scripts
 fonts/         optional, private: MathTime Professional 2 (never in a public repository)
@@ -143,42 +55,30 @@ template/      the template: layout, headings, tagging, PDF/A and PDF/X, title p
 tools/         checks and converters
 ```
 
-| File | Contents |
-|---|---|
-| `main.tex` | Document structure: the class options, which chapters are included, in which order, and `\includeonly` for compiling single chapters. |
-| `settings/thesisinfo.tex` | **Fill this in:** title, author, defence date, Rector Magnificus, doctoral committee, keywords, printer, ISBN, licence, an optional dedication. Used on the title pages, CV and in the PDF metadata; leave an optional field empty, `{}`, to leave it out. |
-| `settings/nomenclature.tex` | **Fill this in:** acronyms and symbols for the nomenclature. |
-| `settings/hyphenation.tex` | Hyphenation of words TeX breaks wrongly or not at all (technical terms, names). Add to it as you write. |
-| `settings/packages.tex` | The packages the thesis loads, with optional ones commented out at the bottom; the numbered statements (`\newtheorem`) and the names `\cref` gives them. |
-| `settings/commands.tex` | Your commands: maths notation (vectors, derivatives, brackets), and anything you add. |
-| `settings/colours.tex` | TU Delft colours and the link colour. |
-| `settings/thumbs.tex` | Thumb tabs: on or off (in all editions, or only in the print editions), their colours and size. |
-| `settings/cover.tex`, `settings/coverdesign.tex` | The cover's texts, colours and sizes, and its drawing (also used for the cover pages of the digital edition). |
-| `chapters/` | Front matter (`00…`), chapters (`01…`, `02…`), appendices (`A_…`) and back matter (`Z_…`). `02Examples.tex` demonstrates everything the template supports (take it out of `main.tex` when you start writing, but keep the file to look things up); `03InfSup.tex` is a sample chapter on a real topic; `_newChapter.tex` is the starting point for a new chapter. |
-| `figures/` | Figures. The `example_*` files and the `grid/` and `snapshots/` folders belong to the example chapter. |
-| `figures/plots/` | `thesis.mplstyle` (the plot style), `thesis_fonts.py` (figure text in the thesis's fonts, colour maps, saving ready for print) and `example_figures.py` (the plots of the example chapter). |
-| `references.bib` | Bibliography database. |
-| `propositions.tex`, `cover.tex` | The propositions (stellingen) and the book cover, separate documents (see *Propositions and cover*). |
-| `fonts/` | Optional: MathTime Professional 2 for the maths (see `fonts/README.md`). Never put it in a public repository. |
-| `thesis.cls` | The class: options, page layout, core packages. (At the top level, so LaTeX finds it however the thesis is compiled.) |
-| `template/` | Everything else of the template: fonts and headings, page styles, title pages (`titlepage.tex`), environments, tables, statements and algorithms (`tables.tex`, `statements.tex`, `algorithms.tex`), the PDF set-up (`documentmetadata.tex` the standard of each edition, `pdfa.tex` PDF/A and metadata, `tagging.tex` and `accessibility.tex` PDF/UA, `attachments.tex`, `printpdf.tex` and `thesisprint.lua` PDF/X, `digitalcover.tex` the cover pages of the digital edition), and the bundled fonts in `template/fonts/` (newtx maths as OpenType, `ntxmath-otf`, and the cover's Josefin Sans). |
-| `tools/` | `check_pdf.py` checks the compiled PDF before submission; `check_print.py` checks the PDF/X edition for the printer; `print_ready.py` makes figure PDFs from elsewhere ready for print; `print_pdf.py` converts the print edition to CMYK when a printer asks for it; `check_figures.py` checks each figure's printed size, text size and fonts; `check_bib.py` tidies `references.bib`; `check_hyphenation.py` lists the hyphenated words to review; `greyscale_preview.py` counts colour pages and shows the thesis in greyscale; `diff_versions.py` makes a PDF with the changes since an earlier version marked; `mtpro2_otf.py` converts MathTime Professional 2 into OpenType maths fonts (see `fonts/README.md`); `ntxmath_otf.py` rebuilds `template/fonts/ntxmath-otf` from newtx (with `mtpro2_otf.py` beside it, no MathTime needed); `hooks/pre-commit` refuses commits with MathTime files; `common.py` holds the code the checks share. |
-| `requirements.txt` | Python packages for the scripts and plots: `pip install -r requirements.txt`. |
-| `latexmkrc` | latexmk settings: LuaLaTeX, and the `fonts/` and `template/fonts/ntxmath-otf/` folders on TeX's search paths. |
-| `.github/` | The GitHub builds (`workflows/`, see *Overleaf ↔ GitHub*) and the images in this README. |
+## Reference
 
-## Starting your thesis
+Click a heading to open it.
 
-1. **Your own copy.** Make a new, private repository for the thesis from this template (on GitHub: *Use this template*, or duplicate the repository) and link it to a new Overleaf project. Keep the template repository as it is, so fixes can be copied over later: replace `template/`, `tools/` and `thesis.cls` with the new ones, and your settings, chapters and figures stay as they are. In your local clone, the first `latexmk` build installs a pre-commit hook: git then refuses any commit that contains MathTime font files (see *Maths font* below). By hand: `cp tools/hooks/pre-commit .git/hooks/ && chmod +x .git/hooks/pre-commit`. (A copy in `.git/hooks`, because Overleaf's GitHub synchronisation drops the executable flag of the file in `tools/hooks`, and git then skips it.)
-2. **Details.** Fill in `settings/thesisinfo.tex`: title, names, committee, defence date, keywords, licence, ORCID, data availability. Check the class options at the top of `main.tex` (edition, version, page size, English).
-3. **Front and back matter.** Replace the placeholder text in `chapters/00Summary.tex` (summary and samenvatting), `00Preface.tex`, `Z_Acknowledgements.tex`, `Z_CurriculumVitae.tex` and `Z_ListOfPublications.tex`.
-4. **Remove the examples.** In `main.tex`, delete the lines `\include{chapters/02Examples}` and `\include{chapters/03InfSup}` (keep the files for reference), the references they use from `references.bib`, and, once no chapter uses `\lipsum` any more, the `lipsum` line. Replace the example appendix `A_Appendix.tex` with your own or remove its `\include`.
-5. **Your chapters.** Turn `01Introduction.tex` into your introduction, and copy `chapters/_newChapter.tex` for every further chapter (`03Name.tex`, ...), adding an `\include` line for each in `main.tex`.
-6. **References, symbols, hyphenation.** Replace the entries in `references.bib`, define your acronyms and symbols in `settings/nomenclature.tex`, and add technical terms to `settings/hyphenation.tex` as you go (`tools/check_hyphenation.py` shows which words TeX hyphenated). Now and then, run `python3 tools/check_bib.py`: it finds duplicate entries, unused ones, missing fields and page ranges written with a hyphen, and with `--doi` it looks up missing DOIs on Crossref (`--write` adds the certain fixes).
-7. **Example files.** Delete the example figures (`figures/example_*`, `figures/grid/`, `figures/snapshots/`) once nothing uses them (`tools/check_figures.py` lists the files no longer used); keep `figures/plots/thesis.mplstyle` and copy `figures/plots/example_figures.py` as a starting point for your own plots.
-8. **Propositions and cover** come at the end: see *Propositions and cover* below.
+<details>
+<summary><b>Before you hand it in: the checklist</b></summary>
 
-## Writing
+1. **Details:** check every line of `settings/thesisinfo.tex` again: names (all first names, as on your passport), title, defence date and time, the year of the defence (`\thesisyear`, for the copyright line and the metadata), Rector Magnificus, committee and order, ISBN, printer, cover designer.
+2. **Final build:** compile with the options `edition=printer` and `version=final` (removes all todo notes and draft marks; with `cropmarks` only if the printer wants crop marks), with the printer's settings in `settings/thesisinfo.tex` (see *PDF standards* below). For the repository, compile the same with `edition=digital, version=final`: the same pages, at their final size. Search the PDF for "??" (broken references) and "[" followed by a citation key (missing references).
+3. **Check the references:** run `python3 tools/check_bib.py --doi` and fix what it reports.
+4. **Check the PDF:** run `python3 tools/check_pdf.py` (it reads `main.pdf` and `main.log`; on Overleaf, download both first), on the print edition and on the digital one. For the print edition (PDF/X) it runs `tools/check_print.py`: trim and bleed, colour, fonts, links, image resolution, thin lines and the pages in colour. For the digital edition it reports what the repository rejects: PDF/A and PDF/UA problems, fonts not embedded (also inside figure files) or without Unicode, blurry raster images (below 300 ppi at their printed size), CMYK images, broken references and citations, missing characters and overfull boxes. Fix everything marked FAIL.
+5. **Overfull lines and hyphenation:** compile once with `version=fast-draft`; a black bar in the margin marks every line that sticks out. Fix them by rewording or adding words to `settings/hyphenation.tex`. Then run `python3 tools/check_hyphenation.py`: it lists the words TeX hyphenated and points out words split across two pages, three or more hyphenated lines in a row, names and terms broken in a doubtful place, and breaks that leave two letters on a line (`--all` lists every hyphenated word).
+6. **Contents and bookmarks:** check the contents, the running heads (long titles get cut off or wrap) and the PDF bookmarks.
+7. **Figures:** run `python3 tools/check_figures.py`: every figure at its printed size and legible. If the printer charges for colour pages, run `python3 tools/greyscale_preview.py` on the print edition: it lists the pages with colour (the number to quote), writes `main-grey.pdf` to look through, and names figure colours that print as the same grey.
+8. **PDF/X, PDF/A and PDF/UA:** the print edition should be PDF/X (the check above, and the printer's own file check); the digital edition PDF/A-4f and PDF/UA-2 (accessible; for the repository): the check above with veraPDF installed, veraPDF itself, or Adobe Acrobat's Preflight shows it.
+9. **Page count and blank pages:** chapters start on a right-hand page, so blank left-hand pages are expected. Note the total page count.
+10. **Cover:** set the page count and the paper thickness in `settings/cover.tex` (or the spine width from the printer), the bleed the printer asks for, turn off the guides with `\coverguidesfalse`, and compare with the printer's cover template. `cover.pdf` is a PDF/X file like the print edition; check it with `python3 tools/check_print.py cover.pdf`.
+11. **Propositions:** compile `propositions.tex` separately; check the promotors' names and that the promotors have approved them.
+12. **Proof copy:** ask the printer for a proof copy and check it on paper before the full run.
+
+</details>
+
+<details>
+<summary><b>Writing: cross-references, captions, tables, maths commands, statements, figures, alt text</b></summary>
 
 - **Cross-references:** use `\cref{...}` (gives "Figure 2.1", "Equation (2.3)", "Section 2.1") and `\Cref{...}` at the start of a sentence. For one panel of a figure, `\panelref{fig:...}{a}` gives "Figure 2.2a" with the letter inside the link.
 - **Chapter titles:** they are set large and aligned right, which suits one or two short lines; keep chapter titles short (a few words) and move detail into the opening paragraph or abstract.
@@ -220,7 +120,10 @@ tools/         checks and converters
 
 - **A chapter based on a published paper:** see `chapters/01Introduction.tex` for the chapter opener with an epigraph and a short abstract, followed by `\chapterbasedon{\cite{key}}{contributions}`: a note at the start of the chapter with the reference and who did what, in the [CRediT roles](https://credit.niso.org) (conceptualisation, methodology, software, writing -- original draft, ...). Committees like to see this for co-authored papers. To include the published PDF itself, uncomment `pdfpages` in `settings/packages.tex` and use `\includepdf[pages=-]{paper.pdf}`.
 
-## Notation
+</details>
+
+<details>
+<summary><b>Notation: one set of conventions for the whole thesis</b></summary>
 
 Decide the notation once and keep it for the whole thesis; it drifts when chapters are written years apart. The template is set up for the following conventions; change a command in `settings/commands.tex` and the whole thesis follows.
 
@@ -243,7 +146,150 @@ Decide the notation once and keep it for the whole thesis; it drifts when chapte
 
 Every symbol also goes in `settings/nomenclature.tex`, so the nomenclature doubles as a check that nothing is used for two things.
 
-## Maths font: MathTime Professional 2 (optional)
+</details>
+
+<details>
+<summary><b>Plots and figures: plot style, sizes, colours, checks</b></summary>
+
+Make plots in Python with the style file `figures/plots/thesis.mplstyle` (see `figures/plots/example_figures.py`, which makes every plot in the example chapter):
+
+```python
+import matplotlib.pyplot as plt
+import thesis_fonts                       # figures/plots/thesis_fonts.py
+plt.style.use("figures/plots/thesis.mplstyle")
+thesis_fonts.setup()                      # figure text in the thesis's own fonts
+...
+thesis_fonts.save(fig, "figures/my_figure.pdf")
+```
+
+The style sets text at about the caption size (8–9 pt for demy, A5 and royal; add 1 pt for the Dutch size), a default size of 91.5 mm wide, and seven line colours each with its own line style (see *Colours* below). `thesis_fonts` has matplotlib set every label with LuaLaTeX, in the fonts of the text: Times, with MathTime maths when `tools/mtpro2_otf.py` has converted it into `fonts/`, otherwise newtx. So `$\alpha$` or `$\Vert\nabla\boldsymbol{e}\Vert$` in a figure is the same glyph as in the text, and the PDF stays PDF/A-ready. `thesis_fonts.save` also makes the figure ready for print: its RGB colours are declared as sRGB and its black and greys become true grey (see *PDF standards* below). `setup("newtx")` forces newtx; the figures that come with the template are made that way. Without LuaLaTeX it falls back to matplotlib's own maths in Times New Roman (or in STIX, its Times-like font, where Times New Roman is not installed). Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
+
+| Page size | Full text width | Half width (two side by side) |
+|---|---|---|
+| `demy` | 91.5 mm (3.60 in) | 44 mm (1.73 in) |
+| `a5` | 99.5 mm (3.92 in) | 48 mm (1.89 in) |
+| `royal` | 104.5 mm (4.11 in) | 50 mm (1.97 in) |
+| `dutch` | 112.5 mm (4.43 in) | 54 mm (2.13 in) |
+
+The full widths are a little under the nominal 92/100/105/113 mm, because the class rounds the text width down to whole points (demy: 261 pt = 91.7 mm); a figure made at the nominal width would stick out by a fraction of a millimetre.
+
+**Colours.** One kind of palette for each kind of data:
+- *Lines and categories:* the plot style's seven colours ("Earth": slate blue, brick, olive, plum, ochre, teal, charcoal), in that order, each with its own line style. All of them stand out against the white page: a contrast of 4.6:1 or more, where the accessibility rule (WCAG 2.2) asks 3:1 for lines and 4.5:1 for text. The line styles keep lines apart in greyscale and for colour-blind readers, so give every line its style (the style file does) and label lines directly or in a legend.
+- *Magnitudes* (a concentration, a speed): a sequential colour map, `thesis_fonts.SEQUENTIAL` (viridis, the default; plasma is warmer), whose brightness rises evenly, so it also reads in greyscale.
+- *Signed values* (vorticity, an error, a difference): a diverging map centred on zero, `thesis_fonts.DIVERGING` (RdBu_r: blue negative, red positive), with `vmin=-v, vmax=v` or `matplotlib.colors.TwoSlopeNorm(0)`, as in the vorticity example.
+- Always a colour bar with a colour map. Not jet or other rainbow maps: their uneven brightness shows edges that are not in the data.
+- In LaTeX, `tudelft-orange` and other light colours are fine for fills behind black text; for lines and text on white use darker ones (`darkorange` for the orange). `tools/check_figures.py` names lines and text in figures that are too light, and `tools/check_pdf.py` coloured text in the thesis.
+
+**Checking the figures:** after compiling, run `python3 tools/check_figures.py` (it reads `main.log`, in which the class records every figure's own and printed size). For each figure it reports whether it is printed at its own size (scaling with `width=` scales the text in it too), whether it fits the text width, the printed size of the text in it (most of it should be about the caption size; below 5 pt is hard to read), fonts other than Times, and the printed resolution of PNG and JPEG files. It reports lines and text in colours too light to stand out against the white page, and lists files in `figures/` that the thesis no longer uses. The text sizes and fonts need `pikepdf` (`pip install -r requirements.txt` installs it with the plotting packages).
+
+</details>
+
+<details>
+<summary><b>PDF standards: archival and accessible (PDF/A, PDF/UA), for the printer (PDF/X), print costs</b></summary>
+
+The same pages come out as two kinds of PDF, each to its own standard: the digital edition (and the preview and proof editions) as an archival PDF, **PDF/A-4f**, and in the final version (`version=final`) an accessible one as well, **PDF/UA-2**; the printer edition (`edition=printer`) as **PDF/X-6**, or **PDF/X-4**. `\input{template/documentmetadata}` at the top of `main.tex` (and of `propositions.tex` and `cover.tex`) switches on LaTeX's PDF management, and tagging for PDF/UA, with the standard that fits the edition named in `\documentclass`. It is required: the class stops with an error without it. Tagging makes each compile slower, so only the final version is tagged; the drafts are the same pages without it (see *Faster compiling*).
+
+Archival and accessible PDF, roughly from least to most demanding:
+
+| Standard | Year, base | What it guarantees on top of the row above |
+|---|---|---|
+| PDF/A-1b | 2005, PDF 1.4 | Looks the same for decades: fonts embedded, colours defined, nothing external |
+| PDF/A-2b | 2011, PDF 1.7 | Newer features allowed (transparency, layers, JPEG 2000) |
+| PDF/A-2u | 2011, PDF 1.7 | All text maps to Unicode, so it can be searched and copied |
+| PDF/A-3u | 2012, PDF 1.7 | Files of any kind may be attached (data, code) |
+| **PDF/A-4f** | 2020, PDF 2.0 | The same guarantees on PDF 2.0; Unicode always required; attachments allowed. **← this template** |
+| PDF/A-2a, -4 with tags | | Tagged: headings, lists, tables and figures marked up for screen readers |
+| **PDF/UA-2 (with PDF/A-4f)** | 2024, PDF 2.0 | Fully accessible: tagged, alt text, maths as MathML. **← this template** |
+
+PDF for the printer, roughly from oldest to newest:
+
+| Standard | Year, base | Colour | What it adds |
+|---|---|---|---|
+| PDF/X-1a | 2001/2003, PDF 1.3/1.4 | CMYK and spot colours only | Fonts embedded, no transparency, no RGB: the file is ready for one press as it is |
+| PDF/X-3 | 2002/2003, PDF 1.3/1.4 | Also RGB and Lab, with a colour profile | Colour managed: the printer converts the colours for their own press |
+| **PDF/X-4** | 2008/2010, PDF 1.6 | As PDF/X-3 | Transparency and layers kept as they are, not flattened. **← `X-4`** |
+| PDF/X-5 | 2008/2010, PDF 1.6 | As PDF/X-3 | PDF/X-4 with parts kept outside the file (images, the colour profile) |
+| **PDF/X-6** | 2020, PDF 2.0 | As PDF/X-3 | PDF/X-4 on PDF 2.0, which also allows a colour profile per page. **← `X-6` (default)** |
+
+`tools/print_pdf.py` converts either to CMYK, keeping the version (see *If the printer wants CMYK* below); PDF/X-1a is not made by the template.
+
+#### Archival and accessible: PDF/A, PDF/UA
+
+The digital edition is produced as **PDF/A-4f**, the current archival standard (on PDF 2.0), and as **PDF/UA-2**, the accessibility standard: fonts are embedded, colours are defined against the sRGB colour profile, every character (maths included) maps to Unicode so text can be searched and copied reliably, and the file carries standard metadata. It will display the same in decades. It is also tagged: headings, lists, tables, figures with their captions and alt text, footnotes and code are marked up for screen readers, and every formula carries MathML. This is set up in `template/pdfa.tex` with LaTeX's own PDF management, which the class loads right after reading `settings/thesisinfo.tex`; the metadata (title, author, keywords, language) comes from `settings/thesisinfo.tex`, so there is nothing to edit there.
+
+- **Colours:** all template colours are RGB or grey. Use RGB (or greyscale) images and colours in your own figures as well; CMYK images break PDF/A.
+- **Checking:** the digital, preview and proof editions pass veraPDF's PDF/A-4f and PDF/UA-2 checks. `python3 tools/check_pdf.py` checks your compiled PDF (see *Before you hand it in*); it runs [veraPDF](https://verapdf.org) (free) for a full validation when that is installed, otherwise have the final PDF validated once with veraPDF or Adobe Acrobat's preflight; [PAC](https://pac.pdf-accessibility.org) checks the accessibility as well.
+- **Metadata:** the PDF carries title, author, keywords, licence and, once filled in in `settings/thesisinfo.tex`, the ISBN, the DOI the TU Delft repository gives your dissertation (`\thesisdoi`) and your ORCID iD. Repositories and reference managers read them. Fields still holding their placeholder (`[978-94-...]`, the example ORCID iD) are left out. The licence is a short code, `\thesislicence{CC BY 4.0}` (or CC BY-SA, CC BY-ND, CC BY-NC, CC BY-NC-SA, CC BY-NC-ND 4.0, CC0 1.0, or empty for all rights reserved); it sets the sentence on the colophon, its link and the metadata. The colophon's link to the repository goes to your DOI once `\thesisdoi` is filled in.
+- **Attachments** (`template/attachments.tex`): PDF/A-4f allows files inside the PDF; viewers list them in their attachments panel.
+  - *Citation file:* `citation.bib` and `citation.ris` (EndNote, Zotero, Mendeley) for citing the thesis, made from `settings/thesisinfo.tex` on every compile.
+  - *Data of a figure:* `\figuredata[description]{figures/plot.csv}` right after the `\includegraphics` attaches the file as the data of that figure (in the tagged PDF it belongs to the image); in a `panels` grid, `\panel[data={file}]{...}{...}`.
+  - *Other files:* `\supplementfile[description]{file}` attaches any file to the thesis as a whole, e.g. the script that draws the figures.
+  - Keep them small; large data sets belong in a repository such as 4TU.ResearchData, cited with their DOI.
+- **Accessibility is partly yours:** the tagging is automatic, but screen readers can only read what you write. Give every figure alt text (see *Alt text* below), and write tables with a header row (`\toprule` ... `\midrule`, as in the Examples chapter).
+- **What else screen readers get** (`template/accessibility.tex`, no change to the pages):
+  - *Words in maths:* operator names (`\sin`, `\max`, `\DeclareMathOperator`) and `\mathword{Re}` are read as one word, not letter by letter; use `\mathword` for multi-letter names such as dimensionless numbers (the template's `\Re`, `\Ma`, ... do).
+  - *Tables:* the first row of every table float (and of `xltabular`) is its header, so each cell is read with its column heading. A header of two rows: `\tagpdfsetup{table/header-rows={1,2}}` in the table before the tabular; a first column that heads its rows: `\tagpdfsetup{table/header-columns=1}`.
+  - *Formulas:* every formula carries MathML; for one that reads badly (a large block matrix), `\formulaalt{a short description}` right before it gives screen readers that text instead.
+  - *Acronyms:* after its first use, `\gls{bem}` gives "BEM" marked with its expansion, read as "blade element momentum theory".
+  - *Units:* `\qty{10}{\metre\per\second}` is read as "10 metres per second" and `\unit{\kilo\gram}` as "kilograms", for units written with siunitx's macros (not for `\unit{m/s}`).
+  - *Contrast:* the template's colours stand out against the page (text 4.5:1 or more, lines 3:1, WCAG 2.2), and links (brick red) also against the black text (3.9:1), as colour is the only thing that marks them; `tools/check_pdf.py` and `tools/check_figures.py` report colours of your own that do not (see *Colours* under *Plots and figures*).
+  - *Languages:* text in `\begin{otherlanguage}{dutch}` (the Dutch summary and propositions) is marked as Dutch, and a word in `\foreignlanguage{dutch}{...}` too, so screen readers switch pronunciation.
+  - *Links:* each link also carries a short description (where it goes), which PDF/UA-1 checkers such as PAC and Acrobat ask for.
+
+#### For the printer: PDF/X
+
+The printer edition (`edition=printer`) is made as a **PDF/X** file, the standard for handing print files over: PDF/X-6 (on PDF 2.0) by default, or PDF/X-4 for printers whose systems do not take PDF 2.0 yet. Three settings in `settings/thesisinfo.tex`, next to the printer's name; ask your printer about each:
+
+```latex
+\newcommand{\thesisprintstandard}{X-6}  % or X-4
+\newcommand{\thesisprintprofile}{}      % the printer's colour profile (.icc); {} for FOGRA39
+\newcommand{\thesisbleed}{2mm}          % often 2 or 3 mm
+```
+
+What the file carries:
+- **Trim and bleed:** every page says where it will be cut (the trim box) and how far the background runs past the cut (the bleed box). Crop marks are off: the printer places their own. If they ask for marks, add `cropmarks`; they go in a margin outside the bleed.
+- **Colour, managed:** a screen mixes red, green and blue light, a press puts cyan, magenta, yellow and black ink on paper, and somebody has to convert one to the other. The file stays RGB, with every RGB colour (text, drawings, photos, figures) given in sRGB explicitly, so it means one exact colour, and the printer converts it for their own press and paper, which is where it is best done. Black text and greys stay grey and print with black ink only (as "rich black", a mix of all four inks, small text would get coloured fringes wherever the four printing plates do not line up exactly). The file names the press it was made for (the *output intent*): the printer's colour profile, or FOGRA39 (offset print on coated paper, the one that comes with TeX Live). For this RGB route the standard profile is fine; the printer's own is nice to have. Newer standard profiles (PSO Coated v3, PSO Uncoated v3) are free downloads from the ECI; set the file name if your printer uses one.
+- **Nothing else:** no links (nothing clickable is allowed on the printed page), no attachments, no tagging; fonts embedded. The digital edition stays the archival, accessible one.
+- **The cover and the propositions** are made the same way, with the same settings (the cover's bleed is set in `settings/cover.tex`).
+
+**Figures.** LaTeX gives the RGB on its pages in sRGB, photos (RGB PNG and JPEG) included, but it cannot reach inside an included figure PDF. Figures saved with `thesis_fonts.save` are made ready for print as they are saved. For a figure PDF made elsewhere (a co-author's plot, another program), run `python3 tools/print_ready.py figures/figure.pdf`: the same treatment, nothing changes on screen.
+
+**Check it:** `python3 tools/check_print.py main.pdf` (also run by `tools/check_pdf.py` for a PDF/X file). It reports what a printer's preflight rejects (no trim box, RGB not given in sRGB, named by figure file and page, fonts not embedded, links, images below 225 ppi) and what is worth a look (images below 300 ppi, lines thinner than 0.1 mm, small text in rich black), with the page count and the pages in colour. It is not an official PDF/X validator (those are commercial, such as Adobe Acrobat Pro's preflight): send the file through your printer's own file check as well; most printers offer one free.
+
+**If the printer wants CMYK.** Some printers ask for every colour converted to their inks in the file itself. `python3 tools/print_pdf.py main.pdf --profile printer.icc` writes `main-cmyk.pdf`: every colour and image converted with the printer's profile, black and greys still black ink only, the same PDF/X version. Ask for their profile first: CMYK is ink amounts for one press and one paper, and a file converted for another has to be converted again (without `--profile` it uses FOGRA39, with a warning). CMYK cannot show the brightest screen colours, so saturated blues and greens come out a little duller; look at the result before sending it. **PDF/X-1a** (CMYK without transparency, still asked for by some printers) is not made by these tools: it needs Adobe Acrobat Pro or Ghostscript 10.05 or later.
+
+**What to ask your printer:** which PDF/X version (PDF/X-6, PDF/X-4, PDF 2.0 or not), their colour profile (needed for CMYK, optional otherwise), RGB or CMYK, the bleed for the pages and for the cover, crop marks or none, the paper thickness (for the spine), and whether the page count must be a multiple of 4, 8 or 16 (they add blank pages at the end).
+
+#### Print costs
+
+Printers usually charge every page that contains any colour as a colour page. So the print editions keep everything that appears on many pages black and white: the thumb tabs are light grey (black ink only), links are not coloured and code listings use bold and grey instead of colours. Colour in your own figures is fine; it only affects the pages they are on. `tools/check_print.py` lists the pages in colour (the number to quote); `tools/greyscale_preview.py` shows the thesis in greyscale.
+
+</details>
+
+<details>
+<summary><b>Compiling: requirements, font cache, faster compiles</b></summary>
+
+Compile with **LuaLaTeX** on **TeX Live 2026** or later. In Overleaf: *Menu → Settings → Compiler → LuaLaTeX*, and *TeX Live version → 2026*. Locally, `latexmk main.tex` does everything (the included `latexmkrc` selects LuaLaTeX).
+
+- LuaLaTeX lets `microtype` stretch letters very slightly, which halves the number of hyphenated lines and gives evener word spacing.
+- The bibliography uses **biblatex + biber**, which Overleaf runs automatically. The nomenclature needs no extra tool.
+- The first compile on a new machine (or a new Overleaf project) takes longer while LuaLaTeX builds its font cache. If every compile stays that slow (the preamble alone taking 15 s or more, where about 6 s is normal), LuaLaTeX cannot keep its cache: run `luaotfload-tool --cache=show`, which should report a *writable path*.
+- LuaLaTeX only, TeX Live 2026 or later: the class stops with a message under pdfLaTeX or XeLaTeX, or with an older LaTeX.
+
+#### Faster compiling
+
+A long thesis gets slow because every chapter, figure and plot is processed on every compile. While writing:
+
+1. **Compile only the chapter you are working on.** In `main.tex`, uncomment `\includeonly{...}` and list the chapter(s), for example `\includeonly{chapters/03Method}`. Page numbers and references to the other chapters are kept from the last full compile. Comment it out again for a full compile. (Chapters must be added with `\include{...}`, not `\input{...}`, for this to work.)
+2. **Use `version=fast-draft` while writing.** Images are replaced by labelled boxes, overfull lines get a black bar in the margin, the tagging for screen readers is left out (each compile about 30% faster: about 21 s instead of 30 s per pass for this template), and every page says *DRAFT* with the date. `version=draft` (the default) has the real images, and line numbers in the margin so supervisors can point at "p. 12, l. 31"; `version=final` is the one you hand in. Overleaf's *Recompile → Fast [draft]* also replaces the images by boxes.
+3. **Keep heavy plots out of the document.** Make plots in Python (matplotlib) or similar and include them as PDF. A TikZ drawing is redrawn on every compile, so keep TikZ for small diagrams.
+4. **Keep images light.** Use vector PDF for plots and diagrams. For photos and renders, use JPG (or PNG for screenshots) at no more than about 300 dpi at the size they are printed: a figure 100 mm wide needs about 1200 pixels, not 6000.
+5. **Load only what you use.** Optional packages are listed, commented out, at the bottom of `settings/packages.tex`.
+
+</details>
+
+<details>
+<summary><b>Maths font: MathTime Professional 2 (optional)</b></summary>
 
 Maths is set in newtx, a Times-style maths font included with TeX Live and Overleaf, through `ntxmath-otf`: the same glyphs as OpenType maths fonts (in `template/fonts/ntxmath-otf`), so maths copies as Unicode and the tagged PDF has MathML; the pages are as with the classic newtxmath, which the class falls back to when TeX cannot see that folder (`lualatex` run without latexmk). If you own MathTime Professional 2 (Lite is free from [CTAN](https://mirrors.ctan.org/fonts/mtp2lite.zip), Complete is sold by [PCTeX](https://www.pctex.com/mtpro2.html)), the template uses it instead:
 
@@ -265,62 +311,20 @@ How the three compare, symbol by symbol (regenerate locally with `.github/script
 
 **The MathTime licence does not allow sharing the fonts, converted or not:** never add them to a public repository (including this template); keep them in a private project only. The `.gitignore` keeps the zips, the unpacked folders and the contents of `fonts/` out of git. Embedding the fonts in the thesis PDF is allowed.
 
-## Plots
+</details>
 
-Make plots in Python with the style file `figures/plots/thesis.mplstyle` (see `figures/plots/example_figures.py`, which makes every plot in the example chapter):
-
-```python
-import matplotlib.pyplot as plt
-import thesis_fonts                       # figures/plots/thesis_fonts.py
-plt.style.use("figures/plots/thesis.mplstyle")
-thesis_fonts.setup()                      # figure text in the thesis's own fonts
-...
-thesis_fonts.save(fig, "figures/my_figure.pdf")
-```
-
-The style sets text at about the caption size (8–9 pt for demy, A5 and royal; add 1 pt for the Dutch size), a default size of 91.5 mm wide, and seven line colours each with its own line style (see *Colours* below). `thesis_fonts` has matplotlib set every label with LuaLaTeX, in the fonts of the text: Times, with MathTime maths when `tools/mtpro2_otf.py` has converted it into `fonts/`, otherwise newtx. So `$\alpha$` or `$\Vert\nabla\boldsymbol{e}\Vert$` in a figure is the same glyph as in the text, and the PDF stays PDF/A-ready. `thesis_fonts.save` also makes the figure ready for print: its RGB colours are declared as sRGB and its black and greys become true grey (see *For the printer: PDF/X*). `setup("newtx")` forces newtx; the figures that come with the template are made that way. Without LuaLaTeX it falls back to matplotlib's own maths in Times New Roman (or in STIX, its Times-like font, where Times New Roman is not installed). Make each figure at the size it will be printed, and include it with `\includegraphics{...}` without scaling, so the text in the figure keeps its size:
-
-| Page size | Full text width | Half width (two side by side) |
-|---|---|---|
-| `demy` | 91.5 mm (3.60 in) | 44 mm (1.73 in) |
-| `a5` | 99.5 mm (3.92 in) | 48 mm (1.89 in) |
-| `royal` | 104.5 mm (4.11 in) | 50 mm (1.97 in) |
-| `dutch` | 112.5 mm (4.43 in) | 54 mm (2.13 in) |
-
-The full widths are a little under the nominal 92/100/105/113 mm, because the class rounds the text width down to whole points (demy: 261 pt = 91.7 mm); a figure made at the nominal width would stick out by a fraction of a millimetre.
-
-**Colours.** One kind of palette for each kind of data:
-- *Lines and categories:* the plot style's seven colours ("Earth": slate blue, brick, olive, plum, ochre, teal, charcoal), in that order, each with its own line style. All of them stand out against the white page: a contrast of 4.6:1 or more, where the accessibility rule (WCAG 2.2) asks 3:1 for lines and 4.5:1 for text. The line styles keep lines apart in greyscale and for colour-blind readers, so give every line its style (the style file does) and label lines directly or in a legend.
-- *Magnitudes* (a concentration, a speed): a sequential colour map, `thesis_fonts.SEQUENTIAL` (viridis, the default; plasma is warmer), whose brightness rises evenly, so it also reads in greyscale.
-- *Signed values* (vorticity, an error, a difference): a diverging map centred on zero, `thesis_fonts.DIVERGING` (RdBu_r: blue negative, red positive), with `vmin=-v, vmax=v` or `matplotlib.colors.TwoSlopeNorm(0)`, as in the vorticity example.
-- Always a colour bar with a colour map. Not jet or other rainbow maps: their uneven brightness shows edges that are not in the data.
-- In LaTeX, `tudelft-orange` and other light colours are fine for fills behind black text; for lines and text on white use darker ones (`darkorange` for the orange). `tools/check_figures.py` names lines and text in figures that are too light, and `tools/check_pdf.py` coloured text in the thesis.
-
-**Checking the figures:** after compiling, run `python3 tools/check_figures.py` (it reads `main.log`, in which the class records every figure's own and printed size). For each figure it reports whether it is printed at its own size (scaling with `width=` scales the text in it too), whether it fits the text width, the printed size of the text in it (most of it should be about the caption size; below 5 pt is hard to read), fonts other than Times, and the printed resolution of PNG and JPEG files. It reports lines and text in colours too light to stand out against the white page, and lists files in `figures/` that the thesis no longer uses. The text sizes and fonts need `pikepdf` (`pip install -r requirements.txt` installs it with the plotting packages).
-
-## Propositions and cover
+<details>
+<summary><b>Propositions and cover</b></summary>
 
 Both are separate documents that use the fonts and the details in `settings/thesisinfo.tex`. Compile them on their own: in Overleaf open the file and choose *Menu → Main document*, then switch back to `main.tex`; locally run `latexmk propositions.tex` or `latexmk cover.tex`.
 
 - **`propositions.tex`** prints the propositions in the thesis page size, in English with an optional Dutch page (`\dutchversionfalse` for English only), ending with the approval sentence naming the promotors (`\thesispromotors` in `settings/thesisinfo.tex`). Check the Doctorate Regulations for how many propositions are required and what kind.
 - **`cover.tex`** lays out back, spine and front on one sheet with bleed. Its settings are in **`settings/cover.tex`**, and the drawing in `settings/coverdesign.tex`; the digital edition of the thesis uses the same design for its first page (the front cover, then a blank inside cover) and its last page (the back cover, on a left-hand page after a blank inside back cover). The page numbers stay the same; the viewer labels these pages Cover and Back cover and shows the pages side by side, cover on its own. Set the page size, the number of pages of the final thesis PDF and the paper thickness in `settings/cover.tex`; it calculates the spine width (shown on the sheet and in the log), or takes the width the printer gives you. Text goes on the spine only when it is at least 6 mm wide. The design is one solid colour over the whole sheet with the title in [Josefin Sans](https://fonts.google.com/specimen/Josefin+Sans) (SIL Open Font License, included as a variable font in `template/fonts/josefin`; light 350 and bold 500): on the front a short lead-in line above the large title (`\coverleadin`, `\covertitle`, with your own line breaks; made smaller automatically when too wide), an optional subtitle, a drawing in the middle (`\covermotif`: TikZ code or an image; a patch of a triangular mesh by default), the name and a small line under it; on the spine the surname at the top, the title in the same two weights in the middle and a small mark at the foot (text, or a logo with `\coverspinelogo`); on the back the summary in the book's serif at 10.5 on 13.5 pt, a small ABOUT THE AUTHOR heading and the biography (`\coversummary`, `\coverbio`), and space for the ISBN barcode. Colours, texts and sizes are set in `settings/cover.tex`. The red and blue guides show the trim, the spine folds and the safe area; turn them off with `\coverguidesfalse` before sending the file. Ask the printer for the paper thickness and the bleed they want, and check the result against their cover template if they have one.
 
-## Before sending it to the printer
+</details>
 
-1. **Details:** check every line of `settings/thesisinfo.tex` again: names (all first names, as on your passport), title, defence date and time, the year of the defence (`\thesisyear`, for the copyright line and the metadata), Rector Magnificus, committee and order, ISBN, printer, cover designer.
-2. **Final build:** compile with the options `edition=printer` and `version=final` (removes all todo notes and draft marks; with `cropmarks` only if the printer wants crop marks), with the printer's settings in `settings/thesisinfo.tex` (see *For the printer: PDF/X*). For the repository, compile the same with `edition=digital, version=final`: the same pages, at their final size. Search the PDF for "??" (broken references) and "[" followed by a citation key (missing references).
-3. **Check the references:** run `python3 tools/check_bib.py --doi` and fix what it reports.
-4. **Check the PDF:** run `python3 tools/check_pdf.py` (it reads `main.pdf` and `main.log`; on Overleaf, download both first), on the print edition and on the digital one. For the print edition (PDF/X) it runs `tools/check_print.py`: trim and bleed, colour, fonts, links, image resolution, thin lines and the pages in colour. For the digital edition it reports what the repository rejects: PDF/A and PDF/UA problems, fonts not embedded (also inside figure files) or without Unicode, blurry raster images (below 300 ppi at their printed size), CMYK images, broken references and citations, missing characters and overfull boxes. Fix everything marked FAIL.
-5. **Overfull lines and hyphenation:** compile once with `version=fast-draft`; a black bar in the margin marks every line that sticks out. Fix them by rewording or adding words to `settings/hyphenation.tex`. Then run `python3 tools/check_hyphenation.py`: it lists the words TeX hyphenated and points out words split across two pages, three or more hyphenated lines in a row, names and terms broken in a doubtful place, and breaks that leave two letters on a line (`--all` lists every hyphenated word).
-6. **Contents and bookmarks:** check the contents, the running heads (long titles get cut off or wrap) and the PDF bookmarks.
-7. **Figures:** run `python3 tools/check_figures.py`: every figure at its printed size and legible. If the printer charges for colour pages, run `python3 tools/greyscale_preview.py` on the print edition: it lists the pages with colour (the number to quote), writes `main-grey.pdf` to look through, and names figure colours that print as the same grey.
-8. **PDF/X, PDF/A and PDF/UA:** the print edition should be PDF/X (the check above, and the printer's own file check); the digital edition PDF/A-4f and PDF/UA-2 (accessible; for the repository): the check above with veraPDF installed, veraPDF itself, or Adobe Acrobat's Preflight shows it.
-9. **Page count and blank pages:** chapters start on a right-hand page, so blank left-hand pages are expected. Note the total page count.
-10. **Cover:** set the page count and the paper thickness in `settings/cover.tex` (or the spine width from the printer), the bleed the printer asks for, turn off the guides with `\coverguidesfalse`, and compare with the printer's cover template. `cover.pdf` is a PDF/X file like the print edition; check it with `python3 tools/check_print.py cover.pdf`.
-11. **Propositions:** compile `propositions.tex` separately; check the promotors' names and that the promotors have approved them.
-12. **Proof copy:** ask the printer for a proof copy and check it on paper before the full run.
-
-## After the committee's comments
+<details>
+<summary><b>After the committee's comments: marked-up changes</b></summary>
 
 The committee usually asks for corrections, and it helps to show them what changed.
 
@@ -328,11 +332,10 @@ The committee usually asks for corrections, and it helps to show them what chang
 - **Overleaf's history** (the clock icon) compares any two versions of a file, and labelled versions make the committee draft easy to find later.
 - For a short list of changes, a table in a letter (comment, response, page) is often clearer than a marked-up PDF.
 
-## Print costs
+</details>
 
-Printers usually charge every page that contains any colour as a colour page. So the print editions keep everything that appears on many pages black and white: the thumb tabs are light grey (black ink only), links are not coloured and code listings use bold and grey instead of colours. Colour in your own figures is fine; it only affects the pages they are on. `tools/check_print.py` lists the pages in colour (the number to quote); `tools/greyscale_preview.py` shows the thesis in greyscale.
-
-## Overleaf ↔ GitHub
+<details>
+<summary><b>GitHub and Overleaf: builds, nightly package watch, syncing</b></summary>
 
 This repository is synced with Overleaf (*Menu → GitHub*).
 
@@ -342,3 +345,34 @@ Every night, a second workflow (`.github/workflows/page-sizes.yml`) compiles the
 
 - Before editing elsewhere (locally, or with Claude), **push** from Overleaf so the repository has your latest version.
 - After changes were committed to the repository, **pull** in Overleaf to bring them in.
+
+</details>
+
+<details>
+<summary><b>Every file, one by one</b></summary>
+
+| File | Contents |
+|---|---|
+| `main.tex` | Document structure: the class options, which chapters are included, in which order, and `\includeonly` for compiling single chapters. |
+| `settings/thesisinfo.tex` | **Fill this in:** title, author, defence date, Rector Magnificus, doctoral committee, keywords, printer, ISBN, licence, an optional dedication. Used on the title pages, CV and in the PDF metadata; leave an optional field empty, `{}`, to leave it out. |
+| `settings/nomenclature.tex` | **Fill this in:** acronyms and symbols for the nomenclature. |
+| `settings/hyphenation.tex` | Hyphenation of words TeX breaks wrongly or not at all (technical terms, names). Add to it as you write. |
+| `settings/packages.tex` | The packages the thesis loads, with optional ones commented out at the bottom; the numbered statements (`\newtheorem`) and the names `\cref` gives them. |
+| `settings/commands.tex` | Your commands: maths notation (vectors, derivatives, brackets), and anything you add. |
+| `settings/colours.tex` | TU Delft colours and the link colour. |
+| `settings/thumbs.tex` | Thumb tabs: on or off (in all editions, or only in the print editions), their colours and size. |
+| `settings/cover.tex`, `settings/coverdesign.tex` | The cover's texts, colours and sizes, and its drawing (also used for the cover pages of the digital edition). |
+| `chapters/` | Front matter (`00…`), chapters (`01…`, `02…`), appendices (`A_…`) and back matter (`Z_…`). `02Examples.tex` demonstrates everything the template supports (take it out of `main.tex` when you start writing, but keep the file to look things up); `03InfSup.tex` is a sample chapter on a real topic; `_newChapter.tex` is the starting point for a new chapter. |
+| `figures/` | Figures. The `example_*` files and the `grid/` and `snapshots/` folders belong to the example chapter. |
+| `figures/plots/` | `thesis.mplstyle` (the plot style), `thesis_fonts.py` (figure text in the thesis's fonts, colour maps, saving ready for print) and `example_figures.py` (the plots of the example chapter). |
+| `references.bib` | Bibliography database. |
+| `propositions.tex`, `cover.tex` | The propositions (stellingen) and the book cover, separate documents (see *Propositions and cover*). |
+| `fonts/` | Optional: MathTime Professional 2 for the maths (see `fonts/README.md`). Never put it in a public repository. |
+| `thesis.cls` | The class: options, page layout, core packages. (At the top level, so LaTeX finds it however the thesis is compiled.) |
+| `template/` | Everything else of the template: fonts and headings, page styles, title pages (`titlepage.tex`), environments, tables, statements and algorithms (`tables.tex`, `statements.tex`, `algorithms.tex`), the PDF set-up (`documentmetadata.tex` the standard of each edition, `pdfa.tex` PDF/A and metadata, `tagging.tex` and `accessibility.tex` PDF/UA, `attachments.tex`, `printpdf.tex` and `thesisprint.lua` PDF/X, `digitalcover.tex` the cover pages of the digital edition), and the bundled fonts in `template/fonts/` (newtx maths as OpenType, `ntxmath-otf`, and the cover's Josefin Sans). |
+| `tools/` | `check_pdf.py` checks the compiled PDF before submission; `check_print.py` checks the PDF/X edition for the printer; `print_ready.py` makes figure PDFs from elsewhere ready for print; `print_pdf.py` converts the print edition to CMYK when a printer asks for it; `check_figures.py` checks each figure's printed size, text size and fonts; `check_bib.py` tidies `references.bib`; `check_hyphenation.py` lists the hyphenated words to review; `greyscale_preview.py` counts colour pages and shows the thesis in greyscale; `diff_versions.py` makes a PDF with the changes since an earlier version marked; `mtpro2_otf.py` converts MathTime Professional 2 into OpenType maths fonts (see `fonts/README.md`); `ntxmath_otf.py` rebuilds `template/fonts/ntxmath-otf` from newtx (with `mtpro2_otf.py` beside it, no MathTime needed); `hooks/pre-commit` refuses commits with MathTime files; `common.py` holds the code the checks share. |
+| `requirements.txt` | Python packages for the scripts and plots: `pip install -r requirements.txt`. |
+| `latexmkrc` | latexmk settings: LuaLaTeX, and the `fonts/` and `template/fonts/ntxmath-otf/` folders on TeX's search paths. |
+| `.github/` | The GitHub builds (`workflows/`, see *GitHub and Overleaf*) and the images in this README. |
+
+</details>
