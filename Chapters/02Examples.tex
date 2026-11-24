@@ -576,6 +576,15 @@ A series of plots of the same kind, such as snapshots of a flow, is set as a gri
     \label{fig:snapshots-three}
 \end{figure}
 
+The colours follow the kind of data. Lines and categories take the seven colours of the template's plot style, each with its own line style, as in \cref{fig:single}: all of them stand out against the white page, and the line styles keep the lines apart in greyscale and for colour-blind readers. A magnitude, such as the concentration above, takes a sequential colour map, viridis, whose brightness rises evenly from one end to the other. A signed quantity takes a diverging map centred on zero, RdBu, with blue for negative and red for positive values, as in \cref{fig:vorticity}, so that white means zero. Rainbow maps such as jet are best avoided: their uneven brightness shows edges that are not in the data.
+
+\begin{figure}[tbp]
+    \centering
+    \includegraphics[scale=1, alt={Vorticity of a vortex pair: a round patch of positive vorticity in red on the left and one of negative vorticity in blue on the right, of equal strength, on a white background of zero vorticity, with a colour bar from minus one in blue through zero in white to one in red}]{Images/example_vorticity.pdf}
+    \caption[Vorticity of a vortex pair]{Vorticity of a vortex pair, in a diverging colour map centred on zero.}
+    \label{fig:vorticity}
+\end{figure}
+
 A grid that needs the whole page goes in a \texttt{figurepage}, a figure on a page of its own, as \cref{fig:snapshots} shows; the grid is then made to fit the page, with the colour bar and the caption at its foot. A second \texttt{figurepage} with the option \texttt{continued} would carry on with the same figure number and the letters (m), (n), \ldots. Plots that share their axes, such as \cref{fig:grid}, in an ordinary figure, are set in the same way with the option \texttt{natural}: Python saves each plot in a file of its own, with the same plot area and the tick labels only on the outer plots (\file{Python/example_figures.py} shows how), and LaTeX lines them up at their own size and adds the axis titles, letters and labels. A table can have a page of its own as well, in a \texttt{tablepage}.
 
 \begin{figurepage}

@@ -23,6 +23,12 @@ import matplotlib.text
 ROOT = Path(__file__).resolve().parent.parent
 FONTS = ROOT / "Fonts"
 NTXOTF = ROOT / "_options" / "ntxmath-otf"   # newtx as OpenType maths fonts, part of the template
+
+# Colour maps (thesis.mplstyle): sequential data (magnitudes) and diverging data (signed, centred on zero:
+# use vmin=-v, vmax=v, or matplotlib.colors.TwoSlopeNorm(0)). Earth is the line colour cycle.
+SEQUENTIAL = "viridis"
+DIVERGING = "RdBu_r"
+EARTH = ["#3B5B92", "#B5442E", "#5E7D2B", "#7A3E6E", "#9C6B00", "#2A7B7B", "#4D4D4D"]
 _state = {"pgf": False}
 
 # The same choices as _options/fontText.tex and _options/fontMath.tex (fonts at their nominal size:

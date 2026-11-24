@@ -8,7 +8,9 @@ Produces, in Images/:
     example_energy.pdf     half width   kinetic energy of the Burgers solution
     example_plot.pdf       full width   lift curves (illustrative data)
     snapshots/snap-01.pdf  ...  snap-12.pdf, colourbar.pdf:  a blob of dye carried round by a
-                                        rotation, for a grid of panels (panels environment)
+                                        rotation, for a grid of panels (panels environment;
+                                        sequential colour map)
+    example_vorticity.pdf  full width   vorticity of a vortex pair (diverging colour map)
     grid/burgers-1.pdf ... burgers-8.pdf:  the Burgers solution at eight times, plots with shared
                                         axes, one file each (panels environment, option natural)
 
@@ -198,7 +200,7 @@ for k in range(n_snap):
     fig = plt.figure(figsize=(SNAP_MM * MM, SNAP_MM * MM))
     fig.set_layout_engine("none")
     ax = fig.add_axes([0, 0, 1, 1])
-    ax.imshow(c, extent=(-1, 1, -1, 1), origin="lower", cmap="viridis", vmin=0, vmax=1,
+    ax.imshow(c, extent=(-1, 1, -1, 1), origin="lower", cmap=thesis_fonts.SEQUENTIAL, vmin=0, vmax=1,
               interpolation="none")
     ax.plot(0, 0, "+", color="w", markersize=4, markeredgewidth=0.6)   # the centre of rotation
     ax.set_aspect("equal")
@@ -207,10 +209,26 @@ for k in range(n_snap):
 fig = plt.figure(figsize=(60 * MM, 13 * MM))
 fig.set_layout_engine("none")
 cax = fig.add_axes([0.08, 0.72, 0.84, 0.16])
-mappable = plt.cm.ScalarMappable(norm=plt.Normalize(0, 1), cmap="viridis")
+mappable = plt.cm.ScalarMappable(norm=plt.Normalize(0, 1), cmap=thesis_fonts.SEQUENTIAL)
 fig.colorbar(mappable, cax=cax, orientation="horizontal", ticks=[0, 0.5, 1])
 cax.set_xlabel(r"concentration $c/c_0$", labelpad=1)
 save(fig, "snapshots/colourbar.pdf")
+
+# --- A signed field with a diverging colour map: the vorticity of a vortex pair (two Lamb-Oseen vortices of
+# opposite sign). A diverging map is centred on zero (vmin = -vmax), so white means no rotation; blue is
+# clockwise (negative), red anticlockwise (positive).
+xv = np.linspace(-2, 2, 601)                    # 601 pixels: over 300 ppi at full width
+Xv, Yv = np.meshgrid(xv, 0.6 * xv)
+omega = (np.exp(-((Xv + 0.6) ** 2 + Yv ** 2) / 0.18) - np.exp(-((Xv - 0.6) ** 2 + Yv ** 2) / 0.18))
+fig, ax = plt.subplots(figsize=(FULL_MM * MM, 0.42 * FULL_MM * MM))
+im = ax.imshow(omega, extent=(-2, 2, -1.2, 1.2), origin="lower", cmap=thesis_fonts.DIVERGING,
+               vmin=-1, vmax=1, interpolation="none")
+ax.set_xlabel(r"$x$")
+ax.set_ylabel(r"$y$")
+ax.set_aspect("equal")
+ax.grid(False)
+fig.colorbar(im, ax=ax, ticks=[-1, 0, 1], label=r"vorticity $\omega/\omega_0$", shrink=0.9, pad=0.02)
+save(fig, "example_vorticity.pdf")
 
 
 # --- A grid of plots with shared axes, as panels -------------------------------------------------------

@@ -1,9 +1,11 @@
 %% Code listings (listings package).
 %% Report version: coloured syntax highlighting. Print version: black and white (bold keywords,
 %% grey italic comments), because printers often charge every page with colour as a colour page.
-\definecolor{dkgreen}{rgb}{0,0.6,0}
-\definecolor{gray}{gray}{0.5}
-\definecolor{mauve}{rgb}{0.58,0,0.82}
+%% Colours with enough contrast against white for small text (4.5:1 or more): green 5.6, grey 5.7,
+%% purple 6.6, blue 8.6.
+\definecolor{codegreen}{rgb}{0,0.478,0}
+\definecolor{codegrey}{gray}{0.4}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
 \lstset{
     frame=tb,
     language=Python,
@@ -14,7 +16,7 @@
     basicstyle={\small\ttfamily},
     numbers=left,
     numbersep=5pt,
-    numberstyle=\tiny\color{gray},
+    numberstyle=\tiny\color{codegrey},
     breaklines=true,
     breakatwhitespace=false,
     tabsize=3,
@@ -24,13 +26,13 @@
 \ifprintversion
     \lstset{
         keywordstyle=\bfseries,
-        commentstyle=\itshape\color{gray},
+        commentstyle=\itshape\color{codegrey},
         stringstyle=\color{black},
     }
 \else
     \lstset{
         keywordstyle=\color{blue},
-        commentstyle=\color{dkgreen},
-        stringstyle=\color{mauve},
+        commentstyle=\color{codegreen},
+        stringstyle=\color{codepurple},
     }
 \fi

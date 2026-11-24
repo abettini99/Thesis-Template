@@ -18,6 +18,8 @@ is printed at. For each figure this reports:
   fonts      fonts that differ from the text's Times (e.g. a plotting tool's default
              DejaVu Sans or Arial)
   resolution printed resolution of PNG and JPEG figures (300 ppi or more for print)
+  contrast   lines and text in a PDF figure in colours too light to stand out against
+             the white page (accessibility, WCAG 2.2: 3:1 for lines, 4.5:1 for text)
 
 It also lists files in Images/ that the thesis does not use. Needs Python 3.8+;
 the text sizes and fonts of PDF figures need pikepdf (pip install -r requirements.txt).
@@ -108,6 +110,69 @@ def text_sizes(path: Path):
     return sizes, fonts, missing
 
 
+def _luminance(rgb) -> float:
+    lin = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb]
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+
+
+def contrast(rgb) -> float:
+    """Contrast against a white page (WCAG 2.2): 1 to 21."""
+    return 1.05 / (_luminance(rgb) + 0.05)
+
+
+def low_contrast(path: Path):
+    """Colours of lines and text in the figure that do not stand out enough against white (WCAG 2.2: 3:1
+    for lines and other graphics a reader needs, 4.5:1 for text). Not reported: white (drawn on something
+    dark, such as a colour map), thin light grey lines (grid lines: decoration) and filled areas."""
+    pdf = pikepdf.open(path)
+    page = pdf.pages[0]
+    fill = stroke = (0.0, 0.0, 0.0)
+    width = 1.0
+    stack, found = [], {}
+
+    def colour(nums):
+        if len(nums) == 1:
+            return (nums[0],) * 3
+        if len(nums) == 3:
+            return tuple(nums)
+        if len(nums) == 4:                                # CMYK, roughly
+            c, m, y, k = nums
+            return ((1 - c) * (1 - k), (1 - m) * (1 - k), (1 - y) * (1 - k))
+        return None
+
+    for op, operands, res, ctm in operators(page, page.get("/Resources")):
+        nums = []
+        for x in operands:
+            try:
+                nums.append(float(x))
+            except (TypeError, ValueError):
+                pass
+        if op == "q":
+            stack.append((fill, stroke, width))
+        elif op == "Q" and stack:
+            fill, stroke, width = stack.pop()
+        elif op == "w" and nums:
+            width = nums[0] * math.sqrt(abs(ctm[0] * ctm[3] - ctm[1] * ctm[2]))
+        elif op in ("rg", "g", "k", "sc", "scn") and colour(nums):
+            fill = colour(nums)
+        elif op in ("RG", "G", "K", "SC", "SCN") and colour(nums):
+            stroke = colour(nums)
+        elif op in ("S", "s", "B", "B*", "b", "b*"):
+            grey = max(stroke) - min(stroke) < 0.02
+            if not (grey and min(stroke) > 0.7 and width < 0.6):          # grid lines
+                found.setdefault(("lines", stroke), contrast(stroke))
+        elif op in ("Tj", "TJ", "'", '"'):
+            found.setdefault(("text", fill), contrast(fill))
+    out = []
+    for (kind, rgb), cr in sorted(found.items(), key=lambda kv: kv[1]):
+        need = 4.5 if kind == "text" else 3.0
+        if 1.15 < cr < need:
+            hexa = "#" + "".join(f"{round(c * 255):02X}" for c in rgb)
+            out.append(f"{kind} in {hexa}: contrast {cr:.1f}:1 against white ({need:g}:1 needed to stand out); "
+                       "use a darker colour (the plot style's colours all pass)")
+    return out
+
+
 def visible_text(path: Path) -> bool:
     """Whether the figure has any text a reader sees (pdftotext, from poppler; True without it)."""
     try:
@@ -186,6 +251,10 @@ def main(argv=None) -> int:
                     notes.append(f"{nmissing} missing glyph(s) (.notdef): they print as nothing and fail the PDF/A "
                                  "check. From matplotlib 3.11+ this is usually a ligature (ff, fi, fl): switch "
                                  "them off as Python/example_figures.py does, and export again")
+                try:
+                    notes += low_contrast(path)
+                except Exception:
+                    pass
                 other = sorted(f for f in fonts if f and not TIMES.search(f))
                 if other:
                     notes.append(f"fonts other than Times: {', '.join(other)} (the thesis uses Times)")

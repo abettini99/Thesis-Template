@@ -30,9 +30,17 @@ savefig.format:     pdf
 savefig.bbox:       standard        # keep the exact figure size (no "tight" cropping)
 savefig.dpi:        300             # for raster elements inside the PDF
 
-## --- Colours: colour-blind safe, and line styles so lines stay apart in greyscale ----------
-## Paul Tol's "bright" scheme (https://personal.sron.nl/~pault/), each colour with its own line style.
-axes.prop_cycle:    (cycler('color', ['4477AA', 'EE6677', '228833', 'CCBB44', '66CCEE', 'AA3377', 'BBBBBB']) + cycler('linestyle', ['-', '--', '-.', ':', (0, (5, 1, 1, 1)), (0, (3, 1, 1, 1, 1, 1)), (0, (1, 2))]))
+## --- Colours ------------------------------------------------------------------------------
+## Lines and categories: "Earth", seven colours that all stand out against white (contrast 4.6:1 or
+## more; the accessibility rule asks 3:1 for lines and 4.5:1 for text), each with its own line style,
+## so lines stay apart in greyscale and for colour-blind readers.
+##   slate blue 3B5B92, brick B5442E, olive 5E7D2B, plum 7A3E6E, ochre 9C6B00, teal 2A7B7B, charcoal 4D4D4D
+## Colour maps: sequential data (magnitudes) viridis, the default below (or plasma); diverging data (signed
+## values, centred on zero) RdBu_r, blue for negative and red for positive. thesis_fonts.SEQUENTIAL and
+## thesis_fonts.DIVERGING name them. Not jet or other rainbow maps: their uneven brightness shows edges
+## that are not in the data.
+axes.prop_cycle:    (cycler('color', ['3B5B92', 'B5442E', '5E7D2B', '7A3E6E', '9C6B00', '2A7B7B', '4D4D4D']) + cycler('linestyle', ['-', '--', '-.', ':', (0, (5, 1, 1, 1)), (0, (3, 1, 1, 1, 1, 1)), (0, (1, 2))]))
+image.cmap:         viridis
 
 ## --- Lines and axes ------------------------------------------------------------------------
 lines.linewidth:    1.2

@@ -16,6 +16,9 @@ edition (PDF/X, for the printer) it runs tools/check_print.py instead of the arc
                 fonts that are not embedded are named
   images        resolution of raster images at their printed size (300 ppi or more
                 for print), and CMYK images (they break PDF/A)
+  contrast      coloured text too light to stand out against the white page
+                (accessibility, WCAG 2.2: 4.5:1); lines and text inside figures are
+                checked by tools/check_figures.py
   LaTeX log     errors, undefined references and citations, missing characters,
                 overfull boxes, and whether a rerun is needed
 
@@ -153,6 +156,62 @@ def missing_glyphs(pdf: Path):
     return hits
 
 
+# --- colour contrast ---------------------------------------------------------
+
+def text_colours(pdf: Path):
+    """{(r, g, b): set of pages} of the colours text is set in (outside the figures); needs pikepdf."""
+    import pikepdf
+    found, doc = {}, pikepdf.open(pdf)
+    for n, page in enumerate(doc.pages, 1):
+        fill, stack = (0.0, 0.0, 0.0), []
+        for op, operands, res, _ in operators(page, page.get("/Resources")):
+            nums = []
+            for x in operands:
+                try:
+                    nums.append(float(x))
+                except (TypeError, ValueError):
+                    pass
+            if op == "q":
+                stack.append(fill)
+            elif op == "Q" and stack:
+                fill = stack.pop()
+            elif op in ("rg", "sc", "scn") and len(nums) == 3:
+                fill = tuple(nums)
+            elif op in ("g", "sc", "scn") and len(nums) == 1:
+                fill = (nums[0],) * 3
+            elif op in ("k", "sc", "scn") and len(nums) == 4:
+                c, m, y, k = nums
+                fill = ((1 - c) * (1 - k), (1 - m) * (1 - k), (1 - y) * (1 - k))
+            elif op in ("Tj", "TJ", "'", '"'):
+                found.setdefault(tuple(round(v, 3) for v in fill), set()).add(n)
+    return found
+
+
+def check_contrast(pdf: Path, r: Report) -> None:
+    """Coloured text that does not stand out enough against the white page (WCAG 2.2: 4.5:1)."""
+    r.section("Colour contrast (accessibility)")
+    try:
+        found = text_colours(pdf)
+    except ImportError:
+        print("        (not checked: pip install -r requirements.txt)")
+        return
+    def contrast(rgb):
+        lin = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb]
+        return 1.05 / (0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2] + 0.05)
+    low = []
+    for rgb, pages in sorted(found.items(), key=lambda kv: contrast(kv[0])):
+        cr = contrast(rgb)
+        if 1.15 < cr < 4.5:                      # (white text sits on something dark: not judged here)
+            hexa = "#" + "".join(f"{round(c * 255):02X}" for c in rgb)
+            where = ", ".join(str(p) for p in sorted(pages)[:10]) + (" ..." if len(pages) > 10 else "")
+            low.append(f"{hexa}: {cr:.1f}:1, on page{'s' if len(pages) > 1 else ''} {where}")
+    if low:
+        r.warn("text in colours too light against white (4.5:1 needed; lines and text in figures: "
+               "tools/check_figures.py)", low)
+    else:
+        r.ok(f"all text colours stand out against white ({len(found)} colours)")
+
+
 # --- images ------------------------------------------------------------------
 
 def check_images(pdf: Path, r: Report) -> None:
@@ -272,6 +331,7 @@ def main(argv=None) -> int:
         check_pdfa(args.pdf, r)
         check_fonts(args.pdf, r)
         check_images(args.pdf, r)
+        check_contrast(args.pdf, r)
     check_log(args.pdf.with_suffix(".log"), r)
     print(f"\n{r.errors} problem(s) to fix, {r.warnings} warning(s) to look at.")
     return 1 if r.errors else 0
