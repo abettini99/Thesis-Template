@@ -48,6 +48,11 @@
 %% chapterbib: every chapter ends with its own reference list (a thesis built from papers).
 \newif\ifchapterbib
 \DeclareOption{chapterbib}{\chapterbibtrue}
+%% sidewaysalternate: sideways floats turned with their top towards the spine (the bottom at the
+%% fore-edge) on every page, so they alternate between left and right pages. Default: the top at the left
+%% edge on every page (the book convention, Chicago Manual of Style).
+\newif\ifthesis@sidewaysalt
+\DeclareOption{sidewaysalternate}{\thesis@sidewaysalttrue}
 \ProcessOptions\relax
 \RequirePackage{etoolbox}
 \def\thesis@paper{trimmed} % what the PDF page is: see PAGE LAYOUT
@@ -95,7 +100,7 @@
 \@namedef{thesis@size@demy}   {\thesis@size{138mm}{216mm}{92mm} {171mm}{26mm}  {20mm}  {28pt}\def\thesisspacing{1.0416667}}
 \@namedef{thesis@size@a5}     {\thesis@size{148mm}{210mm}{100mm}{165mm}{27.3mm}{20mm}  {30pt}\def\thesisspacing{1.0416667}}
 \@namedef{thesis@size@royal}  {\thesis@size{156mm}{234mm}{105mm}{180mm}{29.3mm}{25mm}  {33pt}\def\thesisspacing{1.0625}}
-\@namedef{thesis@size@tudelft}{\thesis@size{170mm}{240mm}{113mm}{192mm}{33.4mm}{23.9mm}{36pt}\def\thesis@ptsize{11pt}}
+\@namedef{thesis@size@tudelft}{\thesis@size{170mm}{240mm}{113mm}{192mm}{33.4mm}{23.9mm}{36pt}\def\thesis@ptsize{11pt}\def\thesisspacing{1.0294118}}
 \@nameuse{thesis@size@\thesis@pagesize}
 \edef\thesis@tmp{\noexpand\LoadClass[\thesis@ptsize,twoside,openright]{book}}\thesis@tmp
 %% The type sizes and default spacings of memoir, which the earlier versions of this class were based on
@@ -573,6 +578,7 @@
 \newcommand*{\subcaptionlabelfont}{\normalfont}
 \ExplSyntaxOn
 \tl_new:N \l__thesis_subfloat_struct_tl
+\bool_new:N \l__thesis_subcaption_letter_bool \bool_set_true:N \l__thesis_subcaption_letter_bool
 \cs_new_protected:Npn \__thesis_subfloat:nnn #1#2#3 % sub-counter, position, width
   {
     \RenewDocumentCommand \caption { o m } { \__thesis_subcaption:nn {#1} {##2} }
@@ -612,8 +618,13 @@
     \group_begin:
       \parindent \z@ \thesis@tagparaoff \leavevmode
       \cs_set_eq:NN \captionlabelfont \subcaptionlabelfont
-      \cs_set:Npn \thesis@capsep { \nobreakspace }
-      \thesis@captionbox { ( \use:c { the#1 } ) } {#2} \par
+      \bool_if:NTF \l__thesis_subcaption_letter_bool
+        {
+          \cs_set:Npn \thesis@capsep { \nobreakspace }
+          \thesis@captionbox { ( \use:c { the#1 } ) } {#2}
+        }
+        { \cs_set:Npn \thesis@capsep { } \thesis@captionbox { } {#2} } % (panels without letters)
+      \par
       \thesis@tagparaon
     \group_end:
     \UseTaggingSocket { caption / end }

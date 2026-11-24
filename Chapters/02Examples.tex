@@ -41,6 +41,20 @@ A description list:
     \item[Copromotor] a second supervisor, often the daily supervisor.
 \end{description}
 
+\subsection{Key points and contributions}
+
+A short list of key points, at the start or end of a chapter, is set apart between two rules; screen readers announce it as a side note:
+\begin{keypoints}
+    \item The shock forms at $t = 1/\pi$ and then weakens slowly.
+    \item Linear elements smear it over two elements, whatever the mesh.
+\end{keypoints}
+The contributions of a thesis, usually listed in the introduction, are numbered C1, C2, \ldots{} so that later chapters can refer to them:
+\begin{contributions}
+    \item an exact reference solution of the viscous Burgers equation, \label{c:exact}
+    \item a convergence study of linear elements. \label{c:convergence}
+\end{contributions}
+\Cref{c:convergence} is the subject of \cref{tab:convergence}.
+
 \subsection{Acronyms and symbols}
 
 Acronyms and symbols are defined once and then appear in the nomenclature automatically; they are all defined in \file{_nomenclature.tex}. An acronym is written out the first time it is used: the \gls{bem} method is fast. After that, only the short form appears: \gls{bem} is used throughout. Symbols work in text and in maths alike: the dynamic pressure is $\frac{1}{2} \gls{rho} \gls{Uinf}^2$, with \gls{rho} the air density.
@@ -518,7 +532,7 @@ for alpha in range(0, 12, 2):
 \section{Sideways tables and figures}\label{sec:sideways}
 %% =====================================================================
 
-Material that is too wide for the page, such as \cref{tab:sideways}, goes in a \texttt{sidewaystable} (or \texttt{sidewaysfigure}): it gets a page of its own, turned so that its top is at the left edge, on left and right pages alike, and the text continues around it. In the digital edition, PDF viewers show that page upright.
+Material that is too wide for the page, such as \cref{tab:sideways}, goes in a \texttt{sidewaystable} (or \texttt{sidewaysfigure}): it gets a page of its own, turned so that its top is at the left edge, on left and right pages alike, and the text continues around it. In the digital edition, PDF viewers show that page upright. With the class option \texttt{sidewaysalternate}, the top is towards the spine instead, so the direction alternates between left and right pages.
 
 \begin{sidewaystable}
     \centering
@@ -538,3 +552,64 @@ Material that is too wide for the page, such as \cref{tab:sideways}, goes in a \
 \end{sidewaystable}
 
 \lipsum[1-2]
+
+%% =====================================================================
+\section{Panels and figure pages}\label{sec:panels}
+%% =====================================================================
+
+A series of plots of the same kind, such as snapshots of a flow, is set as a grid of panels with the \texttt{panels} environment: the panels get the same size and line up, each with a short label and a letter, and one colour bar serves them all, as in \cref{fig:snapshots-three}. Draw the snapshots without text, so the grid can scale them, and with the same colour scale.
+
+\begin{figure}[tbp]
+    \begin{panels}[columns=3]
+        \panel[alt={The blob of dye to the right of the centre}]{Images/snapshots/snap-01.pdf}{$t = 0$}
+        \panel[alt={The blob a third of the way round, above and to the left of the centre, slightly spread}]{Images/snapshots/snap-05.pdf}{$t = 1/3$}
+        \panel[alt={The blob two thirds of the way round, below and to the left of the centre, spread further}]{Images/snapshots/snap-09.pdf}{$t = 2/3$}
+        \colorbar[alt={Colour bar of the concentration, from 0 in dark purple to 1 in yellow}]{Images/snapshots/colourbar.pdf}
+    \end{panels}
+    \caption{A blob of dye carried round by a solid-body rotation while it diffuses.}
+    \label{fig:snapshots-three}
+\end{figure}
+
+A grid that needs the whole page goes in a \texttt{figurepage}, a figure on a page of its own, as \cref{fig:snapshots} shows; the grid is then made to fit the page, with the colour bar and the caption at its foot. A second \texttt{figurepage} with the option \texttt{continued} would carry on with the same figure number and the letters (m), (n), \ldots. Plots that share their axes, such as \cref{fig:grid}, are set in the same way with the option \texttt{natural}: Python saves each plot in a file of its own, with the same plot area and the tick labels only on the outer plots (\file{Python/example_figures.py} shows how), and LaTeX lines them up at their own size and adds the axis titles, letters and labels. A table can have a page of its own as well, in a \texttt{tablepage}.
+
+\begin{figurepage}
+    \begin{panels}[columns=3]
+        \panel[alt={The blob to the right of the centre}]{Images/snapshots/snap-01.pdf}{$t = 0$}
+        \panel{Images/snapshots/snap-02.pdf}{$t = 1/12$}
+        \panel{Images/snapshots/snap-03.pdf}{$t = 2/12$}
+        \panel{Images/snapshots/snap-04.pdf}{$t = 3/12$}
+        \panel{Images/snapshots/snap-05.pdf}{$t = 4/12$}
+        \panel{Images/snapshots/snap-06.pdf}{$t = 5/12$}
+        \panel{Images/snapshots/snap-07.pdf}{$t = 6/12$}
+        \panel{Images/snapshots/snap-08.pdf}{$t = 7/12$}
+        \panel{Images/snapshots/snap-09.pdf}{$t = 8/12$}
+        \panel{Images/snapshots/snap-10.pdf}{$t = 9/12$}
+        \panel{Images/snapshots/snap-11.pdf}{$t = 10/12$}
+        \panel[alt={The blob almost back at the start, below and to the right of the centre, spread the most}]{Images/snapshots/snap-12.pdf}{$t = 11/12$}
+        \colorbar[alt={Colour bar of the concentration, from 0 in dark purple to 1 in yellow}]{Images/snapshots/colourbar.pdf}
+    \end{panels}
+    \caption[One revolution of the blob of dye]{One revolution of the blob of dye of \cref{fig:snapshots-three}, in twelve steps.}
+    \label{fig:snapshots}
+\end{figurepage}
+
+\begin{figurepage}
+    \begin{panels}[columns=2, natural, labels=inside-right, xlabel={$x$}, ylabel={$u$}]
+        \panel[alt={Velocity u against position x at t = 0.125: a sine wave, slightly steepened near x = 0}]{Images/grid/burgers-1.pdf}{$t = 0.125$}
+        \panel{Images/grid/burgers-2.pdf}{$t = 0.25$}
+        \panel{Images/grid/burgers-3.pdf}{$t = 0.375$}
+        \panel{Images/grid/burgers-4.pdf}{$t = 0.5$}
+        \panel{Images/grid/burgers-5.pdf}{$t = 0.625$}
+        \panel{Images/grid/burgers-6.pdf}{$t = 0.75$}
+        \panel{Images/grid/burgers-7.pdf}{$t = 0.875$}
+        \panel[alt={Velocity u against position x at t = 1: a jump from about 0.7 to minus 0.7 at x = 0, with straight lines on either side}]{Images/grid/burgers-8.pdf}{$t = 1$}
+    \end{panels}
+    \caption{The viscous Burgers solution at eight times, in plots with shared axes.}
+    \label{fig:grid}
+\end{figurepage}
+
+A web address that readers of the printed book should be able to follow, such as the DOI of a data set, can be given as a QR code with \verb|\qrlink|, which is a link in the digital edition as well:
+\begin{center}
+    \qrlink[12mm]{https://doi.org/10.4121/00000000}
+\end{center}
+
+\lipsum[3-5]

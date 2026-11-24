@@ -7,6 +7,10 @@ Produces, in Images/:
     example_residual.pdf   half width   Picard residuals (illustrative)
     example_energy.pdf     half width   kinetic energy of the Burgers solution
     example_plot.pdf       full width   lift curves (illustrative data)
+    snapshots/snap-01.pdf  ...  snap-12.pdf, colourbar.pdf:  a blob of dye carried round by a
+                                        rotation, for a grid of panels (panels environment)
+    grid/burgers-1.pdf ... burgers-8.pdf:  the Burgers solution at eight times, plots with shared
+                                        axes, one file each (panels environment, option natural)
 
 Run from the repository root:  python Python/example_figures.py [--maths auto|mathtime|newtx]
 The text in the figures is set in the thesis's fonts (thesis_fonts.py): Times, with MathTime maths if
@@ -170,3 +174,120 @@ ax.set_xlim(-4, 20)
 ax.set_ylim(-0.5, 2.2)
 ax.legend(loc="upper left")  # the empty corner: the curves start low
 save(fig, "example_plot.pdf")
+
+# --- Snapshots for a grid of panels (panels environment): a blob of dye carried round by a solid-body
+# rotation while it diffuses (an exact solution), one file per snapshot, without text, so the grid may
+# scale them; and the colour bar as a file of its own, at its printed size.
+SNAP_MM = 30.0                                   # drawn at about the size of a panel; scaled in the grid
+n_snap, kappa = 12, 2e-3
+xs = np.linspace(-1, 1, 161)
+Xs, Ys = np.meshgrid(xs, xs)
+snap_dir = OUT / "snapshots"
+snap_dir.mkdir(exist_ok=True)
+for k in range(n_snap):
+    t = k / n_snap                               # one revolution in t = 1
+    angle = 2 * np.pi * t
+    x0, y0 = 0.5 * np.cos(angle), 0.5 * np.sin(angle)
+    s2 = 0.15 ** 2 + 2 * kappa * t * 8
+    c = 0.15 ** 2 / s2 * np.exp(-((Xs - x0) ** 2 + (Ys - y0) ** 2) / (2 * s2))
+    fig = plt.figure(figsize=(SNAP_MM * MM, SNAP_MM * MM))
+    fig.set_layout_engine("none")
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.imshow(c, extent=(-1, 1, -1, 1), origin="lower", cmap="viridis", vmin=0, vmax=1,
+              interpolation="none")
+    ax.plot(0, 0, "+", color="w", markersize=4, markeredgewidth=0.6)   # the centre of rotation
+    ax.set_aspect("equal")
+    ax.set_axis_off()
+    save(fig, f"snapshots/snap-{k + 1:02d}.pdf")
+fig = plt.figure(figsize=(60 * MM, 13 * MM))
+fig.set_layout_engine("none")
+cax = fig.add_axes([0.08, 0.72, 0.84, 0.16])
+mappable = plt.cm.ScalarMappable(norm=plt.Normalize(0, 1), cmap="viridis")
+fig.colorbar(mappable, cax=cax, orientation="horizontal", ticks=[0, 0.5, 1])
+cax.set_xlabel(r"concentration $c/c_0$", labelpad=1)
+save(fig, "snapshots/colourbar.pdf")
+
+
+# --- A grid of plots with shared axes, as panels -------------------------------------------------------
+# For the panels environment with the option natural: every plot in a file of its own, all with the same
+# plot area, so LaTeX can line them up and letter them; only the plots of the left column carry the
+# y tick labels and those of the bottom row the x tick labels. The axis titles, letters and labels are
+# set by LaTeX (xlabel=, ylabel= and the labels of \panel), so they are not drawn here.
+#   \begin{panels}[columns=2, natural, labels=inside, xlabel={$x$}, ylabel={$u$}]
+#       \panel{Images/grid/burgers-1.pdf}{$t = 0.125$}  ...
+#   \end{panels}
+PAD_MM = 2.0      # the margin round every plot area in the files (the panels option pad, 2 mm by default)
+LEFT_MM = 6.0     # an estimate of the y tick labels' width, to size the plots (save_panels measures it)
+
+
+def panel_grid(nrows, ncols, width_mm=FULL_MM - 6.0, aspect=1.6, gap_mm=2.0):
+    """nrows x ncols plots with shared axes, sized so that the files of save_panels, set side by side
+    with gap_mm between them (the panels default), are width_mm wide together. The 6 mm less than the
+    text width leave room for the y axis title that LaTeX sets beside the grid."""
+    pw = (width_mm - LEFT_MM - 2 * PAD_MM * ncols - gap_mm * (ncols - 1)) / ncols
+    ph = pw / aspect
+    space = 20.0                                 # the plots far apart: each file holds one plot only
+    W = LEFT_MM + ncols * (pw + space)
+    H = 6.0 + nrows * (ph + space)
+    fig = plt.figure(figsize=(W * MM, H * MM))
+    fig.set_layout_engine("none")
+    axes = np.empty((nrows, ncols), dtype=object)
+    for r in range(nrows):
+        for c in range(ncols):
+            x0 = LEFT_MM + space / 2 + c * (pw + space)
+            y0 = 6.0 + space / 2 + (nrows - 1 - r) * (ph + space)
+            ax = fig.add_axes([x0 / W, y0 / H, pw / W, ph / H],
+                              sharex=axes[0, 0] if (r or c) else None, sharey=axes[0, 0] if (r or c) else None)
+            ax.tick_params(labelbottom=(r == nrows - 1), labelleft=(c == 0))
+            axes[r, c] = ax
+    return fig, axes
+
+
+def save_panels(fig, axes, stem):
+    """Saves every plot of panel_grid in a file of its own: stem-1.pdf, stem-2.pdf, ... row by row.
+    Each file is the plot area with PAD_MM round it; the files of the left column are wider by the width
+    of the y tick labels, those of the bottom row higher by the height of the x tick labels, measured
+    here (the widest and highest of each), so all files of a column, and of a row, are the same size.
+    LaTeX finds those extra sizes from the file sizes."""
+    from matplotlib.transforms import Bbox
+    nrows, ncols = axes.shape
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    inch = fig.dpi_scale_trans.inverted()
+    plot = {ax: ax.get_position().transformed(fig.transFigure).transformed(inch) for ax in axes.flat}
+    tight = {ax: ax.get_tightbbox(renderer).transformed(inch) for ax in axes.flat}
+    pad = PAD_MM * MM
+    # everything that sticks out of a plot area (ticks, a tick label at its edge) must fit in the pad,
+    # except the tick labels on the left of the left column and under the bottom row
+    for (r, c), ax in np.ndenumerate(axes):
+        out = [tight[ax].x1 - plot[ax].x1, tight[ax].y1 - plot[ax].y1]
+        if c:
+            out.append(plot[ax].x0 - tight[ax].x0)
+        if r < nrows - 1:
+            out.append(plot[ax].y0 - tight[ax].y0)
+        if max(out) > pad:
+            raise ValueError(f"plot {r + 1},{c + 1} sticks out {max(out) / MM:.1f} mm: make PAD_MM larger")
+    left = max(plot[ax].x0 - tight[ax].x0 for ax in axes[:, 0]) - pad + 0.3 * MM
+    bottom = max(plot[ax].y0 - tight[ax].y0 for ax in axes[-1, :]) - pad + 0.3 * MM
+    for k, ((r, c), ax) in enumerate(np.ndenumerate(axes), start=1):
+        for other in axes.flat:
+            other.set_visible(other is ax)
+        b = plot[ax]
+        box = Bbox([[b.x0 - pad - left * (c == 0), b.y0 - pad - bottom * (r == nrows - 1)],
+                    [b.x1 + pad, b.y1 + pad]])
+        thesis_fonts.save(fig, OUT / f"{stem}-{k}.pdf", bbox_inches=box)
+        print(f"saved {OUT / stem}-{k}.pdf")
+    for ax in axes.flat:
+        ax.set_visible(True)
+    plt.close(fig)
+
+
+(OUT / "grid").mkdir(exist_ok=True)
+fig, axes = panel_grid(4, 2)
+for ax, t in zip(axes.flat, np.linspace(0.125, 1.0, 8)):
+    ax.plot(x, burgers(x, t))
+    ax.set_xlim(-1, 1)
+    ax.set_ylim(-1.15, 1.15)
+    ax.set_xticks([-1, 0, 1])
+    ax.set_yticks([-1, 0, 1])
+save_panels(fig, axes, "grid/burgers")

@@ -51,20 +51,26 @@
 %% Sideways floats (sidewaystable, sidewaysfigure) for material too wide for the page: a page of
 %% their own, turned so that the top of the table is at the left edge on left and right pages alike
 %% (the book convention: the reader always turns the book clockwise, and a table continued over a
-%% spread reads as one page). The text keeps flowing around it.
-\usepackage[figuresright]{rotating} % https://ctan.org/pkg/rotating
-%% Report (screen) version: those pages are shown turned upright in PDF viewers. A
-%% marker inside the float sets /Rotate on the page it lands on; the next page resets it. Not in the
-%% print editions; for the printer, a rotated page can confuse the printer's imposition software.
+%% spread reads as one page). The text keeps flowing around it. With the class option
+%% sidewaysalternate, the top is towards the spine instead, so the direction alternates.
+\makeatletter
+\ifthesis@sidewaysalt\usepackage{rotating}\else\usepackage[figuresright]{rotating}\fi % https://ctan.org/pkg/rotating
+%% Digital edition: those pages are shown turned upright in PDF viewers. A marker inside the float sets
+%% /Rotate on the page it lands on (90, or 270 for a float turned the other way); the next page resets
+%% it. Not in the print editions: for the printer, a rotated page can confuse the imposition software.
+\let\thesisrotatepage\relax
 \ifprintversion\else
     \protected\def\thesisrotatepage{\latelua{
         thesis_pageattr = pdf.getpageattributes() or ""
-        pdf.setpageattributes(thesis_pageattr .. " /Rotate 90")}}
+        local odd = math.fmod(tex.count["c@page"], 2) == 1
+        local turn = (\ifthesis@sidewaysalt true\else false\fi\space and not odd) and 270 or 90
+        pdf.setpageattributes(thesis_pageattr .. " /Rotate " .. turn)}}
     \AddToHook{env/sidewaystable/end}{\thesisrotatepage}
     \AddToHook{env/sidewaysfigure/end}{\thesisrotatepage}
     \AddToHook{shipout/before}{\directlua{
         if thesis_pageattr then pdf.setpageattributes(thesis_pageattr); thesis_pageattr = nil end}}
 \fi
+\makeatother
 \usetikzlibrary{positioning,arrows.meta} % TikZ itself is loaded by the class (thumb tabs)
 
 %% Text and code
@@ -203,6 +209,9 @@
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
 
+%% Key points, contributions (C1, C2, ...), wide figures and tables, QR links: see environments.tex
+\input{_options/environments}
+
 %% =====================================================================
 %% Optional packages: uncomment when needed (load them above cleveref if they define new
 %% numbered things, otherwise anywhere above is fine).
@@ -220,5 +229,5 @@
 % \usepackage{pgfplotstable}    % https://ctan.org/pkg/pgfplotstable %% tables from data files: \pgfplotstabletypeset{data.csv}
 % \usepackage{csvsimple}        % https://ctan.org/pkg/csvsimple %% simple tables from CSV files: \csvautobooktabular{data.csv}
 %% Not usable in a tagged PDF (they break the tagging or the MathML), so left out: wrapfig, arydshln,
-%% tabularray, chemformula, tensor, qrcode, threeparttable (use tablenotes above), and nicematrix's
+%% tabularray, chemformula, tensor, threeparttable (qrcode only through \qrlink, environments.tex) (use tablenotes above), and nicematrix's
 %% NiceArray and NiceTabular (its matrix environments are fine: see nicematrix.tex).

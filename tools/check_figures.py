@@ -25,6 +25,7 @@ the text sizes and fonts of PDF figures need pikepdf (pip install -r requirement
 from __future__ import annotations
 
 import math
+import subprocess
 import re
 import struct
 import sys
@@ -102,7 +103,18 @@ def text_sizes(path: Path):
             # (TeX sets an exponent as a piece of its own)
             sizes += [abs(size) * math.sqrt(abs(m[0] * m[3] - m[1] * m[2]))] * max(1, glyph_count(font, data))
             missing += notdef_count(font, data)
+    if sizes and not visible_text(path):
+        sizes, fonts = [], set()             # only invisible glyphs (matplotlib's PGF output has one)
     return sizes, fonts, missing
+
+
+def visible_text(path: Path) -> bool:
+    """Whether the figure has any text a reader sees (pdftotext, from poppler; True without it)."""
+    try:
+        out = subprocess.run(["pdftotext", "-l", "1", str(path), "-"], capture_output=True, text=True).stdout
+    except OSError:
+        return True
+    return bool(out.strip())
 
 
 def raster_pixels(path: Path):
@@ -141,9 +153,7 @@ def main(argv=None) -> int:
             continue                                     # logos are sized on purpose
         notes, scale = [], pw / nw if nw else 1
         suffix = path.suffix.lower()
-        if abs(scale - 1) > SCALE_TOL and suffix not in (".png", ".jpg", ".jpeg"):
-            notes.append(f"printed at {scale:.0%} of its size: the text in it is scaled too. Make it "
-                         f"{mm(min(pw, textwidth))} wide and include it without width=/scale=")
+        scaled = abs(scale - 1) > SCALE_TOL and suffix not in (".png", ".jpg", ".jpeg")
         if pw > textwidth + 1:
             notes.append(f"{mm(pw)} wide, wider than the text ({mm(textwidth)}): it sticks into the margin")
         if suffix == ".pdf" and path.exists():
@@ -156,6 +166,9 @@ def main(argv=None) -> int:
                     sizes, fonts, nmissing = [], set(), 0
                     notes.append(f"could not read the PDF ({e.__class__.__name__})")
                 printed = [s * scale for s in sizes]
+                if scaled and sizes:                     # (a picture without text may be scaled)
+                    notes.append(f"printed at {scale:.0%} of its size: the text in it is scaled too. Make it "
+                                 f"{mm(min(pw, textwidth))} wide and include it without width=/scale=")
                 if printed:
                     lo, hi = min(printed), max(printed)
                     notes_text = f"text {lo:.1f}" + (f"-{hi:.1f}" if hi - lo > 0.05 else "") + " pt"

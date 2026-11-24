@@ -89,7 +89,8 @@ def setup(maths="auto"):
     mpl.rcParams.update({
         "pgf.texsystem": "lualatex",
         "pgf.rcfonts": False,            # the fonts come from the preamble
-        "pgf.preamble": preamble,
+        # images (imshow, rasterised plots) without smoothing: matplotlib asks for it, but PDF/A forbids it
+        "pgf.preamble": preamble + r"\makeatletter\define@key{Gin}{interpolate}[true]{}\makeatother",
         "text.usetex": False,
         "font.family": "serif",
     })
