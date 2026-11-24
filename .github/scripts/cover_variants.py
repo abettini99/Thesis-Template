@@ -15,7 +15,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / ".github" / "readme" / "cover-variants.png"
@@ -107,6 +107,18 @@ def font(bold, size):
     return ImageFont.load_default()
 
 
+def save_if_changed(img):
+    """Save the image, unless the file already shows the same pixels: PNG files written by another
+    Pillow version differ in their bytes, and the workflow would otherwise commit an unchanged image."""
+    if OUT.exists():
+        old = Image.open(OUT).convert("RGB")
+        if old.size == img.size and ImageChops.difference(old, img.convert("RGB")).getbbox() is None:
+            print(f"{OUT.relative_to(ROOT)}: unchanged")
+            return
+    img.save(OUT, optimize=True)
+    print(f"saved {OUT.relative_to(ROOT)} ({img.width} × {img.height} px)")
+
+
 def main():
     covers, failed = [], []
     defaults = default_colours()
@@ -163,10 +175,7 @@ def main():
             draw.text((sx + sw + round(1.5 * px), sy - round(0.6 * px)), text, font=f_text, fill=GREY)
             sx += sw + round(1.5 * px) + draw.textlength(text, font=f_text) + round(5 * px)
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    sheet.quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(
-        OUT, optimize=True
-    )
-    print(f"saved {OUT.relative_to(ROOT)} ({width} × {height} px)")
+    save_if_changed(sheet.quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE))
     if failed:
         print("check_print found errors in: " + ", ".join(failed))
         return 1

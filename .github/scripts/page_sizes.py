@@ -16,7 +16,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / ".github" / "readme" / "page-sizes.png"
@@ -107,6 +107,18 @@ def nice(x):
     return f"{round(2 * x) / 2:.1f}".rstrip("0").rstrip(".")
 
 
+def save_if_changed(img):
+    """Save the image, unless the file already shows the same pixels: PNG files written by another
+    Pillow version differ in their bytes, and the workflow would otherwise commit an unchanged image."""
+    if OUT.exists():
+        old = Image.open(OUT).convert("RGB")
+        if old.size == img.size and ImageChops.difference(old, img.convert("RGB")).getbbox() is None:
+            print(f"{OUT.relative_to(ROOT)}: unchanged")
+            return
+    img.save(OUT, optimize=True)
+    print(f"saved {OUT.relative_to(ROOT)} ({img.width} × {img.height} px)")
+
+
 def main():
     MM = 72.27 / 25.4  # TeX points per mm
     panels = []
@@ -171,10 +183,7 @@ def main():
         x += img.width + GAP_MM * px
     OUT.parent.mkdir(parents=True, exist_ok=True)
     # 256 colours are plenty for grey pages, and keep the file (and the repository history) small
-    sheet.quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(
-        OUT, optimize=True
-    )
-    print(f"saved {OUT.relative_to(ROOT)} ({width} × {height} px)")
+    save_if_changed(sheet.quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE))
 
 
 if __name__ == "__main__":
