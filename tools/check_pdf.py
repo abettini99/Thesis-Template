@@ -9,7 +9,7 @@ It reports what a print shop or the TU Delft repository may reject. For the prin
 edition (PDF/X, for the printer) it runs tools/check_print.py instead of the archival checks.
 
   archival PDF  PDF/A-4f, with veraPDF (https://verapdf.org) when it is installed and
-                the template's own basic checks otherwise; with veraPDF also PDF/UA-2
+                the template's own basic checks otherwise; with veraPDF also PDF/UA-2 and WTPDF 1.0 (Accessibility, Reuse)
                 (accessibility) when the PDF declares it (tagging on in main.tex)
   fonts         every font embedded, no bitmap (Type 3) fonts, every font mapped to
                 Unicode (so text can be searched and copied); figure files with
@@ -50,7 +50,7 @@ PDFA_NAME = f"PDF/A-{PDFA[0]}{PDFA[1].lower()}"
 
 
 def check_pdfa(pdf: Path, r: Report) -> None:
-    r.section(f"Archival and accessible PDF ({PDFA_NAME}, PDF/UA-2)")
+    r.section(f"Archival and accessible PDF ({PDFA_NAME}, PDF/UA-2, WTPDF 1.0)")
     verapdf = shutil.which("verapdf")
     if verapdf:  # veraPDF checks every standard the PDF declares, one line each
         out = run(verapdf, "--format", "text", "--verbose", str(pdf))
@@ -60,10 +60,15 @@ def check_pdfa(pdf: Path, r: Report) -> None:
         rules = [l.strip() for l in out.splitlines() if l.strip() and not re.match(r"(PASS|FAIL) ", l)][
             :40
         ] or out.strip().splitlines()[-5:]
-        named = {"4f": PDFA_NAME, "ua2": "PDF/UA-2 (accessible: tagged, for screen readers)"}
+        named = {
+            "4f": PDFA_NAME,
+            "ua2": "PDF/UA-2 (accessible: tagged, for screen readers)",
+            "wt1a": "WTPDF 1.0 Accessibility (well-tagged, for assistive technology)",
+            "wt1r": "WTPDF 1.0 Reuse (well-tagged, for reusing the content)",
+        }
         for flavour, name in named.items():
             if flavour not in verdicts and flavour != "4f":
-                continue  # (PDF/UA only when main.tex switches tagging on)
+                continue  # (PDF/UA and WTPDF only when the final version is tagged)
             if verdicts.get(flavour) == "PASS":
                 r.ok(f"veraPDF: {name} compliant")
             else:
