@@ -2,9 +2,9 @@
 %% The headings are LaTeX's own heading templates (what its tagging code needs to mark them as headings
 %% in the PDF): the instances below set their layout.
 
-%% Numbering: chapters, sections and subsections (subsubsections are unnumbered). Section numbers
-%% follow the Dutch/German convention with a trailing dot ("2.1.") in headings, the contents and
-%% running heads, but not in cross-references, so \cref gives "Section 2.1" rather than "Section 2.1.".
+%% Numbering: chapters, sections and subsections (subsubsections are unnumbered). Section numbers have
+%% no full stop after them ("2.1 Text"), as ISO 2145 and the British and American style guides set them,
+%% in headings, the contents and the running heads alike.
 \setcounter{secnumdepth}{2}
 
 %% LaTeX renamed some keys of its heading templates in its release of November 2026: the instances below
@@ -104,8 +104,16 @@
 \DeclareRobustCommand{\precistoctext}[1]{{\nopagebreak\leftskip\cftchapindent\relax
     \advance\leftskip\cftchapnumwidth\relax \rightskip\@tocrmarg\relax
     \noindent\normalfont\itshape #1\par}}
-%% Chapter abstract: a short summary in italics on the chapter's opening page (inside \chapterprecishere).
-\newenvironment{chapterabstract}{\par\setlength{\parindent}{0pt}\rmfamily\itshape}{\par}
+%% Chapter abstract: a short summary on the chapter's opening page (inside \chapterprecishere), set apart
+%% from the text as a block of the epigraphs' width, flush right like the title and the epigraphs, one size
+%% smaller, under a small label in the letterspaced capitals of "CHAPTER 1"; upright, as a paragraph or more
+%% in italics is harder to read. The label: \chapterabstractname.
+\newcommand{\chapterabstractname}{Abstract}
+\newenvironment{chapterabstract}
+    {\par\small\rmfamily\upshape\setlength{\parindent}{0pt}%
+     \setlength{\leftskip}{\dimexpr\linewidth-\epigraphwidth\relax}%
+     {\runningheadcaps\MakeUppercase{\chapterabstractname}}\par\nobreak\vskip0.4\baselineskip}
+    {\par}
 
 %%% SECTION HEADINGS
 %% Heading levels differ by size and space, never by extra boldness:
@@ -123,13 +131,13 @@
     , before-vspace = 1.5\onelineskip plus 0.5\onelineskip minus 0.2\onelineskip
     , after-vspace  = 0.5\onelineskip - \parskip
     , heading-decls = \thesis@secsize\bfseries\headingfont
-    , number-format = \thesis@numprotrude{\thesection}\thesection.
+    , number-format = \thesis@numprotrude{\thesection}\thesection
 }
 \EditInstance{heading}{subsection}{
     , before-vspace = 1\onelineskip plus 0.3\onelineskip minus 0.1\onelineskip
     , after-vspace  = 0.25\onelineskip - \parskip
     , heading-decls = \bfseries\headingfont
-    , number-format = \thesis@numprotrude{\thesubsection}\thesubsection.
+    , number-format = \thesis@numprotrude{\thesubsection}\thesubsection
 }
 \EditInstance{heading}{subsubsection}{
     , before-vspace = 0.5\onelineskip plus 0.2\onelineskip minus 0.1\onelineskip
@@ -215,8 +223,6 @@
 \renewcommand{\cftdot}{}
 \renewcommand{\cftchapfont}{\headingfont\bfseries}
 \renewcommand{\cftchappagefont}{\normalfont}
-\renewcommand{\cftsecaftersnum}{.}
-\renewcommand{\cftsubsecaftersnum}{.}
 \setlength{\cftfigindent}{0pt} \setlength{\cfttabindent}{0pt}
 \newcommand{\tocfrontmatter}{%
     \setlength{\cftbeforechapskip}{0pt plus 1pt}%

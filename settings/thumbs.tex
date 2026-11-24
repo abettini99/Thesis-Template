@@ -1,8 +1,10 @@
 %% =====================================================================
 %% Thumb tabs: a tab with the chapter number on the outer page edge, so the chapters can be found by
-%% flipping through the closed book (the drawing is in template/thumb.tex). In every edition.
+%% flipping through the closed book (the drawing is in template/thumb.tex).
 %% =====================================================================
-\thesisthumbstrue       % \thesisthumbsfalse for none
+\thesisthumbstrue           % \thesisthumbsfalse for none at all
+\thesisthumbsdigitaltrue    % also in the digital edition (on screen they mark the chapters at the page edge,
+                            % as in the printed book); \thesisthumbsdigitalfalse for the print editions only
 
 %% The tab and its number: light grey with a black number by default; for the darker look, anthracite
 %% (or tudelft-black) with a white number. Any colour other than grey makes every page with a tab a

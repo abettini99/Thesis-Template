@@ -16,8 +16,9 @@
 \newlength\thumbheight      % tab height (maximum)                 (these three are set in
 \newlength\thumbedge        % padding around the number             settings/thumbs.tex)
 \newlength\thumbhspace      % how far the tab reaches into the page
-\newif\ifthesisthumbs
+\newif\ifthesisthumbs \newif\ifthesisthumbsdigital \thesisthumbsdigitaltrue
 \input{settings/thumbs}
+\ifprintversion\else\ifthesisthumbsdigital\else\thesisthumbsfalse\fi\fi % (the digital edition)
 \newlength\thumbvspace                                      % step between tab positions (computed)
 \newlength\thesis@thumbtab                                  % actual tab height (computed)
 

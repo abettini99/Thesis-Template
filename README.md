@@ -152,7 +152,7 @@ tools/         checks and converters
 | `settings/packages.tex` | The packages the thesis loads, with optional ones commented out at the bottom; the numbered statements (`\newtheorem`) and the names `\cref` gives them. |
 | `settings/commands.tex` | Your commands: maths notation (vectors, derivatives, brackets), and anything you add. |
 | `settings/colours.tex` | TU Delft colours and the link colour. |
-| `settings/thumbs.tex` | Thumb tabs: on or off, their colours and size. |
+| `settings/thumbs.tex` | Thumb tabs: on or off (in all editions, or only in the print editions), their colours and size. |
 | `settings/cover.tex`, `settings/coverdesign.tex` | The cover's texts, colours and sizes, and its drawing (also used for the cover pages of the digital edition). |
 | `chapters/` | Front matter (`00…`), chapters (`01…`, `02…`), appendices (`A_…`) and back matter (`Z_…`). `02Examples.tex` demonstrates everything the template supports (take it out of `main.tex` when you start writing, but keep the file to look things up); `03InfSup.tex` is a sample chapter on a real topic; `_newChapter.tex` is the starting point for a new chapter. |
 | `figures/` | Figures. The `example_*` files and the `grid/` and `snapshots/` folders belong to the example chapter. |
