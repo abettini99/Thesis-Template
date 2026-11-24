@@ -29,10 +29,14 @@
 %% today), 90 from bottom to top (traditional continental convention).
 \newcommand{\coverspinerotation}{-90}
 
-%% Colours: one solid colour over back, spine and front, the text, and the drawing on the front
-\definecolor{coverback}{HTML}{CFE6E6}   % pale teal
-\definecolor{covertext}{gray}{0.086}     % near-black: a grey, so it prints with black ink only
-\definecolor{covermotifcolour}{HTML}{2C6B70}
+%% Colours: one solid colour over back, spine and front, the text, the small lines and the drawing on
+%% the front. Other schemes, with their values, are shown in the README (Propositions and cover).
+\definecolor{coverback}{HTML}{CFE6E6}         % light blue-green
+\definecolor{covertext}{gray}{0.102}          % title, name, spine and back text: near-black (1A1A1A),
+                                              % a grey, so it prints with black ink only
+\definecolor{coversecondary}{HTML}{4A5A5C}    % the small lines: DOCTORAL THESIS, ABOUT THE AUTHOR, the
+                                              % spine mark (\colorlet{coversecondary}{covertext!75} to follow the text)
+\definecolor{covermotifcolour}{HTML}{2E6B72}  % the drawing: teal
 
 %% Front: the title in capitals, with your own line breaks (\\); the subtitle and a small line under the
 %% name. The title is made smaller automatically when its longest line is too wide.

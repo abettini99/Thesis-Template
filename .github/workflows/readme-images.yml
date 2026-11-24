@@ -1,18 +1,20 @@
-# Regenerates .github/readme/page-sizes.png (the page-size comparison in the README) at night, but only
-# after a day with pushes to main (commits by the bots do not count), and commits it if it looks
-# different. Run by hand, it always renders. Changes in TeX Live itself are watched by nightly.yml.
-name: Page sizes
+# Regenerates the README's images at night, but only after a day with pushes to main (commits by the
+# bots do not count), and commits them if they look different: .github/readme/page-sizes.png (the
+# page sizes compared) and .github/readme/cover-variants.png (the cover in four colour schemes, each
+# also checked with tools/check_print.py). Run by hand, it always renders. Changes in TeX Live itself
+# are watched by nightly.yml.
+name: README images
 
 on:
   schedule:
     - cron: '17 3 * * *'   # nightly, after a day with pushes; at night, so it never races a push
-  workflow_dispatch:       # run by hand: Actions tab > Page sizes > Run workflow
+  workflow_dispatch:       # run by hand: Actions tab > README images > Run workflow
 
 permissions:
-  contents: write      # to commit the image
+  contents: write      # to commit the images
 
 concurrency:
-  group: page-sizes
+  group: readme-images
   cancel-in-progress: true
 
 jobs:
@@ -23,7 +25,7 @@ jobs:
       - name: Tools
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends git python3-pil poppler-utils
+          apt-get install -y --no-install-recommends git python3-pil python3-pikepdf poppler-utils
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0   # the history, to see whether anything was pushed in the last day
@@ -44,16 +46,19 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           python3 .github/scripts/page_sizes.py
-      - name: Commit the image if it changed
+      - name: Render the cover variants
+        if: steps.pushed.outputs.run == 'true'
+        run: python3 .github/scripts/cover_variants.py
+      - name: Commit the images if they changed
         if: steps.pushed.outputs.run == 'true'
         run: |
-          if git diff --quiet -- .github/readme/page-sizes.png; then
-            echo "Image unchanged."
+          git add .github/readme/page-sizes.png .github/readme/cover-variants.png
+          if git diff --cached --quiet; then
+            echo "Images unchanged."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/readme/page-sizes.png
-          git commit -m "Update the page-size comparison"
+          git commit -m "Update the README images"
           git pull --rebase origin main
           git push origin HEAD:main

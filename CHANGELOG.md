@@ -2,6 +2,13 @@
 
 Versions follow [semantic versioning](https://semver.org): a change in the last number (1.0.1) only fixes things, in the middle number (1.1.0) adds something without changing what you have, and in the first number (2.0.0) asks you to change something in your thesis when you update; the entry says what.
 
+## Unreleased
+
+- **Cover:** a fourth colour, `coversecondary`, for the small lines (*Doctoral thesis · TU Delft*, *About the author*, the spine mark); before, they followed the text colour. Fixed: with a light text colour on a dark cover, the front title stayed black. If your `settings/cover.tex` is older, add `\colorlet{coversecondary}{covertext!75}` to it.
+- **README:** the cover in four colour schemes, with their values, under *Propositions and cover*.
+- **Continuous integration:** the README images workflow (formerly *Page sizes*) also renders the cover variants and checks each for print. A new *Lint* workflow checks the Python scripts with Ruff on every push.
+- **Python scripts:** `tools/mtpro2_otf.py` and `tools/ntxmath_otf.py` run on Python 3.10 and 3.11 again (they used syntax new in 3.12). All scripts reformatted with Ruff; what they produce is unchanged.
+
 ## 1.0.0 (24 November 2026)
 
 First release of the TU Delft PhD thesis template, for **LuaLaTeX on TeX Live 2026** (Overleaf included).

@@ -159,9 +159,10 @@ Make plots in Python with the style file `figures/plots/thesis.mplstyle` (see `f
 
 ```python
 import matplotlib.pyplot as plt
-import thesis_fonts                       # figures/plots/thesis_fonts.py
+import thesis_fonts  # figures/plots/thesis_fonts.py
+
 plt.style.use("figures/plots/thesis.mplstyle")
-thesis_fonts.setup()                      # figure text in the thesis's own fonts
+thesis_fonts.setup()  # figure text in the thesis's own fonts
 ...
 thesis_fonts.save(fig, "figures/my_figure.pdf")
 ```
@@ -325,6 +326,19 @@ Both are separate documents that use the fonts and the details in `settings/thes
 - **`propositions.tex`** prints the propositions in the thesis page size, in English with an optional Dutch page (`\dutchversionfalse` for English only), ending with the approval sentence naming the promotors (`\thesispromotors` in `settings/thesisinfo.tex`). Check the Doctorate Regulations for how many propositions are required and what kind.
 - **`cover.tex`** lays out back, spine and front on one sheet with bleed. Its settings are in **`settings/cover.tex`**, and the drawing in `settings/coverdesign.tex`; the digital edition of the thesis uses the same design for its first page (the front cover, then a blank inside cover) and its last page (the back cover, on a left-hand page after a blank inside back cover). The page numbers stay the same; the viewer labels these pages Cover and Back cover and shows the pages side by side, cover on its own. Set the page size, the number of pages of the final thesis PDF and the paper thickness in `settings/cover.tex`; it calculates the spine width (shown on the sheet and in the log), or takes the width the printer gives you. Text goes on the spine only when it is at least 6 mm wide. The design is one solid colour over the whole sheet with the title in [Josefin Sans](https://fonts.google.com/specimen/Josefin+Sans) (SIL Open Font License, included as a variable font in `template/fonts/josefin`; light 350 and bold 500): on the front a short lead-in line above the large title (`\coverleadin`, `\covertitle`, with your own line breaks; made smaller automatically when too wide), an optional subtitle, a drawing in the middle (`\covermotif`: TikZ code or an image; a patch of a triangular mesh by default), the name and a small line under it; on the spine the surname at the top, the title in the same two weights in the middle and a small mark at the foot (text, or a logo with `\coverspinelogo`); on the back the summary in the book's serif at 10.5 on 13.5 pt, a small ABOUT THE AUTHOR heading and the biography (`\coversummary`, `\coverbio`), and space for the ISBN barcode. Colours, texts and sizes are set in `settings/cover.tex`. The red and blue guides show the trim, the spine folds and the safe area; turn them off with `\coverguidesfalse` before sending the file. Ask the printer for the paper thickness and the bleed they want, and check the result against their cover template if they have one.
 
+![The cover in four colour schemes: the template's light blue-green with teal, oxblood with blush, sand with terracotta, and black with muted sand](.github/readme/cover-variants.png)
+
+*The cover in four colour schemes, with the template's texts ([`.github/scripts/cover_variants.py`](.github/scripts/cover_variants.py); regenerated with the page-size image).* To use a scheme, set its four colours in `settings/cover.tex`:
+
+| Scheme | `coverback` | `covertext` | `coversecondary` | `covermotifcolour` |
+|---|---|---|---|---|
+| Light blue-green + teal (default) | `CFE6E6` | `1A1A1A` (as a grey) | `4A5A5C` | `2E6B72` |
+| Oxblood + blush | `5A1F2B` | `F5EEE8` | `D2B4B0` | `E6B8A8` |
+| Sand + terracotta | `EFE6D2` | `1A1A1A` (as a grey) | `5E5248` | `A0522D` |
+| Black + muted sand | `1A1C22` | `F2F0E8` | `A8A296` | `CDB98F` |
+
+`covertext` is the title, name, spine and back text; `coversecondary` the small lines (*Doctoral thesis · TU Delft*, *About the author*, the spine mark). Near-black is set as a grey, `\definecolor{covertext}{gray}{0.102}`, so it prints with black ink only. These are screen colours: the printer converts them to its inks, so ask for a printed proof of the cover.
+
 </details>
 
 <details>
@@ -345,7 +359,7 @@ This repository is synced with Overleaf (*Menu → GitHub*).
 
 **Every push builds the thesis** (`.github/workflows/build.yml`) on the latest TeX Live: the printer and digital editions as the final version (`printer.pdf`, `digital.pdf`, with the other options as `main.tex` sets them), `main.tex` as it is, the propositions and the cover, and checks them: `tools/check_pdf.py` (with [veraPDF](https://verapdf.org) for a full PDF/A-4f and PDF/UA-2 validation of the digital edition, `tools/check_print.py` for the PDF/X edition) and `tools/check_figures.py`. A red cross in the *Actions* tab means a PDF has something to fix; the run's *Artifacts* hold the PDFs, their logs and the veraPDF report for 30 days. **Push a tag** (`git tag draft-2026-10 && git push origin draft-2026-10`) and the digital edition is published as a release, a fixed link for your supervisors (in a private repository, only people with access can open it). These builds use newtx for the maths, as the MathTime fonts are never on GitHub.
 
-Every night, a second workflow (`.github/workflows/page-sizes.yml`) compiles the template in all four page sizes on the latest TeX Live and updates the page-size image above; a failed run in the *Actions* tab means the template no longer compiles. When the image changed it adds a commit, so pull in Overleaf now and then.
+After a day with pushes, a second workflow (`.github/workflows/readme-images.yml`) compiles the template in all four page sizes and the cover in four colour schemes on the latest TeX Live, checks the covers for print, and updates the two images in this README; a failed run in the *Actions* tab means something no longer compiles. When an image changed it adds a commit, so pull in Overleaf now and then. Every push also checks the Python scripts with Ruff (`.github/workflows/lint.yml`): run `ruff check` and `ruff format` before you push changes to them.
 
 - Before editing elsewhere (locally, or with Claude), **push** from Overleaf so the repository has your latest version.
 - After changes were committed to the repository, **pull** in Overleaf to bring them in.

@@ -25,7 +25,7 @@
     \setlength{\parindent}{0pt}%
     \fontsize{10.5}{13.5}\selectfont
     #1\par\bigskip
-    {\coverfont\fontsize{8}{10}\selectfont\covertrack{20}ABOUT THE AUTHOR}\par\smallskip
+    {\color{coversecondary}\coverfont\fontsize{8}{10}\selectfont\covertrack{20}ABOUT THE AUTHOR}\par\smallskip
     #2}
 
 \newsavebox{\covertitlebox}
@@ -47,7 +47,8 @@
     \cs_gset:Npe \coverspinetitle { \exp_not:V \g_tmpb_tl }
     \cs_gset:Npe \coverspineleadin { \text_uppercase:n { \coverleadin } }
     \cs_if_exist:NT \tag_suspend:n { \tag_suspend:n { cover } } % (a box for a picture: not tagged in a tagged PDF)
-    \sbox{\covertitlebox}{\coverfont\bfseries\covertrack{-8}\fontsize{56}{54}\selectfont
+    %% the box is made before the title node, so it takes its colour here, not from the node
+    \sbox{\covertitlebox}{\color{covertext}\coverfont\bfseries\covertrack{-8}\fontsize{56}{54}\selectfont
         \begin{tabular}{@{}c@{}}\g_tmpa_tl\end{tabular}}
     \cs_if_exist:NT \tag_resume:n { \tag_resume:n { cover } }
   }
@@ -77,7 +78,7 @@
     \node[anchor=south, align=center, text width=\covertextwidth mm, text=covertext, inner sep=0,
           font={\coverfont\covertrack{-6}\fontsize{24}{28}\selectfont}]
         at (\frontcentre, \coverbottom + 24) {\thesisauthorfirstnames\ \thesisauthorlastname};
-    \node[anchor=south, text=covertext!75, inner sep=0, font={\coverfont\covertrack{20}\fontsize{6.5}{8}\selectfont}]
+    \node[anchor=south, text=coversecondary, inner sep=0, font={\coverfont\covertrack{20}\fontsize{6.5}{8}\selectfont}]
         at (\frontcentre, \coverbottom + 14) {\MakeUppercase{\coversmallprint}};
 }
 

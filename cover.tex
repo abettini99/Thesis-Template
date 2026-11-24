@@ -96,7 +96,7 @@
             \node[anchor=center] at (\spinex, \coverbottom + 0.5*\coverpageheight)
                 {\spinetitlebox{\spinetitlefont}}; % a long title is made smaller, to 65 % of the height
             \if\relax\detokenize\expandafter{\coverspinelogo}\relax
-                \node[anchor=\spineend] at (\spinex, \coverbottom + \coversafe + 8)
+                \node[anchor=\spineend, text=coversecondary] at (\spinex, \coverbottom + \coversafe + 8)
                     {\coverfont\covertrack{20}\fontsize{\spinemarkfont}{\spinefont}\selectfont \MakeUppercase{\coverspinemark}};
             \else
                 \pgfmathsetmacro{\spinelogoheight}{min(\coverspinelogoheight, 0.6*\coverspine)}
