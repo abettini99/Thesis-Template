@@ -109,7 +109,10 @@
         \str_if_eq:eeTF { \__thesis_nom_get:nn {#1} { type } } { acronyms }
           {
             \bool_if:cTF { g__thesis_nom_#1_used_bool }
-              { \__thesis_nom_link:nn {#1} { \__thesis_nom_short:nn {#1} {#3} } }
+              {
+                \thesisexpansion { \__thesis_nom_long:nnn {#1} { \c_false_bool } {#3} } % (for screen readers)
+                  { \__thesis_nom_link:nn {#1} { \__thesis_nom_short:nn {#1} {#3} } }
+              }
               {
                 \bool_gset_true:c { g__thesis_nom_#1_used_bool }
                 \__thesis_nom_link:nn {#1}

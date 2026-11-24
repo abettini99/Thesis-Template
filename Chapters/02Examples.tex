@@ -423,6 +423,7 @@ A cell can span several rows with \verb|\multirow|, a header can break over two 
     \centering
     \caption[Wind-tunnel test matrix]{Wind-tunnel test matrix (illustrative).}
     \label{tab:testmatrix}
+    \tagpdfsetup{table/header-columns=1} % the configuration heads its rows as well (for screen readers)
     \begin{tabular}{@{}l l S[table-format=2.0] S[table-format=1.1]@{}}
         \toprule
         Configuration & Propeller & {\makecell{Speed\\(\unit{\metre\per\second})}} & {\makecell{Thrust\\coefficient}} \\
@@ -536,6 +537,7 @@ Material that is too wide for the page, such as \cref{tab:sideways}, goes in a \
 
 \begin{sidewaystable}
     \centering
+    \tagpdfsetup{table/header-rows={1,2}} % a header of two rows (for screen readers)
     \caption[A wide table set sideways]{A wide table set sideways.}
     \label{tab:sideways}
     \begin{tabular}{@{}l *{9}{S[table-format=1.3]}@{}}

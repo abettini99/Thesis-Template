@@ -21,16 +21,17 @@
 \AtBeginDocument{\renewcommand{\div}{\nabla\cdot}} % divergence
 \newcommand{\curl}{\nabla\times}               % curl
 
-%% Dimensionless numbers of fluid mechanics and heat transfer
-\AtBeginDocument{\renewcommand{\Pr}{\mathrm{Pr}}} % Prandtl number
-\AtBeginDocument{\renewcommand{\Re}{\mathrm{Re}}} % Reynolds number
-\newcommand{\Fr}{\mathrm{Fr}}                   % Froude number
-\newcommand{\Eu}{\mathrm{Eu}}                   % Euler number
-\newcommand{\St}{\mathrm{St}}                   % Strouhal number
-\newcommand{\Gr}{\mathrm{Gr}}                   % Grashof number
-\newcommand{\Ma}{\mathrm{Ma}}                   % Mach number
-\newcommand{\Pe}{\mathrm{Pe}}                   % Péclet number
-\newcommand{\Tu}{\mathrm{Tu}}                   % Turbulence level
+%% Dimensionless numbers of fluid mechanics and heat transfer (\mathword: upright, and read as one word,
+%% "Re", by screen readers; accessibility.tex)
+\AtBeginDocument{\renewcommand{\Pr}{\mathword{Pr}}} % Prandtl number
+\AtBeginDocument{\renewcommand{\Re}{\mathword{Re}}} % Reynolds number
+\newcommand{\Fr}{\mathword{Fr}}                   % Froude number
+\newcommand{\Eu}{\mathword{Eu}}                   % Euler number
+\newcommand{\St}{\mathword{St}}                   % Strouhal number
+\newcommand{\Gr}{\mathword{Gr}}                   % Grashof number
+\newcommand{\Ma}{\mathword{Ma}}                   % Mach number
+\newcommand{\Pe}{\mathword{Pe}}                   % Péclet number
+\newcommand{\Tu}{\mathword{Tu}}                   % Turbulence level
 
 %% The same figure a second time, with its original number: \repeatcaption{fig:label}{caption}
 %% (the caption without a full stop: "(repeated from page 13)." follows it)

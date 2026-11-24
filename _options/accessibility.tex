@@ -1,0 +1,289 @@
+%% =====================================================================
+%% Accessibility: what screen readers get in the tagged PDF, beyond LaTeX's own tagging. Nothing here
+%% changes the look of the pages. Loaded at the end of packages.tex.
+%%   1. Words in maths: operator names (sin, tr, arg max) and \mathword{Re} are read as one word
+%%   2. Tables: the first row of a table is its header (so each cell is read with its column heading)
+%%   3. Formulas with an alternative text of your own: \formulaalt{...}
+%%   4. Acronyms: the short form carries its expansion ("BEM" is read as "blade element momentum")
+%%   5. Units read as words: \qty{10}{\metre\per\second} is read as "10 metres per second"
+%%   6. Other languages: text in an otherlanguage environment is marked with its language (Dutch)
+%% =====================================================================
+\makeatletter
+\ExplSyntaxOn
+
+%% ---------------------------------------------------------------------
+%% 1. Words in maths. In the MathML every letter of "sin" or "Re" is a variable of its own, which screen
+%% readers spell out ("s i n"). Operator names (\sin, \max, \DeclareMathOperator, \operatorname) and
+%% \mathword{...} get the whole word as one identifier. \mathword{Re} looks like \mathrm{Re}: use it for
+%% names of more than one letter, such as dimensionless numbers (commands.tex).
+%% ---------------------------------------------------------------------
+\text_declare_purify_equivalent:Nn \vphantom { \use_none:n }
+\text_declare_purify_equivalent:Nn \, { ~ }
+\text_declare_purify_equivalent:Nn \; { ~ }
+\cs_new:Npn \__thesis_mathword:n #1 { \lua_escape:e { \text_purify:n {#1} } }
+\NewDocumentCommand \mathword { m } { \mathrm {#1} }
+% inside: no structure elements of its own (a \vphantom in \max would leave one without a parent, as the
+% word replaces what is inside)
+\cs_new_protected:Npn \__thesis_mathword_nostruct:
+  {
+    \int_if_odd:nT { \int_div_truncate:nn { \l__luamml_flag_int } { 8 } }
+      { \int_sub:Nn \l__luamml_flag_int { 8 } }
+  }
+% (luamml, which makes the MathML, is loaded at the start of the document)
+\AddToHook { begindocument }
+  {
+    \cs_if_exist:NT \luamml_annotate:nen
+      {
+        % amsmath's \qopname, which all operator names go through, with the name as one identifier
+        \cs_set_protected:Npn \qopname #1#2#3
+          {
+            \luamml_annotate:nen { 1 }
+              { nucleus = true, mathml = { [0] = 'mi', '\__thesis_mathword:n {#3}' } }
+              { \mathop { \__thesis_mathword_nostruct: #1 \kern \c_zero_dim \use:c { operator@font } #3 } \use:c { n#2limits@ } }
+          }
+        \RenewDocumentCommand \mathword { m }
+          {
+            \luamml_annotate:nen { 1 }
+              { nucleus = true, mathml = { [0] = 'mi', '\__thesis_mathword:n {#1}' } }
+              { \mathord { \__thesis_mathword_nostruct: \mathrm {#1} } }
+          }
+      }
+  }
+
+\tag_if_active:T
+  {
+%% ---------------------------------------------------------------------
+%% 2. Tables. The first row of every table in a table float (and of xltabular and longtable) is marked as
+%% its header row. A table with a header of two rows: \tagpdfsetup{table/header-rows={1,2}} in the
+%% table, before the tabular; none: \tagpdfsetup{table/header-rows={}}. Tables used only to place text
+%% (as on the title page) are set with \tagpdfsetup{table/tagging=presentation}.
+%% ---------------------------------------------------------------------
+    \AddToHook { env/table/begin } { \tagpdfsetup { table/header-rows = 1 } }
+    \AddToHook { env/sidewaystable/begin } { \tagpdfsetup { table/header-rows = 1 } }
+    \AddToHook { env/xltabular/begin } { \tagpdfsetup { table/header-rows = 1 } }
+    \AddToHook { env/longtable/begin } { \tagpdfsetup { table/header-rows = 1 } }
+
+%% ---------------------------------------------------------------------
+%% 3. Formulas: an alternative text of your own, for a formula whose MathML reads badly (a large matrix,
+%% a diagram drawn in maths). Write it right before the formula:
+%%   \formulaalt{The stiffness matrix: a block matrix of four blocks, ...}
+%%   \begin{equation} ... \end{equation}
+%% Screen readers then read that text instead of the formula.
+%% ---------------------------------------------------------------------
+    \tl_new:N \g__thesis_formula_alt_tl
+    \NewDocumentCommand \formulaalt { m } { \tl_gset:Nn \g__thesis_formula_alt_tl {#1} }
+    \NewTaggingSocketPlug { math/content } { thesis }
+      {
+        % as LaTeX's alt+source, which the PDF/UA-2 set-up uses
+        \tl_set:Ne \l__math_content_alt_tl { \l__math_content_template_tl }
+        \tl_set:Ne \l__math_content_AF_source_tl { \l__math_texsource_template_tl }
+        \tl_set:Nn \l__math_content_AF_mathml_tl { }
+        \tl_set:Nn \l__math_content_actual_tl { }
+        \tl_if_empty:NF \g__thesis_formula_alt_tl
+          {
+            \tl_set:Ne \l__math_content_alt_tl { \text_purify:n { \g__thesis_formula_alt_tl } }
+            \bool_set_true:N \l__tag_math_alt_bool
+            \tl_gclear:N \g__thesis_formula_alt_tl
+          }
+      }
+    \AssignTaggingSocketPlug { math/content } { thesis }
+
+%% ---------------------------------------------------------------------
+%% 4. Acronyms: \gls{bem} after its first use gives "BEM", marked with its expansion (/E), so a screen
+%% reader can say "blade element momentum theory". (formatNomenclature.tex calls \thesisexpansion.)
+%% ---------------------------------------------------------------------
+    \cs_gset_protected:Npn \thesisexpansion #1#2 % expansion, text
+      {
+        \mode_if_horizontal:F { \leavevmode }
+        \tag_mc_end_push:
+        \use:e { \exp_not:N \tag_struct_begin:n { tag = Span , E = { \text_purify:n {#1} } } }
+        \tag_mc_begin:n { }
+        #2
+        \tag_mc_end:
+        \tag_struct_end:
+        \tag_mc_begin_pop:n { }
+      }
+
+%% ---------------------------------------------------------------------
+%% 5. Units read as words: \unit{\metre\per\second} carries the expansion "metres per second", and
+%% \qty{10}{\metre\per\second} "10 metres per second" (singular after 1). Only units written with
+%% siunitx's macros (\kilo\metre, \per, \squared, ...) are spelt out; a unit written as text, such as
+%% \unit{m/s}, is left as it is. Units of your own: \thesisunitword{\furlong}{furlong}.
+%% ---------------------------------------------------------------------
+    \prop_new:N \g__thesis_unit_words_prop
+    \prop_new:N \g__thesis_unit_prefix_prop
+    \cs_gset_protected:Npn \thesisunitword #1#2
+      { \prop_gput:Nen \g__thesis_unit_words_prop { \cs_to_str:N #1 } {#2} }
+    \cs_generate_variant:Nn \prop_gput:Nnn { Nen }
+    \cs_gset_protected:Npn \__thesis_unit_pair:w #1 / #2 \q_stop #3 { \prop_gput:Nnn #3 {#1} {#2} }
+    \clist_map_inline:nn
+      {
+        metre/metre, meter/metre, second/second, gram/gram, kilogram/kilogram, kelvin/kelvin,
+        ampere/ampere, mole/mole, candela/candela, newton/newton, pascal/pascal, joule/joule,
+        watt/watt, hertz/hertz, volt/volt, ohm/ohm, coulomb/coulomb, farad/farad, henry/henry,
+        tesla/tesla, weber/weber, siemens/siemens, radian/radian, steradian/steradian,
+        degreeCelsius/degree~Celsius, celsius/degree~Celsius, degree/degree, arcminute/arcminute,
+        arcsecond/arcsecond, litre/litre, liter/litre, hour/hour, minute/minute, day/day,
+        tonne/tonne, bar/bar, percent/percent, electronvolt/electronvolt, decibel/decibel,
+        neper/neper, bel/bel, hectare/hectare, astronomicalunit/astronomical~unit,
+        dalton/dalton, knot/knot, nauticalmile/nautical~mile, angstrom/angstrom, lux/lux,
+        lumen/lumen, becquerel/becquerel, gray/gray, sievert/sievert, katal/katal
+      }
+      { \__thesis_unit_pair:w #1 \q_stop \g__thesis_unit_words_prop }
+    \clist_map_inline:nn
+      {
+        quecto/quecto, ronto/ronto, yocto/yocto, zepto/zepto, atto/atto, femto/femto, pico/pico,
+        nano/nano, micro/micro, milli/milli, centi/centi, deci/deci, deca/deca, deka/deca,
+        hecto/hecto, kilo/kilo, mega/mega, giga/giga, tera/tera, peta/peta, exa/exa,
+        zetta/zetta, yotta/yotta, ronna/ronna, quetta/quetta
+      }
+      { \__thesis_unit_pair:w #1 \q_stop \g__thesis_unit_prefix_prop }
+    \seq_new:N \l__thesis_unit_seq
+    \tl_new:N \l__thesis_unit_tmp_tl
+    \tl_new:N \l__thesis_unit_words_tl
+    \tl_new:N \l__thesis_unit_number_tl
+    \bool_new:N \l__thesis_unit_ok_bool
+    \cs_generate_variant:Nn \prop_get:NnNTF { NV }
+    \cs_generate_variant:Nn \regex_match:nnTF { nV }
+    \cs_generate_variant:Nn \str_case:nnF { V }
+    % each unit is kept as {square or cubic}{prefix and unit}{squared or cubed}; "per" as {}{}{}
+    \cs_gset_protected:Npn \__thesis_unit_words:nn #1#2 % unit, plural
+      {
+        \seq_clear:N \l__thesis_unit_seq
+        \bool_set_true:N \l__thesis_unit_ok_bool
+        \tl_clear:N \l_tmpa_tl % a prefix waiting for its unit
+        \tl_clear:N \l_tmpb_tl % square or cubic, waiting
+        \tl_map_inline:nn {#1}
+          {
+            \token_if_cs:NTF ##1
+              {
+                \str_set:Ne \l_tmpa_str { \cs_to_str:N ##1 }
+                \prop_get:NVNTF \g__thesis_unit_prefix_prop \l_tmpa_str \l__thesis_unit_tmp_tl
+                  { \tl_set_eq:NN \l_tmpa_tl \l__thesis_unit_tmp_tl }
+                  {
+                    \prop_get:NVNTF \g__thesis_unit_words_prop \l_tmpa_str \l__thesis_unit_tmp_tl
+                      {
+                        \seq_put_right:Ne \l__thesis_unit_seq
+                          { { \exp_not:V \l_tmpb_tl } { \exp_not:V \l_tmpa_tl \exp_not:V \l__thesis_unit_tmp_tl } { } }
+                        \tl_clear:N \l_tmpa_tl \tl_clear:N \l_tmpb_tl
+                      }
+                      {
+                        \str_case:VnF \l_tmpa_str
+                          {
+                            { per } { \seq_put_right:Nn \l__thesis_unit_seq { { } { } { } } }
+                            { square } { \tl_set:Nn \l_tmpb_tl { square } }
+                            { cubic } { \tl_set:Nn \l_tmpb_tl { cubic } }
+                            { squared } { \__thesis_unit_suffix:n { squared } }
+                            { cubed } { \__thesis_unit_suffix:n { cubed } }
+                          }
+                          { \bool_set_false:N \l__thesis_unit_ok_bool }
+                      }
+                  }
+              }
+              { \tl_if_blank:nF {##1} { \bool_set_false:N \l__thesis_unit_ok_bool } }
+          }
+        \tl_clear:N \l__thesis_unit_words_tl
+        \bool_lazy_and:nnT { \l__thesis_unit_ok_bool } { ! \seq_if_empty_p:N \l__thesis_unit_seq }
+          {
+            % plural: the last unit before the first "per"
+            \int_zero:N \l_tmpa_int \int_zero:N \l_tmpb_int
+            \bool_if:nT {#2}
+              {
+                \seq_map_indexed_inline:Nn \l__thesis_unit_seq
+                  {
+                    \tl_if_blank:eTF { \use_ii:nnn ##2 }
+                      { \int_compare:nNnT { \l_tmpb_int } = { 0 } { \int_set:Nn \l_tmpb_int {##1} } }
+                      { \int_compare:nNnT { \l_tmpb_int } = { 0 } { \int_set:Nn \l_tmpa_int {##1} } }
+                  }
+              }
+            \seq_map_indexed_inline:Nn \l__thesis_unit_seq
+              { \__thesis_unit_join:nnnn {##1} ##2 }
+          }
+      }
+    \cs_gset_protected:Npn \__thesis_unit_join:nnnn #1#2#3#4 % index, power, unit, suffix
+      {
+        \tl_put_right:Ne \l__thesis_unit_words_tl
+          {
+            \tl_if_empty:NF \l__thesis_unit_words_tl { ~ }
+            \tl_if_blank:nTF {#3}
+              { per }
+              {
+                \tl_if_blank:nF {#2} { #2 ~ }
+                \int_compare:nNnTF {#1} = { \l_tmpa_int } { \__thesis_unit_s:n {#3} } {#3}
+                \tl_if_blank:nF {#4} { ~ #4 }
+              }
+          }
+      }
+    \cs_gset_protected:Npn \__thesis_unit_suffix:n #1
+      {
+        \seq_pop_right:NNTF \l__thesis_unit_seq \l__thesis_unit_tmp_tl
+          { \seq_put_right:Ne \l__thesis_unit_seq { \exp_last_unbraced:NV \__thesis_unit_setsuffix:nnnn \l__thesis_unit_tmp_tl {#1} } }
+          { \bool_set_false:N \l__thesis_unit_ok_bool }
+      }
+    \cs_gset:Npn \__thesis_unit_setsuffix:nnnn #1#2#3#4 { { \exp_not:n {#1} } { \exp_not:n {#2} } { \exp_not:n {#4} } }
+    % the plural of a unit word: an s, except for a few ("degree Celsius" -> "degrees Celsius")
+    \cs_gset:Npn \__thesis_unit_s:n #1
+      {
+        \str_case:nnF {#1}
+          {
+            { hertz } {#1} { siemens } {#1} { lux } {#1} { percent } {#1}
+            { degree~Celsius } { degrees~Celsius }
+          }
+          { #1 s }
+      }
+    % the wrappers: in text only (in maths the MathML has the units)
+    \AddToHook { begindocument }
+      {
+        \NewCommandCopy \__thesis_qty:w \qty % (copies that keep working once \qty is redefined)
+        \NewCommandCopy \__thesis_unit:w \unit
+        \RenewDocumentCommand \qty { O{} m m }
+          {
+            \mode_if_math:TF { \__thesis_qty:w [#1] {#2} {#3} }
+              {
+                \tl_set:Ne \l__thesis_unit_number_tl { \tl_trim_spaces:n {#2} }
+                \bool_set:Nn \l_tmpa_bool { ! \str_if_eq_p:Vn \l__thesis_unit_number_tl { 1 } }
+                \__thesis_unit_words:nn {#3} { \l_tmpa_bool }
+                % (only a plain number: one in another form is read as written)
+                \regex_match:nVTF { \A[+\-]?[0-9]+([.,][0-9]+)?\Z } \l__thesis_unit_number_tl
+                  {
+                    \tl_if_empty:NTF \l__thesis_unit_words_tl
+                      { \__thesis_qty:w [#1] {#2} {#3} }
+                      { \thesisexpansion { #2 ~ \l__thesis_unit_words_tl } { \__thesis_qty:w [#1] {#2} {#3} } }
+                  }
+                  { \__thesis_qty:w [#1] {#2} {#3} }
+              }
+          }
+        \RenewDocumentCommand \unit { O{} m }
+          {
+            \mode_if_math:TF { \__thesis_unit:w [#1] {#2} }
+              {
+                \__thesis_unit_words:nn {#2} { \c_true_bool }
+                \tl_if_empty:NTF \l__thesis_unit_words_tl
+                  { \__thesis_unit:w [#1] {#2} }
+                  { \thesisexpansion { \l__thesis_unit_words_tl } { \__thesis_unit:w [#1] {#2} } }
+              }
+          }
+      }
+
+%% ---------------------------------------------------------------------
+%% 6. Other languages: an otherlanguage environment (babel) is a division marked with its language, e.g.
+%% nl for Dutch, so screen readers switch pronunciation.
+%% ---------------------------------------------------------------------
+    \AddToHook { begindocument/before }
+      {
+        \cs_set_eq:NN \__thesis_otherlanguage:n \otherlanguage
+        \cs_set_eq:NN \__thesis_endotherlanguage: \endotherlanguage
+        \cs_set_protected:Npn \otherlanguage #1
+          {
+            \__thesis_otherlanguage:n {#1}
+            \par
+            \tag_struct_begin:n { tag = Div , lang = \localeinfo* { tag.bcp47 } }
+          }
+        \cs_set_protected:Npn \endotherlanguage
+          { \par \tag_struct_end: \__thesis_endotherlanguage: }
+      }
+  }
+\cs_if_exist:NF \thesisexpansion { \cs_new_protected:Npn \thesisexpansion #1#2 {#2} }
+
+\ExplSyntaxOff
+\makeatother
