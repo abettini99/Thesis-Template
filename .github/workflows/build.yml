@@ -13,8 +13,10 @@
 #     (without the guides), propositions.pdf and veraPDF's report. A fixed link to send round; in a
 #     private repository only people with access to it can open it.
 #
-# The build uses the latest TeX Live, like Overleaf. MathTime fonts are never on GitHub, so these
-# builds always use newtx for the maths.
+# Everything is built twice: on Overleaf's own TeX Live image (what thesis authors compile with; the
+# release files come from this one) and on the latest TeX Live (an early warning). When Overleaf adds
+# a new TeX Live, add its image to both matrices and keep the older one while theses still use it.
+# MathTime fonts are never on GitHub, so these builds always use newtx for the maths.
 name: Build
 
 on:
@@ -35,10 +37,27 @@ concurrency:
 
 jobs:
   build:
+    # Two TeX Live installations: Overleaf's own image (what thesis authors compile with) and the
+    # latest TeX Live (early warning of what is coming). Both must pass.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - texlive: overleaf-2026
+            image: quay.io/sharelatex/texlive-full:2026.1
+          - texlive: latest
+            image: texlive/texlive:latest
+    name: build (${{ matrix.texlive }})
     runs-on: ubuntu-latest
-    container: texlive/texlive:latest
+    container:
+      image: ${{ matrix.image }}
+      options: --user root
     steps:
       - uses: actions/checkout@v5
+      - name: TeX Live
+        run: |
+          lualatex --version | head -1
+          kpsewhich --var-value=SELFAUTOPARENT
       - name: Compile the edition for the printer (final version)
         run: |
           sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=printer, version=final]{thesis}/' main.tex > printer.tex
@@ -66,7 +85,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: thesis
+          name: thesis-${{ matrix.texlive }}
           path: |
             printer.pdf
             printer.log
@@ -80,12 +99,17 @@ jobs:
 
   check:
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        texlive: [overleaf-2026, latest]
+    name: check (${{ matrix.texlive }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v8
         with:
-          name: thesis
+          name: thesis-${{ matrix.texlive }}
       - name: Tools
         run: |
           sudo apt-get update -qq
@@ -118,11 +142,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: verapdf-report
+          name: verapdf-report-${{ matrix.texlive }}
           path: verapdf-report.html
           retention-days: 30
-      - name: Release (tags only)
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Release (tags only; the files as built on Overleaf's TeX Live)
+        if: startsWith(github.ref, 'refs/tags/') && matrix.texlive == 'overleaf-2026'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
