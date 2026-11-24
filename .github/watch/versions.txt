@@ -1,0 +1,228 @@
+LaTeX format: LaTeX2e <2026-11-01>
+LuaHBTeX: 1.24.0
+algorithm: 2009/08/24 v0.1 Document Style `algorithm' - floating enviro
+algorithmicx: 2005/04/27 v1.2 Algorithmicx
+amsbsy: 1999/11/29 v1.2d Bold Symbols
+amsgen.sty: 1999/11/30 v2.0 generic functions
+amsmath: 2026-08-26 v2.18e AMS math features
+amsopn: 2022/04/08 v2.04 operator names
+amstext: 2026/06/26 v2.01 AMS text
+array: 2026/06/26 v2.7b Tabular extension package (FMi)
+babel: 2026/11/10 v26.16 The multilingual framework for LuaLaTeX, pdfLa
+biblatex: 2026/09/24 v3.22a programmable bibliographies (PK/MW)
+biblatex.def: 2026/09/24 v3.22a biblatex compatibility (PK/MW)
+bigintcalc: 2019/12/15 v1.5 Expandable calculations on big integers (HO
+bitset: 2019/12/09 v1.3 Handle bit-vector datatype (HO)
+bk10.clo: 2026-06-04 v1.4n Standard LaTeX file (size option)
+bkm-luatex.def: 2026-10-17 v1.33 bookmark driver for luaTeX (HO)
+blx-case-expl3: 2026/09/24 v3.22a expl3 case changing code for biblatex
+blx-compat.def: 2026/09/24 v3.22a biblatex compatibility (PK/MW)
+blx-dm.def: 2026/09/24 v3.22a biblatex datamodel (PK/MW)
+blx-natbib.def: 2026/09/24 v3.22a biblatex compatibility (PK/MW)
+book: 2026-06-04 v1.4n Standard LaTeX document class
+bookmark: 2026-10-17 v1.33 PDF bookmarks (HO)
+booktabs: 2020/01/12 v1.61803398 Publication quality tables
+british: 2017/06/06 v3.3r English support from the babel system
+british.lbx: 2026/09/24 v3.22a biblatex localization (PK/MW)
+calc: 2025/03/01 v4.3b Infix arithmetic (KKT,FJ)
+cancel: 2013/04/12 v2.2 Cancel math terms
+changes: 2021/07/15 v4.2.1 changes package
+cleveref: 2018/03/27 v0.21.4 Intelligent cross-referencing
+color.cfg: 2016/01/02 v1.6 sample color configuration
+csquotes: 2026-05-19 v5.2p context-sensitive quotations (JAW)
+csquotes.def: 2026-05-19 v5.2p csquotes generic definitions (JAW)
+derivative: 2024/02/08 v1.4 Nice and easy derivatives and differentials
+dutch: 2021/08/29 v3.8l Dutch support from the babel system
+dutch.lbx: 2026/09/24 v3.22a biblatex localization (PK/MW)
+english: 2017/06/06 v3.3r English support from the babel system
+english.lbx: 2026/09/24 v3.22a biblatex localization (PK/MW)
+epstopdf-base: 2020-01-24 v2.11 Base part for package epstopdf
+epstopdf-sys.cfg: 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+eso-pic: 2026/05/31 v3.0e eso-pic (RN)
+etoolbox: 2025/10/02 v2.5m e-TeX tools for LaTeX (JAW)
+expl3: 2026-09-09 L3 programming layer (loader)
+fix-cm: 2020/11/24 v1.1t fixes to LaTeX
+float: 2001/11/08 v1.3d Float enhancements (AL)
+fontenc: 2026-07-31 v2.2a Standard LaTeX package
+fontspec: 2026/08/11 v2.9h Font selection for XeLaTeX and LuaLaTeX
+fontspec-luatex: 2026/08/11 v2.9h Font selection for XeLaTeX and LuaLaT
+gettitlestring: 2026/10/27 v1.6a Cleanup title references (HO)
+graphics: 2026-05-17 v1.4h Standard LaTeX Graphics (DPC,SPQR)
+graphics.cfg: 2016/06/04 v1.11 sample graphics configuration
+graphicx: 2026-06-26 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
+grfext: 2019/12/03 v1.3 Manage graphics extensions (HO)
+hgeneric-testphase.def: 2026-10-06 v0.97d generic Hyperref driver for the
+hycolor: 2020-01-27 v1.10 Color options for hyperref/bookmark (HO)
+hyperref: 2026-11-03 v7.01t Hypertext links for LaTeX
+iftex: 2026/11/17 v1.0h TeX engine tests
+ifthen: 2026-06-01 v1.1e Standard LaTeX ifthen package (DPC)
+infwarerr: 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+intcalc: 2019/12/15 v1.3 Expandable calculations with integers (HO)
+keyval: 2026-06-01 v1.15 key=value parser (DPC)
+kvdefinekeys: 2019-12-19 v1.6 Define keys (HO)
+kvoptions: 2026-10-27 v3.17 Key value format for package options (HO)
+kvsetkeys: 2022-10-05 v1.19 Key value parser (HO)
+l3backend-luatex.def: 2026-09-09 L3 backend support: PDF output (LuaTeX)
+l3backend-pdf-luatex.def: 2026-10-06 v0.97d LaTeX PDF management bundle ba
+l3keys2e: 2025-10-09 LaTeX2e option processing using LaTeX3 keys
+latex-lab-amsmath.ltx: 2026-04-25 v0.1j amsmath adaptions
+latex-lab-enumitem: 2026-10-24 v0.80i Emulating enumitem
+latex-lab-firstaid-float.ltx: 2026-10-26 0.86l LaTeX-lab-firstaid: Tagging
+latex-lab-footnotes.ltx: 2026-09-02 v0.8q changes to the footnote interfac
+latex-lab-kernel-changes: 2026-04-27 v0.85j General kernel and class ch
+latex-lab-listings: 2026-09-21 v0.80i tagging-support for the listings
+latex-lab-math.ltx: 2026-10-15 v0.7j Grab all the math(s) and tag it
+latex-lab-mathintent.ltx: 2026-01-16 v0.1c MathML intent attributes
+latex-lab-mathpkg.ltx: 2026-05-11 v0.1e mathpkg adaptions
+latex-lab-mathtools.ltx: 2026-04-25 0.80e mathtools adaptions
+latex-lab-testphase-bib: 2026-06-26 v0.81f Code related to the tagging
+latex-lab-testphase-block: 2026-10-27 v1.0v blockenv implementation
+latex-lab-testphase-context: 2026-06-26 v0.6a Providing context for ins
+latex-lab-testphase-firstaid: 2026-10-26 v0.86l Temporary patches to ex
+latex-lab-testphase-float: 2026-09-09 v0.81p Code related to the taggin
+latex-lab-testphase-graphic: 2026-09-15 v0.80j Code related to the tagg
+latex-lab-testphase-latest: 2026-08-06 v0.1h latex-lab modules
+latex-lab-testphase-marginpar: 2026-08-12 v0.85j Changes related to the
+latex-lab-testphase-math: 2025-03-10 v0.8d code related to the math tag
+latex-lab-testphase-minipage: 2026-10-20 v0.81o Code related to the tag
+latex-lab-testphase-names: 2026-09-27 v0.8r Code related to the names o
+latex-lab-testphase-new-or-2: 2026-01-16 v0.86d Changes to the output r
+latex-lab-testphase-sec: 2026-10-17 v0.84s Code related to the tagging
+latex-lab-testphase-sec-template: 2026-10-27 v0.9y heading implementati
+latex-lab-testphase-table: 2026-09-24 v0.85v Code related to the taggin
+latex-lab-testphase-template: 2026-10-15 v0.6i template implementation
+latex-lab-testphase-text: 2026-09-30 v0.85j Code related to the tagging
+latex-lab-testphase-tikz: 2026-09-22 v0.80j Code related to the tagging
+latex-lab-testphase-title: 2026-10-11 v0.85i Changes related to the tag
+latex-lab-testphase-toc: 2026-08-12 v0.85i  Code related to the tagging
+latex-lab-unicode-math.ltx: 2026-01-16 v0.1f unicode-mathadaptions
+lipsum: 2021-09-20 v2.7 150 paragraphs of Lorem Ipsum dummy text
+listings: 2025/11/14 1.11b (Carsten Heinz)
+listings.cfg: 2025/11/14 1.11b listings configuration
+lmsntxsy.fd: 2016/07/02 Fontinst v1.933 font definitions for LMS/ntxsy.
+logreq: 2010/08/04 v1.0 xml request logger
+logreq.def: 2010/08/04 v1.0 logreq spec v1.0
+longtable: 2026-10-05 v4.28 Multi-page Table package (DPC)
+lscape: 2020/05/28 v3.02 Landscape Pages (DPC)
+lstlang1.sty: 2025/11/14 1.11b listings language file
+lstmisc.sty: 2025/11/14 1.11b (Carsten Heinz)
+lstpatch.sty: 2025/11/14 1.11b (Carsten Heinz)
+ltablex: 2014/08/13 v1.1 Modified tabularx
+ltxcmds: 2023-12-04 v1.26 LaTeX kernel commands for general use (HO)
+lualatex-math: 2013/08/03 v1.3 Patches for mathematics typesetting wi
+lualibs: 2023-07-13 v2.76 ConTeXt Lua standard libraries.
+lualibs-extended: 2023-07-13 v2.76 ConTeXt Lua libraries -- extended
+luamml: 2026-10-30 v0.9.3 Automatically generate presentational MathML
+luamml-patches-amsmath: 2026-10-30 v0.9.3 Feel free to add a descriptio
+luamml-patches-kernel: 2026-10-30 v0.9.3 Feel free to add a description
+luaotfload: 2024-12-03 v3.29 Lua based OpenType font support
+luatex.def: 2025/09/29 v1.2f Graphics/color driver for luatex
+makecell: 2009/08/03 V0.1e Managing of Tab Column Heads and Cells
+mathtools: 2026/11/12 v1.32 mathematical typesetting tools
+mem10.clo: 2022/07/29 v0.5 memoir class 10pt size option
+mhsetup: 2021/03/18 v1.4 programming setup (MH)
+microtype: 2026/03/01 v3.2d microtype module.
+microtype-luatex.def: 2026/03/01 v3.2d Definitions specific to luatex (RS)
+microtype.cfg: 2026/03/01 v3.2d microtype main configuration file (RS)
+mt-ptm.cfg: 2006/04/20 v1.7 microtype config. file: Times (RS)
+multirow: 2024/11/12 v2.9 Span multiple rows of a table
+nameref: 2026-11-03 v2.60 Cross-referencing by name of section
+needspace: 2026/10/13 v1.3f reserve vertical space
+nicematrix: 2026/11/18 v7.13a Enhanced arrays with the help of PGF/TikZ
+ntxmath-otf: 2026/11/23 v1.5 newtxmath as OpenType
+numeric-comp.bbx: 2026/09/24 v3.22a biblatex bibliography style (PK/MW)
+numeric-comp.cbx: 2026/09/24 v3.22a biblatex citation style (PK/MW)
+numeric.bbx: 2026/09/24 v3.22a biblatex bibliography style (PK/MW)
+numeric.cbx: 2026/09/24 v3.22a biblatex citation style (PK/MW)
+orcidlink: 2026/04/09 v1.1.1 Add explicit etoolbox dependency.
+ot1lmss.fd: 2015/05/01 v1.6.1 Font defs for Latin Modern
+ot1minntx.fd: 2023/09/09 v1.1 font definition file for OT1/minntx
+ot1ntxtlf.fd: 2021/05/24 v1.0 font definition file for OT1/ntx/tlf
+p2e-luatex.def: 2016/02/05 v0.1u Driver-dependant file (RN,HjG,JT)
+pd1enc.def: 2026-11-03 v7.01t Hyperref: PDFDocEncoding definition (HO)
+pdfescape: 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
+pdflscape: 2025-06-23 v0.14 Display of landscape pages in PDF
+pdfmanagement-firstaid: 2026-10-06 v0.97d LaTeX PDF management bundle /
+pdfmanagement-init: 2026-10-06 v0.97d LaTeX PDF management bundle
+pdfmanagement.ltx: 2026-10-06 v0.97d PDF management code
+pdfpages: 2026/03/30 v0.6h Insert pages of external PDF documents (AM)
+pdftexcmds: 2026-10-28 v0.34 Utility functions of pdfTeX for LuaTeX (HO
+pgf: 2026-08-01 v3.1.12 (3.1.12)
+pgf.cfg: 2026-08-01 v3.1.12 (3.1.12)
+pgfcomp-version-0-65: 2026-08-01 v3.1.12 (3.1.12)
+pgfcomp-version-1-18: 2026-08-01 v3.1.12 (3.1.12)
+pgfcore: 2026-08-01 v3.1.12 (3.1.12)
+pgfcorearrows.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcoreexternal.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcoregraphicstate.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcoreimage.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcorelayers.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcoreobjects.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcorepathconstruct.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcorepathprocessing.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcorepathusage.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcorepatterns.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcorepoints.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcorequick.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcorerdf.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcorescopes.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcoreshade.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcoretransformations.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfcoretransparency.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgffor: 2026-08-01 v3.1.12 (3.1.12)
+pgflibraryarrows.meta.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgflibraryplothandlers.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgflibrarysvg.path.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfmodulematrix.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfmoduleparser.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfmoduleplot.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfmoduleshapes.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfrcs: 2026-08-01 v3.1.12 (3.1.12)
+pgfsys: 2026-08-01 v3.1.12 (3.1.12)
+pgfsys-common-pdf.def: 2026-08-01 v3.1.12 (3.1.12)
+pgfsys-luatex.def: 2026-08-01 v3.1.12 (3.1.12)
+pgfsysprotocol.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pgfsyssoftpath.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+pict2e: 2020/09/30 v0.4b Improved picture commands (HjG,RN,JT)
+pict2e.cfg: 2016/02/05 v0.1u pict2e configuration for teTeX/TeXLive
+placeins: 2005/04/18  v 2.2
+ppluatex.def: 2026/03/30 v0.6h Pdfpages driver for LuaTeX (AM)
+puenc.def: 2026-11-03 v7.01t Hyperref: PDF Unicode definition (HO)
+qrcode: 2015/01/08 v1.51 QR code generation
+ragged2e: 2023/06/22 v3.6 ragged2e Package
+refcount: 2019/12/15 v3.6 Data extraction from label references (HO)
+rotating: 2026-05-17 v2.16e rotated objects in LaTeX
+siunitx: 2026-11-06 v3.6.7 A comprehensive (SI) units package
+standard.bbx: 2026/09/24 v3.22a biblatex bibliography style (PK/MW)
+stringenc: 2019/11/29 v1.12 Convert strings between diff. encodings (HO
+tabularx: 2026-06-01 v2.12a `tabularx' package (DPC)
+tagpdf: 2026-11-15 v1.0j tagpdf lua code
+tagpdf-base: 2026-11-15 v1.0j part of tagpdf - provide base, no-op vers
+tagpdf-luatex.def: 2026-11-15 v1.0j tagpdf driver for luatex
+tagpdf-mc-code-lua: 2026-11-15 v1.0j tagpdf - mc code only for the luam
+thesis: 2026/11/22 v3.0 TU Delft dissertation class, based on bo
+tikz: 2026-08-01 v3.1.12 (3.1.12)
+tikzlibrarycalc.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+tikzlibrarypositioning.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+tikzlibrarysvg.path.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+tikzlibrarytopaths.code.tex: 2026-08-01 v3.1.12 (3.1.12)
+tocloft: 2026-10-30 v3.0d parameterised ToC, etc., typesetting
+todonotes: 2024/01/05
+translations: 2022/02/05 v1.12 internationalization of LaTeX2e packages
+translations-basic-dictionary-dutch.trsl: (dutch translation file `transla
+translations-basic-dictionary-english.trsl: (english translation file `tra
+trig: 2023/12/02 v1.11 sin cos tan (DPC)
+truncate: 2001/08/20  ver 3.6
+ts1enc.def: 2001/06/05 v3.0e (jk/car/fm) Standard LaTeX file
+ulem: 2019/11/18
+unicode-math: 2023/08/13 v0.8r Unicode maths in XeLaTeX and LuaLaTeX
+unicode-math-luatex: 2023/08/13 v0.8r Unicode maths in XeLaTeX and LuaL
+untxsym.fd: 2023/08/16 Fontinst v1.933 font definitions for U/ntxsym.
+url: 2013/09/16  ver 3.4  Verb mode for urls, etc.
+xcolor: 2024/09/29 v3.02 LaTeX color extensions (UK)
+xcolor-patches-tmp-ltx: 2026-10-06 v0.97d patch xcolor for l3color
+xkeyval: 2025/11/04 v2.10 package option processing (HA)
+xkeyval.tex: 2014/12/03 v2.7a key=value parser (HA)
+xltabular: 2025/02/28 v0.2i `xltabular' package (hv,RN)
+xparse: 2025-10-09 L3 Experimental document command parser
+xstring: 2023/08/22 v1.86 String manipulations (CT)

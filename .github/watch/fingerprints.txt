@@ -1,0 +1,75 @@
+\@cancel B548DD17FEA023806AD4AA180010A15E
+\@cancelto F279A7CFED5F2D7A7154A79E43F6309D
+\@current@float@struct exists
+\@doendpe F315168957E09B9C8537949A9B702587
+\@kernel@new@label@record@testdef 1A8F3FC523475BC6A1141A3FD45C2F93
+\@make@normalcolbox 6CA3A365B13B49956C61E2B127D8857F
+\@makecaption DD122375403FC841C6CECC48B68874B6
+\@makecol FE949B37B2971A8C7F2E3EB9772222C1
+\@outputbox@removebskip 444A67B1D43D61815583B39AEF90A526
+\@starttoc 8F8763693FAAF1C76083FD1DBC96D5EB
+\ALG@beginalgorithmic CC767DA0C6FA6B27630F0043C65C4441
+\Gin@pagebox 2413F232544D1C8C6FE71C3E03A1DF9C
+\Gin@setfile E8B239FAD07B5A523A238A5250E2404F
+\LT@c@ption 91DE1F3D1BC40FB03C0A00343C4AB61D
+\LT@makecaption 7EB56BEDFB56D86E7C33145592135432
+\__block_recipe_standalone: 3ECD90968478AA049A7DFD091828A0A1
+\__kernel_displayblock_begin: 73215EDF3CCD0C8F28B5D70539060B31
+\__kernel_list_label_after:n DE48EC27F0531CA949131DCE7430CCDD
+\__luamml_amsmath_finalize_inner_table: 2A02C1171EDB01DCEB3A17845002A102
+\__luamml_amsmath_save_tag_with_struct_elem:N F29A4220C0022EA5C91C6169857F0410
+\__luamml_amsmath_set_tag: B0BF5C2DCE5EFE45B948DA6A22205CC8
+\__math_prepare_display_end: 41CAFFC0AFDF2F113938EE15316A32ED
+\__tag_struct_add_AF:ee F3EBE9FBEABADD597ADD3824FCB40A63
+\__tag_struct_prop_gput:nne ED48CECF15D06626613890B9C0B1B70E
+\abx@MakeMarkcase 97CB33DE08A0AE06B073822AB37E0B05
+\blx@warn@bibempty 77DCDCD47B2D9E67B6BBBAB9D2E72B38
+\c__template_keytypes_root_tl exists
+\canto@vector 2BDEBA84181416AD250A574073EED143
+\cleardoublepage 123EF905259BCE40B2DBC1B0D27F3457
+\float@caption F4DF3A95AC62E02CE603AB807646782E
+\floatc@ruled 7E533E3EF497BA1DD0492506C2B50FAC
+\fs@ruled D26AB08F5557EE6737A639327F78E720
+\g_pdffile_mimetypes_prop exists
+\hyper@link 882B2363DDB6E7BEB158825D58597CC8
+\hyper@link@ 2D8C1276805A0EBD4B6F5F9559DFF5E0
+\hyper@linkend 54BE23165C0FE8143317A0A9907AEC11
+\hyper@linkfile D4446D1144A7273D0BE5B8E45722407E
+\hyper@linkstart 390C57A9858F9D37A7F49DC7E3241805
+\hyper@linkurl 407BFFF9D5D7B0171121E2A3D337DD9C
+\l__head_level_int exists
+\l__head_name_tl exists
+\l__head_unnumbered_bool exists
+\l__luamml_amsmath_tag_struct_num_int exists
+\l__luamml_flag_int exists
+\l__math_content_AF_mathml_tl exists
+\l__math_content_AF_source_tl exists
+\l__math_content_actual_tl exists
+\l__math_content_alt_tl exists
+\l__math_content_template_tl exists
+\l__math_gathersplit_bool exists
+\l__math_texsource_template_tl exists
+\l__tag_math_alt_bool exists
+\lst@EveryDisplay 659FF4C70ED01D66BF604E6921432865
+\lst@makecaption 9795B93BDF99D5F066518869DF1796C6
+\lst@maketitle 46860FCBC241748274832129C6D13143
+\pgfsys@color@rgb@fill 66E066365AE816F5BD445E2B2F692852
+\pgfsys@color@rgb@stroke A15F09655F0CEC93A65FE33154BDD57C
+\qopname 92E8EC3A44C7E377332E815F6D98E6A2
+c@g__tag_struct_abs_int exists
+c__pdfmeta_colorprofile_FOGRA39L_coated.icc exists
+socket block/endpe MISSING
+socket build/column/baselineattach exists
+socket hyp/link/GoTo/Contents exists
+socket hyp/link/GoToR/Contents exists
+socket hyp/link/URI/Contents exists
+socket tagsupport/caption/begin exists
+socket tagsupport/caption/end exists
+socket tagsupport/math/content exists
+socket tagsupport/math/luamml/mtable/innertable/finalize exists
+socket tagsupport/math/luamml/mtable/tag/save exists
+socket tagsupport/math/luamml/mtable/tag/set exists
+socket tagsupport/parbox/after exists
+socket tagsupport/parbox/before exists
+socket tagsupport/sec/title/begin exists
+socket tagsupport/sec/title/end exists
