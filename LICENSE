@@ -1,0 +1,47 @@
+MIT License
+
+Copyright (c) 2026 Andrea Bettini
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-------------------------------------------------------------------------------
+
+Exceptions
+
+The MIT License above covers the template itself. It does not cover the
+following files, which keep their own terms:
+
+1. template/images/tudelft-logo.pdf
+   The TU Delft logo is a trademark of Delft University of Technology. It is
+   not licensed under the MIT License or any other licence by this repository,
+   and may be used only as TU Delft's brand guidelines allow.
+
+2. template/fonts/josefin/
+   Josefin Sans, copyright 2010 The Josefin Sans Project Authors, is licensed
+   under the SIL Open Font License, Version 1.1. See
+   template/fonts/josefin/OFL.txt.
+
+3. template/fonts/ntxmath-otf/
+   The ntxmath-otf package and its fonts (NewTXMath, derived from newtx by
+   Michael Sharpe) are distributed under the LaTeX Project Public License,
+   version 1.3, like newtx itself (https://www.latex-project.org/lppl/).
+
+The content of a thesis written with this template (its text, figures, data
+and the resulting PDF) belongs to its author and is not covered by this
+licence.

@@ -55,6 +55,10 @@ template/      the template: layout, headings, tagging, PDF/A and PDF/X, title p
 tools/         checks and converters
 ```
 
+## Licence
+
+The template is under the [MIT License](LICENSE): use, adapt and share it freely, keeping the licence notice in your copy of the template. Your thesis (its text, figures, data and PDF) is yours and not covered by it. Three parts keep their own terms: the TU Delft logo is TU Delft's trademark, to be used only as its brand guidelines allow; Josefin Sans is under the SIL Open Font License; ntxmath-otf is under the LaTeX Project Public License.
+
 ## Reference
 
 Click a heading to open it.
@@ -372,6 +376,7 @@ Every night, a second workflow (`.github/workflows/page-sizes.yml`) compiles the
 | `template/` | Everything else of the template: fonts and headings, page styles, title pages (`titlepage.tex`), environments, tables, statements and algorithms (`tables.tex`, `statements.tex`, `algorithms.tex`), the PDF set-up (`documentmetadata.tex` the standard of each edition, `pdfa.tex` PDF/A and metadata, `tagging.tex` and `accessibility.tex` PDF/UA, `attachments.tex`, `printpdf.tex` and `thesisprint.lua` PDF/X, `digitalcover.tex` the cover pages of the digital edition), and the bundled fonts in `template/fonts/` (newtx maths as OpenType, `ntxmath-otf`, and the cover's Josefin Sans). |
 | `tools/` | `check_pdf.py` checks the compiled PDF before submission; `check_print.py` checks the PDF/X edition for the printer; `print_ready.py` makes figure PDFs from elsewhere ready for print; `print_pdf.py` converts the print edition to CMYK when a printer asks for it; `check_figures.py` checks each figure's printed size, text size and fonts; `check_bib.py` tidies `references.bib`; `check_hyphenation.py` lists the hyphenated words to review; `greyscale_preview.py` counts colour pages and shows the thesis in greyscale; `diff_versions.py` makes a PDF with the changes since an earlier version marked; `mtpro2_otf.py` converts MathTime Professional 2 into OpenType maths fonts (see `fonts/README.md`); `ntxmath_otf.py` rebuilds `template/fonts/ntxmath-otf` from newtx (with `mtpro2_otf.py` beside it, no MathTime needed); `hooks/pre-commit` refuses commits with MathTime files; `common.py` holds the code the checks share. |
 | `requirements.txt` | Python packages for the scripts and plots: `pip install -r requirements.txt`. |
+| `LICENSE` | The MIT License of the template, and the files it does not cover. |
 | `CHANGELOG.md` | What changed in each version of the template; check it before you update yours. |
 | `latexmkrc` | latexmk settings: LuaLaTeX, and the `fonts/` and `template/fonts/ntxmath-otf/` folders on TeX's search paths. |
 | `.github/` | The GitHub builds (`workflows/`, see *GitHub and Overleaf*) and the images in this README. |

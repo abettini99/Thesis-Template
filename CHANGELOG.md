@@ -15,7 +15,11 @@ First release of the TU Delft PhD thesis template, for **LuaLaTeX on TeX Live 20
 - **Your files apart from the template's:** `settings/`, `chapters/` and `figures/` are yours. An update replaces only `template/`, `tools/` and `thesis.cls`.
 - **Checks and tools** for the PDF, figures, bibliography (including DOI lookup) and hyphenation, a Python plot style matched to the thesis, plus the propositions and the cover with spine.
 - **Maths:** bundled ntxmath-otf, or MathTime Professional 2 if you own it. A pre-commit hook keeps the MathTime fonts out of git.
-- **Continuous integration:** every push builds the printer and digital editions, the propositions and the cover, and runs the checks. A nightly job watches the LaTeX packages the template patches and reports any that changed.
+- **Continuous integration:** every push builds the printer and digital editions, the propositions and the cover, and runs the checks. The page-size image in the README is regenerated overnight after any day with changes. A nightly job watches the LaTeX packages the template patches and reports any that changed.
+
+### Licence
+
+The template is released under the MIT License (see `LICENSE`). Excluded: the TU Delft logo (TU Delft's trademark, to be used only as its brand guidelines allow), Josefin Sans (SIL Open Font License 1.1) and ntxmath-otf (LaTeX Project Public License 1.3). A thesis written with the template is not covered.
 
 ### Getting started
 
