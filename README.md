@@ -37,7 +37,7 @@ The print editions (printer, preview, proof) are set for paper: code in black an
 
 ![The same page in the four page sizes, at the same scale, with type size, leading, lines per page and line length](.github/readme/page-sizes.png)
 
-*The same page in the four page sizes, at the same scale (preview edition). The image is regenerated every night ([`.github/scripts/page_sizes.py`](.github/scripts/page_sizes.py)).*
+*The same page in the four page sizes, at the same scale (preview edition). The image is regenerated overnight after any day with changes ([`.github/scripts/page_sizes.py`](.github/scripts/page_sizes.py)).*
 
 ## Where things are
 

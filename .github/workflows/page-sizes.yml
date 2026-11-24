@@ -1,11 +1,11 @@
-# Regenerates .github/readme/page-sizes.png (the page-size comparison in the README) every night, and
-# commits it if it looks different. It compiles the template in all four
-# page sizes on the latest TeX Live, so a failing run also means the template no longer compiles.
+# Regenerates .github/readme/page-sizes.png (the page-size comparison in the README) at night, but only
+# after a day with pushes to main (commits by the bots do not count), and commits it if it looks
+# different. Run by hand, it always renders. Changes in TeX Live itself are watched by nightly.yml.
 name: Page sizes
 
 on:
   schedule:
-    - cron: '17 3 * * *'   # nightly (only if the image changed does it commit), so it never races a push
+    - cron: '17 3 * * *'   # nightly, after a day with pushes; at night, so it never races a push
   workflow_dispatch:       # run by hand: Actions tab > Page sizes > Run workflow
 
 permissions:
@@ -25,11 +25,27 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends git python3-pil poppler-utils
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # the history, to see whether anything was pushed in the last day
+      - name: Anything pushed in the last day?
+        id: pushed
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Commit time, not author time: a rebased or late-pushed commit counts on the day it landed.
+          n=$(git log --since="24 hours ago" --format='%cI %an' origin/main | grep -v 'github-actions\[bot\]' | wc -l)
+          echo "Commits in the last 24 hours (not by the bots): $n"
+          if [ "$n" -gt 0 ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
       - name: Render the page sizes
+        if: steps.pushed.outputs.run == 'true'
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           python3 .github/scripts/page_sizes.py
       - name: Commit the image if it changed
+        if: steps.pushed.outputs.run == 'true'
         run: |
           if git diff --quiet -- .github/readme/page-sizes.png; then
             echo "Image unchanged."
