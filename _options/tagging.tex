@@ -6,6 +6,7 @@
 %%   2. Equation numbers in the MathML (with tagging.lua)
 %%   3. Theorems and proofs straight after one another (LaTeX's code of June 2026)
 %%   4. Figures side by side
+%%   5. No "Rerun" warning for tagpdf's running totals
 %% =====================================================================
 \ExplSyntaxOn
 \tag_if_active:T { \cs_gset:Npn \thesistagging {} }
@@ -213,6 +214,36 @@
       {
         \tagpdfsetup{float/split}
         \int_gzero:N \g__thesis_float_captions_int
+      }
+  }
+\ExplSyntaxOff
+
+%% ---------------------------------------------------------------------------------------------
+%% 5. tagpdf stores the number of pages, marked-content items and structure elements of the last compile
+%% (the label @tag@LastPage). The two totals change whenever anything earlier in the thesis gains or
+%% loses a tagged item, such as the table of contents once the references are in it, and LaTeX would then
+%% warn that labels may have changed and ask for another compile, although tagpdf (in LuaLaTeX) does not
+%% use them for the PDF. Only a change in the number of pages counts here, as for any other label.
+%% (latexmkrc ignores the same line.)
+\ExplSyntaxOn
+\cs_new:Npn \__thesis_abspage:w #1#2#3 \q_stop { \tl_if_eq:nnT {#1} {abspage} {#2} }
+\AddToHook{enddocument/afterlastpage}
+  {
+    \cs_set_eq:NN \__thesis_label_testdef:nn \@kernel@new@label@record@testdef
+    \cs_set_protected:Npn \@kernel@new@label@record@testdef #1#2
+      {
+        \str_if_eq:nnTF {#1} {@tag@LastPage}
+          {
+            \tl_if_exist:cTF { r@#1 }
+              {
+                \str_if_eq:eeF
+                  { \exp_last_unbraced:Nv \__thesis_abspage:w { r@#1 } {} {} {} \q_stop }
+                  { \__thesis_abspage:w #2 {} {} {} \q_stop }
+                  { \@tempswatrue }
+              }
+              { \@tempswatrue }
+          }
+          { \__thesis_label_testdef:nn {#1} {#2} }
       }
   }
 \ExplSyntaxOff

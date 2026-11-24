@@ -41,37 +41,50 @@
     \ifdim\thesis@thumbtab>0.8\thumbvspace \setlength\thesis@thumbtab{0.8\thumbvspace}\fi
 }
 
-%% TikZ's "current page" is the whole sheet, but the book page sits inside a larger one (bleed, or A4
-%% in print-report). Redefine it as the book page whenever an overlay is drawn, on the correct
-%% side for left and right pages (after https://texample.net/tikz/examples/modifying-current-page-node/).
+%% The running head only marks the page (\lthumb on left pages, \rthumb on right pages); the tab itself
+%% is drawn when the page is shipped out, in the page background, whose origin is the top left corner of
+%% the sheet. Its position is then known exactly, without TikZ's "remember picture" (which stores
+%% positions in the .aux file and makes latexmk compile once more whenever one shifts).
+%% The book page sits inside the sheet (bleed, or A4 in print-report): \trimtop below the sheet's top,
+%% \trimedge from its outer edge.
 \usetikzlibrary{calc}
-\newcommand\thesis@setpagenode{%
-    \expandafter\def\csname pgf@sh@ns@current page\endcsname{rectangle}%
-    \ifodd\c@page % (drawn in the running head, while the page is being finished: the page number is right)
-        \expandafter\def\csname pgf@sh@np@current page\endcsname{%
-            \def\southwest{\pgfpoint{\stockwidth-\paperwidth-\trimedge}{\stockheight-\trimtop-\paperheight}}%
-            \def\northeast{\pgfpoint{\stockwidth-\trimedge}{\stockheight-\trimtop}}}%
-    \else
-        \expandafter\def\csname pgf@sh@np@current page\endcsname{%
-            \def\southwest{\pgfpoint{\trimedge}{\stockheight-\trimtop-\paperheight}}%
-            \def\northeast{\pgfpoint{\trimedge+\paperwidth}{\stockheight-\trimtop}}}%
-    \fi
-    \expandafter\def\csname pgf@sh@nt@current page\endcsname{{1}{0}{0}{1}{0pt}{0pt}}%
-    \expandafter\def\csname pgf@sh@pi@current page\endcsname{pgfpageorigin}}
-\AtBeginDocument{\pgfkeys{/tikz/overlay/.add code={}{\thesis@setpagenode}}}
+\gdef\thesis@thumbside{}
+%% In a tagged PDF the tab is an artifact (decoration, not content), like the running head.
+\ExplSyntaxOn
+\cs_new_protected:Npn \__thesis_putthumb:
+  { \put(0,0){\exp_after:wN \thesis@drawthumb \thesis@thumbside} }
+\AddToHook{shipout/background}{
+    \tl_if_empty:NF \thesis@thumbside
+      {
+        \cs_if_exist:NTF \tag_mc_end_push:
+          {
+            \tag_mc_end_push:
+            \tag_mc_begin:n {artifact}
+            \tag_suspend:n {thumb}
+            \__thesis_putthumb:
+            \tag_resume:n {thumb}
+            \tag_mc_end:
+            \tag_mc_begin_pop:n {}
+          }
+          { \__thesis_putthumb: }
+        \tl_gclear:N \thesis@thumbside
+      }
+}
+\ExplSyntaxOff
 
 %% Draws the tab: from beyond the page edge (into the bleed) to \thumbhspace into the page, with the
-%% number at its inner end. #1: the page edge, west (left page) or east (right page); #2: the direction
-%% into the page, 1 or -1; #3: the side of the number its inner end is on.
-\newcommand*{\thesis@thumb}[3]{%
+%% number at its inner end. #1: the x position of the page edge on the sheet; #2: the direction into the
+%% page, 1 or -1; #3: the side of the number its inner end is on.
+\newcommand*{\thesis@drawthumb}[3]{%
+    \begin{tikzpicture}[overlay]
+        \coordinate (tab top) at (#1,-\trimtop-1in-\topmargin-\headheight-\headsep-\thesis@thumbpos\thumbvspace+\thumbvspace);
+        \fill[fill=thumb] ($(tab top)-(#2*3*\thumbedge,0pt)$) rectangle ($(tab top)+(#2*\thumbhspace,-\thesis@thumbtab)$);
+        \node at ($(tab top)+(#2*\thumbhspace,-0.5\thesis@thumbtab)$)[anchor=#3,inner sep=2\thumbedge]{%
+            \headingfont\bfseries\color{thumbtext}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
+    \end{tikzpicture}}
+\newcommand*{\thesis@thumb}[1]{%
     \if@thumb\ifthesis@thumbson\ifnum\value{chapter}>0
-        \begin{tikzpicture}[remember picture,overlay]
-            \coordinate (top margin) at (0pt,1in+\topmargin+\headheight+\headsep);
-            \coordinate (tab top) at ($(current page.north #1)-(top margin)-(0pt,\thesis@thumbpos\thumbvspace-\thumbvspace)$);
-            \fill[fill=thumb] ($(tab top)-(#2*3*\thumbedge,0pt)$) rectangle ($(tab top)+(#2*\thumbhspace,-\thesis@thumbtab)$);
-            \node at ($(tab top)+(#2*\thumbhspace,-0.5\thesis@thumbtab)$)[anchor=#3,inner sep=2\thumbedge]{%
-                \headingfont\bfseries\color{thumbtext}\fontsize{0.75\thesis@thumbtab}{0.75\thesis@thumbtab}\selectfont\thechapter};
-        \end{tikzpicture}%
+        \xdef\thesis@thumbside{#1}%
     \fi\fi\fi}
-\newcommand*{\lthumb}{\thesis@thumb{west}{1}{east}}
-\newcommand*{\rthumb}{\thesis@thumb{east}{-1}{west}}
+\newcommand*{\lthumb}{\thesis@thumb{{\the\trimedge}{1}{east}}}
+\newcommand*{\rthumb}{\thesis@thumb{{\the\dimexpr\stockwidth-\trimedge\relax}{-1}{west}}}

@@ -2,6 +2,17 @@
 # (On Overleaf, the compiler is chosen in Menu > Settings > Compiler.)
 $pdf_mode = 4;
 
+# Fewer compile passes: some lines of the .aux files change on every pass without affecting the PDF, and
+# latexmk would compile once more (about a minute) only to find nothing else changed. Ignored here:
+#  - the tagging counters that \include saves at the end of each chapter (only read with \includeonly),
+#  - tagpdf's totals of marked-content items and structure elements (used for the width of the
+#    structure-element IDs and for checks),
+#  - biblatex's checksum of the .bbl file and its request for another pass when the .bbl file has
+#    changed (latexmk follows the .bbl file itself, and the citations it changes).
+$hash_calc_ignore_pattern{'aux'} =
+    '^\\\\setcounter\{g__tag_|^\\\\new\@label\@record\{\@tag\@LastPage\}|^\\\\abx\@aux\@read\@bbl\@mdfivesum';
+$hash_calc_ignore_pattern{'xml'} = '^\s*<internal package="biblatex" ';
+
 # MathTime Professional 2 (optional): the OpenType fonts and the mtpro2-otf package that
 # tools/mtpro2_otf.py writes live in the Fonts folder. Add it to TeX's search paths for style files, OpenType
 # fonts and Lua modules. Overleaf reads this file too. Harmless when the folder holds no fonts.
