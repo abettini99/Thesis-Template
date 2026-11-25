@@ -10,7 +10,11 @@ import { createInterface } from "node:readline";
 import sre from "speech-rule-engine";
 
 const style = process.env.SPEECH_STYLE || "clearspeak"; // or mathspeak
-await sre.setupEngine({ locale: "en", domain: style, modality: "speech" });
+// ClearSpeak reads the dot operator as "times" by default, so the divergence (nabla, dot) came out
+// as "nabla times": a listener hears the curl. With its preference MultsymbolDot_Dot it says "dot"
+// ("nabla dot u", "a dot b"), as MathSpeak does; screen readers offer the same choice.
+const prefs = process.env.SPEECH_PREFERENCES ?? (style === "clearspeak" ? "MultsymbolDot_Dot" : "");
+await sre.setupEngine({ locale: "en", domain: style, style: prefs || "default", modality: "speech" });
 await sre.engineReady();
 
 const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });

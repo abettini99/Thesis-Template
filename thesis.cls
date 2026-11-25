@@ -565,7 +565,7 @@
 \def\thesis@tagparaoff{\ifdefined\tagpdfparaOff\tagpdfparaOff\fi}
 \def\thesis@tagparaon{\ifdefined\tagpdfparaOn\tagpdfparaOn\fi}
 \newcommand{\thesis@captionbox}[2]{% label, text: the caption, as a box the width of the line
-    \sbox\@tempboxa{\small{\captionlabelfont #1}\thesis@capsep #2}%
+    \sbox\@tempboxa{\UseName{tag_suspend:n}{caption}\small{\captionlabelfont #1}\thesis@capsep #2\UseName{tag_resume:n}{caption}}% (measured only: not tagged, or its formulas were there twice, once empty)
     \vbox{\thesis@tagparaon\small\parindent\z@
         \ifdim\wd\@tempboxa>\hsize
             \parfillskip\z@\@plus1fil \ifdim\hsize<60mm \thesis@raggednohyphen\fi
