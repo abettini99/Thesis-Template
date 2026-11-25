@@ -1,0 +1,16 @@
+# Dependabot: a pull request when an action the workflows use (actions/checkout, upload-artifact, ...)
+# or Speech Rule Engine (tools/speech) has a new version. Merge it when the checks on the pull request
+# pass; for Speech Rule Engine, the speech artifact's diff.txt shows what reads differently.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /tools/speech
+    schedule:
+      interval: monthly

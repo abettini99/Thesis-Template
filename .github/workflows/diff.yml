@@ -1,0 +1,73 @@
+# A PDF that marks every change since the last version you sent out (tools/diff_versions.py):
+# deleted text struck through in red, new text underlined in blue.
+#
+#   - Runs on pushes to main and on pull requests, against the newest git tag (the last draft you tagged,
+#     e.g. git tag draft-2026-10 && git push origin draft-2026-10). Without a tag it does nothing.
+#   - Run it by hand (Actions tab > Changes since a version > Run workflow) to compare with any tag,
+#     commit or branch.
+#   - The result, main-diff.pdf, is kept for 30 days: Actions tab > the run > Artifacts. It is the thesis
+#     as main.tex sets it (a draft, as a rule), with newtx for the maths (MathTime is never on GitHub).
+name: Changes since a version
+
+on:
+  push:
+    branches: [main, master]
+    paths: ['**.tex', '**.bib', '**.cls', 'figures/**', 'tools/diff_versions.py', '.github/workflows/diff.yml']
+  pull_request:
+    paths: ['**.tex', '**.bib', '**.cls', 'figures/**', 'tools/diff_versions.py', '.github/workflows/diff.yml']
+  workflow_dispatch:
+    inputs:
+      since:
+        description: Compare with (a tag, commit or branch; empty = the newest tag)
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: diff-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    container: texlive/texlive:latest
+    steps:
+      - name: Tools
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends git python3
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # the history and the tags, to compare with
+      - name: Which version?
+        id: base
+        env:
+          SINCE: ${{ inputs.since }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          base="${SINCE:-$(git describe --tags --abbrev=0 2>/dev/null || true)}"
+          if [ -z "$base" ]; then
+            echo "No tag yet: nothing to compare with. Tag the version you send out (git tag draft-2026-10)."
+            echo "base=" >> "$GITHUB_OUTPUT"
+          elif [ "$(git rev-parse "$base^{commit}")" = "$(git rev-parse HEAD)" ]; then
+            echo "$base is this very commit: no changes."
+            echo "base=" >> "$GITHUB_OUTPUT"
+          else
+            echo "Comparing with $base"
+            echo "base=$base" >> "$GITHUB_OUTPUT"
+            echo "name=$(printf '%s' "$base" | tr -c 'A-Za-z0-9._-' '-')" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Mark the changes
+        if: steps.base.outputs.base != ''
+        run: python3 tools/diff_versions.py "${{ steps.base.outputs.base }}"
+      - name: Keep the PDF
+        if: steps.base.outputs.base != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: changes-since-${{ steps.base.outputs.name }}
+          path: |
+            main-diff.pdf
+            main-diff.log
+          retention-days: 30
+          if-no-files-found: warn

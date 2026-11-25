@@ -1,0 +1,19 @@
+# Settings for chktex (https://www.nongnu.org/chktex/), run by .github/workflows/quality.yml on the
+# .tex files a push changes. Its suggestions appear as annotations; they never fail a run.
+#
+# Left out because they are noisy with this template's style, or wrong for it:
+#    1  command terminated with space          (\LaTeX{} vs \LaTeX\ : both are fine)
+#    3  enclose previous parenthesis with {}
+#    8  wrong length of dash                   (flags correct dashes in names and ranges)
+#   12  interword spacing should perhaps be used
+#   13  intersentence spacing should perhaps be used (\frenchspacing makes it moot)
+#   24  delete this space to maintain correct pagereferences
+#   26  you ought to remove spaces in front of punctuation (flags \, before units)
+#   36  you should put a space in front of/after parenthesis
+#   44  user regex (vertical lines in tables: booktabs tables have none anyway)
+#   46  use \( ... \) instead of $ ... $
+CmdLine { -n1 -n3 -n8 -n12 -n13 -n24 -n26 -n36 -n44 -n46 }
+
+# Environments whose contents are not LaTeX text
+VerbEnvir { verbatim comment lstlisting minted Verbatim code algorithmic }
+

@@ -8,12 +8,27 @@
 #     validation of the digital edition; tools/check_print.py for the PDF/X edition) and with
 #     tools/check_figures.py; tools/check_ua1.py reports how a PDF/UA-1 checker such as PAC sees the
 #     digital edition. A run fails (red cross) if a PDF has something that must be fixed.
+#   - The bibliography is checked with tools/check_bib.py (keys cited but missing, duplicates, missing
+#     fields); the words TeX hyphenated are listed for review in the run's summary (check_hyphenation.py).
+#   - Speech: tools/check_speech.py reads the digital edition the way a screen reader does (headings,
+#     alternative text, table headers, the maths in words) and fails on what a listener would miss;
+#     speech/spoken.txt is the whole thesis as read aloud, speech/diff.txt what reads differently since
+#     the latest release.
+#   - AI judge (tools/judge_speech.py): a language model reads speech/spoken.txt and says whether a blind
+#     reader could follow it, beyond what the rules check: PASS or FAIL, and on FAIL speech/speech-judge.pdf
+#     says why. It runs for tags and for runs by hand, when a key is set:
+#       Claude:  repository secret ANTHROPIC_API_KEY (model: variable SPEECH_JUDGE_MODEL, default
+#                claude-sonnet-5-5)
+#       another provider with an OpenAI-compatible API (OpenAI, Mistral, Gemini, OpenRouter, ...):
+#                secret SPEECH_JUDGE_API_KEY, variables SPEECH_JUDGE_URL and SPEECH_JUDGE_MODEL
+#     The variable SPEECH_JUDGE_BACKEND (claude, openai or none) makes it run on every push instead, or
+#     never. Either way the thesis text goes to that provider (a template-sized run costs cents).
 #   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10), or publish a release on GitHub,
 #     to attach the final PDFs to that release: thesis-digital.pdf (PDF/A-4f and PDF/UA-2),
 #     thesis-print.pdf (PDF/X, with bleed), thesis-preview.pdf (the trimmed book, plain PDF), cover.pdf
 #     (without the guides), propositions.pdf, veraPDF's report and the PDF/UA-1 report
-#     (tools/check_ua1.py). A fixed link to send round; in a private repository only people with
-#     access to it can open it.
+#     (tools/check_ua1.py) and spoken.txt. A fixed link to send round; in a private repository only
+#     people with access to it can open it.
 #
 # Everything is built twice: on TeX Live as Overleaf has it (what thesis authors compile with; an
 # image of the TeX Live repository on the day Overleaf took its copy, .github/texlive/Dockerfile; the
@@ -30,6 +45,12 @@ on:
       - '**.md'
       - .github/readme/**
   workflow_dispatch:   # run by hand: Actions tab > Build > Run workflow
+    inputs:
+      judge:
+        description: AI judge for the speech check
+        type: choice
+        options: [default, claude, openai, none]
+        default: default
 
 permissions:
   contents: write      # to create releases for tags
@@ -97,14 +118,76 @@ jobs:
             printer.log
             digital.pdf
             digital.log
+            digital.bcf
             preview.pdf
             propositions.pdf
             cover.pdf
             cover-final.pdf
           retention-days: 30
 
-  check:
+  speech:
     needs: build
+    if: ${{ !cancelled() }}   # (also when only the latest TeX Live failed)
+    runs-on: ubuntu-latest
+    container: texlive/texlive:latest   # show-pdf-tags, and LuaLaTeX for the judge's report
+    timeout-minutes: 60
+    env:
+      # A run by hand chooses; else the variable; else, for tags and runs by hand, whichever key is set.
+      SPEECH_JUDGE_BACKEND: >-
+        ${{ (inputs.judge != '' && inputs.judge != 'default' && inputs.judge)
+            || vars.SPEECH_JUDGE_BACKEND
+            || ((startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch')
+                && ((secrets.ANTHROPIC_API_KEY != '' && 'claude')
+                    || (secrets.SPEECH_JUDGE_API_KEY != '' && 'openai')))
+            || 'none' }}
+    steps:
+      - name: Tools
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends python3 python3-pikepdf nodejs npm
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v8
+        with:
+          name: thesis-overleaf-2026   # the digital edition as built on Overleaf's TeX Live
+      - name: Speech Rule Engine (MathML to words)
+        run: npm ci --prefix tools/speech --no-audit --no-fund
+      - name: Read the digital edition aloud and check it
+        id: check
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}   # to read spoken.txt of the latest release
+        run: python3 tools/check_speech.py digital.pdf --baseline-release
+      - name: AI judge (with a key; see the top of this file)
+        id: judge
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SPEECH_JUDGE_API_KEY: ${{ secrets.SPEECH_JUDGE_API_KEY }}
+          SPEECH_JUDGE_URL: ${{ vars.SPEECH_JUDGE_URL }}
+          SPEECH_JUDGE_MODEL: ${{ vars.SPEECH_JUDGE_MODEL }}
+          SPEECH_JUDGE_ADVISORY: ${{ vars.SPEECH_JUDGE_ADVISORY }}
+        run: python3 tools/judge_speech.py
+      - name: Summary
+        if: always()
+        run: |
+          cat speech/findings.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          if [ -f speech/judge.md ]; then echo; cat speech/judge.md; fi >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the read-aloud text and the verdict
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: speech
+          path: speech/
+          retention-days: 30
+      - name: Fail if a listener would miss something
+        if: steps.check.outcome == 'failure' || steps.judge.outcome == 'failure'
+        run: |
+          echo "check_speech: ${{ steps.check.outcome }}, AI judge: ${{ steps.judge.outcome }} (see the summary and the speech artifact)"
+          exit 1
+
+  check:
+    needs: [build, speech]
+    if: ${{ !cancelled() && needs.build.result == 'success' }}   # (also when the speech check fails)
     strategy:
       fail-fast: false
       matrix:
@@ -116,6 +199,11 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           name: thesis-${{ matrix.texlive }}
+      - uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          name: speech
+          path: speech
       - name: Tools
         run: |
           sudo apt-get update -qq
@@ -141,6 +229,15 @@ jobs:
       - name: Check the figures
         if: always()
         run: python3 tools/check_figures.py digital.log
+      - name: Check the bibliography
+        if: always()
+        run: python3 tools/check_bib.py --bcf digital.bcf
+      - name: Hyphenated words to review (never fails)
+        if: always()
+        run: |
+          python3 tools/check_hyphenation.py digital.log | tee hyphenation.txt || true
+          { echo "<details><summary>Hyphenated words to review</summary>"; echo; echo '```'
+            cat hyphenation.txt; echo '```'; echo "</details>"; } >> "$GITHUB_STEP_SUMMARY"
       - name: veraPDF report
         if: always()
         run: verapdf --format html digital.pdf > verapdf-report.html || true
@@ -173,6 +270,7 @@ jobs:
           cp propositions.pdf release/propositions.pdf
           cp verapdf-report.html release/verapdf-report.html
           cp pdfua1-report.txt release/pdfua1-report.txt
+          if [ -f speech/spoken.txt ]; then cp speech/spoken.txt release/spoken.txt; fi
           # a release published on GitHub already exists: then only add the files
           if gh release view "$tag" > /dev/null 2>&1; then
             gh release upload "$tag" release/* --clobber

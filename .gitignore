@@ -76,3 +76,4 @@ creationdate.lua
 
 # Ruff cache
 .ruff_cache/
+tools/speech/node_modules/

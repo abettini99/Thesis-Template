@@ -1,0 +1,67 @@
+# Text quality: spelling, LaTeX slips and broken links.
+#
+#   - Spelling (every push that changes a .tex file): codespell, which knows common English misspellings
+#     and has few false alarms. A misspelling fails this workflow (the thesis build is not affected).
+#     Words it gets wrong (Dutch text, names, LaTeX environments): add them, in lower case, to
+#     .github/codespell-ignore.txt.
+#   - LaTeX slips (the same pushes): chktex on the .tex files the push changed (all of them when run by
+#     hand), shown as annotations next to the lines. Suggestions only: never fails. Settings: .chktexrc.
+#   - Links (every Monday, and by hand): tools/check_links.py checks the DOIs and web addresses in
+#     references.bib and the chapters. Fails if a DOI is not registered or an address is gone; GitHub
+#     then emails you.
+name: Text quality
+
+on:
+  push:
+    paths: ['**.tex', '.chktexrc', '.github/codespell-ignore.txt', '.github/workflows/quality.yml']
+  pull_request:
+    paths: ['**.tex', '.chktexrc', '.github/codespell-ignore.txt', '.github/workflows/quality.yml']
+  schedule:
+    - cron: '23 4 * * 1'   # Mondays: the link check
+  workflow_dispatch:       # run by hand: all three checks, on every file
+
+permissions:
+  contents: read
+
+jobs:
+  spelling:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: codespell
+        run: |
+          pip install --quiet codespell==2.4.1
+          codespell --ignore-words .github/codespell-ignore.txt \
+            chapters/ propositions.tex cover.tex settings/thesisinfo.tex
+
+  chktex:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # to see which files the push changed
+      - name: chktex
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends chktex
+      - name: Check the changed .tex files
+        env:
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            files=$(git ls-files '*.tex' | grep -v '^template/' || true)
+          else
+            from="${BASE:-$BEFORE}"
+            if [ -z "$from" ] || ! git cat-file -e "$from" 2>/dev/null; then from="HEAD~1"; fi
+            files=$(git diff --name-only --diff-filter=ACMR "$from" HEAD -- '*.tex' | grep -v '^template/' || true)
+          fi
+          python3 .github/scripts/chktex_annotate.py $files
+
+  links:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: DOIs and web addresses
+        run: python3 tools/check_links.py
