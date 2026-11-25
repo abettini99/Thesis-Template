@@ -2,6 +2,11 @@
 
 Versions follow [semantic versioning](https://semver.org): a change in the last number (1.0.1) only fixes things, in the middle number (1.1.0) adds something without changing what you have, and in the first number (2.0.0) asks you to change something in your thesis when you update; the entry says what.
 
+## Unreleased
+
+- **Contents and lists:** no longer use tocloft; LaTeX's own entry commands with tocloft's measurements give the same pages (identical to the pixel), and every entry is tagged properly (TOCI, Reference, Link) on every TeX Live. With the tocloft of Overleaf's TeX Live 2026 (2.3i), entries lost that structure, and an entry with maths failed PDF/UA-2.
+- **Continuous integration:** every push builds on TeX Live as Overleaf has it (an image of the TeX Live repository of 24 June 2026; all 203 packages the thesis loads match an Overleaf log) and on the latest TeX Live. A PDF/UA-1 report (`tools/check_ua1.py`) shows how PAC sees the digital edition, and WTPDF 1.0 failures now fail the build.
+
 ## 1.1.0 (24 November 2026)
 
 - **Cover:** a fourth colour, `coversecondary`, for the small lines (*Doctoral thesis · TU Delft*, *About the author*, the spine mark); before, they followed the text colour. Fixed: with a light text colour on a dark cover, the front title stayed black. If your `settings/cover.tex` is older, add `\colorlet{coversecondary}{covertext!75}` to it.
