@@ -120,46 +120,93 @@ for tab in ("WCAG", "Quality", "AI"):
         say("tab", tab, "failed:", repr(e))
 
 
-def expand_all(w):
-    """Open every node of the tree views, so their texts can be read."""
-    for _ in range(6):
-        opened = 0
-        for c in w.descendants(control_type="TreeItem"):
+# the detail view: a window inside PAC with a tree of checks; open every failing row, read them all
+def cell(item, column):
+    for c in item.children(control_type="DataItem"):
+        if c.window_text().startswith(column + " row"):
             try:
-                if c.iface_expand_collapse.CurrentExpandCollapseState == 0:  # collapsed
-                    c.iface_expand_collapse.Expand()
-                    opened += 1
+                return c.iface_value.CurrentValue, c
             except Exception:
-                pass
-        if not opened:
-            break
+                return "", c
+    return "", None
 
 
-# the detail view: what it opens, where (before the PDF report, which opens in the browser)
+def detail_rows(dw):
+    rows = []
+    for t in dw.descendants(control_type="TreeItem"):
+        name, c = cell(t, "Checkpoint")
+        if c is None:
+            continue
+        rows.append(
+            dict(
+                item=t,
+                cell=c,
+                name=name,
+                left=c.rectangle().left,
+                top=c.rectangle().top,
+                passed=cell(t, "Passed")[0],
+                warning=cell(t, "Warning")[0],
+                error=cell(t, "Error")[0],
+            )
+        )
+    return rows
+
+
 try:
-    before = {w.handle for w in Desktop(backend="uia").windows()}
     win.child_window(title="PDF/UA", control_type="TabItem").click_input()
     win.child_window(auto_id="resultsInDetailPDFUAButton", control_type="Button").click_input()
-    time.sleep(10)
-    shot("06-detail")
-    new = [w for w in Desktop(backend="uia").windows() if w.handle not in before]
-    say("new top-level windows:", [(w.window_text(), w.class_name(), w.process_id()) for w in new])
-    say("PAC's windows:", [(w.window_text(), w.class_name()) for w in app.windows()])
-    target = next((w for w in new if w.process_id() == app.process), None) or app.top_window()
-    expand_all(target.wrapper_object() if hasattr(target, "wrapper_object") else target)
+    time.sleep(8)
+    dw = win.child_window(title_re="Results in Detail.*", control_type="Window").wrapper_object()
+    try:
+        dw.maximize()
+    except Exception:
+        keyboard.send_keys("{VK_LWIN down}{UP}{VK_LWIN up}")
     time.sleep(2)
-    shot("06-detail-expanded")
-    tree(target if hasattr(target, "print_control_identifiers") else app.top_window(), "06-detail")
-    rows = []
-    w = target.wrapper_object() if hasattr(target, "wrapper_object") else target
-    for c in w.descendants():
+    opened = set()
+    for _ in range(80):
+        rows = detail_rows(dw)
+        base = min(r["left"] for r in rows)
+        todo = [
+            r
+            for r in rows
+            if r["error"] not in ("", "-", "0")
+            and (r["name"], r["top"] // 1) not in opened
+            and r["name"] not in opened
+            and (r["left"] - base) <= 4 * 24  # (not down to every single object)
+        ]
+        if not todo:
+            break
+        r = todo[0]
+        opened.add(r["name"])
+        r["cell"].click_input()
+        keyboard.send_keys("{RIGHT}")
+        time.sleep(1.5)
+    rows = detail_rows(dw)
+    base = min(r["left"] for r in rows)
+    lines = [
+        f"{'  ' * ((r['left'] - base) // 24)}{r['name']}\t{r['passed']}\t{r['warning']}\t{r['error']}"
+        for r in rows
+    ]
+    (out / "06-detail-rows.txt").write_text("\n".join(lines), encoding="utf-8")
+    say("detail rows:", len(rows), "opened:", len(opened))
+    shot("06-detail")
+    # the panels beside the tree describe the selected row: read them for the failing leaves
+    notes = []
+    for r in [r for r in rows if r["error"] not in ("", "-", "0")][-25:]:
         try:
-            rows.append(f"{c.element_info.control_type}\t{c.window_text()}")
-        except Exception:
-            pass
-    (out / "06-detail-texts.txt").write_text("\n".join(rows), encoding="utf-8")
-    say("detail rows:", len(rows))
-    keyboard.send_keys("{ESC}")
+            r["cell"].click_input()
+            time.sleep(1)
+            panel = [
+                c.window_text() or getattr(c, "iface_value", None) and c.iface_value.CurrentValue
+                for c in dw.descendants()
+                if c.element_info.control_type in ("Text", "Edit", "Document")
+            ]
+            notes.append(f"== {r['name']} ({r['error']} errors)\n" + "\n".join(str(x) for x in panel if x))
+        except Exception as e:
+            notes.append(f"== {r['name']}: {e!r}")
+    (out / "06-detail-notes.txt").write_text("\n\n".join(notes), encoding="utf-8")
+    shot("06-detail-selected")
+    dw.close()
     time.sleep(2)
 except Exception as e:
     say("detail failed:", repr(e))
