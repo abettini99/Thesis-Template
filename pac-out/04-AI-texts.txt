@@ -1,0 +1,73 @@
+Pane		
+Pane		
+Pane		
+Button	Refresh	
+ProgressBar	Please Wait	
+Button	Results in detail	
+Button	Logical structure	
+Button	Document statistics	
+Button	Screen reader preview	
+Tree		
+Custom	Header Panel	
+Header	Checkpoint	
+Header	Passed	
+Header	Warned	
+Header	Failed	
+Group	Data Panel	
+TreeItem	Node0	Classification of the elements;44;-;-
+DataItem	Checkpoint row 0	Classification of the elements
+DataItem	Passed row 0	44
+DataItem	Warned row 0	-
+DataItem	Failed row 0	-
+TreeItem	Node1	Unrecognized structural elements;53;1;-
+DataItem	Checkpoint row 1	Unrecognized structural elements
+DataItem	Passed row 1	53
+DataItem	Warned row 1	1
+DataItem	Failed row 1	-
+TreeItem	Node2	Missing structural elements;21;-;-
+DataItem	Checkpoint row 2	Missing structural elements
+DataItem	Passed row 2	21
+DataItem	Warned row 2	-
+DataItem	Failed row 2	-
+Pane	Root	
+Tab	mainTabbedControlGroup	
+Tab	mainTabbedControlGroup Tabs	
+TabItem	PDF/UA	
+TabItem	WCAG	
+TabItem	Quality	
+TabItem	AI	
+Pane	AI	
+Pane		
+Edit	Filename	thesis.pdf
+Custom	Filename	
+Edit	Pages	74
+Custom	Pages	
+Text	Title	
+Edit	Tags	9920
+Custom	Tags	
+Edit	Size	1 MB
+Custom	Size	
+Button	Select PDF file…	
+Pane	System.Drawing.Bitmap	System.Drawing.Bitmap
+Edit	Language	en-GB
+Custom	Language	
+Text	Filename	
+Text	Language	
+Edit		Title of the Dissertation: Subtitle
+Custom		
+Text	Pages	
+Text	Size	
+Text	Tags	
+Pane	Root	
+Pane		
+Button	Select Language	
+Button	About PAC 2026	
+Pane	Logo PAC 2026	
+Pane	headerLayoutControlGroup	
+Custom	emptySpaceItem1	
+TitleBar		PAC 2026 - PDF Accessibility Checker
+MenuBar	System	
+MenuItem	System	
+Button	Minimize	
+Button	Maximize	
+Button	Close	

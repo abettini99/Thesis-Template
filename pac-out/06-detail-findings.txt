@@ -1,0 +1,45 @@
+PDF/UA	passed 97591	warnings 398	errors 6894
+  Logical Structure	passed 8680	warnings 398	errors 6894
+    Structure Elements	passed 524	warnings 37	errors 60
+      Figures	passed 39	warnings -	errors 1
+        Bounding boxes	passed 39	warnings -	errors 1
+          - "Figure" element on a single page with no bounding box
+      Tables	passed 18	warnings 37	errors 59
+        Table regularity	passed 18	warnings 37	errors -
+          - Irregular table row
+        Table header cell assignments	passed -	warnings -	errors 59
+          - Table header cell has no associated subcells
+    Structure tree	passed 3684	warnings 361	errors 35
+      "Part" structure elements	passed 15	warnings 268	errors -
+        - Possibly inappropriate use of a "Part" structure element
+      "Caption" structure elements	passed 39	warnings 23	errors -
+        - Possibly inappropriate use of a "Caption" structure element
+      "Private" structure elements	passed -	warnings -	errors 2
+        - Invalid use of a "Private" structure element
+    Role mapping	passed 4254	warnings -	errors 5820
+      Role mapping of non-standard structure types	passed 4138	warnings -	errors 5820
+        - Non-standard structure type "math" is  neither mapped to a standard structure type nor to another non-standard structure type
+        - Non-standard structure type "msub" is  neither mapped to a standard structure type nor to another non-standard structure type
+        - Non-standard structure type "mi" is  neither mapped to a standard structure type nor to another non-standard structure type
+        - Non-standard structure type "mn" is  neither mapped to a standard structure type nor to another non-standard structure type
+        - Non-standard structure type "mo" is  neither mapped to a standard structure type nor to another non-standard structure type
+        - Non-standard structure type "msqrt" is  neither mapped to a standard structure type nor to another non-standard structure type
+        - Non-standard structure type "mrow" is  neither mapped to a standard structure type nor to another non-standard structure type
+    Alternative Descriptions	passed 218	warnings -	errors 979
+      Alternative text for "Formula" structure elements	passed -	warnings -	errors 979
+        - Alternative text missing for "Formula" structure element
+Quality	passed 185	warnings 301	errors -
+  Artifacted content on page body	passed -	warnings 107	errors -
+    - The page body contains marked content that contains text and is tagged as an artifact.
+  Tagged text consists of only whitespace	passed -	warnings 110	errors -
+    - Tagged text consists of only whitespace, and its location can only be approximated
+  "TOCI" elements are correctly linked to headings	passed 1	warnings 49	errors -
+    - "TOCI" element links to an incorrect destination
+  Completeness of "Table" elements	passed 14	warnings 7	errors -
+    - "Table" structure is possibly incomplete due to a missing "TH" or "TD" element
+  "Note" elements are referenced	passed 17	warnings 7	errors -
+    - "Note" element is not referenced by a "Link" element
+  "Note" elements contain "Lbl" elements	passed 5	warnings 20	errors -
+    - "Note" element does not contain a "Lbl" element
+  "P" elements contain "Note" elements	passed -	warnings 1	errors -
+    - "Note" element is a child of a "P" element

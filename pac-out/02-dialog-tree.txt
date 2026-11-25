@@ -1,0 +1,496 @@
+Control Identifiers:
+
+Dialog - 'Select PDF file ...'    (L131, T163, R1091, B703)
+['Select PDF file ...Dialog', 'Dialog', 'Select PDF file ...']
+child_window(title="Select PDF file ...", control_type="Window")
+   | 
+   | Pane - ''    (L139, T249, R1083, B614)
+   | ['Pane', 'Pane0', 'Pane1']
+   |    | 
+   |    | Toolbar - 'Command Module'    (L139, T249, R1083, B280)
+   |    | ['Command Module', 'Toolbar', 'Command ModuleToolbar', 'Toolbar0', 'Toolbar1']
+   |    | child_window(title="Command Module", auto_id="FolderBandModuleInner", control_type="ToolBar")
+   |    |    | 
+   |    |    | Button - '&Help'    (L1046, T251, R1074, B277)
+   |    |    | ['&HelpButton', '&Help', 'Button', 'Button0', 'Button1']
+   |    |    | child_window(title="&Help", auto_id="HelpButton", control_type="Button")
+   |    |    | 
+   |    |    | CheckBox - 'Preview pane'    (L1010, T251, R1038, B277)
+   |    |    | ['Preview paneCheckBox', 'CheckBox', 'Preview pane']
+   |    |    | child_window(title="Preview pane", auto_id="PreviewButton", control_type="CheckBox")
+   |    |    | 
+   |    |    | SplitButton - 'Details'    (L955, T251, R1010, B277)
+   |    |    | ['SplitButton', 'Details', 'DetailsSplitButton', 'SplitButton0', 'SplitButton1']
+   |    |    | child_window(title="Details", auto_id="ViewControl", control_type="SplitButton")
+   |    |    |    | 
+   |    |    |    | Button - 'View Slider'    (L982, T251, R1000, B277)
+   |    |    |    | ['View SliderButton', 'View Slider', 'Button2']
+   |    |    |    | child_window(title="View Slider", auto_id="SplitMenuButton", control_type="Button")
+   |    |    | 
+   |    |    | Button - 'Organize'    (L142, T251, R233, B277)
+   |    |    | ['OrganizeButton', 'Button3', 'Organize']
+   |    |    | child_window(title="Organize", auto_id="{7DDC1264-7E4D-4F74-BBC0-D191987C8D0F}", control_type="Button")
+   |    |    | 
+   |    |    | Button - 'New folder'    (L233, T251, R321, B277)
+   |    |    | ['New folder', 'New folderButton', 'Button4']
+   |    |    | child_window(title="New folder", auto_id="{E44616AD-6DF1-4B94-85A4-E465AE8A19DB}", control_type="Button")
+   |    | 
+   |    | Pane - 'Control Host'    (L141, T280, R295, B614)
+   |    | ['Control HostPane', 'Control Host', 'Pane2']
+   |    | child_window(title="Control Host", auto_id="ProperTreeHost", control_type="Pane")
+   |    |    | 
+   |    |    | TreeView - 'Navigation Pane'    (L141, T280, R295, B614)
+   |    |    | ['TreeView', 'Navigation PaneTreeView', 'Navigation Pane', 'TreeView0', 'TreeView1']
+   |    |    | child_window(title="Navigation Pane", auto_id="100", control_type="Tree")
+   |    |    |    | 
+   |    |    |    | ScrollBar - 'Vertical'    (L278, T280, R295, B614)
+   |    |    |    | ['VerticalScrollBar', 'Vertical', 'ScrollBar']
+   |    |    |    | child_window(title="Vertical", auto_id="NonClientVerticalScrollBar", control_type="ScrollBar")
+   |    |    |    |    | 
+   |    |    |    |    | Button - 'Line up'    (L278, T280, R295, B297)
+   |    |    |    |    | ['Line up', 'Line upButton', 'Button5']
+   |    |    |    |    | child_window(title="Line up", auto_id="UpButton", control_type="Button")
+   |    |    |    |    | 
+   |    |    |    |    | Button - 'Page up'    (L278, T297, R295, B383)
+   |    |    |    |    | ['Page upButton', 'Page up', 'Button6']
+   |    |    |    |    | child_window(title="Page up", auto_id="UpPageButton", control_type="Button")
+   |    |    |    |    | 
+   |    |    |    |    | Thumb - 'Position'    (L278, T383, R295, B576)
+   |    |    |    |    | ['Position', 'Thumb', 'PositionThumb', 'Thumb0', 'Thumb1']
+   |    |    |    |    | child_window(title="Position", auto_id="ScrollbarThumb", control_type="Thumb")
+   |    |    |    |    | 
+   |    |    |    |    | Button - 'Page down'    (L278, T576, R295, B597)
+   |    |    |    |    | ['Page downButton', 'Page down', 'Button7']
+   |    |    |    |    | child_window(title="Page down", auto_id="DownPageButton", control_type="Button")
+   |    |    |    |    | 
+   |    |    |    |    | Button - 'Line down'    (L278, T597, R295, B614)
+   |    |    |    |    | ['Line downButton', 'Button8', 'Line down']
+   |    |    |    |    | child_window(title="Line down", auto_id="DownButton", control_type="Button")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Desktop'    (L0, T0, R0, B0)
+   |    |    |    | ['DesktopTreeItem', 'TreeItem', 'Desktop', 'TreeItem0', 'TreeItem1']
+   |    |    |    | child_window(title="Desktop", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'Home'    (L0, T0, R0, B0)
+   |    |    |    |    | ['HomeTreeItem', 'Home', 'TreeItem2']
+   |    |    |    |    | child_window(title="Home", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'Gallery'    (L0, T0, R0, B0)
+   |    |    |    |    | ['GalleryTreeItem', 'TreeItem3', 'Gallery']
+   |    |    |    |    | child_window(title="Gallery", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'Start of Quick Access - Desktop (pinned)'    (L0, T0, R0, B0)
+   |    |    |    |    | ['Start of Quick Access - Desktop (pinned)', 'TreeItem4', 'Start of Quick Access - Desktop (pinned)TreeItem']
+   |    |    |    |    | child_window(title="Start of Quick Access - Desktop (pinned)", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'Downloads (pinned)'    (L192, T280, R255, B312)
+   |    |    |    |    | ['Downloads (pinned)TreeItem', 'Downloads (pinned)', 'TreeItem5']
+   |    |    |    |    | child_window(title="Downloads (pinned)", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'Documents (pinned)'    (L192, T312, R257, B344)
+   |    |    |    |    | ['TreeItem6', 'Documents (pinned)', 'Documents (pinned)TreeItem']
+   |    |    |    |    | child_window(title="Documents (pinned)", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'Pictures (pinned)'    (L192, T344, R238, B376)
+   |    |    |    |    | ['Pictures (pinned)TreeItem', 'Pictures (pinned)', 'TreeItem7']
+   |    |    |    |    | child_window(title="Pictures (pinned)", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'Music (pinned)'    (L192, T376, R228, B408)
+   |    |    |    |    | ['Music (pinned)TreeItem', 'TreeItem8', 'Music (pinned)']
+   |    |    |    |    | child_window(title="Music (pinned)", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'End of Quick Access - Videos (pinned)'    (L192, T408, R231, B440)
+   |    |    |    |    | ['End of Quick Access - Videos (pinned)', 'TreeItem9', 'End of Quick Access - Videos (pinned)TreeItem']
+   |    |    |    |    | child_window(title="End of Quick Access - Videos (pinned)", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'This PC'    (L192, T472, R236, B504)
+   |    |    |    |    | ['This PCTreeItem', 'TreeItem10', 'This PC']
+   |    |    |    |    | child_window(title="This PC", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'Temp (D:)'    (L192, T504, R248, B536)
+   |    |    |    |    | ['TreeItem11', 'Temp (D:)TreeItem', 'Temp (D:)']
+   |    |    |    |    | child_window(title="Temp (D:)", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'Network'    (L192, T536, R241, B568)
+   |    |    |    |    | ['TreeItem12', 'NetworkTreeItem', 'Network']
+   |    |    |    |    | child_window(title="Network", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | TreeItem - 'Linux'    (L192, T568, R224, B600)
+   |    |    |    |    | ['Linux', 'LinuxTreeItem', 'TreeItem13']
+   |    |    |    |    | child_window(title="Linux", control_type="TreeItem")
+   |    | 
+   |    | Pane - 'Shell Folder View'    (L299, T280, R1083, B614)
+   |    | ['Shell Folder ViewPane', 'Shell Folder View', 'Pane3']
+   |    | child_window(title="Shell Folder View", auto_id="listview", control_type="Pane")
+   |    |    | 
+   |    |    | ListBox - 'Items View'    (L299, T280, R1083, B614)
+   |    |    | ['Items ViewListBox', 'Items View', 'ListBox']
+   |    |    | child_window(title="Items View", control_type="List")
+   |    |    |    | 
+   |    |    |    | Header - 'Header'    (L299, T280, R1083, B305)
+   |    |    |    | ['HeaderHeader', 'Header']
+   |    |    |    | child_window(title="Header", control_type="Header")
+   |    |    |    |    | 
+   |    |    |    |    | SplitButton - 'Name'    (L299, T280, R571, B305)
+   |    |    |    |    | ['NameSplitButton', 'Name', 'SplitButton2']
+   |    |    |    |    | child_window(title="Name", auto_id="System.ItemNameDisplay", control_type="SplitButton")
+   |    |    |    |    |    | 
+   |    |    |    |    |    | Button - 'Filter dropdown'    (L555, T280, R570, B305)
+   |    |    |    |    |    | ['Filter dropdownButton', 'Button9', 'Filter dropdown', 'Filter dropdownButton0', 'Filter dropdownButton1', 'Filter dropdown0', 'Filter dropdown1']
+   |    |    |    |    |    | child_window(title="Filter dropdown", auto_id="DropDown", control_type="Button")
+   |    |    |    |    | 
+   |    |    |    |    | SplitButton - 'Date modified'    (L571, T280, R715, B305)
+   |    |    |    |    | ['Date modified', 'SplitButton3', 'Date modifiedSplitButton']
+   |    |    |    |    | child_window(title="Date modified", auto_id="System.DateModified", control_type="SplitButton")
+   |    |    |    |    |    | 
+   |    |    |    |    |    | Button - 'Filter dropdown'    (L699, T280, R714, B305)
+   |    |    |    |    |    | ['Filter dropdownButton2', 'Button10', 'Filter dropdown2']
+   |    |    |    |    |    | child_window(title="Filter dropdown", auto_id="DropDown", control_type="Button")
+   |    |    |    |    | 
+   |    |    |    |    | SplitButton - 'Type'    (L715, T280, R835, B305)
+   |    |    |    |    | ['SplitButton4', 'Type', 'TypeSplitButton']
+   |    |    |    |    | child_window(title="Type", auto_id="System.ItemTypeText", control_type="SplitButton")
+   |    |    |    |    |    | 
+   |    |    |    |    |    | Button - 'Filter dropdown'    (L819, T280, R834, B305)
+   |    |    |    |    |    | ['Filter dropdownButton3', 'Button11', 'Filter dropdown3']
+   |    |    |    |    |    | child_window(title="Filter dropdown", auto_id="DropDown", control_type="Button")
+   |    |    |    |    | 
+   |    |    |    |    | SplitButton - 'Size'    (L835, T280, R915, B305)
+   |    |    |    |    | ['SizeSplitButton', 'Size', 'SplitButton5']
+   |    |    |    |    | child_window(title="Size", auto_id="System.Size", control_type="SplitButton")
+   |    |    |    |    |    | 
+   |    |    |    |    |    | Button - 'Filter dropdown'    (L899, T280, R914, B305)
+   |    |    |    |    |    | ['Filter dropdownButton4', 'Button12', 'Filter dropdown4']
+   |    |    |    |    |    | child_window(title="Filter dropdown", auto_id="DropDown", control_type="Button")
+   |    |    |    | 
+   |    |    |    | ListItem - '.github'    (L313, T311, R911, B335)
+   |    |    |    | ['ListItem', '.githubListItem', '.github', 'ListItem0', 'ListItem1']
+   |    |    |    | child_window(title=".github", auto_id="0", control_type="ListItem")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Name'    (L335, T314, R571, B333)
+   |    |    |    |    | ['Edit', 'Edit0', 'Edit1']
+   |    |    |    |    | child_window(title="Name", auto_id="System.ItemNameDisplay", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Date modified'    (L571, T314, R715, B333)
+   |    |    |    |    | ['Edit2']
+   |    |    |    |    | child_window(title="Date modified", auto_id="System.DateModified", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Type'    (L715, T314, R835, B333)
+   |    |    |    |    | ['Edit3']
+   |    |    |    |    | child_window(title="Type", auto_id="System.ItemTypeText", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Size'    (L835, T314, R915, B333)
+   |    |    |    |    | ['Edit4']
+   |    |    |    |    | child_window(title="Size", auto_id="System.Size", control_type="Edit")
+   |    |    |    | 
+   |    |    |    | ListItem - 'chapters'    (L313, T339, R911, B363)
+   |    |    |    | ['chapters', 'ListItem2', 'chaptersListItem']
+   |    |    |    | child_window(title="chapters", auto_id="1", control_type="ListItem")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Name'    (L335, T342, R571, B361)
+   |    |    |    |    | ['Edit5']
+   |    |    |    |    | child_window(title="Name", auto_id="System.ItemNameDisplay", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Date modified'    (L571, T342, R715, B361)
+   |    |    |    |    | ['Edit6']
+   |    |    |    |    | child_window(title="Date modified", auto_id="System.DateModified", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Type'    (L715, T342, R835, B361)
+   |    |    |    |    | ['Edit7']
+   |    |    |    |    | child_window(title="Type", auto_id="System.ItemTypeText", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Size'    (L835, T342, R915, B361)
+   |    |    |    |    | ['Edit8']
+   |    |    |    |    | child_window(title="Size", auto_id="System.Size", control_type="Edit")
+   |    |    |    | 
+   |    |    |    | ListItem - 'figures'    (L313, T367, R911, B391)
+   |    |    |    | ['ListItem3', 'figures', 'figuresListItem']
+   |    |    |    | child_window(title="figures", auto_id="2", control_type="ListItem")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Name'    (L335, T370, R571, B389)
+   |    |    |    |    | ['Edit9']
+   |    |    |    |    | child_window(title="Name", auto_id="System.ItemNameDisplay", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Date modified'    (L571, T370, R715, B389)
+   |    |    |    |    | ['Edit10']
+   |    |    |    |    | child_window(title="Date modified", auto_id="System.DateModified", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Type'    (L715, T370, R835, B389)
+   |    |    |    |    | ['Edit11']
+   |    |    |    |    | child_window(title="Type", auto_id="System.ItemTypeText", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Size'    (L835, T370, R915, B389)
+   |    |    |    |    | ['Edit12']
+   |    |    |    |    | child_window(title="Size", auto_id="System.Size", control_type="Edit")
+   |    |    |    | 
+   |    |    |    | ListItem - 'fonts'    (L313, T395, R911, B419)
+   |    |    |    | ['ListItem4', 'fontsListItem', 'fonts']
+   |    |    |    | child_window(title="fonts", auto_id="3", control_type="ListItem")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Name'    (L335, T398, R571, B417)
+   |    |    |    |    | ['Edit13']
+   |    |    |    |    | child_window(title="Name", auto_id="System.ItemNameDisplay", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Date modified'    (L571, T398, R715, B417)
+   |    |    |    |    | ['Edit14']
+   |    |    |    |    | child_window(title="Date modified", auto_id="System.DateModified", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Type'    (L715, T398, R835, B417)
+   |    |    |    |    | ['Edit15']
+   |    |    |    |    | child_window(title="Type", auto_id="System.ItemTypeText", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Size'    (L835, T398, R915, B417)
+   |    |    |    |    | ['Edit16']
+   |    |    |    |    | child_window(title="Size", auto_id="System.Size", control_type="Edit")
+   |    |    |    | 
+   |    |    |    | ListItem - 'pac-out'    (L313, T423, R911, B447)
+   |    |    |    | ['ListItem5', 'pac-out', 'pac-outListItem']
+   |    |    |    | child_window(title="pac-out", auto_id="4", control_type="ListItem")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Name'    (L335, T426, R571, B445)
+   |    |    |    |    | ['Edit17']
+   |    |    |    |    | child_window(title="Name", auto_id="System.ItemNameDisplay", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Date modified'    (L571, T426, R715, B445)
+   |    |    |    |    | ['Edit18']
+   |    |    |    |    | child_window(title="Date modified", auto_id="System.DateModified", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Type'    (L715, T426, R835, B445)
+   |    |    |    |    | ['Edit19']
+   |    |    |    |    | child_window(title="Type", auto_id="System.ItemTypeText", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Size'    (L835, T426, R915, B445)
+   |    |    |    |    | ['Edit20']
+   |    |    |    |    | child_window(title="Size", auto_id="System.Size", control_type="Edit")
+   |    |    |    | 
+   |    |    |    | ListItem - 'settings'    (L313, T451, R911, B475)
+   |    |    |    | ['ListItem6', 'settingsListItem', 'settings']
+   |    |    |    | child_window(title="settings", auto_id="5", control_type="ListItem")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Name'    (L335, T454, R571, B473)
+   |    |    |    |    | ['Edit21']
+   |    |    |    |    | child_window(title="Name", auto_id="System.ItemNameDisplay", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Date modified'    (L571, T454, R715, B473)
+   |    |    |    |    | ['Edit22']
+   |    |    |    |    | child_window(title="Date modified", auto_id="System.DateModified", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Type'    (L715, T454, R835, B473)
+   |    |    |    |    | ['Edit23']
+   |    |    |    |    | child_window(title="Type", auto_id="System.ItemTypeText", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Size'    (L835, T454, R915, B473)
+   |    |    |    |    | ['Edit24']
+   |    |    |    |    | child_window(title="Size", auto_id="System.Size", control_type="Edit")
+   |    |    |    | 
+   |    |    |    | ListItem - 'template'    (L313, T479, R911, B503)
+   |    |    |    | ['ListItem7', 'template', 'templateListItem']
+   |    |    |    | child_window(title="template", auto_id="6", control_type="ListItem")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Name'    (L335, T482, R571, B501)
+   |    |    |    |    | ['Edit25']
+   |    |    |    |    | child_window(title="Name", auto_id="System.ItemNameDisplay", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Date modified'    (L571, T482, R715, B501)
+   |    |    |    |    | ['Edit26']
+   |    |    |    |    | child_window(title="Date modified", auto_id="System.DateModified", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Type'    (L715, T482, R835, B501)
+   |    |    |    |    | ['Edit27']
+   |    |    |    |    | child_window(title="Type", auto_id="System.ItemTypeText", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Size'    (L835, T482, R915, B501)
+   |    |    |    |    | ['Edit28']
+   |    |    |    |    | child_window(title="Size", auto_id="System.Size", control_type="Edit")
+   |    |    |    | 
+   |    |    |    | ListItem - 'tools'    (L313, T507, R911, B531)
+   |    |    |    | ['ListItem8', 'tools', 'toolsListItem']
+   |    |    |    | child_window(title="tools", auto_id="7", control_type="ListItem")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Name'    (L335, T510, R571, B529)
+   |    |    |    |    | ['Edit29']
+   |    |    |    |    | child_window(title="Name", auto_id="System.ItemNameDisplay", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Date modified'    (L571, T510, R715, B529)
+   |    |    |    |    | ['Edit30']
+   |    |    |    |    | child_window(title="Date modified", auto_id="System.DateModified", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Type'    (L715, T510, R835, B529)
+   |    |    |    |    | ['Edit31']
+   |    |    |    |    | child_window(title="Type", auto_id="System.ItemTypeText", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Size'    (L835, T510, R915, B529)
+   |    |    |    |    | ['Edit32']
+   |    |    |    |    | child_window(title="Size", auto_id="System.Size", control_type="Edit")
+   |    |    |    | 
+   |    |    |    | ListItem - 'thesis'    (L313, T535, R911, B559)
+   |    |    |    | ['ListItem9', 'thesis', 'thesisListItem']
+   |    |    |    | child_window(title="thesis", auto_id="8", control_type="ListItem")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Name'    (L335, T538, R571, B557)
+   |    |    |    |    | ['Edit33']
+   |    |    |    |    | child_window(title="Name", auto_id="System.ItemNameDisplay", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Date modified'    (L571, T538, R715, B557)
+   |    |    |    |    | ['Edit34']
+   |    |    |    |    | child_window(title="Date modified", auto_id="System.DateModified", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Type'    (L715, T538, R835, B557)
+   |    |    |    |    | ['Edit35']
+   |    |    |    |    | child_window(title="Type", auto_id="System.ItemTypeText", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Edit - 'Size'    (L835, T538, R915, B557)
+   |    |    |    |    | ['Edit36']
+   |    |    |    |    | child_window(title="Size", auto_id="System.Size", control_type="Edit")
+   |    | 
+   |    | TreeView - 'Application Controls'    (L0, T0, R0, B0)
+   |    | ['TreeView2', 'Application Controls', 'Application ControlsTreeView']
+   |    | child_window(title="Application Controls", auto_id="AppControlsModuleInner", control_type="Tree")
+   | 
+   | Static - 'File name:'    (L269, T627, R323, B642)
+   | ['File name:', 'File name:Static', 'Static', 'File name:0', 'File name:1', 'Static0', 'Static1']
+   | child_window(title="File name:", auto_id="1090", control_type="Text")
+   | 
+   | ComboBox - 'File name:'    (L328, T623, R866, B647)
+   | ['File name:ComboBox', 'ComboBox', 'File name:2', 'ComboBox0', 'ComboBox1']
+   | child_window(title="File name:", auto_id="1148", control_type="ComboBox")
+   |    | 
+   |    | Edit - 'File name:'    (L332, T628, R846, B643)
+   |    | ['File name:Edit', 'Edit37']
+   |    | child_window(title="File name:", auto_id="1148", control_type="Edit")
+   |    | 
+   |    | Button - 'Open'    (L850, T624, R865, B646)
+   |    | ['OpenButton', 'Open', 'Button13', 'OpenButton0', 'OpenButton1', 'Open0', 'Open1']
+   |    | child_window(title="Open", auto_id="DropDown", control_type="Button")
+   | 
+   | ComboBox - 'Files of type:'    (L878, T623, R1066, B646)
+   | ['ComboBox2', 'Files of type:', 'Files of type:ComboBox', 'Files of type:0', 'Files of type:1']
+   | child_window(title="Files of type:", auto_id="1136", control_type="ComboBox")
+   |    | 
+   |    | Static - 'Files of type:'    (L3, T3, R168, B20)
+   |    | ['Files of type:Static', 'Files of type:2', 'Static2']
+   |    | child_window(title="Files of type:", control_type="Text")
+   |    | 
+   |    | Button - 'Open'    (L1050, T624, R1065, B645)
+   |    | ['OpenButton2', 'Open2', 'Button14']
+   |    | child_window(title="Open", auto_id="DropDown", control_type="Button")
+   | 
+   | Button - 'Open'    (L878, T652, R966, B678)
+   | ['OpenButton3', 'Open3', 'Button15']
+   | child_window(title="Open", auto_id="1", control_type="Button")
+   | 
+   | Button - 'Cancel'    (L978, T652, R1066, B678)
+   | ['Cancel', 'Button16', 'CancelButton']
+   | child_window(title="Cancel", auto_id="2", control_type="Button")
+   | 
+   | Thumb - ''    (L1066, T678, R1083, B695)
+   | ['File name:Thumb', 'Thumb2']
+   | 
+   | Pane - ''    (L139, T194, R1083, B249)
+   | ['Pane4']
+   | child_window(auto_id="40965", control_type="Pane")
+   |    | 
+   |    | Pane - ''    (L139, T203, R239, B237)
+   |    | ['Pane5']
+   |    |    | 
+   |    |    | Toolbar - 'Navigation buttons'    (L143, T205, R239, B237)
+   |    |    | ['Toolbar2', 'Navigation buttonsToolbar', 'Navigation buttons']
+   |    |    | child_window(title="Navigation buttons", control_type="ToolBar")
+   |    |    |    | 
+   |    |    |    | Button - 'Back (Alt + Left Arrow)'    (L143, T205, R178, B237)
+   |    |    |    | ['Back (Alt + Left Arrow)Button', 'Back (Alt + Left Arrow)', 'Button17']
+   |    |    |    | child_window(title="Back (Alt + Left Arrow)", control_type="Button")
+   |    |    |    | 
+   |    |    |    | Button - 'Forward (Alt + Right Arrow)'    (L178, T205, R213, B237)
+   |    |    |    | ['Forward (Alt + Right Arrow)', 'Forward (Alt + Right Arrow)Button', 'Button18']
+   |    |    |    | child_window(title="Forward (Alt + Right Arrow)", control_type="Button")
+   |    |    |    | 
+   |    |    |    | Button - 'Recent locations'    (L213, T205, R233, B237)
+   |    |    |    | ['Recent locations', 'Button19', 'Recent locationsButton']
+   |    |    |    | child_window(title="Recent locations", control_type="Button")
+   |    | 
+   |    | Pane - ''    (L239, T202, R275, B238)
+   |    | ['Pane6']
+   |    |    | 
+   |    |    | Toolbar - 'Up band'    (L239, T205, R275, B241)
+   |    |    | ['Up bandToolbar', 'Toolbar3', 'Up band']
+   |    |    | child_window(title="Up band", control_type="ToolBar")
+   |    |    |    | 
+   |    |    |    | Button - 'Up to "tudelft-dissertation-template" (Alt + Up Arrow)'    (L239, T205, R272, B238)
+   |    |    |    | ['Up to "tudelft-dissertation-template" (Alt + Up Arrow)Button', 'Button20', 'Up to "tudelft-dissertation-template" (Alt + Up Arrow)']
+   |    |    |    | child_window(title="Up to "tudelft-dissertation-template" (Alt + Up Arrow)", control_type="Button")
+   |    | 
+   |    | Pane - ''    (L275, T194, R858, B246)
+   |    | ['Pane7']
+   |    | child_window(auto_id="41477", control_type="Pane")
+   |    |    | 
+   |    |    | Progress - 'Loading'    (L277, T204, R856, B238)
+   |    |    | ['LoadingProgress', 'Progress', 'Loading']
+   |    |    | child_window(title="Loading", control_type="ProgressBar")
+   |    |    |    | 
+   |    |    |    | Pane - ''    (L277, T204, R788, B238)
+   |    |    |    | ['Pane8']
+   |    |    |    |    | 
+   |    |    |    |    | Toolbar - 'Address: D:\a\tudelft-dissertation-template\tudelft-dissertation-template'    (L283, T204, R788, B238)
+   |    |    |    |    | ['Toolbar4', 'Address: D:\\a\\tudelft-dissertation-template\\tudelft-dissertation-template', 'Address: D:\\a\\tudelft-dissertation-template\\tudelft-dissertation-templateToolbar']
+   |    |    |    |    | child_window(title="Address: D:\a\tudelft-dissertation-template\tudelft-dissertation-template", auto_id="1001", control_type="ToolBar")
+   |    |    |    |    |    | 
+   |    |    |    |    |    | SplitButton - 'All locations'    (L283, T204, R318, B237)
+   |    |    |    |    |    | ['All locations', 'All locationsSplitButton', 'SplitButton6']
+   |    |    |    |    |    | child_window(title="All locations", control_type="SplitButton")
+   |    |    |    |    |    | 
+   |    |    |    |    |    | SplitButton - '‎a'    (L318, T204, R347, B237)
+   |    |    |    |    |    | ['\u200eaSplitButton', '\u200ea', 'SplitButton7']
+   |    |    |    |    |    | child_window(title="‎a", control_type="SplitButton")
+   |    |    |    |    |    | 
+   |    |    |    |    |    | SplitButton - '‎tudelft-dissertation-template'    (L347, T204, R523, B237)
+   |    |    |    |    |    | ['\u200etudelft-dissertation-template', '\u200etudelft-dissertation-templateSplitButton', 'SplitButton8', '\u200etudelft-dissertation-template0', '\u200etudelft-dissertation-template1', '\u200etudelft-dissertation-templateSplitButton0', '\u200etudelft-dissertation-templateSplitButton1']
+   |    |    |    |    |    | child_window(title="‎tudelft-dissertation-template", control_type="SplitButton")
+   |    |    |    |    |    | 
+   |    |    |    |    |    | SplitButton - '‎tudelft-dissertation-template'    (L523, T204, R699, B237)
+   |    |    |    |    |    | ['\u200etudelft-dissertation-template2', '\u200etudelft-dissertation-templateSplitButton2', 'SplitButton9']
+   |    |    |    |    |    | child_window(title="‎tudelft-dissertation-template", control_type="SplitButton")
+   |    |    |    | 
+   |    |    |    | Toolbar - 'Address band'    (L788, T204, R856, B238)
+   |    |    |    | ['Toolbar5', 'Address bandToolbar', 'Address band']
+   |    |    |    | child_window(title="Address band", control_type="ToolBar")
+   |    |    |    |    | 
+   |    |    |    |    | Button - 'Previous Locations'    (L788, T204, R822, B238)
+   |    |    |    |    | ['Previous Locations', 'Previous LocationsButton', 'Button21']
+   |    |    |    |    | child_window(title="Previous Locations", control_type="Button")
+   |    |    |    |    | 
+   |    |    |    |    | Button - 'Refresh "tudelft-dissertation-template" (F5)'    (L822, T204, R856, B238)
+   |    |    |    |    | ['Refresh "tudelft-dissertation-template" (F5)', 'Refresh "tudelft-dissertation-template" (F5)Button', 'Button22']
+   |    |    |    |    | child_window(title="Refresh "tudelft-dissertation-template" (F5)", control_type="Button")
+   |    | 
+   |    | Pane - ''    (L868, T200, R1072, B240)
+   |    | ['Pane9']
+   |    |    | 
+   |    |    | Pane - ''    (L868, T203, R1072, B239)
+   |    |    | ['Pane10']
+   |    |    |    | 
+   |    |    |    | Pane - ''    (L873, T203, R1067, B239)
+   |    |    |    | ['Pane11']
+   |    |    |    |    | 
+   |    |    |    |    | Edit - '\r'    (L875, T213, R1033, B228)
+   |    |    |    |    | ['Edit38']
+   |    |    |    |    | child_window(title="\r", auto_id="SearchEditBox", control_type="Edit")
+   |    |    |    |    | 
+   |    |    |    |    | Button - 'Search'    (L1037, T203, R1065, B239)
+   |    |    |    |    | ['Search', 'SearchButton', 'Button23']
+   |    |    |    |    | child_window(title="Search", auto_id="SearchBoxSearchButton", control_type="Button")
+   | 
+   | TitleBar - ''    (L155, T166, R1083, B194)
+   | ['TitleBar']
+   |    | 
+   |    | Menu - 'System'    (L139, T171, R161, B193)
+   |    | ['System', 'Menu', 'SystemMenu', 'System0', 'System1']
+   |    | child_window(title="System", auto_id="MenuBar", control_type="MenuBar")
+   |    |    | 
+   |    |    | MenuItem - 'System'    (L139, T171, R161, B193)
+   |    |    | ['System2', 'SystemMenuItem', 'MenuItem']
+   |    |    | child_window(title="System", control_type="MenuItem")
+   |    | 
+   |    | Button - 'Close'    (L1050, T164, R1084, B194)
+   |    | ['Close', 'Button24', 'CloseButton']
+   |    | child_window(title="Close", control_type="Button")

@@ -1,0 +1,16 @@
+PAC window: PAC 2026 - PDF Accessibility Checker
+windows of PAC after the click: ['PAC 2026 - PDF Accessibility Checker']
+path entered
+PAC says: Unsupported PDF version
+    Button OK
+    Text This document is based on the PDF standard 2.0. PAC currently fully supports documents up to and including PDF standard 1.7.
+
+The document is now being opened and processed by PAC. It is possible that errors or unreliable results may occur.
+    Button Close
+pressed OK
+16 s: 114 controls, 0 numbers
+32 s: 114 controls, 0 numbers
+47 s: 114 controls, 0 numbers
+detail lines: 45
+PDF report: 342836 bytes
+done

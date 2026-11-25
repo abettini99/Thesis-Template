@@ -1,0 +1,128 @@
+Pane		
+Pane		
+Pane		
+Text	This document has potential quality issues.	
+Button	Refresh	
+Button	Results in detail	
+Button	Logical structure	
+Button	Document statistics	
+Button	Screen reader preview	
+Tree		
+ScrollBar	Vertical	0
+Button	Line Up	
+Thumb	Position	
+Button	Page Down	
+Button	Line Down	
+Custom	Header Panel	
+Header	Checkpoint	
+Header	Passed	
+Header	Warned	
+Header	Failed	
+Group	Data Panel	
+TreeItem	Node0	Validity of document title;1;-;-
+DataItem	Checkpoint row 0	Validity of document title
+DataItem	Passed row 0	1
+DataItem	Warned row 0	-
+DataItem	Failed row 0	-
+TreeItem	Node1	Artifacted content on page body;-;107;-
+DataItem	Checkpoint row 1	Artifacted content on page body
+DataItem	Passed row 1	-
+DataItem	Warned row 1	107
+DataItem	Failed row 1	-
+TreeItem	Node2	Tagged text consists of only whitespace;-;110;-
+DataItem	Checkpoint row 2	Tagged text consists of only whitespace
+DataItem	Passed row 2	-
+DataItem	Warned row 2	110
+DataItem	Failed row 2	-
+TreeItem	Node3	Tagged content exists outside of the page boundaries;-;-;-
+DataItem	Checkpoint row 3	Tagged content exists outside of the page boundaries
+DataItem	Passed row 3	-
+DataItem	Warned row 3	-
+DataItem	Failed row 3	-
+TreeItem	Node4	Presence of headings;1;-;-
+DataItem	Checkpoint row 4	Presence of headings
+DataItem	Passed row 4	1
+DataItem	Warned row 4	-
+DataItem	Failed row 4	-
+TreeItem	Node5	Presence of bookmarks (document outline) if there are headings;1;-;-
+DataItem	Checkpoint row 5	Presence of bookmarks (document outline) if there are headings
+DataItem	Passed row 5	1
+DataItem	Warned row 5	-
+DataItem	Failed row 5	-
+TreeItem	Node6	"TOCI" elements contain "Link" elements;50;-;-
+DataItem	Checkpoint row 6	"TOCI" elements contain "Link" elements
+DataItem	Passed row 6	50
+DataItem	Warned row 6	-
+DataItem	Failed row 6	-
+TreeItem	Node7	"TOCI" elements are correctly linked to headings;1;49;-
+DataItem	Checkpoint row 7	"TOCI" elements are correctly linked to headings
+DataItem	Passed row 7	1
+DataItem	Warned row 7	49
+DataItem	Failed row 7	-
+TreeItem	Node8	Validity of alternative texts;40;-;-
+DataItem	Checkpoint row 8	Validity of alternative texts
+DataItem	Passed row 8	40
+DataItem	Warned row 8	-
+DataItem	Failed row 8	-
+TreeItem	Node9	Alternative text on text elements;-;-;-
+DataItem	Checkpoint row 9	Alternative text on text elements
+DataItem	Passed row 9	-
+DataItem	Warned row 9	-
+DataItem	Failed row 9	-
+TreeItem	Node10	Completeness of "Link" elements;3;-;-
+DataItem	Checkpoint row 10	Completeness of "Link" elements
+DataItem	Passed row 10	3
+DataItem	Warned row 10	-
+DataItem	Failed row 10	-
+TreeItem	Node11	Formal correctness of "LI" elements;52;-;-
+DataItem	Checkpoint row 11	Formal correctness of "LI" elements
+DataItem	Passed row 11	52
+DataItem	Warned row 11	-
+DataItem	Failed row 11	-
+TreeItem	Node12	Completeness of "Table" elements;14;7;-
+DataItem	Checkpoint row 12	Completeness of "Table" elements
+DataItem	Passed row 12	14
+DataItem	Warned row 12	7
+DataItem	Failed row 12	-
+Pane	Root	
+Tab	mainTabbedControlGroup	
+Tab	mainTabbedControlGroup Tabs	
+TabItem	PDF/UA	
+TabItem	WCAG	
+TabItem	Quality	
+TabItem	AI	
+Pane	Quality	
+Pane		
+Edit	Filename	thesis.pdf
+Custom	Filename	
+Edit	Pages	74
+Custom	Pages	
+Text	Title	
+Edit	Tags	9920
+Custom	Tags	
+Edit	Size	1 MB
+Custom	Size	
+Button	Select PDF file…	
+Pane	System.Drawing.Bitmap	System.Drawing.Bitmap
+Edit	Language	en-GB
+Custom	Language	
+Text	Filename	
+Text	Language	
+Edit		Title of the Dissertation: Subtitle
+Custom		
+Text	Pages	
+Text	Size	
+Text	Tags	
+Pane	Root	
+Pane		
+Button	Select Language	
+Button	About PAC 2026	
+Pane	Logo PAC 2026	
+Pane	headerLayoutControlGroup	
+Custom	emptySpaceItem1	
+TitleBar		PAC 2026 - PDF Accessibility Checker
+MenuBar	System	
+MenuItem	System	
+Button	Minimize	
+Button	Maximize	
+Button	Close	

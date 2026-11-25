@@ -1,0 +1,457 @@
+Control Identifiers:
+
+Dialog - 'PAC 2026 - PDF Accessibility Checker'    (L130, T130, R780, B961)
+['PAC 2026 - PDF Accessibility Checker', 'Dialog', 'PAC 2026 - PDF Accessibility CheckerDialog']
+child_window(title="PAC 2026 - PDF Accessibility Checker", auto_id="MainForm", control_type="Window")
+   | 
+   | Pane - ''    (L50, T50, R860, B1041)
+   | ['TitlePane', 'Pane', 'TitlePane0', 'TitlePane1', 'Pane0', 'Pane1']
+   | 
+   | Pane - ''    (L120, T120, R790, B971)
+   | ['TitlePane2', 'Pane2']
+   | 
+   | Pane - ''    (L131, T488, R779, B950)
+   | ['Pane3', 'This PDF file is not PDF/UA compliant.Pane']
+   | child_window(auto_id="mainBottomLayoutControl", control_type="Pane")
+   |    | 
+   |    | Static - 'This PDF file is not PDF/UA compliant.'    (L165, T559, R374, B572)
+   |    | ['This PDF file is not PDF/UA compliant.', 'This PDF file is not PDF/UA compliant.Static', 'Static', 'Static0', 'Static1']
+   |    | child_window(title="This PDF file is not PDF/UA compliant.", auto_id="pdfuaResultLabel", control_type="Text")
+   |    | 
+   |    | Button - 'Refresh'    (L733, T503, R761, B529)
+   |    | ['Refresh', 'Button', 'RefreshButton', 'Button0', 'Button1']
+   |    | child_window(title="Refresh", auto_id="refreshButton", control_type="Button")
+   |    | 
+   |    | TreeView - ''    (L165, T592, R745, B879)
+   |    | ['This PDF file is not PDF/UA compliant.TreeView', 'TreeView']
+   |    | child_window(auto_id="pdfUaTreeList", control_type="Tree")
+   |    |    | 
+   |    |    | Custom - 'Header Panel'    (L166, T593, R744, B618)
+   |    |    | ['Header Panel', 'Header PanelCustom', 'Custom', 'Custom0', 'Custom1']
+   |    |    | child_window(title="Header Panel", control_type="Custom")
+   |    |    |    | 
+   |    |    |    | Header - 'Checkpoint'    (L166, T593, R504, B618)
+   |    |    |    | ['CheckpointHeader', 'Checkpoint', 'Header', 'Header0', 'Header1']
+   |    |    |    | child_window(title="Checkpoint", control_type="Header")
+   |    |    |    | 
+   |    |    |    | Header - 'Passed'    (L504, T593, R584, B618)
+   |    |    |    | ['PassedHeader', 'Header2', 'Passed']
+   |    |    |    | child_window(title="Passed", control_type="Header")
+   |    |    |    | 
+   |    |    |    | Header - 'Warned'    (L584, T593, R664, B618)
+   |    |    |    | ['Warned', 'WarnedHeader', 'Header3']
+   |    |    |    | child_window(title="Warned", control_type="Header")
+   |    |    |    | 
+   |    |    |    | Header - 'Failed'    (L664, T593, R744, B618)
+   |    |    |    | ['FailedHeader', 'Header4', 'Failed']
+   |    |    |    | child_window(title="Failed", control_type="Header")
+   |    |    | 
+   |    |    | GroupBox - 'Data Panel'    (L166, T618, R744, B838)
+   |    |    | ['Data PanelGroupBox', 'Data Panel', 'GroupBox']
+   |    |    | child_window(title="Data Panel", control_type="Group")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Node0'    (L166, T618, R744, B638)
+   |    |    |    | ['Node0TreeItem', 'TreeItem', 'Node0', 'TreeItem0', 'TreeItem1']
+   |    |    |    | child_window(title="Node0", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Checkpoint row 0'    (L187, T618, R504, B638)
+   |    |    |    |    | ['DataItem', 'Checkpoint row 0', 'Checkpoint row 0DataItem', 'DataItem0', 'DataItem1']
+   |    |    |    |    | child_window(title="Checkpoint row 0", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Passed row 0'    (L504, T618, R584, B638)
+   |    |    |    |    | ['DataItem2', 'Passed row 0DataItem', 'Passed row 0']
+   |    |    |    |    | child_window(title="Passed row 0", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Warned row 0'    (L584, T618, R664, B638)
+   |    |    |    |    | ['DataItem3', 'Warned row 0', 'Warned row 0DataItem']
+   |    |    |    |    | child_window(title="Warned row 0", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Failed row 0'    (L664, T618, R745, B638)
+   |    |    |    |    | ['DataItem4', 'Failed row 0DataItem', 'Failed row 0']
+   |    |    |    |    | child_window(title="Failed row 0", control_type="DataItem")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Node1'    (L166, T638, R744, B658)
+   |    |    |    | ['Node1', 'TreeItem2', 'Node1TreeItem']
+   |    |    |    | child_window(title="Node1", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Checkpoint row 1'    (L187, T638, R504, B658)
+   |    |    |    |    | ['DataItem5', 'Checkpoint row 1DataItem', 'Checkpoint row 1']
+   |    |    |    |    | child_window(title="Checkpoint row 1", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Passed row 1'    (L504, T638, R584, B658)
+   |    |    |    |    | ['Passed row 1DataItem', 'DataItem6', 'Passed row 1']
+   |    |    |    |    | child_window(title="Passed row 1", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Warned row 1'    (L584, T638, R664, B658)
+   |    |    |    |    | ['DataItem7', 'Warned row 1DataItem', 'Warned row 1']
+   |    |    |    |    | child_window(title="Warned row 1", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Failed row 1'    (L664, T638, R745, B658)
+   |    |    |    |    | ['Failed row 1DataItem', 'DataItem8', 'Failed row 1']
+   |    |    |    |    | child_window(title="Failed row 1", control_type="DataItem")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Node2'    (L166, T658, R744, B678)
+   |    |    |    | ['Node2TreeItem', 'TreeItem3', 'Node2']
+   |    |    |    | child_window(title="Node2", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Checkpoint row 2'    (L187, T658, R504, B678)
+   |    |    |    |    | ['DataItem9', 'Checkpoint row 2', 'Checkpoint row 2DataItem']
+   |    |    |    |    | child_window(title="Checkpoint row 2", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Passed row 2'    (L504, T658, R584, B678)
+   |    |    |    |    | ['DataItem10', 'Passed row 2', 'Passed row 2DataItem']
+   |    |    |    |    | child_window(title="Passed row 2", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Warned row 2'    (L584, T658, R664, B678)
+   |    |    |    |    | ['DataItem11', 'Warned row 2', 'Warned row 2DataItem']
+   |    |    |    |    | child_window(title="Warned row 2", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Failed row 2'    (L664, T658, R745, B678)
+   |    |    |    |    | ['DataItem12', 'Failed row 2DataItem', 'Failed row 2']
+   |    |    |    |    | child_window(title="Failed row 2", control_type="DataItem")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Node3'    (L166, T678, R744, B698)
+   |    |    |    | ['TreeItem4', 'Node3', 'Node3TreeItem']
+   |    |    |    | child_window(title="Node3", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Checkpoint row 3'    (L187, T678, R504, B698)
+   |    |    |    |    | ['DataItem13', 'Checkpoint row 3', 'Checkpoint row 3DataItem']
+   |    |    |    |    | child_window(title="Checkpoint row 3", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Passed row 3'    (L504, T678, R584, B698)
+   |    |    |    |    | ['DataItem14', 'Passed row 3DataItem', 'Passed row 3']
+   |    |    |    |    | child_window(title="Passed row 3", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Warned row 3'    (L584, T678, R664, B698)
+   |    |    |    |    | ['DataItem15', 'Warned row 3', 'Warned row 3DataItem']
+   |    |    |    |    | child_window(title="Warned row 3", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Failed row 3'    (L664, T678, R745, B698)
+   |    |    |    |    | ['DataItem16', 'Failed row 3DataItem', 'Failed row 3']
+   |    |    |    |    | child_window(title="Failed row 3", control_type="DataItem")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Node4'    (L166, T698, R744, B718)
+   |    |    |    | ['TreeItem5', 'Node4TreeItem', 'Node4']
+   |    |    |    | child_window(title="Node4", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Checkpoint row 4'    (L187, T698, R504, B718)
+   |    |    |    |    | ['DataItem17', 'Checkpoint row 4', 'Checkpoint row 4DataItem']
+   |    |    |    |    | child_window(title="Checkpoint row 4", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Passed row 4'    (L504, T698, R584, B718)
+   |    |    |    |    | ['DataItem18', 'Passed row 4', 'Passed row 4DataItem']
+   |    |    |    |    | child_window(title="Passed row 4", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Warned row 4'    (L584, T698, R664, B718)
+   |    |    |    |    | ['Warned row 4', 'DataItem19', 'Warned row 4DataItem']
+   |    |    |    |    | child_window(title="Warned row 4", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Failed row 4'    (L664, T698, R745, B718)
+   |    |    |    |    | ['DataItem20', 'Failed row 4', 'Failed row 4DataItem']
+   |    |    |    |    | child_window(title="Failed row 4", control_type="DataItem")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Node5'    (L166, T718, R744, B738)
+   |    |    |    | ['Node5', 'TreeItem6', 'Node5TreeItem']
+   |    |    |    | child_window(title="Node5", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Checkpoint row 5'    (L187, T718, R504, B738)
+   |    |    |    |    | ['DataItem21', 'Checkpoint row 5', 'Checkpoint row 5DataItem']
+   |    |    |    |    | child_window(title="Checkpoint row 5", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Passed row 5'    (L504, T718, R584, B738)
+   |    |    |    |    | ['DataItem22', 'Passed row 5', 'Passed row 5DataItem']
+   |    |    |    |    | child_window(title="Passed row 5", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Warned row 5'    (L584, T718, R664, B738)
+   |    |    |    |    | ['Warned row 5', 'DataItem23', 'Warned row 5DataItem']
+   |    |    |    |    | child_window(title="Warned row 5", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Failed row 5'    (L664, T718, R745, B738)
+   |    |    |    |    | ['DataItem24', 'Failed row 5DataItem', 'Failed row 5']
+   |    |    |    |    | child_window(title="Failed row 5", control_type="DataItem")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Node6'    (L166, T738, R744, B758)
+   |    |    |    | ['Node6TreeItem', 'TreeItem7', 'Node6']
+   |    |    |    | child_window(title="Node6", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Checkpoint row 6'    (L187, T738, R504, B758)
+   |    |    |    |    | ['Checkpoint row 6', 'DataItem25', 'Checkpoint row 6DataItem']
+   |    |    |    |    | child_window(title="Checkpoint row 6", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Passed row 6'    (L504, T738, R584, B758)
+   |    |    |    |    | ['Passed row 6', 'Passed row 6DataItem', 'DataItem26']
+   |    |    |    |    | child_window(title="Passed row 6", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Warned row 6'    (L584, T738, R664, B758)
+   |    |    |    |    | ['DataItem27', 'Warned row 6', 'Warned row 6DataItem']
+   |    |    |    |    | child_window(title="Warned row 6", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Failed row 6'    (L664, T738, R745, B758)
+   |    |    |    |    | ['DataItem28', 'Failed row 6DataItem', 'Failed row 6']
+   |    |    |    |    | child_window(title="Failed row 6", control_type="DataItem")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Node7'    (L166, T758, R744, B778)
+   |    |    |    | ['Node7', 'Node7TreeItem', 'TreeItem8']
+   |    |    |    | child_window(title="Node7", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Checkpoint row 7'    (L187, T758, R504, B778)
+   |    |    |    |    | ['Checkpoint row 7', 'DataItem29', 'Checkpoint row 7DataItem']
+   |    |    |    |    | child_window(title="Checkpoint row 7", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Passed row 7'    (L504, T758, R584, B778)
+   |    |    |    |    | ['DataItem30', 'Passed row 7', 'Passed row 7DataItem']
+   |    |    |    |    | child_window(title="Passed row 7", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Warned row 7'    (L584, T758, R664, B778)
+   |    |    |    |    | ['DataItem31', 'Warned row 7', 'Warned row 7DataItem']
+   |    |    |    |    | child_window(title="Warned row 7", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Failed row 7'    (L664, T758, R745, B778)
+   |    |    |    |    | ['Failed row 7', 'DataItem32', 'Failed row 7DataItem']
+   |    |    |    |    | child_window(title="Failed row 7", control_type="DataItem")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Node8'    (L166, T778, R744, B798)
+   |    |    |    | ['Node8TreeItem', 'TreeItem9', 'Node8']
+   |    |    |    | child_window(title="Node8", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Checkpoint row 8'    (L187, T778, R504, B798)
+   |    |    |    |    | ['DataItem33', 'Checkpoint row 8', 'Checkpoint row 8DataItem']
+   |    |    |    |    | child_window(title="Checkpoint row 8", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Passed row 8'    (L504, T778, R584, B798)
+   |    |    |    |    | ['DataItem34', 'Passed row 8', 'Passed row 8DataItem']
+   |    |    |    |    | child_window(title="Passed row 8", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Warned row 8'    (L584, T778, R664, B798)
+   |    |    |    |    | ['DataItem35', 'Warned row 8DataItem', 'Warned row 8']
+   |    |    |    |    | child_window(title="Warned row 8", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Failed row 8'    (L664, T778, R745, B798)
+   |    |    |    |    | ['DataItem36', 'Failed row 8', 'Failed row 8DataItem']
+   |    |    |    |    | child_window(title="Failed row 8", control_type="DataItem")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Node9'    (L166, T798, R744, B818)
+   |    |    |    | ['TreeItem10', 'Node9', 'Node9TreeItem']
+   |    |    |    | child_window(title="Node9", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Checkpoint row 9'    (L187, T798, R504, B818)
+   |    |    |    |    | ['Checkpoint row 9DataItem', 'DataItem37', 'Checkpoint row 9']
+   |    |    |    |    | child_window(title="Checkpoint row 9", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Passed row 9'    (L504, T798, R584, B818)
+   |    |    |    |    | ['Passed row 9', 'DataItem38', 'Passed row 9DataItem']
+   |    |    |    |    | child_window(title="Passed row 9", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Warned row 9'    (L584, T798, R664, B818)
+   |    |    |    |    | ['Warned row 9', 'DataItem39', 'Warned row 9DataItem']
+   |    |    |    |    | child_window(title="Warned row 9", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Failed row 9'    (L664, T798, R745, B818)
+   |    |    |    |    | ['DataItem40', 'Failed row 9', 'Failed row 9DataItem']
+   |    |    |    |    | child_window(title="Failed row 9", control_type="DataItem")
+   |    |    |    | 
+   |    |    |    | TreeItem - 'Node10'    (L166, T818, R744, B838)
+   |    |    |    | ['Node10TreeItem', 'TreeItem11', 'Node10']
+   |    |    |    | child_window(title="Node10", control_type="TreeItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Checkpoint row 10'    (L187, T818, R504, B838)
+   |    |    |    |    | ['Checkpoint row 10', 'DataItem41', 'Checkpoint row 10DataItem']
+   |    |    |    |    | child_window(title="Checkpoint row 10", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Passed row 10'    (L504, T818, R584, B838)
+   |    |    |    |    | ['DataItem42', 'Passed row 10', 'Passed row 10DataItem']
+   |    |    |    |    | child_window(title="Passed row 10", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Warned row 10'    (L584, T818, R664, B838)
+   |    |    |    |    | ['DataItem43', 'Warned row 10DataItem', 'Warned row 10']
+   |    |    |    |    | child_window(title="Warned row 10", control_type="DataItem")
+   |    |    |    |    | 
+   |    |    |    |    | DataItem - 'Failed row 10'    (L664, T818, R745, B838)
+   |    |    |    |    | ['DataItem44', 'Failed row 10DataItem', 'Failed row 10']
+   |    |    |    |    | child_window(title="Failed row 10", control_type="DataItem")
+   |    | 
+   |    | Button - 'Screen reader preview'    (L707, T890, R745, B926)
+   |    | ['Screen reader preview', 'Screen reader previewButton', 'Button2']
+   |    | child_window(title="Screen reader preview", auto_id="previewPDFUAButton", control_type="Button")
+   |    | 
+   |    | Button - 'Document statistics'    (L658, T890, R696, B926)
+   |    | ['Document statisticsButton', 'Document statistics', 'Button3']
+   |    | child_window(title="Document statistics", auto_id="documentStatisticsPDFUAButton", control_type="Button")
+   |    | 
+   |    | Button - 'Logical structure'    (L609, T890, R647, B926)
+   |    | ['Logical structureButton', 'Logical structure', 'Button4']
+   |    | child_window(title="Logical structure", auto_id="logicalStructurePDFUAButton", control_type="Button")
+   |    | 
+   |    | Button - 'PDF report'    (L297, T890, R418, B926)
+   |    | ['PDF report', 'PDF reportButton', 'Button5']
+   |    | child_window(title="PDF report", auto_id="pdfUaPdfReportButton", control_type="Button")
+   |    | 
+   |    | Button - 'Results in detail'    (L165, T890, R286, B926)
+   |    | ['Results in detail', 'Results in detailButton', 'Button6']
+   |    | child_window(title="Results in detail", auto_id="resultsInDetailPDFUAButton", control_type="Button")
+   |    | 
+   |    | Pane - 'Root'    (L131, T488, R779, B950)
+   |    | ['Root', 'RootPane', 'Pane4', 'Root0', 'Root1', 'RootPane0', 'RootPane1']
+   |    | child_window(title="Root", control_type="Pane")
+   |    |    | 
+   |    |    | TabControl - 'mainTabbedControlGroup'    (L146, T503, R764, B945)
+   |    |    | ['TabControl', 'mainTabbedControlGroup', 'mainTabbedControlGroupTabControl', 'TabControl0', 'TabControl1']
+   |    |    | child_window(title="mainTabbedControlGroup", control_type="Tab")
+   |    |    |    | 
+   |    |    |    | TabControl - 'mainTabbedControlGroup Tabs'    (L146, T503, R764, B536)
+   |    |    |    | ['mainTabbedControlGroup TabsTabControl', 'TabControl2', 'mainTabbedControlGroup Tabs']
+   |    |    |    | child_window(title="mainTabbedControlGroup Tabs", control_type="Tab")
+   |    |    |    |    | 
+   |    |    |    |    | TabItem - 'PDF/UA'    (L155, T506, R224, B536)
+   |    |    |    |    | ['PDF/UA', 'PDF/UATabItem', 'TabItem', 'TabItem0', 'TabItem1', 'PDF/UA0', 'PDF/UA1']
+   |    |    |    |    | child_window(title="PDF/UA", control_type="TabItem")
+   |    |    |    |    | 
+   |    |    |    |    | TabItem - 'WCAG'    (L215, T508, R280, B535)
+   |    |    |    |    | ['WCAG', 'WCAGTabItem', 'TabItem2']
+   |    |    |    |    | child_window(title="WCAG", control_type="TabItem")
+   |    |    |    |    | 
+   |    |    |    |    | TabItem - 'Quality'    (L270, T508, R338, B535)
+   |    |    |    |    | ['QualityTabItem', 'Quality', 'TabItem3']
+   |    |    |    |    | child_window(title="Quality", control_type="TabItem")
+   |    |    |    |    | 
+   |    |    |    |    | TabItem - 'AI'    (L328, T508, R373, B535)
+   |    |    |    |    | ['AITabItem', 'AI', 'TabItem4']
+   |    |    |    |    | child_window(title="AI", control_type="TabItem")
+   |    |    |    | 
+   |    |    |    | Pane - 'PDF/UA'    (L162, T548, R748, B929)
+   |    |    |    | ['PDF/UAPane', 'PDF/UA2', 'Pane5']
+   |    |    |    | child_window(title="PDF/UA", control_type="Pane")
+   | 
+   | Pane - ''    (L131, T250, R779, B488)
+   | ['TitlePane3', 'Pane6']
+   | child_window(auto_id="mainUpperLayoutControl", control_type="Pane")
+   |    | 
+   |    | Edit - 'Filename'    (L371, T346, R761, B366)
+   |    | ['FilenameEdit', 'Edit', 'Edit0', 'Edit1']
+   |    | child_window(title="Filename", auto_id="filenameLabelValue", control_type="Edit")
+   |    |    | 
+   |    |    | Custom - 'Filename'    (L371, T346, R761, B366)
+   |    |    | ['FilenameCustom', 'Filename', 'Custom2', 'Filename0', 'Filename1']
+   |    |    | child_window(title="Filename", control_type="Custom")
+   |    | 
+   |    | Edit - 'Pages'    (L371, T398, R761, B418)
+   |    | ['Edit2', 'PagesEdit']
+   |    | child_window(title="Pages", auto_id="pagesLabelValue", control_type="Edit")
+   |    |    | 
+   |    |    | Custom - 'Pages'    (L371, T398, R761, B418)
+   |    |    | ['Pages', 'PagesCustom', 'Custom3', 'Pages0', 'Pages1']
+   |    |    | child_window(title="Pages", control_type="Custom")
+   |    | 
+   |    | Static - 'Title'    (L308, T323, R328, B336)
+   |    | ['Title', 'TitleStatic', 'Static2']
+   |    | child_window(title="Title", auto_id="titleLabel", control_type="Text")
+   |    | 
+   |    | Edit - 'Tags'    (L371, T424, R761, B444)
+   |    | ['TagsEdit', 'Edit3', 'TitleEdit', 'TitleEdit0', 'TitleEdit1']
+   |    | child_window(title="Tags", auto_id="tagsLabelValue", control_type="Edit")
+   |    |    | 
+   |    |    | Custom - 'Tags'    (L371, T424, R761, B444)
+   |    |    | ['Tags', 'TagsCustom', 'Custom4', 'Tags0', 'Tags1']
+   |    |    | child_window(title="Tags", control_type="Custom")
+   |    | 
+   |    | Edit - 'Size'    (L371, T450, R761, B470)
+   |    | ['Edit4', 'SizeEdit']
+   |    | child_window(title="Size", auto_id="sizeLabelValue", control_type="Edit")
+   |    |    | 
+   |    |    | Custom - 'Size'    (L371, T450, R761, B470)
+   |    |    | ['Size', 'SizeCustom', 'Custom5', 'Size0', 'Size1']
+   |    |    | child_window(title="Size", control_type="Custom")
+   |    | 
+   |    | Button - 'Select PDF file…'    (L149, T268, R292, B304)
+   |    | ['Select PDF file…', 'Button7', 'Select PDF file…Button']
+   |    | child_window(title="Select PDF file…", auto_id="openButton", control_type="Button")
+   |    | 
+   |    | Pane - 'System.Drawing.Bitmap'    (L149, T323, R292, B466)
+   |    | ['System.Drawing.BitmapPane', 'Pane7', 'System.Drawing.Bitmap']
+   |    | child_window(title="System.Drawing.Bitmap", auto_id="previewPictureEdit", control_type="Pane")
+   |    | 
+   |    | Edit - 'Language'    (L371, T372, R761, B392)
+   |    | ['Edit5', 'LanguageEdit']
+   |    | child_window(title="Language", auto_id="languageLabelValue", control_type="Edit")
+   |    |    | 
+   |    |    | Custom - 'Language'    (L371, T372, R761, B392)
+   |    |    | ['Custom6', 'LanguageCustom', 'Language', 'Language0', 'Language1']
+   |    |    | child_window(title="Language", control_type="Custom")
+   |    | 
+   |    | Static - 'Filename'    (L308, T349, R350, B362)
+   |    | ['FilenameStatic', 'Filename2', 'Static3']
+   |    | child_window(title="Filename", auto_id="fileNameLabel", control_type="Text")
+   |    | 
+   |    | Static - 'Language'    (L308, T375, R355, B388)
+   |    | ['Static4', 'LanguageStatic', 'Language2']
+   |    | child_window(title="Language", auto_id="languageLabel", control_type="Text")
+   |    | 
+   |    | Edit - ''    (L371, T320, R761, B340)
+   |    | ['Edit6', 'TitleEdit2']
+   |    | child_window(auto_id="titleLabelValue", control_type="Edit")
+   |    |    | 
+   |    |    | Custom - ''    (L371, T320, R761, B340)
+   |    |    | ['Custom7', 'TitleCustom']
+   |    | 
+   |    | Static - 'Pages'    (L308, T401, R337, B414)
+   |    | ['Pages2', 'PagesStatic', 'Static5']
+   |    | child_window(title="Pages", auto_id="pagesLabel", control_type="Text")
+   |    | 
+   |    | Static - 'Size'    (L308, T453, R327, B466)
+   |    | ['Size2', 'SizeStatic', 'Static6']
+   |    | child_window(title="Size", auto_id="sizeLabel", control_type="Text")
+   |    | 
+   |    | Static - 'Tags'    (L308, T427, R331, B440)
+   |    | ['TagsStatic', 'Tags2', 'Static7']
+   |    | child_window(title="Tags", auto_id="tagsLabel", control_type="Text")
+   |    | 
+   |    | Pane - 'Root'    (L131, T250, R779, B488)
+   |    | ['Root2', 'RootPane2', 'Pane8']
+   |    | child_window(title="Root", control_type="Pane")
+   | 
+   | Pane - ''    (L131, T163, R779, B250)
+   | ['Pane9']
+   | child_window(auto_id="headerLayoutControl", control_type="Pane")
+   |    | 
+   |    | Button - 'Select Language'    (L673, T188, R711, B224)
+   |    | ['Select Language', 'Select LanguageButton', 'Button8']
+   |    | child_window(title="Select Language", auto_id="languageButton", control_type="Button")
+   |    | 
+   |    | Button - 'About PAC 2026'    (L723, T188, R761, B224)
+   |    | ['About PAC 2026', 'About PAC 2026Button', 'Button9']
+   |    | child_window(title="About PAC 2026", auto_id="aboutHyperLinkLabel", control_type="Button")
+   |    | 
+   |    | Pane - 'Logo PAC 2026'    (L149, T181, R292, B232)
+   |    | ['Logo PAC 2026Pane', 'Logo PAC 2026', 'Pane10']
+   |    | child_window(title="Logo PAC 2026", auto_id="logoImageBox", control_type="Pane")
+   |    | 
+   |    | Pane - 'headerLayoutControlGroup'    (L131, T163, R779, B250)
+   |    | ['headerLayoutControlGroup', 'Pane11', 'headerLayoutControlGroupPane']
+   |    | child_window(title="headerLayoutControlGroup", control_type="Pane")
+   |    |    | 
+   |    |    | Custom - 'emptySpaceItem1'    (L295, T178, R670, B235)
+   |    |    | ['emptySpaceItem1', 'emptySpaceItem1Custom', 'Custom8']
+   |    |    | child_window(title="emptySpaceItem1", control_type="Custom")
+   | 
+   | TitleBar - ''    (L160, T138, R772, B161)
+   | ['TitleBar']
+   |    | 
+   |    | Menu - 'System'    (L138, T138, R160, B160)
+   |    | ['System', 'Menu', 'SystemMenu', 'System0', 'System1']
+   |    | child_window(title="System", auto_id="MenuBar", control_type="MenuBar")
+   |    |    | 
+   |    |    | MenuItem - 'System'    (L138, T138, R160, B160)
+   |    |    | ['System2', 'SystemMenuItem', 'MenuItem']
+   |    |    | child_window(title="System", control_type="MenuItem")
+   |    | 
+   |    | Button - 'Minimize'    (L705, T137, R729, B161)
+   |    | ['Minimize', 'Button10', 'MinimizeButton']
+   |    | child_window(title="Minimize", control_type="Button")
+   |    | 
+   |    | Button - 'Maximize'    (L727, T137, R751, B161)
+   |    | ['Maximize', 'Button11', 'MaximizeButton']
+   |    | child_window(title="Maximize", control_type="Button")
+   |    | 
+   |    | Button - 'Close'    (L749, T137, R773, B161)
+   |    | ['Close', 'Button12', 'CloseButton']
+   |    | child_window(title="Close", control_type="Button")

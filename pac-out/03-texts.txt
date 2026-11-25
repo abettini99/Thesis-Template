@@ -1,0 +1,114 @@
+Pane		
+Pane		
+Pane		
+Text	This PDF file is not PDF/UA compliant.	
+Button	Refresh	
+Tree		
+Custom	Header Panel	
+Header	Checkpoint	
+Header	Passed	
+Header	Warned	
+Header	Failed	
+Group	Data Panel	
+TreeItem	Node0	PDF Syntax (ISO 32000-1);10085;-;-
+DataItem	Checkpoint row 0	PDF Syntax (ISO 32000-1)
+DataItem	Passed row 0	10085
+DataItem	Warned row 0	-
+DataItem	Failed row 0	-
+TreeItem	Node1	Fonts;66;-;-
+DataItem	Checkpoint row 1	Fonts
+DataItem	Passed row 1	66
+DataItem	Warned row 1	-
+DataItem	Failed row 1	-
+TreeItem	Node2	Content;54799;-;-
+DataItem	Checkpoint row 2	Content
+DataItem	Passed row 2	54799
+DataItem	Warned row 2	-
+DataItem	Failed row 2	-
+TreeItem	Node3	Embedded Files;433;-;-
+DataItem	Checkpoint row 3	Embedded Files
+DataItem	Passed row 3	433
+DataItem	Warned row 3	-
+DataItem	Failed row 3	-
+TreeItem	Node4	Natural language;23487;-;-
+DataItem	Checkpoint row 4	Natural language
+DataItem	Passed row 4	23487
+DataItem	Warned row 4	-
+DataItem	Failed row 4	-
+TreeItem	Node5	Structure Elements;524;37;60
+DataItem	Checkpoint row 5	Structure Elements
+DataItem	Passed row 5	524
+DataItem	Warned row 5	37
+DataItem	Failed row 5	60
+TreeItem	Node6	Structure tree;3684;361;35
+DataItem	Checkpoint row 6	Structure tree
+DataItem	Passed row 6	3684
+DataItem	Warned row 6	361
+DataItem	Failed row 6	35
+TreeItem	Node7	Role mapping;4254;-;5820
+DataItem	Checkpoint row 7	Role mapping
+DataItem	Passed row 7	4254
+DataItem	Warned row 7	-
+DataItem	Failed row 7	5820
+TreeItem	Node8	Alternative Descriptions;218;-;979
+DataItem	Checkpoint row 8	Alternative Descriptions
+DataItem	Passed row 8	218
+DataItem	Warned row 8	-
+DataItem	Failed row 8	979
+TreeItem	Node9	Metadata;3;-;-
+DataItem	Checkpoint row 9	Metadata
+DataItem	Passed row 9	3
+DataItem	Warned row 9	-
+DataItem	Failed row 9	-
+TreeItem	Node10	Document settings;38;-;-
+DataItem	Checkpoint row 10	Document settings
+DataItem	Passed row 10	38
+DataItem	Warned row 10	-
+DataItem	Failed row 10	-
+Button	Screen reader preview	
+Button	Document statistics	
+Button	Logical structure	
+Button	PDF report	
+Button	Results in detail	
+Pane	Root	
+Tab	mainTabbedControlGroup	
+Tab	mainTabbedControlGroup Tabs	
+TabItem	PDF/UA	
+TabItem	WCAG	
+TabItem	Quality	
+TabItem	AI	
+Pane	PDF/UA	
+Pane		
+Edit	Filename	thesis.pdf
+Custom	Filename	
+Edit	Pages	74
+Custom	Pages	
+Text	Title	
+Edit	Tags	9920
+Custom	Tags	
+Edit	Size	1 MB
+Custom	Size	
+Button	Select PDF file…	
+Pane	System.Drawing.Bitmap	System.Drawing.Bitmap
+Edit	Language	en-GB
+Custom	Language	
+Text	Filename	
+Text	Language	
+Edit		Title of the Dissertation: Subtitle
+Custom		
+Text	Pages	
+Text	Size	
+Text	Tags	
+Pane	Root	
+Pane		
+Button	Select Language	
+Button	About PAC 2026	
+Pane	Logo PAC 2026	
+Pane	headerLayoutControlGroup	
+Custom	emptySpaceItem1	
+TitleBar		PAC 2026 - PDF Accessibility Checker
+MenuBar	System	
+MenuItem	System	
+Button	Minimize	
+Button	Maximize	
+Button	Close	
