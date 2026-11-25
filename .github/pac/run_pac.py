@@ -23,7 +23,6 @@ from pywinauto import Application, keyboard
 
 pac_dir, pdf, out = Path(sys.argv[1]), Path(sys.argv[2]).resolve(), Path(sys.argv[3])
 out.mkdir(parents=True, exist_ok=True)
-md = []
 
 
 def shot(tag):
@@ -153,60 +152,87 @@ def visit(dw, name, depth, leaf_depth, lines):
         time.sleep(1)
 
 
-# --- the run ---------------------------------------------------------------------------------------
+# --- the run: each step on its own, so a report is written whatever fails ------------------------
 
-app = Application(backend="uia").start(str(pac_dir / "PAC.exe"))
-win = app.window(title_re="PAC 20.*")
-win.wait("visible ready", timeout=90)
-version = win.window_text()
+problems = []  # (step, what went wrong); listed in the summary
+state = {"app": None, "win": None}
 
-# open the PDF: PAC's button, then the Windows file dialog (its file name box is focused)
-win.child_window(auto_id="openButton", control_type="Button").click_input()
-time.sleep(3)
-keyboard.send_keys(str(pdf).replace(" ", "{SPACE}") + "{ENTER}", with_spaces=True)
 
-# PAC is built for PDF 1.7 and says so for a PDF 2.0 file: keep its words, press OK
-warning = ""
-for _ in range(30):
-    time.sleep(2)
-    box = win.child_window(title="Unsupported PDF version", control_type="Window")
-    if box.exists(timeout=0):
-        warning = " ".join(
-            c.window_text() for c in box.wrapper_object().descendants(control_type="Text") if c.window_text()
-        )
-        box.child_window(title="OK", control_type="Button").click_input()
-        break
-    if verdict(win):
-        break
+def step(name, func):
+    """Run one step; on failure note it, take a screenshot, and go on with the next."""
+    try:
+        return func()
+    except Exception as e:
+        problems.append((name, f"{type(e).__name__}: {' '.join(str(e).split())[:300]}"))
+        try:
+            shot(f"failed-{name.split()[0].lower()}")
+        except Exception:
+            pass
+        return None
 
-# wait for the verdict
-for _ in range(80):
-    if verdict(win):
-        break
-    time.sleep(10)
-time.sleep(5)
-shot("checked")
-if not verdict(win):
-    sys.exit("PAC gave no verdict in time; see pac-checked.png")
 
-md += [
-    f"## PAC: `{pdf.name}`\n",
-    f"{version}. Standard: PDF/UA-1 (PAC checks PDF 1.7 files).\n",
-    f"> PAC's warning: {' '.join(warning.split())}\n" if warning else "",
-]
-for tab in ("PDF/UA", "WCAG", "Quality", "AI"):
-    win.child_window(title=tab, control_type="TabItem").click_input()
+def start():
+    app = Application(backend="uia").start(str(pac_dir / "PAC.exe"))
+    win = app.window(title_re="PAC 20.*")
+    win.wait("visible ready", timeout=90)
+    state.update(app=app, win=win)
+    return win.window_text()
+
+
+def open_pdf():
+    win = state["win"]
+    win.child_window(auto_id="openButton", control_type="Button").click_input()
     time.sleep(3)
-    md += [
-        f"### {tab}: {verdict(win) or ''}\n",
-        "| Checkpoint | Passed | Warned | Failed |",
-        "|---|---|---|---|",
-    ]
-    md += [f"| {n} | {p} | {w} | {f} |" for n, p, w, f in table(win)]
-    md.append("")
+    keyboard.send_keys(str(pdf).replace(" ", "{SPACE}") + "{ENTER}", with_spaces=True)
+    # PAC is built for PDF 1.7 and says so for a PDF 2.0 file: keep its words, press OK
+    for _ in range(30):
+        time.sleep(2)
+        box = win.child_window(title="Unsupported PDF version", control_type="Window")
+        if box.exists(timeout=0):
+            text = " ".join(
+                c.window_text()
+                for c in box.wrapper_object().descendants(control_type="Text")
+                if c.window_text()
+            )
+            box.child_window(title="OK", control_type="Button").click_input()
+            return text
+        if verdict(win):
+            return ""
+    return ""
 
-# the details: for every failing check, PAC's messages
-try:
+
+def wait_verdict():
+    win = state["win"]
+    for _ in range(80):
+        if verdict(win):
+            time.sleep(5)
+            shot("checked")
+            return verdict(win)
+        time.sleep(10)
+    raise TimeoutError("PAC gave no verdict within 15 minutes (see pac-checked.png)")
+
+
+def tabs():
+    win = state["win"]
+    lines = []
+    for tab in ("PDF/UA", "WCAG", "Quality", "AI"):
+        try:
+            win.child_window(title=tab, control_type="TabItem").click_input()
+            time.sleep(3)
+            lines += [
+                f"### {tab}: {verdict(win)}\n",
+                "| Checkpoint | Passed | Warned | Failed |",
+                "|---|---|---|---|",
+            ]
+            lines += [f"| {n} | {p} | {w} | {f} |" for n, p, w, f in table(win)]
+            lines.append("")
+        except Exception as e:
+            problems.append((f"{tab} tab", f"{type(e).__name__}: {e}"))
+    return lines
+
+
+def details():
+    win = state["win"]
     win.child_window(title="PDF/UA", control_type="TabItem").click_input()
     win.child_window(auto_id="resultsInDetailPDFUAButton", control_type="Button").click_input()
     time.sleep(8)
@@ -217,27 +243,63 @@ try:
         pass
     time.sleep(2)
     lines = []
-    for top, leaf in (("PDF/UA", 4), ("Quality", 3)):
-        visit(dw, top, 0, leaf, lines)
-    md += ["### Details: PAC's messages for each check with errors or warnings\n", *lines, ""]
-    dw.close()
-    time.sleep(2)
-except Exception as e:
-    md.append(f"(the detail view could not be read: {e!r})\n")
-    shot("detail-failed")
+    try:
+        for top, leaf in (("PDF/UA", 4), ("Quality", 3)):
+            visit(dw, top, 0, leaf, lines)
+    finally:
+        try:
+            dw.close()
+            time.sleep(2)
+        except Exception:
+            pass
+    return lines
 
-# PAC's own report: "PDF report" opens a save dialog with the file name selected
-report = (out / "pac-report.pdf").resolve()
-win.child_window(title="PDF/UA", control_type="TabItem").click_input()
-win.child_window(auto_id="pdfUaPdfReportButton", control_type="Button").click_input()
-time.sleep(4)
-keyboard.send_keys(str(report).replace(" ", "{SPACE}") + "{ENTER}", with_spaces=True)
-for _ in range(60):
-    time.sleep(3)
-    if report.exists() and report.stat().st_size > 0:
-        break
 
+def pdf_report():
+    win = state["win"]
+    report = (out / "pac-report.pdf").resolve()
+    win.child_window(title="PDF/UA", control_type="TabItem").click_input()
+    win.child_window(auto_id="pdfUaPdfReportButton", control_type="Button").click_input()
+    time.sleep(4)
+    keyboard.send_keys(str(report).replace(" ", "{SPACE}") + "{ENTER}", with_spaces=True)
+    for _ in range(60):
+        time.sleep(3)
+        if report.exists() and report.stat().st_size > 0:
+            return report
+    raise TimeoutError("PAC's PDF report was not written within 3 minutes")
+
+
+version = step("Start PAC", start)
+warning = step("Open the PDF", open_pdf) if version else None
+result = step("Wait for the verdict", wait_verdict) if version else None
+tab_lines = step("Read the tabs", tabs) if result else None
+detail_lines = step("Read the detail view", details) if result else None
+report = step("Save PAC's PDF report", pdf_report) if result else None
+
+md = [
+    f"## PAC: `{pdf.name}`\n",
+    f"{version or 'PAC did not start'}. Standard: PDF/UA-1 (PAC checks PDF 1.7 files).\n",
+]
+if warning:
+    md.append(f"> PAC's warning: {' '.join(warning.split())}\n")
+md.append(f"**Verdict:** {result or 'none (see the problems below)'}\n")
+if problems:
+    md += [
+        "### Problems running PAC\n",
+        "These steps failed; the screenshots (pac-failed-*.png) show where:\n",
+    ]
+    md += [f"- **{name}:** {what}" for name, what in problems]
+    md.append("")
+md += tab_lines or []
+if detail_lines:
+    md += ["### Details: PAC's messages for each check with errors or warnings\n", *detail_lines, ""]
+md.append(f"PAC's own report: {'pac-report.pdf' if report else 'not written'}.\n")
 (out / "pac-summary.md").write_text("\n".join(md), encoding="utf-8")
 print("\n".join(md))
-app.kill()
-sys.exit(0 if report.exists() else "PAC's PDF report was not written")
+if state["app"]:
+    try:
+        state["app"].kill()
+    except Exception:
+        pass
+# a report is always written; the exit code says whether PAC gave a verdict and its report
+sys.exit(0 if result and report else 1)

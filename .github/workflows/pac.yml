@@ -5,13 +5,17 @@
 # its window (.github/pac/run_pac.py). PAC checks PDF/UA-1 (PDF 1.7); on this PDF/UA-2 (PDF 2.0)
 # file it reports what PDF 2.0 does differently as well, see tools/check_ua1.py for the sorting.
 #
-# Runs for every published release (and attaches PAC's report and a summary to it), or by hand
-# (Actions tab > PAC > Run workflow) for any PDF address. It never blocks anything: a report only.
+# Runs for every published release (and attaches PAC's report and a summary to it), every Monday on the
+# latest release (and looks for a newer PAC: .github/pac/pac_version.py), or by hand (Actions tab > PAC >
+# Run workflow) for any PDF address. It never blocks anything: a report only. The summary is written
+# whatever fails, with screenshots of the step that failed; a red cross means PAC gave no verdict.
 name: PAC
 
 on:
   release:
     types: [published]
+  schedule:
+    - cron: '23 5 * * 1'   # Mondays: the latest release, and whether axes4 offers a newer PAC
   workflow_dispatch:
     inputs:
       pdf:
@@ -53,25 +57,37 @@ jobs:
         shell: pwsh
         run: |
           try { Set-DisplayResolution -Width 1920 -Height 1080 -Force } catch { "resolution unchanged: $_" }
-      - name: Install PAC (silently, from axes4)
-        shell: pwsh
-        run: |
-          Invoke-WebRequest $env:PAC_MSI -OutFile PAC.msi
-          $p = Start-Process msiexec -ArgumentList '/i','PAC.msi','/quiet','ACCEPT_AXES4_EULA=1','INSTALLFOLDER=C:\PAC' -Wait -PassThru
-          if ($p.ExitCode -ne 0) { throw "PAC did not install (msiexec $($p.ExitCode))" }
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Which PAC (the pinned one; the newest if it is gone)
+        id: pac
+        run: python .github/pac/pac_version.py $env:PAC_MSI
+      - name: Install PAC (silently, from axes4)
+        shell: pwsh
+        env:
+          PAC_URL: ${{ steps.pac.outputs.url }}
+        run: |
+          Invoke-WebRequest $env:PAC_URL -OutFile PAC.msi
+          $p = Start-Process msiexec -ArgumentList '/i','PAC.msi','/quiet','ACCEPT_AXES4_EULA=1','INSTALLFOLDER=C:\PAC' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "PAC did not install (msiexec $($p.ExitCode))" }
       - name: Run PAC
         env:
           PYTHONIOENCODING: utf-8
         run: |
           pip install --quiet pywinauto pillow
           python .github/pac/run_pac.py C:\PAC thesis-digital.pdf pac
-      - name: Summary on the run's page
+      - name: Summary on the run's page (also when something failed)
         if: always()
         shell: bash
-        run: cat pac/pac-summary.md >> "$GITHUB_STEP_SUMMARY" || true
+        env:
+          NOTE: ${{ steps.pac.outputs.note }}
+        run: |
+          mkdir -p pac
+          { echo "**PAC version:** ${NOTE:-unknown (the version check did not run)}"; echo; } > pac/pac-version.md
+          [ -f pac/pac-summary.md ] || echo "PAC produced no summary: see the log and the screenshots." > pac/pac-summary.md
+          cat pac/pac-version.md pac/pac-summary.md >> "$GITHUB_STEP_SUMMARY"
+          cat pac/pac-version.md pac/pac-summary.md > pac/pac-summary-full.md && mv pac/pac-summary-full.md pac/pac-summary.md
       - name: Keep the report
         if: always()
         uses: actions/upload-artifact@v7
@@ -80,8 +96,11 @@ jobs:
           path: pac/
           retention-days: 30
       - name: Attach it to the release
-        if: github.event_name == 'release'
+        if: always() && github.event_name == 'release'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" pac/pac-report.pdf pac/pac-summary.md --clobber
+        run: |
+          files=pac/pac-summary.md
+          [ -f pac/pac-report.pdf ] && files="$files pac/pac-report.pdf"
+          gh release upload "${{ github.event.release.tag_name }}" $files --clobber
