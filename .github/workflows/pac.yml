@@ -34,7 +34,7 @@ jobs:
       PAC_MSI: https://pac.pdf-accessibility.org/_Resources/Persistent/7/0/1/1/7011f0e73e336c7566f24e0a1f88171a4b975afe/PAC_Setup.26.1.2.msi
       PDF_URL: ${{ inputs.pdf || 'https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/thesis-digital.pdf' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: The PDF
         shell: bash
         env:
@@ -54,7 +54,7 @@ jobs:
         shell: pwsh
         run: |
           try { Set-DisplayResolution -Width 1920 -Height 1080 -Force } catch { "resolution unchanged: $_" }
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Which PAC (the pinned one; the newest if it is gone)

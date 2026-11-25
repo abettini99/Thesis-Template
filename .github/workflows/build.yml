@@ -77,7 +77,7 @@ jobs:
       image: ${{ matrix.image }}
       options: --user root
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: TeX Live
         run: |
           lualatex --version | head -1
@@ -145,7 +145,7 @@ jobs:
         run: |
           apt-get update -qq
           apt-get install -y -qq --no-install-recommends python3 python3-pikepdf nodejs npm
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
           name: thesis-overleaf-2026   # the digital edition as built on Overleaf's TeX Live
@@ -195,7 +195,7 @@ jobs:
     name: check (${{ matrix.texlive }})
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
           name: thesis-${{ matrix.texlive }}

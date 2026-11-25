@@ -34,7 +34,7 @@ jobs:
         run: |
           apt-get update -qq
           apt-get install -y -qq --no-install-recommends git python3
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Compile the edition for the printer (final version)
         id: printer
         continue-on-error: true
@@ -86,7 +86,7 @@ jobs:
           !(github.event_name == 'workflow_dispatch' && inputs.update) &&
           (steps.printer.outcome == 'failure' || steps.digital.outcome == 'failure' ||
            steps.probe.outcome == 'failure' || steps.compare.outcome == 'failure')
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           PRINTER: ${{ steps.printer.outcome }}
           DIGITAL: ${{ steps.digital.outcome }}
