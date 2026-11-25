@@ -39,6 +39,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Run PAC
+        env:
+          PYTHONIOENCODING: utf-8
         run: |
           pip install --quiet pywinauto pillow
           python .github/pac/explore.py C:\PAC thesis.pdf

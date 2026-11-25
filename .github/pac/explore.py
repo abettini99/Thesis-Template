@@ -119,6 +119,51 @@ for tab in ("WCAG", "Quality", "AI"):
     except Exception as e:
         say("tab", tab, "failed:", repr(e))
 
+
+def expand_all(w):
+    """Open every node of the tree views, so their texts can be read."""
+    for _ in range(6):
+        opened = 0
+        for c in w.descendants(control_type="TreeItem"):
+            try:
+                if c.iface_expand_collapse.CurrentExpandCollapseState == 0:  # collapsed
+                    c.iface_expand_collapse.Expand()
+                    opened += 1
+            except Exception:
+                pass
+        if not opened:
+            break
+
+
+# the detail view: what it opens, where (before the PDF report, which opens in the browser)
+try:
+    before = {w.handle for w in Desktop(backend="uia").windows()}
+    win.child_window(title="PDF/UA", control_type="TabItem").click_input()
+    win.child_window(auto_id="resultsInDetailPDFUAButton", control_type="Button").click_input()
+    time.sleep(10)
+    shot("06-detail")
+    new = [w for w in Desktop(backend="uia").windows() if w.handle not in before]
+    say("new top-level windows:", [(w.window_text(), w.class_name(), w.process_id()) for w in new])
+    say("PAC's windows:", [(w.window_text(), w.class_name()) for w in app.windows()])
+    target = next((w for w in new if w.process_id() == app.process), None) or app.top_window()
+    expand_all(target.wrapper_object() if hasattr(target, "wrapper_object") else target)
+    time.sleep(2)
+    shot("06-detail-expanded")
+    tree(target if hasattr(target, "print_control_identifiers") else app.top_window(), "06-detail")
+    rows = []
+    w = target.wrapper_object() if hasattr(target, "wrapper_object") else target
+    for c in w.descendants():
+        try:
+            rows.append(f"{c.element_info.control_type}\t{c.window_text()}")
+        except Exception:
+            pass
+    (out / "06-detail-texts.txt").write_text("\n".join(rows), encoding="utf-8")
+    say("detail rows:", len(rows))
+    keyboard.send_keys("{ESC}")
+    time.sleep(2)
+except Exception as e:
+    say("detail failed:", repr(e))
+
 # PAC's own report: the "PDF report" button opens a save dialog with the file name selected
 report = (out / "pac-report.pdf").resolve()
 try:
@@ -137,65 +182,5 @@ except Exception as e:
     say("report failed:", repr(e))
 
 
-def expand_all(w):
-    """Open every node of the tree views, so their texts can be read."""
-    for _ in range(6):
-        opened = 0
-        for c in w.descendants(control_type="TreeItem"):
-            try:
-                if c.iface_expand_collapse.CurrentExpandCollapseState == 0:  # collapsed
-                    c.iface_expand_collapse.Expand()
-                    opened += 1
-            except Exception:
-                pass
-        if not opened:
-            break
-
-
-# the detail view: PAC writes it as an HTML file and opens it in the browser; keep the file
-try:
-    import os
-    import shutil
-
-    t0 = time.time()
-    win.child_window(auto_id="resultsInDetailPDFUAButton", control_type="Button").click_input()
-    time.sleep(15)
-    found = []
-    for base in {
-        os.environ.get("TEMP"),
-        os.environ.get("LOCALAPPDATA"),
-        os.environ.get("APPDATA"),
-        str(Path.home() / "Documents"),
-        str(Path.home()),
-        str(Path.cwd()),
-    }:
-        if not base or not Path(base).exists():
-            continue
-        for f in Path(base).rglob("*"):
-            try:
-                if (
-                    f.is_file()
-                    and "\\Edge\\" not in str(f)
-                    and "\\Microsoft\\" not in str(f)
-                    and f.stat().st_mtime > t0 - 5
-                ):
-                    found.append(f)
-            except Exception:
-                pass
-    say("files written by the detail view:", [str(f) for f in found][:60])
-    for w in Desktop(backend="uia").windows():
-        if "Edge" in w.window_text() or w.class_name().startswith("Chrome"):
-            say("browser window:", w.window_text())
-            for e in w.descendants(control_type="Edit"):
-                try:
-                    say("   address:", e.window_text(), e.iface_value.CurrentValue)
-                except Exception:
-                    pass
-    keep = sorted({f for f in found if f.suffix.lower() in (".html", ".htm", ".json", ".xml", ".tmp")})
-    for n, f in enumerate(keep[:20]):
-        shutil.copy(f, out / f"detail-{n}{f.suffix}")
-        say("kept", f, f.stat().st_size, "bytes")
-    subprocess.run(["taskkill", "/IM", "msedge.exe", "/F"], capture_output=True)
-except Exception as e:
-    say("detail failed:", repr(e))
+subprocess.run(["taskkill", "/IM", "msedge.exe", "/F"], capture_output=True)
 say("done")
