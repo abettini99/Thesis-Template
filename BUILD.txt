@@ -1,0 +1,4 @@
+Built by .github/workflows/build.yml on GitHub, in the official image texlive/texlive:latest, each
+file in an empty folder from its own source only (lualatex, twice), on 2026-11-25.
+This is LuaHBTeX, Version 1.24.0 (TeX Live 2026)
+LaTeX: LaTeX2e <2026-11-01>
