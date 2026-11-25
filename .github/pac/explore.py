@@ -152,6 +152,57 @@ def detail_rows(dw):
     return rows
 
 
+def has_findings(r):
+    return r["error"] not in ("", "-", "0") or r["warning"] not in ("", "-", "0")
+
+
+def find(dw, name, depth):
+    rows = detail_rows(dw)
+    base = min(x["left"] for x in rows)
+    for r in rows:
+        r["depth"] = (r["left"] - base) // 24
+    for k, r in enumerate(rows):
+        if r["name"] == name and r["depth"] == depth:
+            return k, rows
+    return None, rows
+
+
+report_lines = []
+
+
+def visit(dw, name, depth, leaf_depth=4):
+    """Open this row; for checks (leaf_depth) record their messages; recurse into rows with findings."""
+    k, rows = find(dw, name, depth)
+    if k is None:
+        report_lines.append(f"{'  ' * depth}{name}: (not visible)")
+        return
+    r = rows[k]
+    report_lines.append(
+        f"{'  ' * depth}{name}\tpassed {r['passed']}\twarnings {r['warning']}\terrors {r['error']}"
+    )
+    r["cell"].click_input()
+    keyboard.send_keys("{RIGHT}")
+    time.sleep(1.5)
+    k, rows = find(dw, name, depth)
+    children = []
+    for x in rows[k + 1 :]:
+        if x["depth"] <= depth:
+            break
+        if x["depth"] == depth + 1:
+            children.append(x)
+    if depth >= leaf_depth:  # the messages: one row per object, so only the distinct ones
+        for msg in dict.fromkeys(x["name"] for x in children):
+            report_lines.append(f"{'  ' * (depth + 1)}- {msg}")
+    else:
+        for c in [c for c in children if has_findings(c)]:
+            visit(dw, c["name"], depth + 1, leaf_depth)
+    k, rows = find(dw, name, depth)
+    if k is not None:
+        rows[k]["cell"].click_input()
+        keyboard.send_keys("{LEFT}")
+        time.sleep(1)
+
+
 try:
     win.child_window(title="PDF/UA", control_type="TabItem").click_input()
     win.child_window(auto_id="resultsInDetailPDFUAButton", control_type="Button").click_input()
@@ -160,55 +211,27 @@ try:
     try:
         dw.maximize()
     except Exception:
-        keyboard.send_keys("{VK_LWIN down}{UP}{VK_LWIN up}")
+        pass
     time.sleep(2)
-    opened = set()
-    for _ in range(80):
-        rows = detail_rows(dw)
-        base = min(r["left"] for r in rows)
-        todo = [
-            r
-            for r in rows
-            if r["error"] not in ("", "-", "0")
-            and (r["name"], r["top"] // 1) not in opened
-            and r["name"] not in opened
-            and (r["left"] - base) <= 4 * 24  # (not down to every single object)
-        ]
-        if not todo:
-            break
-        r = todo[0]
-        opened.add(r["name"])
-        r["cell"].click_input()
-        keyboard.send_keys("{RIGHT}")
-        time.sleep(1.5)
-    rows = detail_rows(dw)
-    base = min(r["left"] for r in rows)
-    lines = [
-        f"{'  ' * ((r['left'] - base) // 24)}{r['name']}\t{r['passed']}\t{r['warning']}\t{r['error']}"
-        for r in rows
-    ]
-    (out / "06-detail-rows.txt").write_text("\n".join(lines), encoding="utf-8")
-    say("detail rows:", len(rows), "opened:", len(opened))
-    shot("06-detail")
-    # the panels beside the tree describe the selected row: read them for the failing leaves
-    notes = []
-    for r in [r for r in rows if r["error"] not in ("", "-", "0")][-25:]:
-        try:
-            r["cell"].click_input()
+    # start from the top rows (PDF/UA, WCAG, Quality, AI), all closed
+    for _, top in [(0, "PDF/UA"), (0, "Quality")]:
+        k, rows = find(dw, top, 0)
+        if k is None:
+            continue
+        if any(x["depth"] > 0 for x in rows):  # close whatever is open
+            for x in reversed(rows):
+                if x["depth"] == 0:
+                    x["cell"].click_input()
+                    keyboard.send_keys("{LEFT}")
             time.sleep(1)
-            panel = [
-                c.window_text() or getattr(c, "iface_value", None) and c.iface_value.CurrentValue
-                for c in dw.descendants()
-                if c.element_info.control_type in ("Text", "Edit", "Document")
-            ]
-            notes.append(f"== {r['name']} ({r['error']} errors)\n" + "\n".join(str(x) for x in panel if x))
-        except Exception as e:
-            notes.append(f"== {r['name']}: {e!r}")
-    (out / "06-detail-notes.txt").write_text("\n\n".join(notes), encoding="utf-8")
-    shot("06-detail-selected")
+        visit(dw, top, 0, leaf_depth=3 if top == "Quality" else 4)
+    (out / "06-detail-findings.txt").write_text("\n".join(report_lines), encoding="utf-8")
+    say("detail lines:", len(report_lines))
+    shot("06-detail")
     dw.close()
     time.sleep(2)
 except Exception as e:
+    (out / "06-detail-findings.txt").write_text("\n".join(report_lines), encoding="utf-8")
     say("detail failed:", repr(e))
 
 # PAC's own report: the "PDF report" button opens a save dialog with the file name selected
