@@ -54,6 +54,8 @@ jobs:
         run: |
           mkdir -p result && cp speech/judge.json result/asis.json 2>/dev/null; cp control/judge.json result/control.json 2>/dev/null
           cp speech/llama-server.log result/ 2>/dev/null; true
+          for f in result/*.json; do echo "===== $f"; cat "$f"; done
+          grep -i 'n_ctx\|system_info\|AVX' result/llama-server.log | head -5 || true
       - if: always()
         uses: actions/upload-artifact@v7
         with:
