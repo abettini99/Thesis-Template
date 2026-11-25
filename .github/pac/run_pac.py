@@ -168,7 +168,31 @@ def step(name, func):
             shot(f"failed-{name.split()[0].lower()}")
         except Exception:
             pass
+        problems.append((f"{name}, what PAC showed", on_screen()))
         return None
+
+
+def on_screen():
+    """The windows of PAC and the texts in any dialog: what PAC was showing when a step failed."""
+    try:
+        from pywinauto import Desktop
+
+        parts = []
+        for w in Desktop(backend="uia").windows():
+            title = w.window_text()
+            if not title or title in ("Taskbar", "Program Manager"):
+                continue
+            texts = []
+            for c in w.descendants(control_type="Window") + [w]:
+                for t in c.descendants(control_type="Text")[:15]:
+                    if t.window_text() and len(t.window_text()) < 300:
+                        texts.append(t.window_text())
+            parts.append(
+                f"window '{title}'" + (": " + " | ".join(dict.fromkeys(texts))[:600] if texts else "")
+            )
+        return "; ".join(parts) or "no windows"
+    except Exception as e:
+        return f"(could not read the screen: {e!r})"
 
 
 def start():
