@@ -4,7 +4,7 @@ judge_speech.py: an AI listener's verdict on the read-aloud thesis: PASS or FAIL
 
     python3 tools/judge_speech.py                 # reads speech/spoken.txt and speech/findings.md
     python3 tools/judge_speech.py --out speech    # (the folder tools/check_speech.py wrote)
-    python3 tools/judge_speech.py --backend local # an open model on this machine (llama.cpp)
+    python3 tools/judge_speech.py --backend openai   # any OpenAI-compatible API (see below)
     python3 tools/judge_speech.py --demo          # a sample speech-judge.pdf, without a model
 
 tools/check_speech.py checks the structure by rule; this asks a language model the question the
@@ -18,17 +18,25 @@ template's placeholder text, and not the speech engine's own wording.
 
 Two backends (--backend, or the environment variable SPEECH_JUDGE_BACKEND):
 
-  claude  Claude through the Anthropic API: the strictest verdict. Needs ANTHROPIC_API_KEY (on
-          GitHub: a repository secret of that name); the model is SPEECH_JUDGE_MODEL (default
-          claude-sonnet-5-5). This sends the thesis text to Anthropic. The default when the key is set.
-  local   an open model on this machine, through llama.cpp's llama-server (OpenAI-compatible, at
-          SPEECH_JUDGE_URL, default http://127.0.0.1:8080/v1/chat/completions). Nothing leaves the
-          machine. Start the server first, for example:
-              llama-server -hf ggml-org/gemma-4-E4B-it-GGUF:Q4_0 --no-mmproj -c 32768 --jinja
-          SPEECH_JUDGE_LOCAL_MODEL names it in the report. A small model on a CPU is slow, so by
-          default it reads only the lines that can go wrong (headings, formulas, figures, tables,
-          captions, lists), formulas with some words around them (--no-focus: everything). Its FAIL
-          is advice: it does not fail the build (SPEECH_JUDGE_ADVISORY=false changes that).
+  claude  Claude through the Anthropic API. Needs ANTHROPIC_API_KEY (on GitHub: a repository secret
+          of that name); the model is SPEECH_JUDGE_MODEL (default claude-sonnet-5-5). The default
+          when the key is set.
+  openai  any API that speaks OpenAI's chat completions: OpenAI, Mistral, Google Gemini, OpenRouter,
+          Groq, GitHub Models, or a model of your own behind Ollama or llama.cpp. Set
+          SPEECH_JUDGE_URL to its base address, SPEECH_JUDGE_MODEL to the model and
+          SPEECH_JUDGE_API_KEY to the key (none for a server of your own). Base addresses:
+              OpenAI      https://api.openai.com/v1
+              Mistral     https://api.mistral.ai/v1
+              Gemini      https://generativelanguage.googleapis.com/v1beta/openai
+              OpenRouter  https://openrouter.ai/api/v1
+              Ollama      http://localhost:11434/v1   (a model on your own machine)
+          and the model name as the provider lists it.
+          The default when SPEECH_JUDGE_API_KEY and SPEECH_JUDGE_URL are set and no Anthropic key.
+
+Either way the thesis text goes to that provider: leave the keys out if that is not allowed for
+your thesis. --focus sends only the lines that can go wrong (headings, formulas, figures, tables,
+captions, lists; formulas with some words around them): about 40 % less text, so cheaper and faster.
+SPEECH_JUDGE_ADVISORY=true makes a FAIL from the model advice only (the build does not fail on it).
 
 Without a backend (no key, no --backend) it says so and stops with exit code 0. The exit code is 1
 on FAIL, 0 on PASS or when the judge could not run. Needs Python 3.10+ (and LuaLaTeX for the PDF).
@@ -52,12 +60,10 @@ from pathlib import Path
 from common import parser
 
 API = "https://api.anthropic.com/v1/messages"
-MODEL = os.environ.get("SPEECH_JUDGE_MODEL") or "claude-sonnet-5-5"
-LOCAL_URL = os.environ.get("SPEECH_JUDGE_URL") or "http://127.0.0.1:8080/v1/chat/completions"
-LOCAL_MODEL = os.environ.get("SPEECH_JUDGE_LOCAL_MODEL") or "local model"
-CHUNK = {"claude": 80_000, "local": 24_000}  # characters of spoken.txt per request
+MODEL = os.environ.get("SPEECH_JUDGE_MODEL") or "claude-sonnet-5-5"  # (for openai: SPEECH_JUDGE_MODEL)
+CHUNK = 80_000  # characters of spoken.txt per request
 
-# The answer's shape; the local server is held to it (llama.cpp turns the schema into a grammar)
+# The answer's shape; sent to OpenAI-compatible APIs that accept a JSON schema
 SCHEMA = {
     "type": "object",
     "properties": {
@@ -243,38 +249,59 @@ def ask_claude(key: str, user: str) -> tuple[dict, dict]:
     raise RuntimeError("Anthropic API: no answer")
 
 
-def ask_local(user: str, max_problems: int = 12) -> tuple[dict, dict]:
-    """llama-server's OpenAI-compatible endpoint, held to SCHEMA (with at most max_problems problems)."""
-    schema = json.loads(json.dumps(SCHEMA))
-    schema["properties"]["problems"]["maxItems"] = max_problems
-    body = json.dumps(
-        {
-            "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
-            "temperature": 0,
-            "max_tokens": 4000,
-            "response_format": {"type": "json_schema", "json_schema": {"name": "verdict", "schema": schema}},
-            "chat_template_kwargs": {"enable_thinking": False},  # no long reasoning on a CPU
-        }
-    ).encode()
-    t0 = time.monotonic()
-    req = urllib.request.Request(LOCAL_URL, data=body, headers={"content-type": "application/json"})
-    try:
-        with urllib.request.urlopen(req, timeout=6 * 3600) as r:
-            reply = json.load(r)
-    except urllib.error.HTTPError as e:
-        raise RuntimeError(f"local model: HTTP {e.code}: {e.read().decode(errors='replace')[:500]}") from e
-    except (urllib.error.URLError, TimeoutError) as e:
-        raise RuntimeError(f"local model not reachable at {LOCAL_URL}: {e}") from e
-    text = reply["choices"][0]["message"].get("content") or ""
-    usage, timings = reply.get("usage", {}), reply.get("timings", {})
-    stats = {
-        "seconds": round(time.monotonic() - t0, 1),
-        "prompt_tokens": usage.get("prompt_tokens"),
-        "completion_tokens": usage.get("completion_tokens"),
-        "prompt_per_second": round(timings.get("prompt_per_second") or 0, 1),
-        "predicted_per_second": round(timings.get("predicted_per_second") or 0, 1),
+def chat_url(base: str) -> str:
+    base = base.rstrip("/")
+    return base if base.endswith("/chat/completions") else base + "/chat/completions"
+
+
+def ask_openai(url: str, key: str, model: str, user: str) -> tuple[dict, dict]:
+    """An OpenAI-compatible chat completions API. Providers differ in what they accept, so a request
+    they refuse is sent again without the schema, or with max_completion_tokens for max_tokens."""
+    params: dict = {
+        "model": model,
+        "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
+        "max_tokens": 8000,
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {"name": "verdict", "schema": SCHEMA},
+        },
     }
-    return parse(text), stats
+    headers = {"content-type": "application/json"}
+    if key:
+        headers["Authorization"] = f"Bearer {key}"
+    t0 = time.monotonic()
+    for attempt in range(6):
+        try:
+            req = urllib.request.Request(chat_url(url), data=json.dumps(params).encode(), headers=headers)
+            with urllib.request.urlopen(req, timeout=900) as r:
+                reply = json.load(r)
+            text = reply["choices"][0]["message"].get("content") or ""
+            usage = reply.get("usage", {})
+            stats = {
+                "seconds": round(time.monotonic() - t0, 1),
+                "prompt_tokens": usage.get("prompt_tokens"),
+                "completion_tokens": usage.get("completion_tokens"),
+            }
+            return parse(text), stats
+        except urllib.error.HTTPError as e:
+            msg = e.read().decode(errors="replace")[:500]
+            low = msg.lower()
+            if e.code == 400 and "max_tokens" in low and "max_tokens" in params:
+                params["max_completion_tokens"] = params.pop("max_tokens")  # (OpenAI's newer models)
+                continue
+            if e.code in (400, 422) and "response_format" in params:
+                params.pop("response_format")  # no JSON schema here: the instructions ask for JSON anyway
+                continue
+            if e.code in (429, 500, 502, 503, 529) and attempt < 5:
+                time.sleep(20 * (attempt + 1))
+                continue
+            raise RuntimeError(f"{chat_url(url)}: HTTP {e.code}: {msg}") from e
+        except (urllib.error.URLError, TimeoutError) as e:
+            if attempt < 5:
+                time.sleep(20 * (attempt + 1))
+                continue
+            raise RuntimeError(f"{chat_url(url)} not reachable: {e}") from e
+    raise RuntimeError(f"{chat_url(url)}: no answer")
 
 
 DEMO = {
@@ -421,10 +448,10 @@ def main(argv=None) -> int:
         "--out", type=Path, default=Path("speech"), help="check_speech.py's folder (default speech/)"
     )
     ap.add_argument("--demo", action="store_true", help="write a sample speech-judge.pdf (no model)")
-    ap.add_argument("--backend", choices=["claude", "local", "none"], help="default: SPEECH_JUDGE_BACKEND")
-    ap.add_argument("--focus", action=argparse.BooleanOptionalAction, default=None,
-                    help="only the lines that can go wrong (default: on for local, off for claude)")  # fmt: skip
-    ap.add_argument("--chunk", type=int, help="characters per request (default 80000 claude, 24000 local)")
+    ap.add_argument("--backend", choices=["claude", "openai", "none"], help="default: SPEECH_JUDGE_BACKEND")
+    ap.add_argument("--focus", action=argparse.BooleanOptionalAction, default=False,
+                    help="only the lines that can go wrong (cheaper)")  # fmt: skip
+    ap.add_argument("--chunk", type=int, default=CHUNK, help=f"characters per request (default {CHUNK})")
     args = ap.parse_args(argv)
     if args.demo:
         args.out.mkdir(parents=True, exist_ok=True)
@@ -437,45 +464,49 @@ def main(argv=None) -> int:
     if not spoken.exists():
         sys.exit(f"{spoken} not found: run tools/check_speech.py first")
     key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-    backend = (
-        args.backend or os.environ.get("SPEECH_JUDGE_BACKEND") or ("claude" if key else "none")
-    ).lower()
+    okey = os.environ.get("SPEECH_JUDGE_API_KEY", "").strip()
+    ourl = os.environ.get("SPEECH_JUDGE_URL", "").strip()
+    default = "claude" if key else ("openai" if okey and ourl else "none")
+    backend = (args.backend or os.environ.get("SPEECH_JUDGE_BACKEND") or default).lower()
     if backend in ("none", ""):
         print(
-            "AI judge skipped: no backend (set the ANTHROPIC_API_KEY secret, or SPEECH_JUDGE_BACKEND=local)"
+            "AI judge skipped: no backend (set the ANTHROPIC_API_KEY secret, or see --help for other models)"
         )
         return 0
-    if backend not in ("claude", "local"):
-        sys.exit(f"unknown backend {backend!r}: claude, local or none")
+    if backend not in ("claude", "openai"):
+        sys.exit(f"unknown backend {backend!r}: claude, openai or none")
     if backend == "claude" and not key:
         print("AI judge skipped: backend claude, but no ANTHROPIC_API_KEY")
         return 0
-    label = MODEL if backend == "claude" else f"{LOCAL_MODEL} (local)"
-    focused = args.focus if args.focus is not None else backend == "local"
+    omodel = os.environ.get("SPEECH_JUDGE_MODEL", "").strip()
+    if backend == "openai" and not (ourl and omodel):
+        print("AI judge skipped: backend openai needs SPEECH_JUDGE_URL and SPEECH_JUDGE_MODEL")
+        return 0
+    label = MODEL if backend == "claude" else omodel
+    focused = args.focus
     findings = (
         (args.out / "findings.md").read_text(encoding="utf-8") if (args.out / "findings.md").exists() else ""
     )
-    if backend == "local":  # the headlines only: the details cost a small model time in every part
-        findings = "\n".join(ln for ln in findings.splitlines() if not ln.startswith("  "))
 
     text = spoken.read_text(encoding="utf-8")
     if focused:
         text = focus(text)
-    parts = chunks(text, args.chunk or CHUNK[backend])
+    parts = chunks(text, args.chunk)
     results, stats = [], []
     t0 = time.monotonic()
     try:
         for i, part in enumerate(parts, 1):
             print(f"Asking {label} about part {i} of {len(parts)} ({len(part)} characters) ...", flush=True)
             user = prompt(findings, part, i, len(parts), focused)
-            if backend == "claude":
-                res, st = ask_claude(key, user)
-            else:
-                try:
-                    res, st = ask_local(user)
-                except ValueError:  # an answer cut off at max_tokens: once more, with fewer problems
-                    print("    (answer cut off; asking again for at most 5 problems)", flush=True)
-                    res, st = ask_local(user, max_problems=5)
+
+            def ask(u: str) -> tuple[dict, dict]:
+                return ask_claude(key, u) if backend == "claude" else ask_openai(ourl, okey, omodel, u)
+
+            try:
+                res, st = ask(user)
+            except ValueError:  # an answer that is not JSON (cut off?): once more, asking for fewer problems
+                print("    (no usable answer; asking again for at most 10 problems)", flush=True)
+                res, st = ask(user + "\n\nList at most 10 problems, the most important first.")
             st.update(
                 part=i,
                 characters=len(part),
@@ -524,12 +555,9 @@ def main(argv=None) -> int:
     pdf = write_pdf(args.out, verdict, findings, label)
     if pdf:
         print(f"Why: {pdf}")
-    # a small local model is too unreliable to stop a build: its verdict is advice unless asked otherwise
-    advisory = os.environ.get("SPEECH_JUDGE_ADVISORY", "true" if backend == "local" else "false").lower()
-    if advisory in ("1", "true", "yes") and model_failed and not auto_failed:
-        print(
-            "(advisory: the local model's FAIL does not fail the build; SPEECH_JUDGE_ADVISORY=false changes that)"
-        )
+    # SPEECH_JUDGE_ADVISORY=true: the model's FAIL is advice (the automatic checks still count)
+    if os.environ.get("SPEECH_JUDGE_ADVISORY", "").lower() in ("1", "true", "yes") and not auto_failed:
+        print("(advisory: the model's FAIL does not fail the build)")
         return 0
     return 1
 

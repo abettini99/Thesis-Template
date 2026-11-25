@@ -12,14 +12,16 @@
 #   - Speech: tools/check_speech.py reads the digital edition the way a screen reader does (headings,
 #     alternative text, table headers, the maths in words) and fails on what a listener would miss;
 #     speech/spoken.txt is the whole thesis as read aloud, speech/diff.txt what reads differently since
-#     the latest release. With a repository secret ANTHROPIC_API_KEY, tools/judge_speech.py also asks
-#     Claude whether a blind reader could follow it: PASS or FAIL, and on FAIL speech/speech-judge.pdf
-#     says why. (That sends the thesis text to Anthropic; without the secret the judge is skipped.)
-#     Without the secret, tags (and runs by hand with judge: local) use an open model on the runner
-#     itself instead (llama.cpp; nothing leaves GitHub's machine). It is slow (about 15-20 minutes
-#     for the 74-page template, more for a thesis) and much less reliable than Claude, so its FAIL
-#     is advice and does not fail the run. The model is the repository variable
-#     SPEECH_JUDGE_LOCAL_MODEL; SPEECH_JUDGE_BACKEND (claude, local or none) overrides the choice.
+#     the latest release.
+#   - AI judge (tools/judge_speech.py): a language model reads speech/spoken.txt and says whether a blind
+#     reader could follow it, beyond what the rules check: PASS or FAIL, and on FAIL speech/speech-judge.pdf
+#     says why. It runs for tags and for runs by hand, when a key is set:
+#       Claude:  repository secret ANTHROPIC_API_KEY (model: variable SPEECH_JUDGE_MODEL, default
+#                claude-sonnet-5-5)
+#       another provider with an OpenAI-compatible API (OpenAI, Mistral, Gemini, OpenRouter, ...):
+#                secret SPEECH_JUDGE_API_KEY, variables SPEECH_JUDGE_URL and SPEECH_JUDGE_MODEL
+#     The variable SPEECH_JUDGE_BACKEND (claude, openai or none) makes it run on every push instead, or
+#     never. Either way the thesis text goes to that provider (a template-sized run costs cents).
 #   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10), or publish a release on GitHub,
 #     to attach the final PDFs to that release: thesis-digital.pdf (PDF/A-4f and PDF/UA-2),
 #     thesis-print.pdf (PDF/X, with bleed), thesis-preview.pdf (the trimmed book, plain PDF), cover.pdf
@@ -42,7 +44,7 @@ on:
       judge:
         description: AI judge for the speech check
         type: choice
-        options: [default, local, claude, none]
+        options: [default, claude, openai, none]
         default: default
 
 permissions:
@@ -102,23 +104,21 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     container: texlive/texlive:latest   # show-pdf-tags, and LuaLaTeX for the judge's report
-    timeout-minutes: 240                # (a local model on a CPU is slow)
+    timeout-minutes: 60
     env:
-      # claude if the secret is set; else local for tags; else none. A run by hand or the variable decides.
+      # A run by hand chooses; else the variable; else, for tags and runs by hand, whichever key is set.
       SPEECH_JUDGE_BACKEND: >-
         ${{ (inputs.judge != '' && inputs.judge != 'default' && inputs.judge)
             || vars.SPEECH_JUDGE_BACKEND
-            || (secrets.ANTHROPIC_API_KEY != '' && 'claude')
-            || (startsWith(github.ref, 'refs/tags/') && 'local')
+            || ((startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch')
+                && ((secrets.ANTHROPIC_API_KEY != '' && 'claude')
+                    || (secrets.SPEECH_JUDGE_API_KEY != '' && 'openai')))
             || 'none' }}
-      SPEECH_JUDGE_LOCAL_MODEL: ${{ vars.SPEECH_JUDGE_LOCAL_MODEL || 'ggml-org/gemma-4-E4B-it-GGUF:Q4_0' }}
-      LLAMA_CPP_TAG: b12721             # llama.cpp release (Dependabot does not know it: update by hand)
-      LLAMA_CACHE: /__w/_llm            # downloaded models, kept between runs
     steps:
       - name: Tools
         run: |
           apt-get update -qq
-          apt-get install -y -qq --no-install-recommends python3 python3-pikepdf nodejs npm curl ca-certificates libgomp1
+          apt-get install -y -qq --no-install-recommends python3 python3-pikepdf nodejs npm
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v8
         with:
@@ -131,23 +131,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}   # to read spoken.txt of the latest release
         run: python3 tools/check_speech.py digital.pdf --baseline-release
-      - name: Local model (only for the local judge)
-        if: env.SPEECH_JUDGE_BACKEND == 'local'
-        uses: actions/cache@v4
-        with:
-          path: /__w/_llm
-          key: llm-${{ env.SPEECH_JUDGE_LOCAL_MODEL }}
-      - name: Start the local model
-        if: env.SPEECH_JUDGE_BACKEND == 'local'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: sh .github/scripts/llama_server.sh
-      - name: AI judge (claude with the ANTHROPIC_API_KEY secret, or local)
+      - name: AI judge (with a key; see the top of this file)
         id: judge
         continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SPEECH_JUDGE_API_KEY: ${{ secrets.SPEECH_JUDGE_API_KEY }}
+          SPEECH_JUDGE_URL: ${{ vars.SPEECH_JUDGE_URL }}
           SPEECH_JUDGE_MODEL: ${{ vars.SPEECH_JUDGE_MODEL }}
+          SPEECH_JUDGE_ADVISORY: ${{ vars.SPEECH_JUDGE_ADVISORY }}
         run: python3 tools/judge_speech.py
       - name: Summary
         if: always()
