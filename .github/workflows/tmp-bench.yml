@@ -1,4 +1,4 @@
-# Temporary: benchmark of the local AI judge (removed after the benchmark).
+# Temporary: benchmark of the local AI judge (removed after the benchmark). Run 3.
 name: tmp bench local judge
 on:
   push:
