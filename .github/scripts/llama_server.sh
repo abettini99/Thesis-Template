@@ -14,11 +14,24 @@ mkdir -p speech "${LLAMA_CACHE:-$HOME/.cache/llama.cpp}"
 api() {
   if [ -n "${GH_TOKEN:-}" ]; then curl -fsSL -H "Authorization: Bearer $GH_TOKEN" "$1"; else curl -fsSL "$1"; fi
 }
-if [ "$LLAMA_CPP_TAG" = latest ]; then rel=latest; else rel="tags/$LLAMA_CPP_TAG"; fi
-api "https://api.github.com/repos/ggml-org/llama.cpp/releases/$rel" > /tmp/llama-release.json \
+# the release's Linux x64 CPU binaries; with "latest", the newest release that has them
+if [ "$LLAMA_CPP_TAG" = latest ]; then q="releases?per_page=15"; else q="releases/tags/$LLAMA_CPP_TAG"; fi
+api "https://api.github.com/repos/ggml-org/llama.cpp/$q" > /tmp/llama-release.json \
   || { echo "llama.cpp release $LLAMA_CPP_TAG not found (set LLAMA_CPP_TAG to an existing release, or latest)"; exit 1; }
-url=$(python3 -c 'import json,sys; r=json.load(open("/tmp/llama-release.json")); a=[x["browser_download_url"] for x in r["assets"] if x["name"].endswith(("bin-ubuntu-x64.tar.gz","bin-ubuntu-x64.zip"))]; print(a[0] if a else "")')
-[ -n "$url" ] || { echo "llama.cpp $LLAMA_CPP_TAG has no Linux x64 binaries"; exit 1; }
+url=$(python3 - <<'PY'
+import json, re
+r = json.load(open("/tmp/llama-release.json"))
+for rel in r if isinstance(r, list) else [r]:
+    names = [a["name"] for a in rel.get("assets", [])]
+    hit = [a["browser_download_url"] for a in rel.get("assets", [])
+           if re.search(r"bin-ubuntu-x64\.(tar\.gz|zip)$", a["name"])]
+    if hit:
+        print(hit[0])
+        break
+    print(f"(release {rel.get('tag_name')}: no Linux x64 CPU build among {names[:12]})", file=__import__("sys").stderr)
+PY
+)
+[ -n "$url" ] || { echo "llama.cpp $LLAMA_CPP_TAG: no Linux x64 binaries found"; exit 1; }
 echo "llama.cpp: $url"
 mkdir -p /opt/llama
 curl -fsSL -o /opt/llama/llama.pkg "$url"
