@@ -12,7 +12,8 @@ would, turns every formula's MathML into words with Speech Rule Engine, and chec
   headings   every heading has text (a screen reader reads a heading's content, not its title),
              no level is skipped on the way down (H1 to H3), the first heading is a level 1
   figures    every figure has alternative text, and not a file name or a placeholder
-  tables     every table has header cells
+  tables     every table with a caption has header cells (tables without one, such as the committee
+             or the CV, only get a warning)
   links      every link has text; links that read out a bare web address are listed
   maths      every formula has MathML that gives words, both the copy in the structure tree and
              the associated file; formulas whose two copies read differently are listed
@@ -489,11 +490,22 @@ def check(rd: Reading, lang, r: Report, md: list[str]):
         r.ok(f"{len(rd.figures)} figures, all with alternative text")
 
     r.section("Tables")
-    no_th = [f"{where(p)}: {cap[:60] or '(no caption)'}" for p, rows, th, cap in rd.tables if rows and not th]
-    if no_th:
-        fail(f"{len(no_th)} table(s) without header cells (TH): cells are read without their column", no_th)
-    else:
-        r.ok(f"{len(rd.tables)} tables, all with header cells")
+    # a table with a caption holds data: without header cells, its cells are read without their column.
+    # One without a caption is laid out as a table (the committee, the colophon, the CV): read row by row,
+    # which works; a warning only.
+    data = [f"{where(p)}: {cap[:60]}" for p, rows, th, cap in rd.tables if rows and not th and cap]
+    layout = [where(p) for p, rows, th, cap in rd.tables if rows and not th and not cap]
+    if data:
+        fail(f"{len(data)} table(s) with a caption but without header cells (TH): cells are read without "
+             "their column", data)  # fmt: skip
+    if layout:
+        warn(
+            f"{len(layout)} table(s) without a caption or header cells, read row by row (lists laid out as "
+            "tables, such as the committee or the CV); fine, or give the first column row headers",
+            layout,
+        )
+    if not data:
+        r.ok(f"{len(rd.tables)} tables; every table with a caption has header cells")
 
     r.section("Links")
     ghosts = [where(p) for p, t, i, on in rd.links if not t and not on]
