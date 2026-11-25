@@ -56,9 +56,9 @@ jobs:
     container:
       image: ${{ matrix.image }}
       options: --user root
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      credentials:   # (only for the image on GitHub's registry; none for Docker Hub)
+        username: ${{ startsWith(matrix.image, 'ghcr.io') && github.actor || '' }}
+        password: ${{ startsWith(matrix.image, 'ghcr.io') && secrets.GITHUB_TOKEN || '' }}
     steps:
       - uses: actions/checkout@v5
       - name: TeX Live
@@ -77,6 +77,9 @@ jobs:
         run: |
           sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=preview, version=final]{thesis}/' main.tex > preview.tex
           latexmk -interaction=nonstopmode -halt-on-error preview.tex
+      - name: Package versions (to compare with Overleaf's log)
+        run: |
+          grep -E '^(Package|Document Class|File): ' digital.log | sort -u
       - name: Compile a draft (as main.tex sets it), the propositions and the cover
         run: |
           latexmk -interaction=nonstopmode -halt-on-error main.tex
