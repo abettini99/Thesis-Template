@@ -4,11 +4,11 @@ judge_speech.py: an AI listener's verdict on the read-aloud thesis: PASS or FAIL
 
     python3 tools/judge_speech.py                 # reads speech/spoken.txt and speech/findings.md
     python3 tools/judge_speech.py --out speech    # (the folder tools/check_speech.py wrote)
-    python3 tools/judge_speech.py --demo          # a sample speech-judge.pdf, without the API
+    python3 tools/judge_speech.py --backend local # an open model on this machine (llama.cpp)
+    python3 tools/judge_speech.py --demo          # a sample speech-judge.pdf, without a model
 
-tools/check_speech.py checks the structure by rule; this asks a language model (Claude, through
-the Anthropic API) the question the rules cannot answer: could a blind reader follow this? The
-model reads speech/spoken.txt, chapter by chapter, as a listener would hear it, and answers PASS
+tools/check_speech.py checks the structure by rule; this asks a language model the question the
+rules cannot answer: could a blind reader follow this? The model reads speech/spoken.txt, chapter by chapter, as a listener would hear it, and answers PASS
 or FAIL. On FAIL it lists what a listener hears, why that is a problem and how to fix it, and
 this writes them, with the automatic findings, into speech/speech-judge.pdf (a tagged PDF/UA-2,
 compiled with LuaLaTeX).
@@ -16,15 +16,27 @@ compiled with LuaLaTeX).
 It judges only whether the speech can be followed: not the writing, not the science, not the
 template's placeholder text, and not the speech engine's own wording.
 
-Needs the environment variable ANTHROPIC_API_KEY (on GitHub: a repository secret of that name);
-without it, it says so and stops with exit code 0. The model is SPEECH_JUDGE_MODEL (default
-claude-sonnet-5-5). This sends the thesis text to Anthropic: leave the secret out if that is not
-allowed for your thesis. The exit code is 1 on FAIL, 0 on PASS or when the judge could not run.
-Needs Python 3.10+ (and LuaLaTeX for the PDF).
+Two backends (--backend, or the environment variable SPEECH_JUDGE_BACKEND):
+
+  claude  Claude through the Anthropic API: the strictest verdict. Needs ANTHROPIC_API_KEY (on
+          GitHub: a repository secret of that name); the model is SPEECH_JUDGE_MODEL (default
+          claude-sonnet-5-5). This sends the thesis text to Anthropic. The default when the key is set.
+  local   an open model on this machine, through llama.cpp's llama-server (OpenAI-compatible, at
+          SPEECH_JUDGE_URL, default http://127.0.0.1:8080/v1/chat/completions). Nothing leaves the
+          machine. Start the server first, for example:
+              llama-server -hf unsloth/Qwen3.5-4B-GGUF:Q4_K_M --no-mmproj -c 32768 --jinja
+          SPEECH_JUDGE_LOCAL_MODEL names it in the report. A small model on a CPU is slow, so by
+          default it reads only the lines that can go wrong (headings, formulas, figures, tables,
+          captions, lists), formulas with some words around them (--no-focus: everything).
+
+Without a backend (no key, no --backend) it says so and stops with exit code 0. The exit code is 1
+on FAIL, 0 on PASS or when the judge could not run. Needs Python 3.10+ (and LuaLaTeX for the PDF).
+judge.json in the output folder has the verdict and, per part, the time and the token counts.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
@@ -39,8 +51,35 @@ from pathlib import Path
 from common import parser
 
 API = "https://api.anthropic.com/v1/messages"
-MODEL = os.environ.get("SPEECH_JUDGE_MODEL", "claude-sonnet-5-5")
-CHUNK = 80_000  # characters of spoken.txt per request
+MODEL = os.environ.get("SPEECH_JUDGE_MODEL") or "claude-sonnet-5-5"
+LOCAL_URL = os.environ.get("SPEECH_JUDGE_URL") or "http://127.0.0.1:8080/v1/chat/completions"
+LOCAL_MODEL = os.environ.get("SPEECH_JUDGE_LOCAL_MODEL") or "local model"
+CHUNK = {"claude": 80_000, "local": 24_000}  # characters of spoken.txt per request
+
+# The answer's shape; the local server is held to it (llama.cpp turns the schema into a grammar)
+SCHEMA = {
+    "type": "object",
+    "properties": {
+        "verdict": {"type": "string", "enum": ["PASS", "FAIL"]},
+        "summary": {"type": "string"},
+        "problems": {
+            "type": "array",
+            "maxItems": 25,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "severity": {"type": "string", "enum": ["major", "minor"]},
+                    "page": {"type": "string"},
+                    "heard": {"type": "string"},
+                    "why": {"type": "string"},
+                    "fix": {"type": "string"},
+                },
+                "required": ["severity", "page", "heard", "why", "fix"],
+            },
+        },
+    },
+    "required": ["verdict", "summary", "problems"],
+}
 
 SYSTEM = """\
 You review the accessibility of a doctoral thesis for blind readers. You are given the thesis as a \
@@ -81,15 +120,44 @@ Answer with JSON only, no other text:
 """
 
 
-def chunks(text: str) -> list[str]:
-    """spoken.txt in pieces: whole chapters (split at level 1 headings) up to CHUNK characters."""
+RISKY = re.compile(r"⟨|\[heading level|\[figure|\[table|\[row\]|\[caption\]|\[list|\(silent")
+
+
+def focus(text: str, around: int = 160) -> str:
+    """Only the lines that can go wrong; in long paragraphs, only the formulas and words around them."""
+    out, page = [], None
+    for line in text.splitlines():
+        if line.startswith("--- page "):
+            page = line
+            continue
+        if not RISKY.search(line):
+            continue
+        if page:
+            out.append(page)
+            page = None
+        if len(line) > 4 * around and "⟨" in line:
+            spans = [(max(0, m.start() - around), min(len(line), m.end() + around))
+                     for m in re.finditer(r"⟨[^⟩]*⟩", line)]  # fmt: skip
+            merged: list[list[int]] = []
+            for a, b in spans:
+                if merged and a <= merged[-1][1]:
+                    merged[-1][1] = max(merged[-1][1], b)
+                else:
+                    merged.append([a, b])
+            line = " … ".join(line[a:b] for a, b in merged)
+        out.append(line)
+    return "\n".join(out) + "\n"
+
+
+def chunks(text: str, size: int) -> list[str]:
+    """spoken.txt in pieces: whole chapters (split at level 1 headings) up to size characters."""
     parts, cur = [], []
     for line in text.splitlines(keepends=True):
-        if line.startswith("[heading level 1]") and sum(map(len, cur)) > CHUNK // 4:
+        if line.startswith("[heading level 1]") and sum(map(len, cur)) > size // 4:
             parts.append("".join(cur))
             cur = []
         cur.append(line)
-        if sum(map(len, cur)) > CHUNK and line.startswith("--- page "):
+        if sum(map(len, cur)) > size and line.startswith("--- page "):
             parts.append("".join(cur))
             cur = []
     if cur:
@@ -97,18 +165,35 @@ def chunks(text: str) -> list[str]:
     # join small neighbours
     out: list[str] = []
     for p in parts:
-        if out and len(out[-1]) + len(p) <= CHUNK:
+        if out and len(out[-1]) + len(p) <= size:
             out[-1] += p
         else:
             out.append(p)
     return out
 
 
-def ask(key: str, findings: str, part: str, n: int, total: int) -> dict:
-    user = (
-        f"Part {n} of {total} of the thesis. For context, the automatic structure checks reported:\n\n"
-        f"{findings}\n\n--- The thesis as read aloud (part {n} of {total}) ---\n\n{part}"
+def prompt(findings: str, part: str, n: int, total: int, focused: bool) -> str:
+    note = (
+        "Only the lines that can go wrong are shown (headings, formulas, figures, tables, captions, lists); "
+        '"…" marks text left out of a paragraph. Judge what is shown.\n\n'
+        if focused
+        else ""
     )
+    return (
+        f"Part {n} of {total} of the thesis. For context, the automatic structure checks reported:\n\n"
+        f"{findings}\n\n{note}--- The thesis as read aloud (part {n} of {total}) ---\n\n{part}"
+    )
+
+
+def parse(text: str) -> dict:
+    m = re.search(r"\{.*\}", text, re.S)
+    if not m:
+        raise ValueError(f"no JSON in the answer: {text[:300]}")
+    return json.loads(m.group(0))
+
+
+def ask_claude(key: str, user: str) -> tuple[dict, dict]:
+    t0 = time.monotonic()
     body = json.dumps(
         {
             "model": MODEL,
@@ -124,10 +209,13 @@ def ask(key: str, findings: str, part: str, n: int, total: int) -> dict:
             with urllib.request.urlopen(req, timeout=600) as r:
                 reply = json.load(r)
             text = "".join(b.get("text", "") for b in reply.get("content", []) if b.get("type") == "text")
-            m = re.search(r"\{.*\}", text, re.S)
-            if not m:
-                raise ValueError(f"no JSON in the answer: {text[:300]}")
-            return json.loads(m.group(0))
+            usage = reply.get("usage", {})
+            stats = {
+                "seconds": round(time.monotonic() - t0, 1),
+                "prompt_tokens": usage.get("input_tokens"),
+                "completion_tokens": usage.get("output_tokens"),
+            }
+            return parse(text), stats
         except urllib.error.HTTPError as e:
             msg = e.read().decode(errors="replace")[:500]
             if e.code in (429, 500, 502, 503, 529) and attempt < 3:
@@ -140,6 +228,38 @@ def ask(key: str, findings: str, part: str, n: int, total: int) -> dict:
                 continue
             raise RuntimeError(f"Anthropic API not reachable: {e}") from e
     raise RuntimeError("Anthropic API: no answer")
+
+
+def ask_local(user: str) -> tuple[dict, dict]:
+    """llama-server's OpenAI-compatible endpoint, held to SCHEMA."""
+    body = json.dumps(
+        {
+            "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
+            "temperature": 0,
+            "max_tokens": 3000,
+            "response_format": {"type": "json_schema", "json_schema": {"name": "verdict", "schema": SCHEMA}},
+            "chat_template_kwargs": {"enable_thinking": False},  # no long reasoning on a CPU
+        }
+    ).encode()
+    t0 = time.monotonic()
+    req = urllib.request.Request(LOCAL_URL, data=body, headers={"content-type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=6 * 3600) as r:
+            reply = json.load(r)
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"local model: HTTP {e.code}: {e.read().decode(errors='replace')[:500]}") from e
+    except (urllib.error.URLError, TimeoutError) as e:
+        raise RuntimeError(f"local model not reachable at {LOCAL_URL}: {e}") from e
+    text = reply["choices"][0]["message"].get("content") or ""
+    usage, timings = reply.get("usage", {}), reply.get("timings", {})
+    stats = {
+        "seconds": round(time.monotonic() - t0, 1),
+        "prompt_tokens": usage.get("prompt_tokens"),
+        "completion_tokens": usage.get("completion_tokens"),
+        "prompt_per_second": round(timings.get("prompt_per_second") or 0, 1),
+        "predicted_per_second": round(timings.get("predicted_per_second") or 0, 1),
+    }
+    return parse(text), stats
 
 
 DEMO = {
@@ -210,7 +330,7 @@ def kpse(name: str) -> bool:
         return False
 
 
-def write_pdf(out: Path, verdict: dict, findings: str) -> Path | None:
+def write_pdf(out: Path, verdict: dict, findings: str, label: str = MODEL) -> Path | None:
     sha = os.environ.get("GITHUB_SHA", "")[:7]
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     when = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -246,7 +366,7 @@ def write_pdf(out: Path, verdict: dict, findings: str) -> Path | None:
 \setlength{{\parindent}}{{0pt}}\setlength{{\parskip}}{{0.5\baselineskip}}
 \begin{{document}}
 \section*{{Speech check: FAIL}}
-{tex(repo)} {tex(sha)} \quad {tex(when)} \quad judged by {tex(MODEL)}
+{tex(repo)} {tex(sha)} \quad {tex(when)} \quad judged by {tex(label)}
 
 \textbf{{Summary.}} {tex(verdict.get("summary", ""))}
 
@@ -285,7 +405,11 @@ def main(argv=None) -> int:
     ap.add_argument(
         "--out", type=Path, default=Path("speech"), help="check_speech.py's folder (default speech/)"
     )
-    ap.add_argument("--demo", action="store_true", help="write a sample speech-judge.pdf (no API call)")
+    ap.add_argument("--demo", action="store_true", help="write a sample speech-judge.pdf (no model)")
+    ap.add_argument("--backend", choices=["claude", "local", "none"], help="default: SPEECH_JUDGE_BACKEND")
+    ap.add_argument("--focus", action=argparse.BooleanOptionalAction, default=None,
+                    help="only the lines that can go wrong (default: on for local, off for claude)")  # fmt: skip
+    ap.add_argument("--chunk", type=int, help="characters per request (default 80000 claude, 24000 local)")
     args = ap.parse_args(argv)
     if args.demo:
         args.out.mkdir(parents=True, exist_ok=True)
@@ -298,20 +422,48 @@ def main(argv=None) -> int:
     if not spoken.exists():
         sys.exit(f"{spoken} not found: run tools/check_speech.py first")
     key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-    if not key:
-        print("AI judge skipped: no ANTHROPIC_API_KEY (add it as a repository secret to turn the judge on)")
+    backend = (
+        args.backend or os.environ.get("SPEECH_JUDGE_BACKEND") or ("claude" if key else "none")
+    ).lower()
+    if backend in ("none", ""):
+        print(
+            "AI judge skipped: no backend (set the ANTHROPIC_API_KEY secret, or SPEECH_JUDGE_BACKEND=local)"
+        )
         return 0
+    if backend not in ("claude", "local"):
+        sys.exit(f"unknown backend {backend!r}: claude, local or none")
+    if backend == "claude" and not key:
+        print("AI judge skipped: backend claude, but no ANTHROPIC_API_KEY")
+        return 0
+    label = MODEL if backend == "claude" else f"{LOCAL_MODEL} (local)"
+    focused = args.focus if args.focus is not None else backend == "local"
     findings = (
         (args.out / "findings.md").read_text(encoding="utf-8") if (args.out / "findings.md").exists() else ""
     )
+    if backend == "local":  # the headlines only: the details cost a small model time in every part
+        findings = "\n".join(ln for ln in findings.splitlines() if not ln.startswith("  "))
 
-    parts = chunks(spoken.read_text(encoding="utf-8"))
-    results = []
+    text = spoken.read_text(encoding="utf-8")
+    if focused:
+        text = focus(text)
+    parts = chunks(text, args.chunk or CHUNK[backend])
+    results, stats = [], []
+    t0 = time.monotonic()
     try:
         for i, part in enumerate(parts, 1):
-            print(f"Asking {MODEL} about part {i} of {len(parts)} ({len(part)} characters) ...", flush=True)
-            results.append(ask(key, findings, part, i, len(parts)))
-    except (RuntimeError, ValueError) as e:
+            print(f"Asking {label} about part {i} of {len(parts)} ({len(part)} characters) ...", flush=True)
+            user = prompt(findings, part, i, len(parts), focused)
+            res, st = ask_claude(key, user) if backend == "claude" else ask_local(user)
+            st.update(
+                part=i,
+                characters=len(part),
+                verdict=res.get("verdict"),
+                problems=len(res.get("problems", [])),
+            )
+            print("   ", json.dumps(st), flush=True)
+            results.append(res)
+            stats.append(st)
+    except (RuntimeError, ValueError, KeyError) as e:
         print(f"AI judge could not run: {e}")
         (args.out / "judge.md").write_text(f"**AI judge: could not run** ({e})\n", encoding="utf-8")
         return 0
@@ -324,18 +476,24 @@ def main(argv=None) -> int:
         "verdict": "FAIL" if failed else "PASS",
         "summary": " ".join(r.get("summary", "") for r in results).strip(),
         "problems": problems,
-        "model": MODEL,
+        "model": label,
+        "backend": backend,
+        "focused": focused,
+        "characters": len(text),
+        "seconds": round(time.monotonic() - t0, 1),
+        "parts": stats,
     }
     (args.out / "judge.json").write_text(json.dumps(verdict, indent=2, ensure_ascii=False), encoding="utf-8")
     major = sum(p.get("severity") != "minor" for p in problems)
-    line = f"**AI judge ({MODEL}): {verdict['verdict']}**: {verdict['summary']}"
+    line = f"**AI judge ({label}): {verdict['verdict']}**: {verdict['summary']}"
     if failed:
         line += f"\n\n{major} major and {len(problems) - major} minor issue(s); see speech-judge.pdf."
+    line += f"\n\n({len(parts)} part(s), {len(text)} characters, {verdict['seconds']:.0f} s)"
     (args.out / "judge.md").write_text(line + "\n", encoding="utf-8")
-    print(verdict["verdict"])
+    print(f"{verdict['verdict']}  ({verdict['seconds']:.0f} s)")
     if not failed:
         return 0
-    pdf = write_pdf(args.out, verdict, findings)
+    pdf = write_pdf(args.out, verdict, findings, label)
     if pdf:
         print(f"Why: {pdf}")
     return 1

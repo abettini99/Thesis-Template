@@ -15,6 +15,10 @@
 #     the latest release. With a repository secret ANTHROPIC_API_KEY, tools/judge_speech.py also asks
 #     Claude whether a blind reader could follow it: PASS or FAIL, and on FAIL speech/speech-judge.pdf
 #     says why. (That sends the thesis text to Anthropic; without the secret the judge is skipped.)
+#     Without the secret, tags (and runs by hand with judge: local) use an open model on the runner
+#     itself instead (llama.cpp; nothing leaves GitHub's machine; slower and less strict). The model
+#     is the repository variable SPEECH_JUDGE_LOCAL_MODEL; SPEECH_JUDGE_BACKEND (claude, local or
+#     none) overrides the choice for every run.
 #   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10), or publish a release on GitHub,
 #     to attach the final PDFs to that release: thesis-digital.pdf (PDF/A-4f and PDF/UA-2),
 #     thesis-print.pdf (PDF/X, with bleed), thesis-preview.pdf (the trimmed book, plain PDF), cover.pdf
@@ -33,6 +37,12 @@ on:
       - '**.md'
       - .github/readme/**
   workflow_dispatch:   # run by hand: Actions tab > Build > Run workflow
+    inputs:
+      judge:
+        description: AI judge for the speech check
+        type: choice
+        options: [default, local, claude, none]
+        default: default
 
 permissions:
   contents: write      # to create releases for tags
@@ -91,11 +101,23 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     container: texlive/texlive:latest   # show-pdf-tags, and LuaLaTeX for the judge's report
+    timeout-minutes: 240                # (a local model on a CPU is slow)
+    env:
+      # claude if the secret is set; else local for tags; else none. A run by hand or the variable decides.
+      SPEECH_JUDGE_BACKEND: >-
+        ${{ (inputs.judge != '' && inputs.judge != 'default' && inputs.judge)
+            || vars.SPEECH_JUDGE_BACKEND
+            || (secrets.ANTHROPIC_API_KEY != '' && 'claude')
+            || (startsWith(github.ref, 'refs/tags/') && 'local')
+            || 'none' }}
+      SPEECH_JUDGE_LOCAL_MODEL: ${{ vars.SPEECH_JUDGE_LOCAL_MODEL || 'unsloth/Qwen3.5-4B-GGUF:Q4_K_M' }}
+      LLAMA_CPP_TAG: b12700             # llama.cpp release (Dependabot does not know it: update by hand)
+      LLAMA_CACHE: /__w/_llm            # downloaded models, kept between runs
     steps:
       - name: Tools
         run: |
           apt-get update -qq
-          apt-get install -y -qq --no-install-recommends python3 python3-pikepdf nodejs npm
+          apt-get install -y -qq --no-install-recommends python3 python3-pikepdf nodejs npm curl ca-certificates
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v8
         with:
@@ -108,7 +130,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}   # to read spoken.txt of the latest release
         run: python3 tools/check_speech.py digital.pdf --baseline-release
-      - name: AI judge (only with the ANTHROPIC_API_KEY secret)
+      - name: Local model (only for the local judge)
+        if: env.SPEECH_JUDGE_BACKEND == 'local'
+        uses: actions/cache@v4
+        with:
+          path: /__w/_llm
+          key: llm-${{ env.SPEECH_JUDGE_LOCAL_MODEL }}
+      - name: Start the local model
+        if: env.SPEECH_JUDGE_BACKEND == 'local'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: sh .github/scripts/llama_server.sh
+      - name: AI judge (claude with the ANTHROPIC_API_KEY secret, or local)
         id: judge
         continue-on-error: true
         env:
