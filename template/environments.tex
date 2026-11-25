@@ -45,7 +45,9 @@
 %% ---------------------------------------------------------------------
 %% QR links: a QR code of a web address, with the address under it, in both editions, so the pages look
 %% the same on paper and on screen; in the digital edition the code and the address are a link. For the
-%% DOIs of data and code. Tagged as a figure with alternative text.
+%% DOIs of data and code. In a tagged PDF the code is decoration (an artifact): the link around it
+%% carries the address as its description, and the address or label under it is text, so a screen
+%% reader loses nothing (and PAC wants a bounding box for a figure, which the code does not get).
 %%   \qrlink{https://doi.org/10.4121/00000000}     \qrlink[15mm]{...}   size (default 12 mm)
 %%   \qrlink{...}[Data]                            a short label under it instead of the address
 %% ---------------------------------------------------------------------
@@ -57,13 +59,11 @@
     \begin{tabular}[b]{@{}c@{}}
       \href{#2}
         {
-          \tag_struct_begin:n { tag = Figure, alt = { QR~code~linking~to~#2 } }
-          \tag_mc_begin:n { }
+          \tag_mc_begin:n { artifact }
           \tag_suspend:n { qrcode }
           \color{black} \qrcode[height=#1]{#2} % black, not the link colour: the best contrast for scanning
           \tag_resume:n { qrcode }
           \tag_mc_end:
-          \tag_struct_end:
         } \\
       \footnotesize \IfNoValueTF {#3} { \url{#2} } {#3}
     \end{tabular}
