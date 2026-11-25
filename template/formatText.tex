@@ -64,7 +64,7 @@
       \normalfont \parskip \z@ \parindent \z@ \interlinepenalty \@M
       \bool_if:NTF \l__head_unnumbered_bool
         { \MakeLinkTarget[\l__head_name_tl]{} \thesis@chapterlabel{} }
-        { \MakeLinkTarget{\l__head_name_tl} \thesis@chapterlabel{\MakeUppercase{\@chapapp}\space #3} }
+        { \MakeLinkTarget{\l__head_name_tl} \thesis@chapterlabel{\tag_mc_begin:n { } \MakeUppercase{\@chapapp}\space #3 \tag_mc_end:} }
       \par \nobreak \vskip \midchapskip
       \raggedleft \chaptitlefont #4 \par
     \thesis@ifnewheadings { } { \UseTaggingSocket{sec/title/end} }
@@ -247,8 +247,9 @@
 \newcommand{\thesis@list}[4]{% starred?, file, title, mark
     \par\begingroup
     \hypersetup{linkcolor=black}% (every entry is a link: in the text colour, as in print)
-    \IfBooleanF{#1}{\MakeLinkTarget[chapter]{}\addcontentsline{toc}{chapter}{#3}}%
+    \IfBooleanF{#1}{\MakeLinkTarget[chapter]{}}%
     \ParseLaTeXeHeading{thesislist}{\BooleanTrue}{running={#4}}{#3}% (the marks before the space below it)
+    \IfBooleanF{#1}{\addcontentsline{toc}{chapter}{#3}}% (after the heading: its entry refers to this list, not to what came before)
     \def\thesis@tmp{#2}\def\thesis@tmpb{toc}\ifx\thesis@tmp\thesis@tmpb\else\vskip10\p@\fi % the lists of figures and tables start with a chapter's gap
     \parindent\z@ \parskip\z@ % (no paragraph space between the entries)
     \@starttoc{#2}%
