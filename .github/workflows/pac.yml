@@ -1,0 +1,53 @@
+# PAC (PDF Accessibility Checker, axes4) on the digital edition: experimental.
+# PAC is a free Windows program without a command line; this installs it on a Windows runner (from
+# axes4's own download, as its terms require) and drives its window through UI Automation.
+name: PAC
+
+on:
+  workflow_dispatch:
+    inputs:
+      pdf:
+        description: PDF to check (a URL)
+        default: https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/thesis-digital.pdf
+  push:
+    branches: [pac]
+    paths: ['.github/pac/**', '.github/workflows/pac.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  pac:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      PAC_MSI: https://pac.pdf-accessibility.org/_Resources/Persistent/7/0/1/1/7011f0e73e336c7566f24e0a1f88171a4b975afe/PAC_Setup.26.1.2.msi
+      PDF_URL: ${{ inputs.pdf || 'https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/thesis-digital.pdf' }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install PAC (silently, from axes4)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest $env:PAC_MSI -OutFile PAC.msi
+          $p = Start-Process msiexec -ArgumentList '/i','PAC.msi','/quiet','ACCEPT_AXES4_EULA=1','INSTALLFOLDER=C:\PAC','/log','pac-install.log' -Wait -PassThru
+          "msiexec exit code: $($p.ExitCode)"
+          Get-ChildItem C:\PAC -Recurse -Filter *.exe | Select-Object FullName
+      - name: The PDF
+        shell: pwsh
+        run: Invoke-WebRequest $env:PDF_URL -OutFile thesis.pdf
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run PAC
+        run: |
+          pip install --quiet pywinauto pillow
+          python .github/pac/explore.py C:\PAC thesis.pdf
+      - name: Keep what PAC showed
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pac
+          path: |
+            pac-out/
+            pac-install.log
+          retention-days: 7
