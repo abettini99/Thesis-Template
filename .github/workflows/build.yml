@@ -16,9 +16,10 @@
 #     Claude whether a blind reader could follow it: PASS or FAIL, and on FAIL speech/speech-judge.pdf
 #     says why. (That sends the thesis text to Anthropic; without the secret the judge is skipped.)
 #     Without the secret, tags (and runs by hand with judge: local) use an open model on the runner
-#     itself instead (llama.cpp; nothing leaves GitHub's machine; slower and less strict). The model
-#     is the repository variable SPEECH_JUDGE_LOCAL_MODEL; SPEECH_JUDGE_BACKEND (claude, local or
-#     none) overrides the choice for every run.
+#     itself instead (llama.cpp; nothing leaves GitHub's machine). It is slow (about 15-20 minutes
+#     for the 74-page template, more for a thesis) and much less reliable than Claude, so its FAIL
+#     is advice and does not fail the run. The model is the repository variable
+#     SPEECH_JUDGE_LOCAL_MODEL; SPEECH_JUDGE_BACKEND (claude, local or none) overrides the choice.
 #   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10), or publish a release on GitHub,
 #     to attach the final PDFs to that release: thesis-digital.pdf (PDF/A-4f and PDF/UA-2),
 #     thesis-print.pdf (PDF/X, with bleed), thesis-preview.pdf (the trimmed book, plain PDF), cover.pdf
@@ -110,7 +111,7 @@ jobs:
             || (secrets.ANTHROPIC_API_KEY != '' && 'claude')
             || (startsWith(github.ref, 'refs/tags/') && 'local')
             || 'none' }}
-      SPEECH_JUDGE_LOCAL_MODEL: ${{ vars.SPEECH_JUDGE_LOCAL_MODEL || 'unsloth/Qwen3.5-4B-GGUF:Q4_K_M' }}
+      SPEECH_JUDGE_LOCAL_MODEL: ${{ vars.SPEECH_JUDGE_LOCAL_MODEL || 'ggml-org/gemma-4-E4B-it-GGUF:Q4_0' }}
       LLAMA_CPP_TAG: b12721             # llama.cpp release (Dependabot does not know it: update by hand)
       LLAMA_CACHE: /__w/_llm            # downloaded models, kept between runs
     steps:

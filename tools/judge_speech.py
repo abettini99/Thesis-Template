@@ -24,10 +24,11 @@ Two backends (--backend, or the environment variable SPEECH_JUDGE_BACKEND):
   local   an open model on this machine, through llama.cpp's llama-server (OpenAI-compatible, at
           SPEECH_JUDGE_URL, default http://127.0.0.1:8080/v1/chat/completions). Nothing leaves the
           machine. Start the server first, for example:
-              llama-server -hf unsloth/Qwen3.5-4B-GGUF:Q4_K_M --no-mmproj -c 32768 --jinja
+              llama-server -hf ggml-org/gemma-4-E4B-it-GGUF:Q4_0 --no-mmproj -c 32768 --jinja
           SPEECH_JUDGE_LOCAL_MODEL names it in the report. A small model on a CPU is slow, so by
           default it reads only the lines that can go wrong (headings, formulas, figures, tables,
-          captions, lists), formulas with some words around them (--no-focus: everything).
+          captions, lists), formulas with some words around them (--no-focus: everything). Its FAIL
+          is advice: it does not fail the build (SPEECH_JUDGE_ADVISORY=false changes that).
 
 Without a backend (no key, no --backend) it says so and stops with exit code 0. The exit code is 1
 on FAIL, 0 on PASS or when the judge could not run. Needs Python 3.10+ (and LuaLaTeX for the PDF).
@@ -242,14 +243,16 @@ def ask_claude(key: str, user: str) -> tuple[dict, dict]:
     raise RuntimeError("Anthropic API: no answer")
 
 
-def ask_local(user: str) -> tuple[dict, dict]:
-    """llama-server's OpenAI-compatible endpoint, held to SCHEMA."""
+def ask_local(user: str, max_problems: int = 12) -> tuple[dict, dict]:
+    """llama-server's OpenAI-compatible endpoint, held to SCHEMA (with at most max_problems problems)."""
+    schema = json.loads(json.dumps(SCHEMA))
+    schema["properties"]["problems"]["maxItems"] = max_problems
     body = json.dumps(
         {
             "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
             "temperature": 0,
-            "max_tokens": 3000,
-            "response_format": {"type": "json_schema", "json_schema": {"name": "verdict", "schema": SCHEMA}},
+            "max_tokens": 4000,
+            "response_format": {"type": "json_schema", "json_schema": {"name": "verdict", "schema": schema}},
             "chat_template_kwargs": {"enable_thinking": False},  # no long reasoning on a CPU
         }
     ).encode()
@@ -465,7 +468,14 @@ def main(argv=None) -> int:
         for i, part in enumerate(parts, 1):
             print(f"Asking {label} about part {i} of {len(parts)} ({len(part)} characters) ...", flush=True)
             user = prompt(findings, part, i, len(parts), focused)
-            res, st = ask_claude(key, user) if backend == "claude" else ask_local(user)
+            if backend == "claude":
+                res, st = ask_claude(key, user)
+            else:
+                try:
+                    res, st = ask_local(user)
+                except ValueError:  # an answer cut off at max_tokens: once more, with fewer problems
+                    print("    (answer cut off; asking again for at most 5 problems)", flush=True)
+                    res, st = ask_local(user, max_problems=5)
             st.update(
                 part=i,
                 characters=len(part),
@@ -514,6 +524,13 @@ def main(argv=None) -> int:
     pdf = write_pdf(args.out, verdict, findings, label)
     if pdf:
         print(f"Why: {pdf}")
+    # a small local model is too unreliable to stop a build: its verdict is advice unless asked otherwise
+    advisory = os.environ.get("SPEECH_JUDGE_ADVISORY", "true" if backend == "local" else "false").lower()
+    if advisory in ("1", "true", "yes") and model_failed and not auto_failed:
+        print(
+            "(advisory: the local model's FAIL does not fail the build; SPEECH_JUDGE_ADVISORY=false changes that)"
+        )
+        return 0
     return 1
 
 
