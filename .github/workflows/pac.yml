@@ -21,9 +21,6 @@ on:
       pdf:
         description: PDF to check (an address)
         default: https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/thesis-digital.pdf
-  push:
-    branches: [pac]
-    paths: ['.github/pac/**', '.github/workflows/pac.yml']
 
 permissions:
   contents: write      # to attach the report to the release
