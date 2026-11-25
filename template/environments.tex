@@ -162,6 +162,9 @@
     ylabel-sep .initial:n = 1.5mm ,
     pad .code:n = \dim_set:Nn \l__thesis_panels_padkey_dim {#1} ,
   }
+\cs_new_protected:Npn \__thesis_panels_artifact:n #1
+  { \tag_mc_begin:n { artifact } \tag_suspend:n { panels } #1 \tag_resume:n { panels } \tag_mc_end: }
+\cs_generate_variant:Nn \__thesis_panels_artifact:n { V }
 \keys_define:nn { thesis / colorbar } { alt .code:n = \tl_gset:Nn \g__thesis_panels_cbaralt_tl {#1} }
 \keys_define:nn { thesis / panel }
   {
@@ -235,7 +238,9 @@
           }
         \par
       }
-    % the grid with the shared axis titles: y beside it, x under it, centred on the plot areas
+    % the grid with the shared axis titles: y beside it, x under it, centred on the plot areas (in the
+    % tagged PDF artifacts: each panel's alternative text names its axes, and on their own, after the
+    % panels, the titles were read as loose formulas, "u", "x")
     \tl_if_empty:NF \l__thesis_panels_ylabel_tl
       {
         \hbox_set:Nn \l_tmpa_box
@@ -247,7 +252,7 @@
                     \box_ht:N \l__thesis_panels_grid_box
                     - \l__thesis_panels_bottom_dim - 2\l__thesis_panels_pad_dim
                   }
-                  { \hss \small \l__thesis_panels_ylabel_tl \hss }
+                  { \hss \small \__thesis_panels_artifact:V \l__thesis_panels_ylabel_tl \hss }
               }
           }
       }
@@ -275,7 +280,7 @@
             \skip_horizontal:n { \l__thesis_panels_left_dim + \l__thesis_panels_pad_dim }
             \hbox_to_wd:nn
               { \l__thesis_panels_grid_dim - \l__thesis_panels_left_dim - 2\l__thesis_panels_pad_dim }
-              { \hss \small \l__thesis_panels_xlabel_tl \hss }
+              { \hss \small \__thesis_panels_artifact:V \l__thesis_panels_xlabel_tl \hss }
             \skip_horizontal:n { \l__thesis_panels_pad_dim }
             \hss
           }

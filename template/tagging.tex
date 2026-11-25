@@ -95,6 +95,12 @@
         \thesis@ifzeroskip\lastskip{\unskip\let\thesis@next\thesis@unskipzero}{}\fi\fi
     \thesis@next}
 
+%% Spaces in code as space characters (both releases): listings sets each word in its own box, so the
+%% space between two words is not next to a letter and LaTeX's tagging adds no space character there.
+%% The tagged text read "importnumpyasnp"; with \pdffakespace (a space character, no width) it reads
+%% "import numpy as np". The pages do not change. (Indentation stays without characters.)
+\def\lst@outputspace{\pdffakespace\ }
+
 \ExplSyntaxOn
 %% ---------------------------------------------------------------------------------------------
 %% 2. Equation numbers in the MathML (only when the MathML is made: luamml, math/setup in
@@ -104,6 +110,8 @@
 %%   is unknown"): treat multline like equation and gather.
 %%   equation with split: LaTeX keeps only the split's table in the MathML and drops the equation
 %%   number; it is kept back here and added again around that table (tagging.lua).
+%%   tagging.lua also makes a number one <mn> (siunitx's 6.022\,140\,76 was five pieces), a word in
+%%   upright letters one <mi> (\mathrm{disc}), and leaves out boxes with nothing to read.
 \AddToHook{begindocument}
   {
     \IfPackageLoadedT{luamml}
