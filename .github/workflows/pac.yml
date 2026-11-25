@@ -1,45 +1,64 @@
-# PAC (PDF Accessibility Checker, axes4) on the digital edition: experimental.
-# PAC is a free Windows program without a command line; this installs it on a Windows runner (from
-# axes4's own download, as its terms require) and drives its window through UI Automation.
+# PAC (PDF Accessibility Checker, axes4) on the digital edition, as accessibility reviewers check it.
+#
+# PAC is free but Windows-only and has no command line: this installs it on a Windows runner (from
+# axes4's own download, as its terms require: it may not be offered from other servers) and drives
+# its window (.github/pac/run_pac.py). PAC checks PDF/UA-1 (PDF 1.7); on this PDF/UA-2 (PDF 2.0)
+# file it reports what PDF 2.0 does differently as well, see tools/check_ua1.py for the sorting.
+#
+# Runs for every published release (and attaches PAC's report and a summary to it), or by hand
+# (Actions tab > PAC > Run workflow) for any PDF address. It never blocks anything: a report only.
 name: PAC
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       pdf:
-        description: PDF to check (a URL)
+        description: PDF to check (an address)
         default: https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/thesis-digital.pdf
   push:
     branches: [pac]
     paths: ['.github/pac/**', '.github/workflows/pac.yml']
 
 permissions:
-  contents: write      # (experiment: pushes what PAC showed to the branch pac-output)
+  contents: write      # to attach the report to the release
 
 jobs:
   pac:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
+      # PAC 2026.1.2, as offered on https://pac.pdf-accessibility.org/en/download (update for a new PAC)
       PAC_MSI: https://pac.pdf-accessibility.org/_Resources/Persistent/7/0/1/1/7011f0e73e336c7566f24e0a1f88171a4b975afe/PAC_Setup.26.1.2.msi
       PDF_URL: ${{ inputs.pdf || 'https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/thesis-digital.pdf' }}
     steps:
       - uses: actions/checkout@v5
+      - name: The PDF
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" = release ]; then
+            # (the build attaches it after its checks: wait for it)
+            for i in $(seq 1 60); do
+              gh release download "${{ github.event.release.tag_name }}" -p thesis-digital.pdf -O thesis-digital.pdf 2>/dev/null && break
+              sleep 30
+            done
+          else
+            curl -sSfL -o thesis-digital.pdf "$PDF_URL"
+          fi
+          ls -l thesis-digital.pdf
+      - name: A larger screen (more of PAC's results visible at once)
+        shell: pwsh
+        run: |
+          try { Set-DisplayResolution -Width 1920 -Height 1080 -Force } catch { "resolution unchanged: $_" }
       - name: Install PAC (silently, from axes4)
         shell: pwsh
         run: |
           Invoke-WebRequest $env:PAC_MSI -OutFile PAC.msi
-          $p = Start-Process msiexec -ArgumentList '/i','PAC.msi','/quiet','ACCEPT_AXES4_EULA=1','INSTALLFOLDER=C:\PAC','/log','pac-install.log' -Wait -PassThru
-          "msiexec exit code: $($p.ExitCode)"
-          Get-ChildItem C:\PAC -Recurse -Filter *.exe | Select-Object FullName
-      - name: The PDF
-        shell: pwsh
-        run: Invoke-WebRequest $env:PDF_URL -OutFile thesis.pdf
-      - name: A larger screen (more rows of PAC's results visible at once)
-        shell: pwsh
-        run: |
-          try { Set-DisplayResolution -Width 1920 -Height 1080 -Force } catch { "could not change the resolution: $_" }
-          Get-CimInstance Win32_VideoController | Select-Object CurrentHorizontalResolution, CurrentVerticalResolution
+          $p = Start-Process msiexec -ArgumentList '/i','PAC.msi','/quiet','ACCEPT_AXES4_EULA=1','INSTALLFOLDER=C:\PAC' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "PAC did not install (msiexec $($p.ExitCode))" }
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -48,21 +67,21 @@ jobs:
           PYTHONIOENCODING: utf-8
         run: |
           pip install --quiet pywinauto pillow
-          python .github/pac/explore.py C:\PAC thesis.pdf
-      - name: Keep what PAC showed
+          python .github/pac/run_pac.py C:\PAC thesis-digital.pdf pac
+      - name: Summary on the run's page
+        if: always()
+        shell: bash
+        run: cat pac/pac-summary.md >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Keep the report
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: pac
-          path: |
-            pac-out/
-            pac-install.log
-          retention-days: 7
-      - name: Push what PAC showed to the branch pac-output (experiment)
-        if: always()
+          path: pac/
+          retention-days: 30
+      - name: Attach it to the release
+        if: github.event_name == 'release'
         shell: bash
-        run: |
-          mkdir -p /tmp/o && cp -r pac-out pac-install.log /tmp/o/ 2>/dev/null || true
-          cd /tmp/o && git init -q -b pac-output && git add -A
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "PAC run ${GITHUB_RUN_ID}"
-          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" pac-output
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" pac/pac-report.pdf pac/pac-summary.md --clobber
