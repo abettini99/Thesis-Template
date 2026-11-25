@@ -136,11 +136,16 @@ class Reading:
     headings: list[tuple[int | None, int, str, str]] = field(default_factory=list)  # page, level, text, title
     figures: list[tuple[int | None, str, str]] = field(default_factory=list)  # page, alt, text
     tables: list[tuple[int | None, int, int, str]] = field(default_factory=list)  # page, rows, th, caption
-    links: list[tuple[int | None, str]] = field(default_factory=list)
+    links: list[tuple[int | None, str, str, bool]] = field(
+        default_factory=list
+    )  # page, text, id, on the page
     formulas: list[Formula] = field(default_factory=list)
     bad_chars: list[tuple[int | None, str]] = field(default_factory=list)
     jumps: list[tuple[int, int, str]] = field(default_factory=list)  # page read, after page, text
     late_lines: int = 0  # lines read after a later page
+    link_descriptions: dict[str, str] = field(
+        default_factory=dict
+    )  # structure ID: the annotation's /Contents
     split_numbers: list[tuple[int | None, str]] = field(
         default_factory=list
     )  # 1.342 read as ⟨1⟩ ⟨period 342⟩
@@ -227,7 +232,8 @@ class Reader:
             self.r.lines.append((self.page, f"[list, {items} items]"))
         elif kind == "Link":
             alts = " ".join(n.get("alt") or "" for n in e.iter() if not is_pi(n) and n.get("alt"))
-            self.r.links.append((self.page, squash(self.text_of(e) + " " + alts)))
+            on_page = any(is_pi(n) and (n.text or "").startswith("MarkedContent") for n in e.iter())
+            self.r.links.append((self.page, squash(self.text_of(e) + " " + alts), e.get("id") or "", on_page))
 
         self.emit(e.text or "")
         self.stack.append(kind)
@@ -372,6 +378,45 @@ def document_language(pdf: Path) -> str | None | bool:
         return str(lang) if lang is not None else None
 
 
+def link_descriptions(pdf: Path, ids: set[str]) -> dict[str, str]:
+    """The descriptions (/Contents of the link annotation, or /Alt) of the Link elements with these IDs.
+    show-pdf-tags does not show them; needs pikepdf (without it: no descriptions)."""
+    if not ids:
+        return {}
+    try:
+        import pikepdf
+    except ImportError:
+        return {}
+    out: dict[str, str] = {}
+    with pikepdf.open(pdf) as doc:
+        root = doc.Root.get("/StructTreeRoot")
+        stack = [root.get("/K")] if root is not None else []
+        seen = set()
+        while stack:
+            k = stack.pop()
+            if isinstance(k, pikepdf.Array):
+                stack.extend(k)
+                continue
+            if not isinstance(k, pikepdf.Dictionary):
+                continue
+            og = k.objgen if k.is_indirect else None
+            if og:
+                if og in seen:
+                    continue
+                seen.add(og)
+            sid = k.get("/ID")
+            if sid is not None and str(sid) in ids:
+                text = str(k.get("/Alt", ""))
+                kids = k.get("/K")
+                for kid in kids if isinstance(kids, pikepdf.Array) else [kids]:
+                    if isinstance(kid, pikepdf.Dictionary) and kid.get("/Type") == "/OBJR":
+                        text = text or str(kid.get("/Obj", {}).get("/Contents", ""))
+                out[str(sid)] = squash(text)
+            if "/S" in k and "/K" in k:
+                stack.append(k.get("/K"))
+    return out
+
+
 def release_baseline(name: str = "spoken.txt") -> str | None:
     """spoken.txt of the repository's latest release on GitHub (in Actions: GITHUB_REPOSITORY, GITHUB_TOKEN)."""
     repo, token = os.environ.get("GITHUB_REPOSITORY"), os.environ.get("GITHUB_TOKEN")
@@ -451,14 +496,29 @@ def check(rd: Reading, lang, r: Report, md: list[str]):
         r.ok(f"{len(rd.tables)} tables, all with header cells")
 
     r.section("Links")
-    empty = [where(p) for p, t in rd.links if not t]
-    bare = [f"{where(p)}: {t}" for p, t in rd.links if t and URL.match(t)]
+    ghosts = [where(p) for p, t, i, on in rd.links if not t and not on]
+    described = [f"{where(p)}: '{rd.link_descriptions[i][:60]}'" for p, t, i, on in rd.links
+                 if not t and on and rd.link_descriptions.get(i)]  # fmt: skip
+    empty = [where(p) for p, t, i, on in rd.links if not t and on and not rd.link_descriptions.get(i)]
+    bare = [f"{where(p)}: {t}" for p, t, i, on in rd.links if t and URL.match(t)]
     if empty:
-        fail(f"{len(empty)} link(s) without text", empty)
+        fail(f"{len(empty)} link(s) without text or description", empty)
+    if described:
+        warn(
+            f"{len(described)} link(s) with no text of their own, only the link's description (heard where a "
+            "screen reader falls back on it): a QR code, for example",
+            described,
+        )
+    if ghosts:
+        warn(
+            f"{len(ghosts)} empty link tag(s): nothing on the page belongs to them (a caption typeset twice to "
+            "measure it, for example). Silent, and harmless when the structure is read",
+            ghosts,
+        )
     if bare:
         print(f"  note  {len(bare)} link(s) read out a bare address or DOI (fine in the references)")
     if not empty:
-        r.ok(f"{len(rd.links)} links, all with text")
+        r.ok(f"{len(rd.links)} links, none silent")
 
     r.section("Maths")
     places = {"TD": "table cells", "TH": "table headers", "Caption": "captions", "P": "paragraphs",
@@ -600,6 +660,7 @@ def main(argv=None) -> int:
         r.fail(err)
         md.append(f"- **FAIL** {err}")
     text = spoken_text(rd)
+    rd.link_descriptions = link_descriptions(args.pdf, {i for p, t, i, on in rd.links if not t and on and i})
     check(rd, document_language(args.pdf), r, md)
 
     args.out.mkdir(parents=True, exist_ok=True)
