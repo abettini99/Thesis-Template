@@ -7,6 +7,8 @@
 #   (thesis_fonts.save makes figures print-ready with them)
 #   .github/scripts/ (README images)                     Pillow
 #   tools/mtpro2_otf.py (MathTime conversion)            fonttools
+#   tools/check_speech.py (document language)            pikepdf (optional; maths needs Node.js:
+#                                                        npm ci --prefix tools/speech)
 #
 # tools/check_pdf.py needs only Python itself (check_pdf.py also
 # uses the poppler tools pdfinfo, pdffonts and pdfimages, which are not Python packages).

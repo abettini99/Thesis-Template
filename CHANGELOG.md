@@ -2,6 +2,12 @@
 
 Versions follow [semantic versioning](https://semver.org): a change in the last number (1.0.1) only fixes things, in the middle number (1.1.0) adds something without changing what you have, and in the first number (2.0.0) asks you to change something in your thesis when you update; the entry says what.
 
+## Unreleased
+
+- **Speech check:** `tools/check_speech.py` reads the digital edition the way a screen reader does (with `show-pdf-tags` and Speech Rule Engine for the maths) and fails on what a listener would miss: headings without text, figures without alternative text, tables without header cells, links without text, formulas whose MathML says nothing. It writes the whole thesis as read aloud (`speech/spoken.txt`) and what reads differently since the latest release. The build runs it on every push and attaches `spoken.txt` to releases.
+- **AI judge (optional):** with a repository secret `ANTHROPIC_API_KEY`, `tools/judge_speech.py` asks Claude whether a blind reader could follow the thesis: PASS or FAIL, and on FAIL `speech-judge.pdf` (itself a tagged PDF/UA-2) says why and how to fix it. This sends the thesis text to Anthropic; without the secret the judge is skipped.
+- **Continuous integration:** the build also runs `tools/check_bib.py` and lists the hyphenated words in the run's summary. New workflows: *Changes since a version* (`tools/diff_versions.py` against the newest tag, on pushes and pull requests) and *Text quality* (codespell and chktex on changed `.tex` files; every Monday, `tools/check_links.py` checks the DOIs and web addresses). Dependabot keeps the actions and Speech Rule Engine up to date.
+
 ## 1.1.0 (24 November 2026)
 
 - **Cover:** a fourth colour, `coversecondary`, for the small lines (*Doctoral thesis · TU Delft*, *About the author*, the spine mark); before, they followed the text colour. Fixed: with a light text colour on a dark cover, the front title stayed black. If your `settings/cover.tex` is older, add `\colorlet{coversecondary}{covertext!75}` to it.
