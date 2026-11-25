@@ -1,0 +1,37 @@
+# Builds the four test files in the official TeX Live image, untouched, and commits the PDFs.
+name: Build the test files
+on:
+  push:
+    branches: [scope-test]
+    paths: ['*.tex', '.github/workflows/build.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: texlive/texlive:latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build each file on its own, from its source only
+        run: |
+          lualatex --version | head -1
+          tlmgr --version | tail -1
+          for n in 1 2 3 4; do
+            d=$(mktemp -d); cp scope$n.tex "$d"/
+            (cd "$d" && lualatex -interaction=nonstopmode scope$n.tex >/dev/null && lualatex -interaction=nonstopmode scope$n.tex >/dev/null)
+            cp "$d"/scope$n.pdf . && grep -E "^(Package|File): (tagpdf|latex-lab-testphase-table|array)" "$d"/scope$n.log | sort -u
+          done
+          {
+            echo "Built by .github/workflows/build.yml on GitHub, in the official image texlive/texlive:latest, each"
+            echo "file in an empty folder from its own source only (lualatex, twice), on $(date -u +%Y-%m-%d)."
+            lualatex --version | head -1
+            echo "LaTeX: $(grep -m1 'LaTeX2e <' "$d"/scope4.log)"
+          } > BUILD.txt
+      - name: Commit the PDFs
+        run: |
+          apt-get update -qq && apt-get install -y -qq git >/dev/null || true
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git add scope?.pdf BUILD.txt
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "The test PDFs, built in texlive/texlive:latest"
+          git push

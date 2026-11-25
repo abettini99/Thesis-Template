@@ -5,7 +5,7 @@
 \ExplSyntaxOn
 % Header cells: LaTeX gives their Scope through attribute classes (/C /TH-col ...); PAC reads only
 % direct attributes, so also write the Scope on the cell itself (/A), keeping the class.
-\cs_new_eq:NN \__thesis_struct_write_obj:n \__tag_struct_write_obj:n
+\cs_new_eq:NN \__scope_struct_write_obj:n \__tag_struct_write_obj:n
 \cs_set_protected:Npn \__tag_struct_write_obj:n #1
   {
     \prop_get:cnNT { g__tag_struct_#1_prop } { C } \l_tmpa_tl
@@ -29,7 +29,7 @@
               }
           }
       }
-    \__thesis_struct_write_obj:n {#1}
+    \__scope_struct_write_obj:n {#1}
   }
 \ExplSyntaxOff
 \begin{document}
