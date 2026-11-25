@@ -45,6 +45,12 @@ new_command('thesis@luamml@wraptag', function()
   }
 end, 'protected')
 
+-- What follows works with luamml's Lua code, which is not a public interface: the properties it reads
+-- MathML from (mathml_table, mathml_core), the :nodes an element takes its marked content from, its
+-- structure flag and its callback luamml.to_mathml. The package watch (.github/watch/probe.tex)
+-- fingerprints those functions; when one changes, check this code. Each part is a workaround to remove
+-- once luamml does it itself.
+--
 -- Numbers and upright words in the MathML as one element. siunitx sets 6.02214076 as 6{.}022\,140\,76: a digit, a
 -- decimal marker in braces and groups of digits with thin spaces between them. luamml made each of
 -- them its own element (<mn>6</mn> <mo>.</mo> <mn>022</mn> <mspace/> <mn>140</mn> ...), which is

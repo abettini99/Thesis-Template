@@ -7,10 +7,31 @@
 \documentclass{book}
 \usepackage{amsmath}
 \usepackage[textsf]{ntxmath-otf}
-\usepackage{graphicx,xcolor,tikz,longtable,url,cancel,listings,amsthm,hyperref}
+\usepackage{graphicx,xcolor,tikz,longtable,url,cancel,listings,amsthm,makecell,hyperref}
 \usepackage[chapter]{algorithm}
 \usepackage{algpseudocode}
 \usepackage[backend=biber]{biblatex}
+% template/tagging.lua works with luamml's Lua code (not a public interface): fingerprints of the Lua
+% functions it relies on, the callback it runs before, and the kernel's fake space it uses for listings
+\directlua{
+  probe = {}
+  function probe.lua(file, name)
+    local path = kpse.find_file(file, 'lua')
+    if not path then return 'MISSING' end
+    local f = io.open(path); local src = f:read('*a'); f:close()
+    local nl = string.char(10)
+    local s = src:find('function ' .. name .. '(', 1, true)
+    if not s then return 'MISSING' end
+    local e = src:find(nl .. 'end' .. nl, s + 1, true)
+    return md5.sumhexa(src:sub(s, e or -1)):upper()
+  end
+  function probe.callback(cb, name)
+    for _, d in ipairs(luatexbase.callback_descriptions(cb)) do
+      if d == name then return 'exists' end
+    end
+    return 'MISSING'
+  end
+}
 \makeatletter
 \ExplSyntaxOn
 \iow_new:N \g__probe_iow
@@ -28,6 +49,8 @@
   { \iow_now:Ne \g__probe_iow { #1 \c_space_tl \cs_if_exist:cTF {#1} { exists } { MISSING } } }
 \cs_new_protected:Npn \__probe_socket:n #1
   { \iow_now:Ne \g__probe_iow { socket~#1 \c_space_tl \socket_if_exist:nTF {#1} { exists } { MISSING } } }
+\cs_new_protected:Npn \__probe_lua:nn #1#2
+  { \iow_now:Ne \g__probe_iow { lua~#1/#2 \c_space_tl \lua_now:e { tex.sprint(probe.lua('#1', '#2')) } } }
 \cs_new_protected:Npn \__probe_hook:n #1
   { \iow_now:Ne \g__probe_iow { hook~#1 \c_space_tl \tl_if_exist:cTF { g__hook_#1_declared_tl } { exists } { MISSING } } }
 \AddToHook{begindocument/end}
@@ -45,7 +68,7 @@
         \Gin@setfile, \Gin@pagebox, \hyper@link, \hyper@linkstart, \hyper@linkend, \hyper@linkurl,
         \hyper@linkfile, \hyper@link@, \pgfsys@color@rgb@fill, \pgfsys@color@rgb@stroke,
         % listings, longtable, float, algorithmicx, amsmath, biblatex, cancel
-        \lst@makecaption, \lst@maketitle, \lst@EveryDisplay, \LT@makecaption, \LT@c@ption,
+        \lst@makecaption, \lst@maketitle, \lst@EveryDisplay, \lst@outputspace, \mcell@@@tabular, \LT@makecaption, \LT@c@ption,
         \fs@ruled, \floatc@ruled, \float@caption, \ALG@beginalgorithmic, \qopname,
         \abx@MakeMarkcase, \blx@warn@bibempty, \@cancel, \@cancelto, \canto@vector,
         % luamml (MathML)
@@ -59,7 +82,8 @@
         \l__luamml_flag_int, \l__luamml_amsmath_tag_struct_num_int, \l__math_gathersplit_bool,
         \l__math_content_alt_tl, \l__math_content_template_tl, \l__math_texsource_template_tl,
         \l__math_content_AF_source_tl, \l__math_content_AF_mathml_tl, \l__math_content_actual_tl,
-        \l__tag_math_alt_bool, \g_pdffile_mimetypes_prop, \@current@float@struct
+        \l__tag_math_alt_bool, \g_pdffile_mimetypes_prop, \@current@float@struct,
+        \pdffakespace, \g__tag_attr_entries_prop, \tag_suspend:n, \tag_resume:n
       }
       { \__probe_exists:N #1 }
     \__probe_name:n { c@g__tag_struct_abs_int }
@@ -80,6 +104,23 @@
         contentsline/page/after
       }
       { \__probe_hook:n {#1} }
+    % luamml's Lua code that template/tagging.lua relies on: how a node's MathML is taken from its
+    % properties (mathml_table, mathml_core), how an element gets its marked content (:nodes), and the
+    % callback it runs before
+    \clist_map_inline:nn
+      {
+        {luamml-convert}{nodes_to_table}, {luamml-convert}{kernel_to_table},
+        {luamml-convert}{noad_to_table}, {luamml-structelemwriter}{write_elem},
+        {luamml-structelemwriter}{try_derive_actual}, {luamml-tex}{save_result}
+      }
+      { \__probe_lua:nn #1 }
+    \iow_now:Ne \g__probe_iow
+      { callback~pre_mlist_to_hlist_filter/luamml.to_mathml \c_space_tl
+        \lua_now:e { tex.sprint(probe.callback('pre_mlist_to_hlist_filter', 'luamml.to_mathml')) } }
+    % the key the layout tables use (\layouttable, template/accessibility.tex)
+    \iow_now:Ne \g__probe_iow
+      { key~table/tagging=div \c_space_tl
+        \keys_if_choice_exist:nnnTF { __tag / setup } { table/tagging } { div } { exists } { MISSING } }
     \iow_close:N \g__probe_iow
   }
 \ExplSyntaxOff
