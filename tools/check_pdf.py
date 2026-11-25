@@ -9,8 +9,9 @@ It reports what a print shop or the TU Delft repository may reject. For the prin
 edition (PDF/X, for the printer) it runs tools/check_print.py instead of the archival checks.
 
   archival PDF  PDF/A-4f, with veraPDF (https://verapdf.org) when it is installed and
-                the template's own basic checks otherwise; with veraPDF also PDF/UA-2 and WTPDF 1.0 (Accessibility, Reuse)
-                (accessibility) when the PDF declares it (tagging on in main.tex)
+                the template's own basic checks otherwise; with veraPDF also PDF/UA-2 and
+                WTPDF 1.0 Accessibility and Reuse (accessibility) when the PDF declares them
+                (the final version, which is tagged)
   fonts         every font embedded, no bitmap (Type 3) fonts, every font mapped to
                 Unicode (so text can be searched and copied); figure files with
                 fonts that are not embedded are named
