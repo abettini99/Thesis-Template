@@ -35,6 +35,11 @@ jobs:
       - name: The PDF
         shell: pwsh
         run: Invoke-WebRequest $env:PDF_URL -OutFile thesis.pdf
+      - name: A larger screen (more rows of PAC's results visible at once)
+        shell: pwsh
+        run: |
+          try { Set-DisplayResolution -Width 1920 -Height 1080 -Force } catch { "could not change the resolution: $_" }
+          Get-CimInstance Win32_VideoController | Select-Object CurrentHorizontalResolution, CurrentVerticalResolution
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

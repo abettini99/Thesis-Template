@@ -157,13 +157,20 @@ def has_findings(r):
 
 
 def find(dw, name, depth):
-    rows = detail_rows(dw)
-    base = min(x["left"] for x in rows)
-    for r in rows:
-        r["depth"] = (r["left"] - base) // 24
-    for k, r in enumerate(rows):
-        if r["name"] == name and r["depth"] == depth:
-            return k, rows
+    """The row with this name at this depth, scrolling the tree (Home, then Page Down) to bring it into view."""
+    for attempt in range(14):
+        rows = detail_rows(dw)
+        base = min(x["left"] for x in rows) if rows else 0
+        for r in rows:
+            r["depth"] = (r["left"] - base) // 24
+        for k, r in enumerate(rows):
+            if r["name"] == name and r["depth"] == depth:
+                return k, rows
+        if not rows:
+            break
+        rows[0]["cell"].click_input()
+        keyboard.send_keys("{HOME}" if attempt == 0 else "{PGDN}")
+        time.sleep(0.8)
     return None, rows
 
 
@@ -183,18 +190,33 @@ def visit(dw, name, depth, leaf_depth=4):
     r["cell"].click_input()
     keyboard.send_keys("{RIGHT}")
     time.sleep(1.5)
-    k, rows = find(dw, name, depth)
-    children = []
-    for x in rows[k + 1 :]:
-        if x["depth"] <= depth:
+    children = {}  # name -> row, gathered while paging down through this row's children
+    for _ in range(8):
+        k, rows = find(dw, name, depth) if not children else (None, detail_rows(dw))
+        if k is None:  # (paged on: the row itself may be above the view now)
+            base = min(x["left"] for x in rows)
+            for x in rows:
+                x["depth"] = (x["left"] - base) // 24
+            k = -1
+        more = False
+        for x in rows[k + 1 :]:
+            if x["depth"] <= depth and children:
+                break
+            if x["depth"] == depth + 1 and x["name"] not in children:
+                children[x["name"]] = x
+                more = True
+        if not more or len(children) > 40:
             break
-        if x["depth"] == depth + 1:
-            children.append(x)
-    if depth >= leaf_depth:  # the messages: one row per object, so only the distinct ones
-        for msg in dict.fromkeys(x["name"] for x in children):
+        rows[-1]["cell"].click_input()
+        keyboard.send_keys("{PGDN}")
+        time.sleep(0.8)
+    kids = list(children.values())
+    counted = [c for c in kids if c["passed"] or c["warning"] or c["error"]]
+    if depth >= leaf_depth or not counted:  # messages: one row per object, so only the distinct ones
+        for msg in list(children)[:12]:
             report_lines.append(f"{'  ' * (depth + 1)}- {msg}")
     else:
-        for c in [c for c in children if has_findings(c)]:
+        for c in [c for c in counted if has_findings(c)]:
             visit(dw, c["name"], depth + 1, leaf_depth)
     k, rows = find(dw, name, depth)
     if k is not None:
