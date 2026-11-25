@@ -209,11 +209,41 @@ def start():
     return win.window_text()
 
 
+def file_dialog(win, path):
+    """Put the path into the open Windows file dialog (its file name box) and press Enter; check it got there.
+
+    Typing straight away could lose the first characters while the dialog was still opening."""
+    for _attempt in range(3):
+        dlg = None
+        for _ in range(20):
+            found = list(win.wrapper_object().children(control_type="Window"))
+            found += [w for w in state["app"].windows() if w.handle != win.handle]
+            dlg = next(iter(found), None)
+            if dlg is not None:
+                break
+            time.sleep(0.5)
+        if dlg is None:
+            raise TimeoutError("the file dialog did not open")
+        box = next(
+            (e for e in dlg.descendants(control_type="Edit") if e.automation_id() in ("1148", "1001")),
+            None,
+        )
+        if box is None:
+            raise LookupError("no file name box in the file dialog")
+        box.set_edit_text(str(path))
+        time.sleep(0.5)
+        if box.get_value() == str(path):
+            box.type_keys("{ENTER}")
+            return
+        time.sleep(1)
+    raise ValueError("the path did not arrive in the file dialog")
+
+
 def open_pdf():
     win = state["win"]
     win.child_window(auto_id="openButton", control_type="Button").click_input()
-    time.sleep(3)
-    keyboard.send_keys(str(pdf).replace(" ", "{SPACE}") + "{ENTER}", with_spaces=True)
+    time.sleep(2)
+    file_dialog(win, pdf)
     # PAC is built for PDF 1.7 and says so for a PDF 2.0 file: keep its words, press OK
     for _ in range(30):
         time.sleep(2)
@@ -290,8 +320,8 @@ def pdf_report():
     report = (out / "pac-report.pdf").resolve()
     win.child_window(title="PDF/UA", control_type="TabItem").click_input()
     win.child_window(auto_id="pdfUaPdfReportButton", control_type="Button").click_input()
-    time.sleep(4)
-    keyboard.send_keys(str(report).replace(" ", "{SPACE}") + "{ENTER}", with_spaces=True)
+    time.sleep(2)
+    file_dialog(win, report)
     for _ in range(60):
         time.sleep(3)
         if report.exists() and report.stat().st_size > 0:
