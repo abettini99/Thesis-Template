@@ -14,7 +14,7 @@ on:
     paths: ['.github/pac/**', '.github/workflows/pac.yml']
 
 permissions:
-  contents: read
+  contents: write      # (experiment: pushes what PAC showed to the branch pac-output)
 
 jobs:
   pac:
@@ -51,3 +51,11 @@ jobs:
             pac-out/
             pac-install.log
           retention-days: 7
+      - name: Push what PAC showed to the branch pac-output (experiment)
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p /tmp/o && cp -r pac-out pac-install.log /tmp/o/ 2>/dev/null || true
+          cd /tmp/o && git init -q -b pac-output && git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "PAC run ${GITHUB_RUN_ID}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" pac-output
