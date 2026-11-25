@@ -111,13 +111,13 @@ jobs:
             || (startsWith(github.ref, 'refs/tags/') && 'local')
             || 'none' }}
       SPEECH_JUDGE_LOCAL_MODEL: ${{ vars.SPEECH_JUDGE_LOCAL_MODEL || 'unsloth/Qwen3.5-4B-GGUF:Q4_K_M' }}
-      LLAMA_CPP_TAG: b12700             # llama.cpp release (Dependabot does not know it: update by hand)
+      LLAMA_CPP_TAG: b12721             # llama.cpp release (Dependabot does not know it: update by hand)
       LLAMA_CACHE: /__w/_llm            # downloaded models, kept between runs
     steps:
       - name: Tools
         run: |
           apt-get update -qq
-          apt-get install -y -qq --no-install-recommends python3 python3-pikepdf nodejs npm curl ca-certificates
+          apt-get install -y -qq --no-install-recommends python3 python3-pikepdf nodejs npm curl ca-certificates libgomp1
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v8
         with:
