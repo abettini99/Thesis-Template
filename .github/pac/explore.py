@@ -102,7 +102,7 @@ while time.time() - start < 600:
     now = texts(win)
     numbers = sum(1 for r in now if r.split("\t")[1].strip().isdigit())
     say(f"{time.time() - start:.0f} s: {len(now)} controls, {numbers} numbers")
-    if not any("Check is running" in r for r in now) and numbers >= 6 and now == last:
+    if any("This PDF file is" in r for r in now) and now == last:
         break
     last = now
 shot("03-checked")
@@ -118,14 +118,59 @@ for tab in ("WCAG", "Quality", "AI"):
     except Exception as e:
         say("tab", tab, "failed:", repr(e))
 
-# PAC's own report: the "PDF report" button and whatever it asks
+# PAC's own report: the "PDF report" button opens a save dialog with the file name selected
+report = (out / "pac-report.pdf").resolve()
 try:
     win.child_window(title="PDF/UA", control_type="TabItem").click_input()
     win.child_window(auto_id="pdfUaPdfReportButton", control_type="Button").click_input()
-    time.sleep(5)
-    shot("05-report")
-    say("windows after PDF report:", [w.window_text() for w in Desktop(backend="uia").windows()])
-    tree(app.top_window(), "05-report")
+    time.sleep(4)
+    shot("05-report-dialog")
+    keyboard.send_keys(str(report).replace(" ", "{SPACE}") + "{ENTER}", with_spaces=True)
+    for _ in range(60):
+        time.sleep(5)
+        if report.exists() and report.stat().st_size > 0:
+            break
+    say("PDF report:", report.exists() and report.stat().st_size, "bytes")
+    shot("05-report-saved")
 except Exception as e:
     say("report failed:", repr(e))
+
+
+def expand_all(w):
+    """Open every node of the tree views, so their texts can be read."""
+    for _ in range(6):
+        opened = 0
+        for c in w.descendants(control_type="TreeItem"):
+            try:
+                if c.iface_expand_collapse.CurrentExpandCollapseState == 0:  # collapsed
+                    c.iface_expand_collapse.Expand()
+                    opened += 1
+            except Exception:
+                pass
+        if not opened:
+            break
+
+
+# the detail view: which checks fail, and where
+try:
+    before = {w.handle for w in Desktop(backend="uia").windows()}
+    win.child_window(auto_id="resultsInDetailPDFUAButton", control_type="Button").click_input()
+    time.sleep(8)
+    new = [w for w in Desktop(backend="uia").windows() if w.handle not in before]
+    say("new windows:", [w.window_text() for w in new])
+    detail = new[0] if new else win.wrapper_object()
+    expand_all(detail)
+    time.sleep(2)
+    shot("06-detail")
+    rows = []
+    for c in detail.descendants():
+        try:
+            if c.element_info.control_type in ("TreeItem", "DataItem", "Text", "ListItem"):
+                rows.append(f"{c.element_info.control_type}\t{c.window_text()}")
+        except Exception:
+            pass
+    (out / "06-detail-texts.txt").write_text("\n".join(rows), encoding="utf-8")
+    say("detail rows:", len(rows))
+except Exception as e:
+    say("detail failed:", repr(e))
 say("done")
