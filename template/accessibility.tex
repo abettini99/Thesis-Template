@@ -46,18 +46,36 @@
       }
   }
 
+%% \layouttable before a tabular that only places text (the committee, the colophon, the curriculum
+%% vitae): its rows and cells are then tagged as text blocks, not as a table, so a screen reader reads
+%% them as text and checkers do not ask for header cells. It holds until the end of the group.
+\NewDocumentCommand { \layouttable } { }
+  { \tag_if_active:T { \tagpdfsetup { table/tagging = div } } }
+
 \tag_if_active:T
   {
 %% ---------------------------------------------------------------------
 %% 2. Tables. The first row of every table in a table float (and of xltabular and longtable) is marked as
 %% its header row. A table with a header of two rows: \tagpdfsetup{table/header-rows={1,2}} in the
-%% table, before the tabular; none: \tagpdfsetup{table/header-rows={}}. Tables used only to place text
-%% (as on the title page) are set with \tagpdfsetup{table/tagging=presentation}.
+%% table, before the tabular; none: \tagpdfsetup{table/header-rows={}}. Tables used only to place text:
+%% \layouttable (above).
 %% ---------------------------------------------------------------------
     \AddToHook { env/table/begin } { \tagpdfsetup { table/header-rows = 1 } }
     \AddToHook { env/sidewaystable/begin } { \tagpdfsetup { table/header-rows = 1 } }
     \AddToHook { env/xltabular/begin } { \tagpdfsetup { table/header-rows = 1 } }
     \AddToHook { env/longtable/begin } { \tagpdfsetup { table/header-rows = 1 } }
+
+%% A \makecell (or \thead) is a small tabular inside a cell: set as a layout table, so that a header that
+%% breaks over two lines stays one header cell with text, not a table inside a header cell.
+    \AddToHook { begindocument/before }
+      {
+        \cs_if_exist:NT \mcell@@@tabular
+          {
+            \cs_new_eq:NN \__thesis_mcell_tabular:w \mcell@@@tabular
+            \cs_set:Npn \mcell@@@tabular #1#2 \@nil #3
+              { \group_begin: \layouttable \__thesis_mcell_tabular:w {#1} #2 \@nil {#3} \group_end: }
+          }
+      }
 
 %% Links: each link annotation also gets a short description (/Contents: "Go to destination ...", or the
 %% web address). PDF/UA-2 does not ask for it, but checkers built on PDF/UA-1 (PAC, Acrobat) do, and

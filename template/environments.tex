@@ -56,6 +56,8 @@
 \NewDocumentCommand{\qrlink}{ O{12mm} m o }
   {
     \leavevmode
+    \group_begin:
+    \layouttable % (the tabular only stacks the code and its label)
     \begin{tabular}[b]{@{}c@{}}
       \href{#2}
         {
@@ -67,6 +69,7 @@
         } \\
       \footnotesize \IfNoValueTF {#3} { \url{#2} } {#3}
     \end{tabular}
+    \group_end:
   }
 \ExplSyntaxOff
 
