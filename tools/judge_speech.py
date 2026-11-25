@@ -236,6 +236,7 @@ def write_pdf(out: Path, verdict: dict, findings: str) -> Path | None:
     doc = rf"""\DocumentMetadata{{lang=en-GB, pdfversion=2.0, pdfstandard=ua-2, tagging=on}}
 \documentclass[11pt,a4paper]{{article}}
 \usepackage{{fontspec}}
+\usepackage{{unicode-math}}
 \directlua{{luaotfload.add_fallback("judgefallback", {{{fallback}}})}}
 \setmainfont{{Latin Modern Roman}}[RawFeature={{fallback=judgefallback}}]
 \usepackage[margin=25mm]{{geometry}}
