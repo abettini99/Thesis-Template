@@ -1,0 +1,103 @@
+# PAC (PDF Accessibility Checker, axes4) on the digital edition, as accessibility reviewers check it.
+#
+# PAC is free but Windows-only and has no command line: this installs it on a Windows runner (from
+# axes4's own download, as its terms require: it may not be offered from other servers) and drives
+# its window (.github/pac/run_pac.py). PAC checks PDF/UA-1 (PDF 1.7); on this PDF/UA-2 (PDF 2.0)
+# file it reports what PDF 2.0 does differently as well, see tools/check_ua1.py for the sorting.
+#
+# Runs for every published release (and attaches PAC's report and a summary to it), every Monday on the
+# latest release (and looks for a newer PAC: .github/pac/pac_version.py), or by hand (Actions tab > PAC >
+# Run workflow) for any PDF address. It never blocks anything: a report only. The summary is written
+# whatever fails, with screenshots of the step that failed; a red cross means PAC gave no verdict.
+name: PAC
+
+on:
+  release:
+    types: [published]
+  schedule:
+    - cron: '23 5 * * 1'   # Mondays: the latest release, and whether axes4 offers a newer PAC
+  workflow_dispatch:
+    inputs:
+      pdf:
+        description: PDF to check (an address)
+        default: https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/thesis-digital.pdf
+
+permissions:
+  contents: write      # to attach the report to the release
+
+jobs:
+  pac:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      # PAC 2026.1.2, as offered on https://pac.pdf-accessibility.org/en/download (update for a new PAC)
+      PAC_MSI: https://pac.pdf-accessibility.org/_Resources/Persistent/7/0/1/1/7011f0e73e336c7566f24e0a1f88171a4b975afe/PAC_Setup.26.1.2.msi
+      PDF_URL: ${{ inputs.pdf || 'https://github.com/abettini99/tudelft-dissertation-template/releases/latest/download/thesis-digital.pdf' }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: The PDF
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" = release ]; then
+            # (the build attaches it after its checks: wait for it)
+            for i in $(seq 1 60); do
+              gh release download "${{ github.event.release.tag_name }}" -p thesis-digital.pdf -O thesis-digital.pdf 2>/dev/null && break
+              sleep 30
+            done
+          else
+            curl -sSfL -o thesis-digital.pdf "$PDF_URL"
+          fi
+          ls -l thesis-digital.pdf
+      - name: A larger screen (more of PAC's results visible at once)
+        shell: pwsh
+        run: |
+          try { Set-DisplayResolution -Width 1920 -Height 1080 -Force } catch { "resolution unchanged: $_" }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Which PAC (the pinned one; the newest if it is gone)
+        id: pac
+        run: python .github/pac/pac_version.py $env:PAC_MSI
+      - name: Install PAC (silently, from axes4)
+        shell: pwsh
+        env:
+          PAC_URL: ${{ steps.pac.outputs.url }}
+        run: |
+          Invoke-WebRequest $env:PAC_URL -OutFile PAC.msi
+          $p = Start-Process msiexec -ArgumentList '/i','PAC.msi','/quiet','ACCEPT_AXES4_EULA=1','INSTALLFOLDER=C:\PAC' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "PAC did not install (msiexec $($p.ExitCode))" }
+      - name: Run PAC
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          pip install --quiet pywinauto pillow
+          python .github/pac/run_pac.py C:\PAC thesis-digital.pdf pac
+      - name: Summary on the run's page (also when something failed)
+        if: always()
+        shell: bash
+        env:
+          NOTE: ${{ steps.pac.outputs.note }}
+        run: |
+          mkdir -p pac
+          { echo "**PAC version:** ${NOTE:-unknown (the version check did not run)}"; echo; } > pac/pac-version.md
+          [ -f pac/pac-summary.md ] || echo "PAC produced no summary: see the log and the screenshots." > pac/pac-summary.md
+          cat pac/pac-version.md pac/pac-summary.md >> "$GITHUB_STEP_SUMMARY"
+          cat pac/pac-version.md pac/pac-summary.md > pac/pac-summary-full.md && mv pac/pac-summary-full.md pac/pac-summary.md
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pac
+          path: pac/
+          retention-days: 30
+      - name: Attach it to the release
+        if: always() && github.event_name == 'release'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          files=pac/pac-summary.md
+          [ -f pac/pac-report.pdf ] && files="$files pac/pac-report.pdf"
+          gh release upload "${{ github.event.release.tag_name }}" $files --clobber

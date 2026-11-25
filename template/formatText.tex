@@ -101,8 +101,8 @@
     \fi}
 %% \chapterprecistoc{text}: a line of text under the chapter's entry in the contents
 \newcommand{\chapterprecistoc}[1]{\addtocontents{toc}{\precistoctext{#1}}}
-\DeclareRobustCommand{\precistoctext}[1]{{\nopagebreak\leftskip\cftchapindent\relax
-    \advance\leftskip\cftchapnumwidth\relax \rightskip\@tocrmarg\relax
+\DeclareRobustCommand{\precistoctext}[1]{{\nopagebreak\leftskip\thesis@tocchapnumwidth\relax
+    \rightskip\@tocrmarg\relax
     \noindent\normalfont\itshape #1\par}}
 %% Chapter abstract: a short summary on the chapter's opening page (inside \chapterprecishere), set apart
 %% from the text as a block of the epigraphs' width, flush right like the title and the epigraphs, one size
@@ -197,40 +197,46 @@
 %% main.tex switches with \contentsstyle{frontmatter} and \contentsstyle{mainmatter}; they start a new
 %% page and write the switch at once, so it lands in the right place among the entries of
 %% \include'd chapters.
-%% tocloft adds its hooks (\cfttocprehook, ...) to \@starttoc only if \@starttoc is still LaTeX's own.
-%% Tagging redefines it; tocloft 3.0 copes with that, older versions (Overleaf's TeX Live 2026 has
-%% 2.3i) give up with a warning. So tocloft is loaded with LaTeX's own \@starttoc in place, and the
-%% hooks are then added to the tagging version, as tocloft 3.0 does.
-\let\thesis@starttoc\@starttoc
-\def\@starttoc#1{%
- \begingroup
-   \makeatletter
-   \@input{\jobname.#1}%
-   \if@filesw
-     \expandafter\newwrite\csname tf@#1\endcsname
-     \immediate\openout \csname tf@#1\endcsname \jobname.#1\relax
-   \fi
-  \@nobreakfalse
-\endgroup}
-\RequirePackage[titles]{tocloft}
-\let\@starttoc\thesis@starttoc
-\ifdefined\cfttocprehook
-    \patchcmd\@starttoc{\begingroup}{\csname cft#1prehook\endcsname\begingroup}{}
-        {\PackageWarning{thesis}{Could not add tocloft's hooks to \string\@starttoc}}%
-    \patchcmd\@starttoc{\endgroup}{\endgroup\csname cft#1posthook\endcsname}{}
-        {\PackageWarning{thesis}{Could not add tocloft's hooks to \string\@starttoc}}%
-\fi
-\renewcommand{\cftdot}{}
-\renewcommand{\cftchapfont}{\headingfont\bfseries}
-\renewcommand{\cftchappagefont}{\normalfont}
-\setlength{\cftfigindent}{0pt} \setlength{\cfttabindent}{0pt}
+%% The entries are LaTeX's own (\l@chapter, \@dottedtocline), with the measurements of tocloft for the
+%% book class, so that LaTeX's tagging structures every entry (TOCI > Reference > Link) on every TeX
+%% Live: tocloft before 3.0 (Overleaf's TeX Live 2026 has 2.3i) replaces these commands and loses
+%% that structure. (Revisit tocloft once every supported TeX Live on Overleaf has 3.0.)
+\newlength{\thesis@tocchapnumwidth} \setlength{\thesis@tocchapnumwidth}{1.5em}
+\newskip\thesis@tocchapskip \thesis@tocchapskip=1em plus 1pt
+\newcommand{\thesis@tocchapfont}{\headingfont\bfseries}
+\renewcommand*{\l@chapter}[2]{%
+    \ifnum \c@tocdepth >\m@ne
+        \addpenalty{-\@highpenalty}%
+        \vskip \thesis@tocchapskip
+        {\leftskip \z@ \rightskip \@tocrmarg \parfillskip -\rightskip
+         \parindent \z@ \@afterindenttrue \interlinepenalty\@M
+         \leavevmode
+         \@tempdima \thesis@tocchapnumwidth
+         \advance\leftskip \@tempdima \null\nobreak\hskip -\leftskip
+         \UseHookWithArguments{contentsline/text/before}{4}{0}{#1}{#2}{\@contentsline@destination}%
+         {\thesis@tocchapfont #1}\nobreak
+         \UseHookWithArguments{contentsline/text/after}{4}{0}{#1}{#2}{\@contentsline@destination}%
+         \hfill\nobreak
+         \UseHookWithArguments{contentsline/page/before}{4}{0}{}{#2}{\@contentsline@destination}%
+         \makebox[\@pnumwidth][r]{\normalfont #2}%
+         \UseHookWithArguments{contentsline/page/after}{4}{0}{}{#2}{\@contentsline@destination}%
+         \kern-\p@\kern\p@ % (keeps the number from protruding into the margin)
+         \par}%
+    \fi}
+%% sections, figures and tables: LaTeX's \@dottedtocline (tagged when tagging is on), without dots
+\renewcommand*{\@dotsep}{5000}
+\renewcommand*{\l@section}{\@dottedtocline{1}{1.5em}{2.3em}}
+\renewcommand*{\l@subsection}{\@dottedtocline{2}{3.8em}{3.2em}}
+\renewcommand*{\l@subsubsection}{\@dottedtocline{3}{7.0em}{4.1em}}
+\renewcommand*{\l@figure}{\@dottedtocline{1}{\z@}{2.3em}}
+\let\l@table\l@figure
 \newcommand{\tocfrontmatter}{%
-    \setlength{\cftbeforechapskip}{0pt plus 1pt}%
-    \renewcommand{\cftchapfont}{\sffamily}%
+    \thesis@tocchapskip=0pt plus 1pt
+    \renewcommand{\thesis@tocchapfont}{\sffamily}%
     \par\addvspace{1em}}
 \newcommand{\tocmainmatter}{%
-    \setlength{\cftbeforechapskip}{1em plus 1pt}%
-    \renewcommand{\cftchapfont}{\headingfont\bfseries}%
+    \thesis@tocchapskip=1em plus 1pt
+    \renewcommand{\thesis@tocchapfont}{\headingfont\bfseries}%
     \par\addvspace{0.5\onelineskip}}
 \newcommand{\contentsstyle}[1]{\clearpage\immediate\write\@auxout{\string\@writefile{toc}{\expandafter\string\csname toc#1\endcsname}}}
 %% Contents and lists of figures and tables: titled like the unnumbered chapters, but they start on the
@@ -244,6 +250,7 @@
     \IfBooleanF{#1}{\MakeLinkTarget[chapter]{}\addcontentsline{toc}{chapter}{#3}}%
     \ParseLaTeXeHeading{thesislist}{\BooleanTrue}{running={#4}}{#3}% (the marks before the space below it)
     \def\thesis@tmp{#2}\def\thesis@tmpb{toc}\ifx\thesis@tmp\thesis@tmpb\else\vskip10\p@\fi % the lists of figures and tables start with a chapter's gap
+    \parindent\z@ \parskip\z@ % (no paragraph space between the entries)
     \@starttoc{#2}%
     \endgroup}
 \DeclareDocumentCommand\tableofcontents{s}{\thesis@list{#1}{toc}{\contentsname}{\contentsname}}

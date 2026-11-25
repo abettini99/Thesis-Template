@@ -4,9 +4,10 @@
 #     (PDF/X, for the printer) and digital.pdf (PDF/A-4f and PDF/UA-2, for the screen and the repository);
 #     also main.tex as it is (a draft, as a rule), the propositions and the cover.
 #   - The PDFs (and logs) are kept for 30 days: Actions tab > the run > Artifacts.
-#   - They are checked with tools/check_pdf.py (veraPDF for a full PDF/A-4f and PDF/UA-2 validation of the
-#     digital edition; tools/check_print.py for the PDF/X edition) and with tools/check_figures.py. A run
-#     fails (red cross) if a PDF has something that must be fixed.
+#   - They are checked with tools/check_pdf.py (veraPDF for a full PDF/A-4f, PDF/UA-2 and WTPDF
+#     validation of the digital edition; tools/check_print.py for the PDF/X edition) and with
+#     tools/check_figures.py; tools/check_ua1.py reports how a PDF/UA-1 checker such as PAC sees the
+#     digital edition. A run fails (red cross) if a PDF has something that must be fixed.
 #   - The bibliography is checked with tools/check_bib.py (keys cited but missing, duplicates, missing
 #     fields); the words TeX hyphenated are listed for review in the run's summary (check_hyphenation.py).
 #   - Speech: tools/check_speech.py reads the digital edition the way a screen reader does (headings,
@@ -25,11 +26,15 @@
 #   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10), or publish a release on GitHub,
 #     to attach the final PDFs to that release: thesis-digital.pdf (PDF/A-4f and PDF/UA-2),
 #     thesis-print.pdf (PDF/X, with bleed), thesis-preview.pdf (the trimmed book, plain PDF), cover.pdf
-#     (without the guides), propositions.pdf, veraPDF's report and spoken.txt. A fixed link to send round; in a
-#     private repository only people with access to it can open it.
+#     (without the guides), propositions.pdf, veraPDF's report and the PDF/UA-1 report
+#     (tools/check_ua1.py) and spoken.txt. A fixed link to send round; in a private repository only
+#     people with access to it can open it.
 #
-# The build uses the latest TeX Live, like Overleaf. MathTime fonts are never on GitHub, so these
-# builds always use newtx for the maths.
+# Everything is built twice: on TeX Live as Overleaf has it (what thesis authors compile with; an
+# image of the TeX Live repository on the day Overleaf took its copy, .github/texlive/Dockerfile; the
+# release files come from this one) and on the latest TeX Live (an early warning). When Overleaf adds
+# a new TeX Live, add an image for it to both matrices and keep the older one while theses still use it.
+# MathTime fonts are never on GitHub, so these builds always use newtx for the maths.
 name: Build
 
 on:
@@ -56,10 +61,27 @@ concurrency:
 
 jobs:
   build:
+    # Two TeX Live installations: Overleaf's own image (what thesis authors compile with) and the
+    # latest TeX Live (early warning of what is coming). Both must pass.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - texlive: overleaf-2026   # .github/texlive/Dockerfile: TeX Live as on Overleaf
+            image: ghcr.io/abettini99/tudelft-dissertation-template/texlive:overleaf-2026
+          - texlive: latest
+            image: texlive/texlive:latest
+    name: build (${{ matrix.texlive }})
     runs-on: ubuntu-latest
-    container: texlive/texlive:latest
+    container:
+      image: ${{ matrix.image }}
+      options: --user root
     steps:
       - uses: actions/checkout@v5
+      - name: TeX Live
+        run: |
+          lualatex --version | head -1
+          cat /usr/local/texlive/SNAPSHOT 2>/dev/null || true
       - name: Compile the edition for the printer (final version)
         run: |
           sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=printer, version=final]{thesis}/' main.tex > printer.tex
@@ -72,6 +94,9 @@ jobs:
         run: |
           sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=preview, version=final]{thesis}/' main.tex > preview.tex
           latexmk -interaction=nonstopmode -halt-on-error preview.tex
+      - name: Package versions (to compare with Overleaf's log)
+        run: |
+          grep -E '^(Package|Document Class|File): ' digital.log | sort -u
       - name: Compile a draft (as main.tex sets it), the propositions and the cover
         run: |
           latexmk -interaction=nonstopmode -halt-on-error main.tex
@@ -87,7 +112,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: thesis
+          name: thesis-${{ matrix.texlive }}
           path: |
             printer.pdf
             printer.log
@@ -102,6 +127,7 @@ jobs:
 
   speech:
     needs: build
+    if: ${{ !cancelled() }}   # (also when only the latest TeX Live failed)
     runs-on: ubuntu-latest
     container: texlive/texlive:latest   # show-pdf-tags, and LuaLaTeX for the judge's report
     timeout-minutes: 60
@@ -122,7 +148,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v8
         with:
-          name: thesis
+          name: thesis-overleaf-2026   # the digital edition as built on Overleaf's TeX Live
       - name: Speech Rule Engine (MathML to words)
         run: npm ci --prefix tools/speech --no-audit --no-fund
       - name: Read the digital edition aloud and check it
@@ -162,12 +188,17 @@ jobs:
   check:
     needs: [build, speech]
     if: ${{ !cancelled() && needs.build.result == 'success' }}   # (also when the speech check fails)
+    strategy:
+      fail-fast: false
+      matrix:
+        texlive: [overleaf-2026, latest]
+    name: check (${{ matrix.texlive }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v8
         with:
-          name: thesis
+          name: thesis-${{ matrix.texlive }}
       - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
@@ -210,15 +241,22 @@ jobs:
       - name: veraPDF report
         if: always()
         run: verapdf --format html digital.pdf > verapdf-report.html || true
-      - name: Keep the veraPDF report
+      - name: PDF/UA-1 report (as PAC would see it; a report only)
+        if: always()
+        run: |
+          set -o pipefail   # (fails only on findings the script cannot explain)
+          python3 tools/check_ua1.py --strict digital.pdf | tee pdfua1-report.txt
+      - name: Keep the veraPDF and PDF/UA-1 reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: verapdf-report
-          path: verapdf-report.html
+          name: verapdf-report-${{ matrix.texlive }}
+          path: |
+            verapdf-report.html
+            pdfua1-report.txt
           retention-days: 30
-      - name: Release (tags only)
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Release (tags only; the files as built on Overleaf's TeX Live)
+        if: startsWith(github.ref, 'refs/tags/') && matrix.texlive == 'overleaf-2026'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -231,6 +269,7 @@ jobs:
           cp cover-final.pdf release/cover.pdf
           cp propositions.pdf release/propositions.pdf
           cp verapdf-report.html release/verapdf-report.html
+          cp pdfua1-report.txt release/pdfua1-report.txt
           if [ -f speech/spoken.txt ]; then cp speech/spoken.txt release/spoken.txt; fi
           # a release published on GitHub already exists: then only add the files
           if gh release view "$tag" > /dev/null 2>&1; then

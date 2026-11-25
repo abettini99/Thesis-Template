@@ -11,7 +11,6 @@
 \usepackage[chapter]{algorithm}
 \usepackage{algpseudocode}
 \usepackage[backend=biber]{biblatex}
-\usepackage[titles]{tocloft}
 \makeatletter
 \ExplSyntaxOn
 \iow_new:N \g__probe_iow
@@ -29,6 +28,8 @@
   { \iow_now:Ne \g__probe_iow { #1 \c_space_tl \cs_if_exist:cTF {#1} { exists } { MISSING } } }
 \cs_new_protected:Npn \__probe_socket:n #1
   { \iow_now:Ne \g__probe_iow { socket~#1 \c_space_tl \socket_if_exist:nTF {#1} { exists } { MISSING } } }
+\cs_new_protected:Npn \__probe_hook:n #1
+  { \iow_now:Ne \g__probe_iow { hook~#1 \c_space_tl \tl_if_exist:cTF { g__hook_#1_declared_tl } { exists } { MISSING } } }
 \AddToHook{begindocument/end}
   {
     \iow_open:Nn \g__probe_iow { probe-fingerprints.txt }
@@ -37,8 +38,9 @@
       {
         \@doendpe, \@make@normalcolbox, \@outputbox@removebskip, \__kernel_list_label_after:n,
         \__math_prepare_display_end:, \@makecaption, \cleardoublepage, \@makecol,
-        \@kernel@new@label@record@testdef, \@starttoc, \__block_recipe_standalone:,
+        \@kernel@new@label@record@testdef, \@dottedtocline, \__block_recipe_standalone:,
         \__kernel_displayblock_begin:, \__tag_struct_add_AF:ee, \__tag_struct_prop_gput:nne,
+        \__tag_struct_write_obj:n,
         % graphicx, hyperref, pgf
         \Gin@setfile, \Gin@pagebox, \hyper@link, \hyper@linkstart, \hyper@linkend, \hyper@linkurl,
         \hyper@linkfile, \hyper@link@, \pgfsys@color@rgb@fill, \pgfsys@color@rgb@stroke,
@@ -71,6 +73,13 @@
         build/column/baselineattach, tagsupport/parbox/before, tagsupport/parbox/after
       }
       { \__probe_socket:n {#1} }
+    % the hooks the contents entries use (template/formatText.tex)
+    \clist_map_inline:nn
+      {
+        contentsline/text/before, contentsline/text/after, contentsline/page/before,
+        contentsline/page/after
+      }
+      { \__probe_hook:n {#1} }
     \iow_close:N \g__probe_iow
   }
 \ExplSyntaxOff
