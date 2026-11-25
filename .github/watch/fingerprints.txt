@@ -22,6 +22,7 @@
 \__math_prepare_display_end: 41CAFFC0AFDF2F113938EE15316A32ED
 \__tag_struct_add_AF:ee F3EBE9FBEABADD597ADD3824FCB40A63
 \__tag_struct_prop_gput:nne ED48CECF15D06626613890B9C0B1B70E
+\__tag_struct_write_obj:n 7006A00FDF63AFC9F4E2B36BA88EE9A5
 \abx@MakeMarkcase 97CB33DE08A0AE06B073822AB37E0B05
 \blx@warn@bibempty 77DCDCD47B2D9E67B6BBBAB9D2E72B38
 \c__template_keytypes_root_tl exists
@@ -30,6 +31,7 @@
 \float@caption F4DF3A95AC62E02CE603AB807646782E
 \floatc@ruled 7E533E3EF497BA1DD0492506C2B50FAC
 \fs@ruled D26AB08F5557EE6737A639327F78E720
+\g__tag_attr_entries_prop exists
 \g_pdffile_mimetypes_prop exists
 \hyper@link 882B2363DDB6E7BEB158825D58597CC8
 \hyper@link@ 2D8C1276805A0EBD4B6F5F9559DFF5E0
@@ -53,15 +55,28 @@
 \lst@EveryDisplay 659FF4C70ED01D66BF604E6921432865
 \lst@makecaption 9795B93BDF99D5F066518869DF1796C6
 \lst@maketitle 46860FCBC241748274832129C6D13143
+\lst@outputspace 80373A798DD1A920E3E99464C4FCB80E
+\mcell@@@tabular A8D61AA14E42C59E1C641B0962A2B69A
+\pdffakespace exists
 \pgfsys@color@rgb@fill 66E066365AE816F5BD445E2B2F692852
 \pgfsys@color@rgb@stroke A15F09655F0CEC93A65FE33154BDD57C
 \qopname 92E8EC3A44C7E377332E815F6D98E6A2
+\tag_resume:n exists
+\tag_suspend:n exists
 c@g__tag_struct_abs_int exists
 c__pdfmeta_colorprofile_FOGRA39L_coated.icc exists
+callback pre_mlist_to_hlist_filter/luamml.to_mathml exists
 hook contentsline/page/after exists
 hook contentsline/page/before exists
 hook contentsline/text/after exists
 hook contentsline/text/before exists
+key table/tagging=div exists
+lua luamml-convert/kernel_to_table EAD6069D5DF2C4B4EA9B7BB482C5986A
+lua luamml-convert/noad_to_table 14E05907056439032E5CB23542BBA6C1
+lua luamml-convert/nodes_to_table 931AF761F7EA768FFD5D5ADCE4376F9F
+lua luamml-structelemwriter/try_derive_actual 3E85B8EECBB58E23813EE65CCEE737C8
+lua luamml-structelemwriter/write_elem 0D1F478511C67455E8CC2BE821E6CAD9
+lua luamml-tex/save_result CEB38D3814E1E7B7AF16239BA6595599
 socket block/endpe MISSING
 socket build/column/baselineattach exists
 socket hyp/link/GoTo/Contents exists
