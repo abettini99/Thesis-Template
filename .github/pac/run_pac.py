@@ -14,6 +14,7 @@ the PDF through PAC's own file dialog, accepts PAC's warning that PDF 2.0 is not
 Run by .github/workflows/pac.yml on a Windows runner.
 """
 
+import re
 import sys
 import time
 from pathlib import Path
@@ -212,7 +213,8 @@ def start():
 def file_dialog(win, path):
     """Put the path into the open Windows file dialog (its file name box) and press Enter; check it got there.
 
-    Typing straight away could lose the first characters while the dialog was still opening."""
+    Typing straight away could lose the first characters while the dialog was still opening: so wait for
+    the dialog, click into its box, type, and check what arrived before pressing Enter."""
     for _attempt in range(3):
         dlg = None
         for _ in range(20):
@@ -230,10 +232,13 @@ def file_dialog(win, path):
         )
         if box is None:
             raise LookupError("no file name box in the file dialog")
-        box.set_edit_text(str(path))
+        box.click_input()
+        keyboard.send_keys("^a{BACKSPACE}")
+        escaped = re.sub(r"([{}+^%~()])", r"{\1}", str(path))
+        keyboard.send_keys(escaped, with_spaces=True, pause=0.02)
         time.sleep(0.5)
         if box.get_value() == str(path):
-            box.type_keys("{ENTER}")
+            keyboard.send_keys("{ENTER}")
             return
         time.sleep(1)
     raise ValueError("the path did not arrive in the file dialog")
