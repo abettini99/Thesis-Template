@@ -57,9 +57,15 @@ def table(win):
     return rows
 
 
+VERDICTS = (
+    "This PDF file is",  # "...not PDF/UA compliant", "...PDF/UA compliant"
+    "It's possible that some",  # every automatic check passed; only those for a person remain
+)
+
+
 def verdict(win):
     for c in win.wrapper_object().descendants(control_type="Text"):
-        if c.window_text().startswith("This PDF file is"):
+        if c.window_text().startswith(VERDICTS):
             return c.window_text()
     return ""
 
