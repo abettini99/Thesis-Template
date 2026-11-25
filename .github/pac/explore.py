@@ -26,8 +26,14 @@ def shot(tag):
 
 
 def tree(spec, tag):
+    import contextlib
+    import io
+
     try:
-        spec.print_control_identifiers(depth=None, filename=str(out / f"{tag}-tree.txt"))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            spec.print_control_identifiers(depth=None)
+        (out / f"{tag}-tree.txt").write_text(buf.getvalue(), encoding="utf-8")
     except Exception as e:
         say("tree failed:", tag, repr(e))
 
@@ -76,6 +82,19 @@ except Exception as e:
     keyboard.send_keys(str(pdf).replace(" ", "{SPACE}") + "{ENTER}", with_spaces=True)
 say("path entered")
 
+# PAC warns that PDF 2.0 is not fully supported (it is built for PDF 1.7): note the text, press OK
+for _ in range(30):
+    time.sleep(2)
+    box = app.window(title="Unsupported PDF version")
+    if box.exists(timeout=0):
+        say("PAC says:", " | ".join(t for t in box.wrapper_object().texts() if t))
+        for c in box.wrapper_object().descendants():
+            if c.window_text():
+                say("   ", c.element_info.control_type, c.window_text())
+        box.child_window(title="OK", control_type="Button").click_input()
+        say("pressed OK")
+        break
+
 # wait until the check is done: the results table gets numbers, and the window stops changing
 start, last = time.time(), None
 while time.time() - start < 600:
@@ -83,7 +102,7 @@ while time.time() - start < 600:
     now = texts(win)
     numbers = sum(1 for r in now if r.split("\t")[1].strip().isdigit())
     say(f"{time.time() - start:.0f} s: {len(now)} controls, {numbers} numbers")
-    if numbers >= 6 and now == last:
+    if not any("Check is running" in r for r in now) and numbers >= 6 and now == last:
         break
     last = now
 shot("03-checked")
