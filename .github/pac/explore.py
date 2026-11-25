@@ -191,9 +191,10 @@ try:
                     say("   address:", e.window_text(), e.iface_value.CurrentValue)
                 except Exception:
                     pass
-    keep = [f for f in found if f.suffix.lower() in (".html", ".htm", ".json", ".xml", ".txt")]
-    for n, f in enumerate(keep[:10]):
+    keep = sorted({f for f in found if f.suffix.lower() in (".html", ".htm", ".json", ".xml", ".tmp")})
+    for n, f in enumerate(keep[:20]):
         shutil.copy(f, out / f"detail-{n}{f.suffix}")
+        say("kept", f, f.stat().st_size, "bytes")
     subprocess.run(["taskkill", "/IM", "msedge.exe", "/F"], capture_output=True)
 except Exception as e:
     say("detail failed:", repr(e))
