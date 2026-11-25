@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        model: ['unsloth/Qwen3.5-4B-GGUF:Q4_K_M', 'ggml-org/gemma-4-E4B-it-GGUF:Q4_K_M']
+        model: ['ggml-org/gemma-4-E4B-it-GGUF:Q4_0']   # (Qwen ran in the run before)
         focus: [focus, no-focus]
     runs-on: ubuntu-latest
     container: texlive/texlive:latest
