@@ -11,8 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        model: ['ggml-org/gemma-4-E4B-it-GGUF:Q4_0']   # (Qwen ran in the run before)
-        focus: [focus, no-focus]
+        model: ['unsloth/Qwen3.5-4B-GGUF:Q4_K_M', 'ggml-org/gemma-4-E4B-it-GGUF:Q4_0']
+        focus: [focus]   # round 2: the prompt that asks only for what the rules miss
     runs-on: ubuntu-latest
     container: texlive/texlive:latest
     timeout-minutes: 300

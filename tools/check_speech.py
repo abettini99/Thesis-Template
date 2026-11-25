@@ -58,6 +58,7 @@ BLOCKS = {
     "Note", "FENote", "Index", "Bibliography", "BibEntry", "DocumentFragment",
 }  # fmt: skip
 HEADING = re.compile(r"H([1-9])$")
+SPLIT_NUMBER = re.compile(r"⟨-?\d+⟩ ?⟨(period|point|comma) \d+⟩")  # a number in two formulas
 BAD_CHARS = re.compile(r"[-�]")
 URL = re.compile(r"^(https?://|www\.|doi:|10\.\d{4,}/)\S+$", re.I)
 PLACEHOLDER_ALT = re.compile(
@@ -140,6 +141,9 @@ class Reading:
     bad_chars: list[tuple[int | None, str]] = field(default_factory=list)
     jumps: list[tuple[int, int, str]] = field(default_factory=list)  # page read, after page, text
     late_lines: int = 0  # lines read after a later page
+    split_numbers: list[tuple[int | None, str]] = field(
+        default_factory=list
+    )  # 1.342 read as ⟨1⟩ ⟨period 342⟩
 
 
 class Reader:
@@ -496,6 +500,12 @@ def check(rd: Reading, lang, r: Report, md: list[str]):
     ]
     if differ:
         warn(f"{len(differ)} formula(s) read differently from the structure tree and the file", differ)
+    if rd.split_numbers:
+        warn(
+            f"{len(rd.split_numbers)} number(s) split into two formulas (heard as '1', then 'period 342'): "
+            "siunitx table columns, for example",
+            [f"{where(p)}: {t}" for p, t in rd.split_numbers],
+        )
     if not (no_mathml or silent or silent_af):
         r.ok(f"{len(rd.formulas)} formulas, all with MathML that gives words")
 
@@ -538,6 +548,8 @@ def spoken_text(rd: Reading) -> str:
             if not rd.jumps or rd.jumps[-1][1] != top:
                 rd.jumps.append((p, top, line[:60]))
         top = max(top, p or 0)
+        for m in SPLIT_NUMBER.finditer(line):
+            rd.split_numbers.append((p, m.group(0)))
         out.append(line)
         bad = BAD_CHARS.search(line)
         if bad:

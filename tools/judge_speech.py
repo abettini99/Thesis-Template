@@ -144,9 +144,18 @@ def focus(text: str, around: int = 160) -> str:
                     merged[-1][1] = max(merged[-1][1], b)
                 else:
                     merged.append([a, b])
-            line = " … ".join(line[a:b] for a, b in merged)
+            line = " … ".join(trim(line, a, b) for a, b in merged)
         out.append(line)
     return "\n".join(out) + "\n"
+
+
+def trim(line: str, a: int, b: int) -> str:
+    """line[a:b], widened to whole words (so that no word looks cut off to the model)."""
+    while a > 0 and not line[a - 1].isspace():
+        a -= 1
+    while b < len(line) and not line[b].isspace():
+        b += 1
+    return line[a:b].strip()
 
 
 def chunks(text: str, size: int) -> list[str]:
@@ -180,7 +189,10 @@ def prompt(findings: str, part: str, n: int, total: int, focused: bool) -> str:
         else ""
     )
     return (
-        f"Part {n} of {total} of the thesis. For context, the automatic structure checks reported:\n\n"
+        f"Part {n} of {total} of the thesis.\n\nThe automatic structure checks have already reported the "
+        "problems below. They are fixed separately: do NOT report them again (no silent headings, tables "
+        "without header cells, links without text, or anything else listed here). Report only problems "
+        "these checks miss. If you find none, answer PASS with an empty list.\n\n"
         f"{findings}\n\n{note}--- The thesis as read aloud (part {n} of {total}) ---\n\n{part}"
     )
 
@@ -373,7 +385,7 @@ def write_pdf(out: Path, verdict: dict, findings: str, label: str = MODEL) -> Pa
 The digital edition was read the way a screen reader reads it (tools/check\_speech.py, the file
 spoken.txt in the same artifact), and a language model judged whether a blind listener could follow it.
 
-\subsection*{{Why it fails}}
+\subsection*{{What the model found beyond the automatic checks}}
 {problems(major)}
 
 \subsection*{{Minor issues}}
@@ -469,9 +481,10 @@ def main(argv=None) -> int:
         return 0
 
     problems = [p for r in results for p in r.get("problems", [])]
-    failed = any(str(r.get("verdict", "")).upper() == "FAIL" for r in results) or any(
-        p.get("severity") != "minor" for p in problems
-    )
+    # FAIL if the automatic checks failed, or the model found a major problem they missed
+    auto_failed = findings.lstrip().startswith("**Speech check: FAIL**")
+    model_failed = any(p.get("severity") != "minor" for p in problems)
+    failed = auto_failed or model_failed
     verdict = {
         "verdict": "FAIL" if failed else "PASS",
         "summary": " ".join(r.get("summary", "") for r in results).strip(),
@@ -481,13 +494,18 @@ def main(argv=None) -> int:
         "focused": focused,
         "characters": len(text),
         "seconds": round(time.monotonic() - t0, 1),
+        "automatic_checks_failed": auto_failed,
+        "model_found_major": model_failed,
         "parts": stats,
     }
     (args.out / "judge.json").write_text(json.dumps(verdict, indent=2, ensure_ascii=False), encoding="utf-8")
     major = sum(p.get("severity") != "minor" for p in problems)
     line = f"**AI judge ({label}): {verdict['verdict']}**: {verdict['summary']}"
     if failed:
-        line += f"\n\n{major} major and {len(problems) - major} minor issue(s); see speech-judge.pdf."
+        line += (
+            f"\n\nThe model found {major} major and {len(problems) - major} minor issue(s) beyond the automatic "
+            f"checks{' (which also failed)' if auto_failed else ''}; see speech-judge.pdf."
+        )
     line += f"\n\n({len(parts)} part(s), {len(text)} characters, {verdict['seconds']:.0f} s)"
     (args.out / "judge.md").write_text(line + "\n", encoding="utf-8")
     print(f"{verdict['verdict']}  ({verdict['seconds']:.0f} s)")
