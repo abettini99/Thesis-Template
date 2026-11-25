@@ -175,14 +175,24 @@ try:
             try:
                 if (
                     f.is_file()
+                    and "\\Edge\\" not in str(f)
+                    and "\\Microsoft\\" not in str(f)
                     and f.stat().st_mtime > t0 - 5
-                    and f.suffix.lower() in (".html", ".htm", ".json", ".xml")
                 ):
                     found.append(f)
             except Exception:
                 pass
-    say("files written by the detail view:", [str(f) for f in found][:20])
-    for n, f in enumerate(found[:10]):
+    say("files written by the detail view:", [str(f) for f in found][:60])
+    for w in Desktop(backend="uia").windows():
+        if "Edge" in w.window_text() or w.class_name().startswith("Chrome"):
+            say("browser window:", w.window_text())
+            for e in w.descendants(control_type="Edit"):
+                try:
+                    say("   address:", e.window_text(), e.iface_value.CurrentValue)
+                except Exception:
+                    pass
+    keep = [f for f in found if f.suffix.lower() in (".html", ".htm", ".json", ".xml", ".txt")]
+    for n, f in enumerate(keep[:10]):
         shutil.copy(f, out / f"detail-{n}{f.suffix}")
     subprocess.run(["taskkill", "/IM", "msedge.exe", "/F"], capture_output=True)
 except Exception as e:
