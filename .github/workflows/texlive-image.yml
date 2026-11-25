@@ -44,4 +44,4 @@ jobs:
           tags: ${{ steps.name.outputs.image }}:overleaf-2026
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.description=TeX Live 2026 as on Overleaf (repository of 2026-06-26)
+            org.opencontainers.image.description=TeX Live 2026 as on Overleaf (repository of 2026-06-24)

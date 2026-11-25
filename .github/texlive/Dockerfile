@@ -1,7 +1,8 @@
 # TeX Live as Overleaf runs it: TeX Live 2026 installed from the TeX Live repository as it was on
-# one day, the day Overleaf took its copy (its LaTeX format is dated 2026-06-26, its newest package
-# 2026-06-18). Overleaf does not update its TeX Live afterwards, so neither does this image: its
-# repository stays pinned to that day.
+# one day, the day Overleaf took its copy. Checked against an Overleaf log: all 204 packages the
+# thesis loads have the same date and version (the repository of 24 June: nicematrix 7.10a, dated
+# 25 June, is not on Overleaf yet). Overleaf does not update its TeX Live afterwards, so neither does
+# this image: its repository stays pinned to that day.
 #
 # Built by .github/workflows/texlive-image.yml and published as
 # ghcr.io/<owner>/<repository>/texlive:overleaf-2026, which the build workflow compiles with.
@@ -9,7 +10,7 @@
 FROM debian:bookworm-slim
 
 ARG TL_YEAR=2026
-ARG TL_DATE=2026/06/26
+ARG TL_DATE=2026/06/24
 ENV TL_REPO=https://texlive.info/tlnet-archive/${TL_DATE}/tlnet
 
 RUN apt-get update \
