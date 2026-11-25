@@ -33,7 +33,6 @@ on:
 
 permissions:
   contents: write      # to create releases for tags
-  packages: read       # to use the TeX Live image (.github/workflows/texlive-image.yml)
 
 concurrency:
   group: build-${{ github.ref }}
@@ -56,9 +55,6 @@ jobs:
     container:
       image: ${{ matrix.image }}
       options: --user root
-      credentials:   # (only for the image on GitHub's registry; none for Docker Hub)
-        username: ${{ startsWith(matrix.image, 'ghcr.io') && github.actor || '' }}
-        password: ${{ startsWith(matrix.image, 'ghcr.io') && secrets.GITHUB_TOKEN || '' }}
     steps:
       - uses: actions/checkout@v5
       - name: TeX Live
