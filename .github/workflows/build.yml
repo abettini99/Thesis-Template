@@ -30,6 +30,7 @@ on:
 
 permissions:
   contents: write      # to create releases for tags
+  packages: read       # to use the TeX Live image (.github/workflows/texlive-image.yml)
 
 concurrency:
   group: build-${{ github.ref }}
@@ -43,8 +44,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - texlive: overleaf-2026
-            image: quay.io/sharelatex/texlive-full:2026.1
+          - texlive: overleaf-2026   # .github/texlive/Dockerfile: TeX Live as on Overleaf
+            image: ghcr.io/abettini99/tudelft-dissertation-template/texlive:overleaf-2026
           - texlive: latest
             image: texlive/texlive:latest
     name: build (${{ matrix.texlive }})
@@ -52,12 +53,15 @@ jobs:
     container:
       image: ${{ matrix.image }}
       options: --user root
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v5
       - name: TeX Live
         run: |
           lualatex --version | head -1
-          kpsewhich --var-value=SELFAUTOPARENT
+          cat /usr/local/texlive/SNAPSHOT 2>/dev/null || true
       - name: Compile the edition for the printer (final version)
         run: |
           sed -E 's/\\documentclass\[([^]]*)\]\{thesis\}/\\documentclass[\1, edition=printer, version=final]{thesis}/' main.tex > printer.tex
