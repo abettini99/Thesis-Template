@@ -5,7 +5,7 @@ Versions follow [semantic versioning](https://semver.org): a change in the last 
 ## Unreleased
 
 - **Contents and lists:** no longer use tocloft; LaTeX's own entry commands with tocloft's measurements give the same pages (identical to the pixel), and every entry is tagged properly (TOCI, Reference, Link) on every TeX Live. With the tocloft of Overleaf's TeX Live 2026 (2.3i), entries lost that structure, and an entry with maths failed PDF/UA-2.
-- **Continuous integration:** every push builds on TeX Live as Overleaf has it (an image of the TeX Live repository of 24 June 2026; all 203 packages the thesis loads match an Overleaf log) and on the latest TeX Live. A PDF/UA-1 report (`tools/check_ua1.py`) shows how PAC sees the digital edition, and WTPDF 1.0 failures now fail the build.
+- **Continuous integration:** every push builds on TeX Live as Overleaf has it (an image of the TeX Live repository of 24 June 2026; all 203 packages the thesis loads match an Overleaf log) and on the latest TeX Live. A PDF/UA-1 report (`tools/check_ua1.py`) shows how PAC sees the digital edition, and WTPDF 1.0 failures now fail the build. PAC itself runs after every release and on Mondays (`.github/workflows/pac.yml`): its PDF report and a summary are attached to the release, and the run says when axes4 offers a newer PAC.
 
 ## 1.1.0 (24 November 2026)
 
