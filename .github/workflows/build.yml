@@ -4,18 +4,21 @@
 #     (PDF/X, for the printer) and digital.pdf (PDF/A-4f and PDF/UA-2, for the screen and the repository);
 #     also main.tex as it is (a draft, as a rule), the propositions and the cover.
 #   - The PDFs (and logs) are kept for 30 days: Actions tab > the run > Artifacts.
-#   - They are checked with tools/check_pdf.py (veraPDF for a full PDF/A-4f and PDF/UA-2 validation of the
-#     digital edition; tools/check_print.py for the PDF/X edition) and with tools/check_figures.py. A run
-#     fails (red cross) if a PDF has something that must be fixed.
+#   - They are checked with tools/check_pdf.py (veraPDF for a full PDF/A-4f, PDF/UA-2 and WTPDF
+#     validation of the digital edition; tools/check_print.py for the PDF/X edition) and with
+#     tools/check_figures.py; tools/check_ua1.py reports how a PDF/UA-1 checker such as PAC sees the
+#     digital edition. A run fails (red cross) if a PDF has something that must be fixed.
 #   - Push a tag (git tag draft-2026-10 && git push origin draft-2026-10), or publish a release on GitHub,
 #     to attach the final PDFs to that release: thesis-digital.pdf (PDF/A-4f and PDF/UA-2),
 #     thesis-print.pdf (PDF/X, with bleed), thesis-preview.pdf (the trimmed book, plain PDF), cover.pdf
-#     (without the guides), propositions.pdf and veraPDF's report. A fixed link to send round; in a
-#     private repository only people with access to it can open it.
+#     (without the guides), propositions.pdf, veraPDF's report and the PDF/UA-1 report
+#     (tools/check_ua1.py). A fixed link to send round; in a private repository only people with
+#     access to it can open it.
 #
-# Everything is built twice: on Overleaf's own TeX Live image (what thesis authors compile with; the
+# Everything is built twice: on TeX Live as Overleaf has it (what thesis authors compile with; an
+# image of the TeX Live repository on the day Overleaf took its copy, .github/texlive/Dockerfile; the
 # release files come from this one) and on the latest TeX Live (an early warning). When Overleaf adds
-# a new TeX Live, add its image to both matrices and keep the older one while theses still use it.
+# a new TeX Live, add an image for it to both matrices and keep the older one while theses still use it.
 # MathTime fonts are never on GitHub, so these builds always use newtx for the maths.
 name: Build
 
@@ -142,12 +145,19 @@ jobs:
       - name: veraPDF report
         if: always()
         run: verapdf --format html digital.pdf > verapdf-report.html || true
-      - name: Keep the veraPDF report
+      - name: PDF/UA-1 report (as PAC would see it; a report only)
+        if: always()
+        run: |
+          set -o pipefail   # (fails only on findings the script cannot explain)
+          python3 tools/check_ua1.py --strict digital.pdf | tee pdfua1-report.txt
+      - name: Keep the veraPDF and PDF/UA-1 reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: verapdf-report-${{ matrix.texlive }}
-          path: verapdf-report.html
+          path: |
+            verapdf-report.html
+            pdfua1-report.txt
           retention-days: 30
       - name: Release (tags only; the files as built on Overleaf's TeX Live)
         if: startsWith(github.ref, 'refs/tags/') && matrix.texlive == 'overleaf-2026'
@@ -163,6 +173,7 @@ jobs:
           cp cover-final.pdf release/cover.pdf
           cp propositions.pdf release/propositions.pdf
           cp verapdf-report.html release/verapdf-report.html
+          cp pdfua1-report.txt release/pdfua1-report.txt
           # a release published on GitHub already exists: then only add the files
           if gh release view "$tag" > /dev/null 2>&1; then
             gh release upload "$tag" release/* --clobber
