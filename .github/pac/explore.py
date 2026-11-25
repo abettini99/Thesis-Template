@@ -2,6 +2,7 @@
 the window (screenshots and the UI Automation tree), the results table and the report dialog.
 """
 
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -151,26 +152,39 @@ def expand_all(w):
             break
 
 
-# the detail view: which checks fail, and where
+# the detail view: PAC writes it as an HTML file and opens it in the browser; keep the file
 try:
-    before = {w.handle for w in Desktop(backend="uia").windows()}
+    import os
+    import shutil
+
+    t0 = time.time()
     win.child_window(auto_id="resultsInDetailPDFUAButton", control_type="Button").click_input()
-    time.sleep(8)
-    new = [w for w in Desktop(backend="uia").windows() if w.handle not in before]
-    say("new windows:", [w.window_text() for w in new])
-    detail = new[0] if new else win.wrapper_object()
-    expand_all(detail)
-    time.sleep(2)
-    shot("06-detail")
-    rows = []
-    for c in detail.descendants():
-        try:
-            if c.element_info.control_type in ("TreeItem", "DataItem", "Text", "ListItem"):
-                rows.append(f"{c.element_info.control_type}\t{c.window_text()}")
-        except Exception:
-            pass
-    (out / "06-detail-texts.txt").write_text("\n".join(rows), encoding="utf-8")
-    say("detail rows:", len(rows))
+    time.sleep(15)
+    found = []
+    for base in {
+        os.environ.get("TEMP"),
+        os.environ.get("LOCALAPPDATA"),
+        os.environ.get("APPDATA"),
+        str(Path.home() / "Documents"),
+        str(Path.home()),
+        str(Path.cwd()),
+    }:
+        if not base or not Path(base).exists():
+            continue
+        for f in Path(base).rglob("*"):
+            try:
+                if (
+                    f.is_file()
+                    and f.stat().st_mtime > t0 - 5
+                    and f.suffix.lower() in (".html", ".htm", ".json", ".xml")
+                ):
+                    found.append(f)
+            except Exception:
+                pass
+    say("files written by the detail view:", [str(f) for f in found][:20])
+    for n, f in enumerate(found[:10]):
+        shutil.copy(f, out / f"detail-{n}{f.suffix}")
+    subprocess.run(["taskkill", "/IM", "msedge.exe", "/F"], capture_output=True)
 except Exception as e:
     say("detail failed:", repr(e))
 say("done")
