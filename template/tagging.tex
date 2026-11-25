@@ -7,6 +7,7 @@
 %%   3. Theorems and proofs straight after one another (LaTeX's code of June 2026)
 %%   4. Figures side by side
 %%   5. No "Rerun" warning for tagpdf's running totals
+%%   6. Table header cells: their scope also on the cell itself (for PAC)
 %% =====================================================================
 \ExplSyntaxOn
 \tag_if_active:T { \cs_gset:Npn \thesistagging {} }
@@ -246,6 +247,49 @@
           { \__thesis_label_testdef:nn {#1} {#2} }
       }
   }
+\ExplSyntaxOff
+
+%% ---------------------------------------------------------------------------------------------
+%% 6. Table header cells: LaTeX gives each header cell its scope (column, row or both) through an
+%% attribute class (/C /TH-col, defined once in the ClassMap). That is valid in PDF 1.7 and 2.0, and
+%% veraPDF reads it, but PAC does not: it reports every header cell as having "no associated subcells"
+%% (tested on plain LaTeX documents in PDF 1.7 and 2.0). So the scope is also written on the cell
+%% itself (/A << /O /Table /Scope ... >>), next to the class, when the structure is written out at the
+%% end. Remove once PAC reads attribute classes, or once LaTeX writes the scope on the cell itself
+%% (the package watch fingerprints \__tag_struct_write_obj:n, which this wraps).
+\ExplSyntaxOn
+\cs_if_exist:NT \__tag_struct_write_obj:n
+  {
+    \cs_new_eq:NN \__thesis_struct_write_obj:n \__tag_struct_write_obj:n
+    \cs_set_protected:Npn \__tag_struct_write_obj:n #1
+      {
+        \prop_get:cnNT { g__tag_struct_#1_prop } { C } \l__thesis_tmpa_tl
+          {
+            \tl_clear:N \l__thesis_tmpb_tl
+            \str_if_in:NnT \l__thesis_tmpa_tl { /TH-col } { \tl_set:Nn \l__thesis_tmpb_tl { /Column } }
+            \str_if_in:NnT \l__thesis_tmpa_tl { /TH-row } { \tl_set:Nn \l__thesis_tmpb_tl { /Row } }
+            \str_if_in:NnT \l__thesis_tmpa_tl { /TH-both } { \tl_set:Nn \l__thesis_tmpb_tl { /Both } }
+            \tl_if_empty:NF \l__thesis_tmpb_tl
+              {
+                \prop_get:cnNTF { g__tag_struct_#1_prop } { A } \l__thesis_tmpa_tl
+                  { % (other attributes already: one array of them all, without nesting arrays)
+                    \tl_set:Ne \l__thesis_tmpa_tl { \tl_trim_spaces:V \l__thesis_tmpa_tl }
+                    \str_if_eq:eeT { \tl_head:N \l__thesis_tmpa_tl } { [ }
+                      { \tl_set:Ne \l__thesis_tmpa_tl { \tl_range:Nnn \l__thesis_tmpa_tl { 2 } { -2 } } }
+                    \prop_gput:cne { g__tag_struct_#1_prop } { A }
+                      { [ \l__thesis_tmpa_tl \c_space_tl << /O /Table /Scope \l__thesis_tmpb_tl >> ] }
+                  }
+                  {
+                    \prop_gput:cne { g__tag_struct_#1_prop } { A }
+                      { << /O /Table /Scope \l__thesis_tmpb_tl >> }
+                  }
+              }
+          }
+        \__thesis_struct_write_obj:n {#1}
+      }
+  }
+\tl_new:N \l__thesis_tmpa_tl
+\tl_new:N \l__thesis_tmpb_tl
 \ExplSyntaxOff
 
 \makeatother
