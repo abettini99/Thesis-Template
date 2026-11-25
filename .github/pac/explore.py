@@ -58,7 +58,7 @@ shot("01-start")
 tree(win, "01-start")
 
 # Open document -> the Windows file dialog -> the path -> Enter
-win.child_window(title="Open document", control_type="Button").click_input()
+win.child_window(auto_id="openButton", control_type="Button").click_input()
 time.sleep(3)
 shot("02-dialog")
 dialogs = [w for w in Desktop(backend="uia").windows() if w.process_id() == app.process]
@@ -90,7 +90,7 @@ shot("03-checked")
 tree(win, "03-checked")
 (out / "03-texts.txt").write_text("\n".join(texts(win)), encoding="utf-8")
 
-for tab in ("WCAG", "Quality"):
+for tab in ("WCAG", "Quality", "AI"):
     try:
         win.child_window(title=tab, control_type="TabItem").click_input()
         time.sleep(3)
@@ -102,7 +102,7 @@ for tab in ("WCAG", "Quality"):
 # PAC's own report: the "PDF report" button and whatever it asks
 try:
     win.child_window(title="PDF/UA", control_type="TabItem").click_input()
-    win.child_window(title="PDF report", control_type="Button").click_input()
+    win.child_window(auto_id="pdfUaPdfReportButton", control_type="Button").click_input()
     time.sleep(5)
     shot("05-report")
     say("windows after PDF report:", [w.window_text() for w in Desktop(backend="uia").windows()])
