@@ -1,0 +1,25 @@
+# Temporary: checks the judge's report and the link check once; removed in the next commit.
+name: tmp verify
+on:
+  push:
+    branches: [ci-speech-quality]
+    paths: ['.github/workflows/tmp-verify.yml']
+permissions:
+  contents: read
+jobs:
+  judge-demo:
+    runs-on: ubuntu-latest
+    container: texlive/texlive:latest
+    steps:
+      - run: apt-get update -qq && apt-get install -y -qq --no-install-recommends python3 python3-pikepdf poppler-utils veraPDF-dummy 2>/dev/null || apt-get install -y -qq --no-install-recommends python3 poppler-utils
+      - uses: actions/checkout@v5
+      - run: python3 tools/judge_speech.py --demo --out demo; grep -i 'warning\|missing char' demo/speech-judge.log | head -20; pdftotext -layout demo/speech-judge.pdf - | head -60
+      - uses: actions/upload-artifact@v7
+        with:
+          name: judge-demo
+          path: demo/
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: python3 tools/check_links.py
