@@ -85,7 +85,7 @@ say("path entered")
 # PAC warns that PDF 2.0 is not fully supported (it is built for PDF 1.7): note the text, press OK
 for _ in range(30):
     time.sleep(2)
-    box = app.window(title="Unsupported PDF version")
+    box = win.child_window(title="Unsupported PDF version", control_type="Window")  # (inside the main window)
     if box.exists(timeout=0):
         say("PAC says:", " | ".join(t for t in box.wrapper_object().texts() if t))
         for c in box.wrapper_object().descendants():
