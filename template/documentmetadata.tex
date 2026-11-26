@@ -13,6 +13,7 @@
 \input{settings/thesisinfo}
 \expandafter\ifx\csname ifthesistagging\endcsname\relax \expandafter\newif\csname ifthesistagging\endcsname \csname thesistaggingtrue\endcsname\fi
 \providecommand{\thesisyear}{\the\year}
+\providecommand{\thesispdftitle}{\thesistitle\if\relax\detokenize\expandafter{\thesissubtitle}\relax\else: \thesissubtitle\fi} % title: subtitle
 \providecommand{\thesisprintstandard}{X-6}
 \providecommand{\thesisprintprofile}{}
 \providecommand{\thesisbleed}{2mm}

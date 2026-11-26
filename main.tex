@@ -1,37 +1,18 @@
 \input{template/documentmetadata} % the kind of PDF, from the edition chosen below
 \documentclass[edition=digital, version=draft]{thesis}
-% Options (keys; see the top of thesis.cls for the details):
-%   edition  = digital  for the screen and the repository: archival (PDF/A-4f), and as the final version
-%                       accessible (PDF/UA-2): tagged for screen readers, with MathML (default)
-%            | printer  for the professional printer: PDF/X-6 or PDF/X-4 with bleed (standard, colour
-%                       profile and bleed in settings/thesisinfo.tex)
-%            | preview  the printed book as it looks after trimming: final size, as on paper
-%            | proof    for printing a proof at home: the pages centred on A4 (paper=letter: US Letter)
-%              (the same pages, with the same page numbers, in every edition)
-%   version  = fast-draft  while writing, compiled fastest: images as boxes, overfull lines marked
-%            | draft       for your supervisors: real images, line numbers in the margin (default)
-%            | final       to hand in and print: no todo notes or marks; tagged for screen readers
-%              (both drafts show todo notes and DRAFT with the date on every page, and are not tagged)
-%   size     = demy (default) | a5 | royal | dutch      book page 138x216, 148x210, 156x234 or 170x240 mm
-%   english  = british (default) | american            hyphenation, quotation marks, dates
-%   paper    = a4 (default) | letter                   the sheet of the proof edition
-%   cropmarks           crop marks: where the page is trimmed (proof; printer: outside the bleed, only if
-%                       the printer asks for them)
-%   chapterbib          every chapter ends with its own reference list
-% Thumb tabs: settings/thumbs.tex.
+% Options (the README's Options section has them all):
+%   edition  = digital (default) | printer | preview | proof
+%   version  = fast-draft | draft (default) | final
+%   size     = demy (default) | a5 | royal | dutch;   english = british | american;   paper = a4 | letter
+%   cropmarks, chapterbib
+% Thumb tabs: settings/thumbs.tex. Maths font: newtx, or MathTime Professional 2 (fonts/README.md; never
+% put it in a public repository). Your thesis details: settings/thesisinfo.tex (fill it in!).
 
-% Maths font: newtx (Times), or MathTime Professional 2: unpack the MathTime zip and run
-% python3 tools/mtpro2_otf.py <unpacked folder> fonts, which converts it into the fonts folder (all mtpro2
-% macros; LuaLaTeX via latexmk). See fonts/README.md; its licence forbids sharing the fonts, so never put them in a public
-% repository (.gitignore keeps them out of git).
-
-% The class reads settings/thesisinfo.tex (title, author, committee, defence date, colophon: fill it in!)
-% and sets up the layout, fonts, headings and archival PDF. Here: packages, your own commands,
-% hyphenation and the nomenclature entries.
-\input{settings/packages}
-\input{settings/commands}
-\input{settings/hyphenation}     % hyphenation of technical terms and names (add to it as you write)
-\input{settings/nomenclature}    % acronyms and symbols for the nomenclature (fill this in!)
+\input{template/packages}     % the template's packages and commands (keep this line first)
+\input{settings/packages}     % your own packages
+\input{settings/commands}     % your notation and commands
+\input{settings/hyphenation}  % hyphenation of technical terms and names (add to it as you write)
+\input{settings/nomenclature} % acronyms and symbols for the nomenclature (fill this in!)
 
 %% Placeholder text (\lipsum) used by the example chapters. Remove once the placeholders are gone.
 \usepackage{lipsum}
@@ -43,86 +24,43 @@
 
 \begin{document}
 
-\pagenumbering{roman} % counted from the half-title (page i), as in books; the title pages print no number
-\input{template/titlepage.tex}
+%% =========== %%
+%% FRONTMATTER %%
+%% =========== %%
+\frontmatter % the title pages (from settings/thesisinfo.tex), page numbers in roman
+\include{chapters/00Summary}
+\include{chapters/00Preface}
+\tableofcontents % each on a page of its own
+\listoffigures
+\listoftables
+% \listofalgorithms % if the thesis has more than a few algorithms
+\input{chapters/00Nomenclature}
 
-\begin{Spacing}{\thesisspacing} % line spacing of the main text (set per page size in thesis.cls)
+%% ========== %%
+%% MAINMATTER %%
+%% ========== %%
+\mainmatter % page numbers from 1, running heads, thumb tabs
+\include{chapters/01Introduction}
+%% Example chapter (every element the template supports): remove this line when you start
+%% writing, but keep the file for reference. New chapters: copy chapters/_newChapter.tex.
+\include{chapters/02Examples}
+%% Sample chapter on a real topic (the inf-sup condition): remove it with the examples.
+\include{chapters/03InfSup}
 
-    %% =========== %%
-    %% FRONTMATTER %%
-    %% =========== %%
-    \pagestyle{frontmatter}
-    \aliaspagestyle{chapter}{empty}
+\printreferences % the reference list (with the chapterbib option: at the end of every chapter instead)
 
-    \contentsstyle{frontmatter} % front matter: a compact block in the contents
-    \include{chapters/00Summary}
-    \include{chapters/00Preface}
+%% ======== %%
+%% APPENDIX %%
+%% ======== %%
+\appendix % chapters lettered A, B, ...
+\include{chapters/A_Appendix}
 
-    %% Contents and lists start on the next page, left or right; the summary, preface, nomenclature and
-    %% every chapter start on a right-hand page.
-    \clearpage
-    \setcounter{tocdepth}{1} % the contents go down to sections (2: subsections too)
-    \pdfbookmark[0]{Contents}{contents} % bookmark for the contents themselves (they are not listed in them)
-    \tableofcontents*
-    \clearpage
-    \listoffigures
-    \clearpage
-    \listoftables
-    % \clearpage
-    % \listofalgorithms % uncomment if the thesis has more than a few algorithms
-
-    \input{chapters/00Nomenclature.tex}
-
-    %% ========== %%
-    %% MAINMATTER %%
-    %% ========== %%
-    \pagenumbering{arabic}
-    \aliaspagestyle{chapter}{chapteropening}
-    \contentsstyle{mainmatter}
-    \include{chapters/01Introduction} % (each chapter file sets its page style)
-
-    %% Example chapter (every element the template supports): remove this line when you start
-    %% writing, but keep the file for reference. New chapters: copy chapters/_newChapter.tex.
-    \include{chapters/02Examples}
-    %% Sample chapter on a real topic (the inf-sup condition): remove it with the examples.
-    \include{chapters/03InfSup}
-
-    %% One reference list at the end of the book (not with the chapterbib option: then every chapter has its own)
-    \ifchapterbib\else
-        \thumbsoff % no thumb tab on the reference pages
-        \aliaspagestyle{chapter}{empty}
-        \DeclareRobustCommand{\VAN}[0]{van} % "van" prefixes lowercase in the reference list (see commands.tex)
-        \renewcommand{\bibname}{References}
-        \printbibliography
-        \pagestyle{chapteronly}
-    \fi
-    \DeclareRobustCommand{\VAN}[0]{Van} % and capitalised again in the text
-
-    %% ======== %%
-    %% APPENDIX %%
-    %% ======== %%
-    \bookmarksetup{startatroot} % the appendices' bookmarks at the top level, not under References
-    \aliaspagestyle{chapter}{chapteropening}
-    \appendix
-    \crefalias{chapter}{appendix}\crefalias{section}{subappendix} % \cref gives "Appendix A", "Section A.1"
-    \thumbson % appendices get tabs, continuing below the last chapter
-
-    \clearpage
-    \include{chapters/A_Appendix}
-
-    %% =========== %%
-    %% BACK MATTER %%
-    %% =========== %%
-    \bookmarksetup{startatroot}
-    \cleardoublepage
-    \aliaspagestyle{chapter}{empty}
-    \pagestyle{frontmatter}
-    \contentsstyle{frontmatter} % back matter: compact again
-    \include{chapters/Z_Acknowledgements}
-    \include{chapters/Z_CurriculumVitae}
-    \include{chapters/Z_ListOfPublications}
-
-    \clearpage
-\end{Spacing}
+%% =========== %%
+%% BACK MATTER %%
+%% =========== %%
+\backmatter
+\include{chapters/Z_Acknowledgements}
+\include{chapters/Z_CurriculumVitae}
+\include{chapters/Z_ListOfPublications}
 
 \end{document}

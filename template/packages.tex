@@ -1,0 +1,120 @@
+%% =====================================================================
+%% The packages and settings the template itself needs, in the order they must be loaded (main.tex reads
+%% this file first, before your settings/packages.tex). Your own packages go in settings/packages.tex;
+%% change this file only to change the template.
+%% =====================================================================
+
+%% Maths and units
+\ifthesisotfmath\else\usepackage{bm}\fi % https://ctan.org/pkg/bm %% bold symbols (\vec, \tensor); the OpenType maths fonts have their own \bm (MathTime also \hm, heavy)
+\usepackage{siunitx}            % https://ctan.org/pkg/siunitx %% quantities and units: \qty{}{}, \num{}, \unit{}
+\usepackage{derivative}         % https://ctan.org/pkg/derivative %% derivatives and differentials: \odv{y}{x}, \pdv{u}{t}, \odif{x} (see commands.tex)
+\input{template/cancel}         % crossing out terms: \cancel{a}, \bcancel, \xcancel, \cancelto{0}{x}
+\input{template/nicematrix}     % matrices with labels outside, blocks, braces: pNiceMatrix etc.
+
+%% Figures and tables
+\usepackage{array}              % https://ctan.org/pkg/array %% extra column types for tables
+\usepackage{booktabs}           % https://ctan.org/pkg/booktabs %% \toprule, \midrule, \bottomrule
+\usepackage{xltabular}          % https://ctan.org/pkg/xltabular %% tabularx (wrapping columns) + longtable (across pages)
+\usepackage{multirow}           % https://ctan.org/pkg/multirow %% table cells spanning several rows: \multirow{2}{*}{text}
+\usepackage{makecell}           % https://ctan.org/pkg/makecell %% line breaks in a cell: \makecell{two\\lines}
+\usepackage{placeins}           % https://ctan.org/pkg/placeins %% \FloatBarrier: floats placed so far go out before what follows
+                                %  ([H], "here, no matter what", also works: float.sty comes with the algorithms below)
+\usepackage{pdfpages}           % https://ctan.org/pkg/pdfpages %% whole PDF pages, e.g. a published paper: \includepdf[pages=-]{paper.pdf}
+%% Sub-figures and sub-tables ((a), (b), ...) are part of the class: see thesis.cls.
+\input{template/tables}       % notes under tables (\tnote, tablenotes), table text size, sideways floats
+\usetikzlibrary{positioning,arrows.meta} % TikZ itself is loaded by the class (thumb tabs)
+
+%% Text and code
+\usepackage{enumitem}           % https://ctan.org/pkg/enumitem %% list settings: \begin{enumerate}[label=(\roman*)], [noitemsep]
+\usepackage{orcidlink}          % https://ctan.org/pkg/orcidlink %% the ORCID iD icon, used by \orcid (commands.tex)
+\usepackage{listings}           % https://ctan.org/pkg/listings %% code listings
+\input{template/tagging}        % tagged PDF: what LaTeX's tagging code does not cover yet (listings; before
+                                %  their style, which it would reset)
+\input{template/formatCode}     % their style: colour on screen, black and white in print
+
+%% Todo notes while writing: \todo{...} in the margin, \todo[inline]{...} in the text,
+%% \missingfigure{...} as a placeholder figure. All of them disappear in the final version (version=final).
+\usepackage[textsize=scriptsize, color=tudelft-yellow, linecolor=black!50]{todonotes}
+%% Changes for a supervisor to review: \added{new text}, \deleted{old text}, \replaced{new}{old},
+%% \highlight{text}, \comment{remark}; \listofchanges lists them. In the final version (version=final) the
+%% marks disappear and only the new text remains.
+\usepackage{changes}            % https://ctan.org/pkg/changes
+
+%% Paragraphs: book style, first line indented and no blank space between paragraphs.
+%% (The first paragraph after a heading is not indented, as usual.)
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{0pt plus 1pt} % a tiny stretch, so a page that breaks early spreads the gap over all paragraphs
+
+%% Hyperlinks and PDF bookmarks
+\usepackage{bookmark}           % https://ctan.org/pkg/bookmark %% PDF bookmarks (loads hyperref)
+%% Hyperlinks: invisible in the print editions (they would only show up as coloured text on paper),
+%% brick red in the digital edition (the colour "link", set in settings/colours.tex).
+\ifprintversion
+    \hypersetup{hidelinks}
+\else
+    \hypersetup{colorlinks=true, linkcolor=link, citecolor=link, urlcolor=link}
+\fi
+%% Bookmarks: numbered ("2.1 Text"), and one level deeper than the contents (down to subsections),
+%% so the PDF can be navigated in more detail than the printed contents show.
+\bookmarksetup{numbered, depth=2}
+%% PDF metadata (title, author, keywords) comes from settings/thesisinfo.tex (template/pdfa.tex).
+
+%% Nomenclature (acronyms and symbols), after hyperref (its entries link to their rows)
+\input{template/formatNomenclature}
+
+%% Numbered statements, all in upright text with a bold label (amsthm, which must come before cleveref):
+%%   formulation  "Formulation 2.1"  weak forms, optimisation problems, discrete schemes   \cref{form:...}
+%%   definition, lemma, theorem, corollary  share one counter: "Definition 2.1", "Lemma 2.2", ...
+%%   remark       "Remark."          unnumbered side note, italic label
+%%   proof        "Proof."           ends with a square (\qedhere puts it on the last line of an equation)
+%% Theorems are often set in italics; upright reads better when the statement is full of maths.
+%% To rename one, change the word here and in its \crefname below.
+\input{template/statements}   % amsthm, and the look of statements and proofs (template/statements.tex)
+%% (the environments are defined after cleveref below, so it names shared-counter ones correctly)
+
+%% Algorithms (pseudocode): "Algorithm 2.1", numbered per chapter, as a float with its caption on top.
+%% Write the steps with \State, \If, \For, \While, \Repeat/\Until, \Return, \Comment: https://ctan.org/pkg/algorithmicx
+%% List of algorithms: \listofalgorithms in main.tex (commented out there).
+\input{template/algorithms}   % algorithm and algpseudocode, with the look of listings and tables
+\algrenewcommand\algorithmicrequire{\textbf{Input:}}
+\algrenewcommand\algorithmicensure{\textbf{Output:}}
+\algrenewcommand\algorithmiccomment[1]{\hfill\textcolor{black!60}{\(\triangleright\) \textit{#1}}}
+
+%% cleveref must be loaded last (after hyperref). Use \cref{fig:x} -> "Figure 2.1", \Cref at the start of a sentence.
+\usepackage[capitalise,noabbrev,nameinlink]{cleveref}
+\crefname{page}{page}{pages} % "on page 12", not "on Page 12"
+\crefname{listing}{Listing}{Listings}
+\crefname{formulation}{Formulation}{Formulations}
+\crefname{definition}{Definition}{Definitions}
+\crefname{lemma}{Lemma}{Lemmas}
+\crefname{theorem}{Theorem}{Theorems}
+\crefname{corollary}{Corollary}{Corollaries}
+\crefname{algorithm}{Algorithm}{Algorithms}
+\crefname{subfigure}{Figure}{Figures} % sub-figures and sub-tables (thesis.cls): "Figure 2.3a"
+\crefname{subtable}{Table}{Tables}
+%% Refer to an algorithm line with line~\ref{alg:...} (\cref would capitalise it mid-sentence).
+
+%% The numbered statements described above (after cleveref, which needs that for shared counters)
+\theoremstyle{thesis}
+\newtheorem{formulation}{Formulation}[chapter]
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{corollary}[definition]{Corollary}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+%% Key points, contributions (C1, C2, ...), wide figures and tables, QR links: see environments.tex
+\input{template/environments}
+%% What screen readers get: words in maths, table headers, alternative text for formulas, acronyms, units,
+%% languages (accessibility.tex)
+\input{template/accessibility}
+\input{template/attachments} % files attached to the PDF: citation file, figure data, supplements
+
+%% The template's own commands (template/commands.tex): \repeatcaption, \file, \doi, \orcid,
+%% \chapterbasedon, \panelref, the list layout and the spacing of \inf, \max, ...
+\input{template/commands}
+
+%% The parts of the book: \frontmatter, \mainmatter, \printreferences, \appendix, \backmatter
+%% (template/matter.tex)
+\input{template/matter}

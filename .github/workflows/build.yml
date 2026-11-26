@@ -105,8 +105,7 @@ jobs:
       - name: Compile the cover without the guides (tags only, for the release)
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          sed 's/\\input{settings\/cover}/&\\coverguidesfalse/' cover.tex > cover-final.tex
-          grep -q 'coverguidesfalse' cover-final.tex
+          { echo '\AddToHook{thesis/cover/settings}{\coverguidesfalse}'; cat cover.tex; } > cover-final.tex
           latexmk -interaction=nonstopmode -halt-on-error cover-final.tex
       - name: Keep the PDFs and the logs
         if: always()

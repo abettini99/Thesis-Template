@@ -80,15 +80,44 @@
     , headformat-instance  = thesischapter
 }
 %% \chapter[title in the contents][title in the running head]{title}
+%% After the heading:
+%%   \chapter*  in the front and back matter: an entry in the contents (as the summary, preface,
+%%              acknowledgements, ...), unless an \addcontentsline follows it already
+%%   \chapter   its page style: mainmatter (chapter in the left running head, section in the right) when
+%%              the chapter has sections, chapteronly (the chapter in both) when not, appendix in the
+%%              appendices. Known from the previous compile; a \pagestyle after \chapter still wins.
 \DeclareDocumentCommand\chapter{s o o m}{%
     \IfBooleanTF{#1}
       {\IfNoValueTF{#2}{\ParseLaTeXeHeading{chapter}{\BooleanTrue}{}{#4}}
-                       {\ParseLaTeXeHeading{chapter}{\BooleanTrue}{running={#2}}{#4}}}
+                       {\ParseLaTeXeHeading{chapter}{\BooleanTrue}{running={#2}}{#4}}%
+       \ifthesis@starredtoc\expandafter\thesis@starredtoc\else\expandafter\@gobble\fi{#4}}
       {\IfNoValueTF{#2}
         {\ParseLaTeXeHeading{chapter}{\BooleanFalse}{}{#4}}
         {\IfNoValueTF{#3}
           {\ParseLaTeXeHeading{chapter}{\BooleanFalse}{shorttitle={#2}}{#4}}
-          {\ParseLaTeXeHeading{chapter}{\BooleanFalse}{toc={#2}, bookmark={#2}, nameref={#2}, running={#3}}{#4}}}}}
+          {\ParseLaTeXeHeading{chapter}{\BooleanFalse}{toc={#2}, bookmark={#2}, nameref={#2}, running={#3}}{#4}}}%
+       \thesis@chapterpagestyle}}
+\newif\ifthesis@starredtoc % set by \frontmatter and \backmatter (template/matter.tex)
+\ExplSyntaxOn
+\cs_new_protected:Npn \thesis@starredtoc #1
+  { \peek_meaning_ignore_spaces:NF \addcontentsline { \addcontentsline { toc } { chapter } {#1} } }
+\ExplSyntaxOff
+\newif\ifthesis@inappendix % set by \appendix (template/matter.tex)
+\newcommand\thesis@hassections[1]{\global\@namedef{thesis@sections@#1}{}}% (from the .aux file)
+\newcommand\thesis@chapterpagestyle{%
+    \ifthesis@inappendix \pagestyle{appendix}%
+    \else\ifcsname thesis@sections@\thechapter\endcsname \pagestyle{mainmatter}%
+    \else\ifcsname thesis@sectionsknown\endcsname \pagestyle{chapteronly}%
+    \else \pagestyle{mainmatter}\fi\fi\fi}% (first compile: as with sections)
+%% Whether a chapter had numbered sections, noted when the next chapter (or the end) comes: the section
+%% counter then still holds the chapter's last section (starred ones, such as a chapter's own reference
+%% list, do not count).
+\newcommand\thesis@notesections{%
+    \ifnum\value{section}>\z@ \immediate\write\@auxout{\string\thesis@hassections{\thechapter}}\fi}
+\AddToHook{cmd/chapter/before}{\thesis@notesections}
+\AddToHook{cmd/appendix/before}{\thesis@notesections}
+\AddToHook{enddocument}{\thesis@notesections}
+\AtBeginDocument{\immediate\write\@mainaux{\string\gdef\string\thesis@sectionsknown{}}}
 
 %% The opening page of a chapter with an epigraph or abstract: \chapterprecishere{...} right after
 %% \chapter. Set a little higher, at its own looser line spacing, and the text starts on the next page.

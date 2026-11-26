@@ -8,7 +8,8 @@
 %% Title
 \newcommand{\thesistitle}{Title of the Dissertation}
 \newcommand{\thesissubtitle}{Subtitle}
-\newcommand{\thesispdftitle}{Title of the Dissertation: Subtitle}   % plain-text version for the PDF metadata (no commands)
+%% The PDF metadata use "title: subtitle". If the title holds commands (a line break \\, maths), give a
+%% plain-text version: \newcommand{\thesispdftitle}{Title of the Dissertation: Subtitle}
 
 %% Author
 \newcommand{\thesisauthorfirstnames}{Andrea}             % all first names, as on your passport
@@ -22,22 +23,21 @@
 \newcommand{\thesisyear}{\the\year}  % the year of the defence (e.g. 2027): copyright line, PDF metadata, citation files; until then the year of compiling
 \newcommand{\rectormagnificus}{prof.\,dr.\,ir.\ H.\ Bijl} % Rector Magnificus since 15 January 2026; check before printing
 
-%% Promotor(s) (and copromotor), as they approve the propositions (propositions.tex)
-\newcommand{\thesispromotors}{the promotor prof.\,dr.\ S.\ Hickel}          % e.g. the promotors prof.\,dr.\ A.\ Jansen and dr.\ B.\ de Vries
-\newcommand{\thesispromotorsdutch}{de promotor prof.\,dr.\ S.\ Hickel}  % the same in Dutch: de promotor / de promotoren ... en ...
-
-%% Doctoral committee, in the prescribed order. One row per member: name & affiliation, role \\
-%% The Rector Magnificus (chairperson) is added automatically.
+%% Doctoral committee, in the prescribed order (the Rector Magnificus, chairperson, is added at the top):
+%%   \member[role]{name}{affiliation}   role: promotor or copromotor (in italics), or none
+%%   \membergroup{Independent members}  a heading over the members that follow
+%% The promotors are also named in the propositions ("approved by the promotor prof.\,dr.\ S.\ Hickel",
+%% in English and Dutch), taken from the members with the role promotor.
 \newcommand{\thesiscommittee}{%
-    Prof.\,dr.\ S.\ Hickel,          & TU Delft, \textit{promotor}   \\
-    Dr.\ S.\ Hulshoff,               & TU Delft, \textit{copromotor} \\[\medskipamount]
-    \multicolumn{2}{@{}p{\textwidth}@{}}{\textit{Independent members:}}            \\
-    Prof.\,dr.\ A.\ Jansen,          & TU Delft                      \\
-    Prof.\,dr.\ N.\ Nescio,          & Politecnico di Milano, Italy  \\
-    Prof.\,dr.\,ir.\ J.\ Doe,        & TU Delft, reserve member      \\[\medskipamount]
-    \multicolumn{2}{@{}p{\textwidth}@{}}{\textit{Other members:}}                  \\
-    Dr.\ R.\,P.\ Dwight,             & TU Delft                      \\
-    Dr.\ M.\ Pini,                   & TU Delft                      \\
+    \member[promotor]{Prof.\,dr.\ S.\ Hickel}{TU Delft}
+    \member[copromotor]{Dr.\ S.\ Hulshoff}{TU Delft}
+    \membergroup{Independent members}
+    \member{Prof.\,dr.\ A.\ Jansen}{TU Delft}
+    \member{Prof.\,dr.\ N.\ Nescio}{Politecnico di Milano, Italy}
+    \member{Prof.\,dr.\,ir.\ J.\ Doe}{TU Delft, reserve member}
+    \membergroup{Other members}
+    \member{Dr.\ R.\,P.\ Dwight}{TU Delft}
+    \member{Dr.\ M.\ Pini}{TU Delft}
 }
 %% Optional: a sentence about someone who contributed greatly, or a funding statement. Leave empty {} to omit.
 \newcommand{\thesiscommitteenote}{}

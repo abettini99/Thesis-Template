@@ -1,0 +1,28 @@
+%% =====================================================================
+%% The layout of the propositions (read by propositions.tex): the head of each page, the list and the
+%% approval sentence at the foot. The propositions themselves, and whether there is a Dutch page, are in
+%% propositions.tex.
+%% =====================================================================
+\newcommand{\propositionshead}[3]{% #1 Propositions/Stellingen, #2 accompanying/behorende bij, #3 by/door
+    \begin{center}
+        {\headingfont\fontsize{\chaptertitlesize}{1.2\chaptertitlesize}\selectfont #1}
+
+        \bigskip
+        #2
+
+        \bigskip
+        {\headingfont\LARGE \thesistitle} \\[0.3em]
+        {\sffamily\large \thesissubtitle}
+
+        \bigskip
+        #3
+
+        \bigskip
+        {\large\bfseries \thesisauthorfirstnames\ \MakeUppercase{\thesisauthorlastname}}
+    \end{center}
+    \bigskip}
+%% the list, and the approval sentence at the foot of the page
+\newenvironment{propositionlist}{\begin{enumerate}\setlength{\itemsep}{0.6\baselineskip}}{\end{enumerate}}
+\newcommand{\approval}[1]{\vfill\begin{center}\small #1\end{center}}
+%% one page each, no page numbers
+\AtBeginDocument{\pagestyle{empty}\setlength{\parskip}{0pt}}
