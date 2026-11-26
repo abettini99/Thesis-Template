@@ -51,10 +51,8 @@ def build(i, background, text, secondary, motif, outdir):
         if value
     )
     src = (ROOT / "cover.tex").read_text()
-    anchor = r"\input{settings/cover}"
-    if anchor not in src:
-        sys.exit(f"cover.tex no longer contains {anchor}; update {Path(__file__).name}")
-    src = src.replace(anchor, anchor + "\n" + colours + SAMPLE + "\n", 1)
+    # after settings/cover.tex, through the hook template/cover.tex offers for it
+    src = "\\AddToHook{thesis/cover/settings}{" + colours + SAMPLE + "}\n" + src
     job = f"_covervariant_{i}"
     tex = ROOT / f"{job}.tex"
     tex.write_text(src)

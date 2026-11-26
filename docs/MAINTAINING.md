@@ -10,9 +10,10 @@ This is for whoever maintains the template itself. If you are writing a thesis w
 | Class | `thesis.cls`: options, page layout, fonts (`template/fontText.tex`, `fontMath.tex`), headings (`formatText.tex`), page styles (`formatPagestyles.tex`), thumb tabs, the committee commands | `main.tex`, `propositions.tex` |
 | Packages and commands | `template/packages.tex` (in load order) and `template/commands.tex` | `main.tex`, first line after the class |
 | Parts of the book | `template/matter.tex`: `\frontmatter`, `\mainmatter`, `\printreferences`, `\appendix`, `\backmatter` | `template/packages.tex` |
+| Propositions and cover | `template/propositions.tex` (the page layout), `template/cover.tex` (PDF/X, the sheet, `\coversheet`, and the hook `thesis/cover/settings` the README-images and release builds use) | `propositions.tex`, `cover.tex` |
 | Tagging | `template/accessibility.tex` (what screen readers get), `template/tagging.tex` and `template/tagging.lua` (workarounds for LaTeX and luamml), `template/nicematrix.tex`/`.lua`, `template/cancel.tex` | `template/packages.tex` |
 
-The user's files (`settings/`, `chapters/`, `figures/`, `main.tex`) hold choices, not machinery. Keep it that way: a change a user would have to copy into their own files needs a migration note in `CHANGELOG.md`.
+The user's files (`settings/`, `chapters/`, `figures/`, `main.tex`, `propositions.tex`, `cover.tex`) hold choices, not machinery. Keep it that way: a change a user would have to copy into their own files needs a migration note in `CHANGELOG.md`.
 
 ## Continuous integration
 
