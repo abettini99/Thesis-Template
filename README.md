@@ -249,6 +249,12 @@ The digital edition is produced as **PDF/A-4f**, the current archival standard (
   - *Contrast:* the template's colours stand out against the page (text 4.5:1 or more, lines 3:1, WCAG 2.2), and links (brick red) also against the black text (3.9:1), as colour is the only thing that marks them; `tools/check_pdf.py` and `tools/check_figures.py` report colours of your own that do not (see *Colours* under *Plots and figures*).
   - *Languages:* text in `\begin{otherlanguage}{dutch}` (the Dutch summary and propositions) is marked as Dutch, and a word in `\foreignlanguage{dutch}{...}` too, so screen readers switch pronunciation.
   - *Links:* each link also carries a short description (where it goes), which PDF/UA-1 checkers such as PAC and Acrobat ask for.
+- **Known limitations** (in LaTeX, its packages or the checkers, reported or to be reported; the template's own workarounds are in `template/tagging.tex` and `template/tagging.lua`):
+  - *Formulas without alternate text:* PAC reports every formula. Whether screen readers need it beside the MathML is not settled yet; give the formulas that matter most a `\formulaalt`.
+  - *Large matrices (nicematrix):* their MathML is complete, but in the tagged structure their entries are empty, and some speech engines ignore cells that span rows or columns. Give a block matrix a `\formulaalt`.
+  - *Numbers in siunitx `S` columns:* each is split into two formulas (0.018 is read as "0", ".018"), and every number leaves an empty copy of its formula in the structure. Where a table is mostly numbers, describe it in its caption.
+  - *A few symbols:* the degree sign of `\ang` is empty in the tagged structure; the MathML has it.
+  - *PAC:* it reports almost every contents entry as linking to the wrong place. The links are correct and plain LaTeX passes the same check; why the template's entries fail is not known yet.
 
 #### For the printer: PDF/X
 
