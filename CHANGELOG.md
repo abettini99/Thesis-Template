@@ -4,6 +4,25 @@ Versions follow [semantic versioning](https://semver.org): a change in the last 
 
 ## Unreleased
 
+### Simpler to use (version 2: your files change)
+
+The pages are the same as before, to the pixel, in every edition. What changes is what you edit: your files now hold only your choices.
+
+- **`main.tex`** lists the parts of the book: `\frontmatter`, `\mainmatter`, `\printreferences`, `\appendix`, `\backmatter`. The page styles, page numbering, contents styles, bookmarks, thumb tabs and line spacing that `main.tex` used to set itself are done by these commands (`template/matter.tex`). `\tableofcontents`, `\listoffigures` and `\listoftables` start their own page; the contents get their bookmark.
+- **Chapters:** the page style follows by itself (the chapter and the section in the running heads, or only the chapter when it has no sections, and *Appendix A* in the appendices), and `\chapter*` in the front and back matter adds itself to the contents. The `\pagestyle` after `\chapter` and the `\addcontentsline` after `\chapter*` can go.
+- **`settings/packages.tex`** holds only your own packages, and **`settings/commands.tex`** your notation. The template's packages and settings (siunitx, tables, listings, hyperref, cleveref, statements, algorithms, ...) are in `template/packages.tex`, its commands (`\repeatcaption`, `\doi`, `\orcid`, `\file`, `\chapterbasedon`, `\panelref`, the list layout) in `template/commands.tex`, read by `main.tex` before your files.
+- **The committee** in `settings/thesisinfo.tex` is a list of `\member[role]{name}{affiliation}` and `\membergroup{heading}`, no longer table rows. The promotors in the propositions (`\thesispromotors`, `\thesispromotorsdutch`) and the PDF title (`\thesispdftitle`) are derived; you can still set them yourself.
+- **The README** is for writing a thesis; [docs/MAINTAINING.md](docs/MAINTAINING.md) is for maintaining the template (CI, workarounds, releasing).
+
+**Updating from 1.x.** Your old files keep working with the new `template/` and `thesis.cls` (tested: the same pages). To take up the simpler files, in this order:
+
+1. Replace the body of `main.tex` from `\begin{document}` on with the new one, put your chapters back in, and add `\input{template/packages}` before `\input{settings/packages}`.
+2. At the same time, replace `settings/packages.tex` and `settings/commands.tex` with the new ones and copy in what you added yourself. (Steps 1 and 2 go together: the old `settings/packages.tex` loaded the template's packages itself, which the new `main.tex` now does.)
+3. Remove `\pagestyle{...}` after `\chapter` and `\addcontentsline{toc}{chapter}{...}` after `\chapter*` in your chapters (optional: they still work).
+4. Rewrite the committee in `settings/thesisinfo.tex` with `\member` and `\membergroup` and remove `\thesispromotors`, `\thesispromotorsdutch` and `\thesispdftitle` (optional: the old table rows still work, as long as `\thesispromotors` stays set).
+
+### Accessibility and checks
+
 - **Contents and lists:** no longer use tocloft; LaTeX's own entry commands with tocloft's measurements give the same pages (identical to the pixel), and every entry is tagged properly (TOCI, Reference, Link) on every TeX Live. With the tocloft of Overleaf's TeX Live 2026 (2.3i), entries lost that structure, and an entry with maths failed PDF/UA-2.
 - **Table cells:** a header cell's scope (column, row or both) and a `\multicolumn` cell's column span are now also written on the cell itself, next to LaTeX's attribute classes. PAC does not read attribute classes and reported every header cell (59 in the example thesis) as having no data cells; now none. veraPDF accepted both; the pages are unchanged.
 - **Layout tables:** tables that only place text are no longer tagged as tables but as text blocks, so screen readers read them as text and checkers no longer ask for their header cells: the committee and colophon on page iv, the curriculum vitae, the QR code with its label, and the small tabular inside each `\makecell` or `\thead` (a header broken over two lines is now one header cell, not a table inside it). For your own: `\layouttable` before the tabular, in a group. If your `chapters/Z_CurriculumVitae.tex` is older, put `\begingroup\layouttable` after its `\addcontentsline` and `\endgroup` at the end. PAC's incomplete tables went from 7 to 0; the pages are unchanged.

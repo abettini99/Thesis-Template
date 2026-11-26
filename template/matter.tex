@@ -1,0 +1,77 @@
+%% =====================================================================
+%% The parts of the book, as main.tex lists them (read by template/packages.tex):
+%%   \frontmatter    page numbers in roman from the half-title, the title pages (template/titlepage.tex,
+%%                   from settings/thesisinfo.tex), then the summary, preface, contents, nomenclature:
+%%                   no running heads, a compact block in the contents
+%%   \tableofcontents, \listoffigures, \listoftables, \listofalgorithms
+%%                   each on a new page; the contents get a bookmark but no entry in themselves
+%%   \mainmatter     page numbers in arabic from 1, chapters with running heads and thumb tabs
+%%   \printreferences  the reference list at the end of the book (nothing with the chapterbib option:
+%%                   every chapter then ends with its own), without thumb tabs
+%%   \appendix       chapters lettered A, B, ...: "Appendix A" in references, bookmarks at the top level,
+%%                   thumb tabs continuing below the last chapter
+%%   \backmatter     acknowledgements, CV, publications: as the front matter
+%% The line spacing of the text (\thesisspacing, set per page size in thesis.cls) starts after the title
+%% pages.
+%% =====================================================================
+\makeatletter
+\setcounter{tocdepth}{1} % the contents go down to sections (\setcounter{tocdepth}{2} in main.tex: subsections too)
+
+\newif\ifthesis@spacing
+%% The book ends: the last page out, and the line spacing of the text ends with it (before the digital
+%% edition's back cover, template/digitalcover.tex)
+\AddToHook{enddocument}[thesis/matter]{\ifthesis@spacing\clearpage\par\endgroup\fi}
+\DeclareHookRule{enddocument}{thesis/matter}{before}{thesis/backcover}
+\renewcommand\frontmatter{%
+    \pagenumbering{roman}% counted from the half-title (page i), as in books; the title pages print no number
+    \input{template/titlepage}%
+    \par\begingroup\def\baselinestretch{\thesisspacing}\@currsize % the line spacing of the text, up to the end
+    \global\thesis@spacingtrue
+    \pagestyle{frontmatter}%
+    \aliaspagestyle{chapter}{empty}%
+    \contentsstyle{frontmatter}%
+    \global\thesis@starredtoctrue} % \chapter*: in the contents (template/formatText.tex)
+
+%% \tableofcontents: on a new page, with a bookmark of its own (it does not list itself).
+%% (\tableofcontents* is the bare list, as main.tex had it before: the page break and bookmark were there.)
+\DeclareDocumentCommand\tableofcontents{s}{%
+    \IfBooleanF{#1}{\clearpage\pdfbookmark[0]{\contentsname}{contents}}%
+    \thesis@list{\BooleanTrue}{toc}{\contentsname}{\contentsname}}
+\DeclareDocumentCommand\listoffigures{s}{\clearpage\thesis@list{#1}{lof}{\listfigurename}{\listfigurename}}
+\DeclareDocumentCommand\listoftables{s}{\clearpage\thesis@list{#1}{lot}{\listtablename}{\listtablename}}
+\AddToHook{cmd/listofalgorithms/before}{\clearpage}
+
+\renewcommand\mainmatter{%
+    \pagenumbering{arabic}%
+    \aliaspagestyle{chapter}{chapteropening}%
+    \contentsstyle{mainmatter}%
+    \global\thesis@starredtocfalse}
+
+\NewDocumentCommand\printreferences{}{%
+    \ifchapterbib\else
+        \thumbsoff % no thumb tab on the reference pages
+        \aliaspagestyle{chapter}{empty}%
+        \DeclareRobustCommand{\VAN}[0]{van}% "van" prefixes lowercase in the reference list (template/commands.tex)
+        \renewcommand{\bibname}{References}%
+        \printbibliography
+        \pagestyle{chapteronly}%
+    \fi
+    \DeclareRobustCommand{\VAN}[0]{Van}}% and capitalised again in the text
+
+\AddToHook{cmd/appendix/before}{%
+    \bookmarksetup{startatroot}% the appendices' bookmarks at the top level, not under References
+    \aliaspagestyle{chapter}{chapteropening}}
+\AddToHook{cmd/appendix/after}{%
+    \crefalias{chapter}{appendix}\crefalias{section}{subappendix}% \cref gives "Appendix A", "Section A.1"
+    \thumbson % appendices get tabs, continuing below the last chapter
+    \global\thesis@inappendixtrue % their page style: appendix (template/formatText.tex)
+    \clearpage}
+
+\renewcommand\backmatter{%
+    \bookmarksetup{startatroot}%
+    \cleardoublepage
+    \aliaspagestyle{chapter}{empty}%
+    \pagestyle{frontmatter}%
+    \contentsstyle{frontmatter}%
+    \global\thesis@starredtoctrue}
+\makeatother

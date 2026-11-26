@@ -358,7 +358,7 @@
 \AddToHook{fntext}{\def\baselinestretch{1}}% footnotes single-spaced (as memoir)
 \AssignSocketPlug{build/column/baselineattach}{on}
 
-%% Lists (memoir's scheme, as in the earlier versions of this class): \tightlists (commands.tex) sets
+%% Lists (memoir's scheme, as in the earlier versions of this class): \tightlists (template/commands.tex) sets
 %% them without extra space between items, the first line of a further paragraph in an item indented.
 \newskip\parsepi \newskip\topsepi \newskip\itemsepi \newskip\parsepii \newskip\topsepii \newskip\itemsepii
 \newskip\topsepiii \newskip\itemsepiii \newskip\partopsepiii
@@ -422,6 +422,41 @@
 %% Overfull lines under 1 pt (0.35 mm, invisible) are not reported, e.g. a figure made at exactly the
 %% text width that comes out a fraction of a point wider after rounding.
 \hfuzz=1pt
+
+%% The doctoral committee (\thesiscommittee in settings/thesisinfo.tex), as rows of the table on page iv:
+%% \member[role]{name}{affiliation} gives "name, | affiliation, role", \membergroup{heading} a heading row
+%% after a little space.
+\newcommand\member[3][]{#2, & #3\ifx\relax#1\relax\else, \textit{#1}\fi \\}
+\newcommand\membergroup[1]{\noalign{\vskip\medskipamount}\multicolumn{2}{@{}p{\textwidth}@{}}{\textit{#1:}}\\}
+%% The promotors for the propositions, from the members with the role promotor: "the promotor prof.\,dr.\
+%% S.\ Hickel", "the promotors prof.\,dr.\ A.\ Jansen and dr.\ B.\ de Vries", and in Dutch. Unless
+%% settings/thesisinfo.tex sets \thesispromotors and \thesispromotorsdutch itself (as it did before).
+\ExplSyntaxOn
+\seq_new:N \g__thesis_promotors_seq
+\cs_new:Npn \__thesis_lcfirst:n #1 { \__thesis_lcfirst:w #1 \q_stop }
+\cs_new:Npn \__thesis_lcfirst:w #1#2 \q_stop { \text_lowercase:n {#1} #2 }
+\cs_new_protected:Npn \__thesis_promotors_scan:
+  {
+    \seq_gclear:N \g__thesis_promotors_seq
+    \group_begin:
+      \RenewDocumentCommand \member { O{} m m }
+        { \str_if_eq:nnT {##1} { promotor } { \seq_gput_right:Nn \g__thesis_promotors_seq { \__thesis_lcfirst:n {##2} } } }
+      \RenewDocumentCommand \membergroup { m } { }
+      \thesiscommittee
+    \group_end:
+  }
+\bool_new:N \g__thesis_promotors_bool % derived (not given in settings/thesisinfo.tex, as the old committee rows were)
+\cs_if_exist:NF \thesispromotors { \bool_gset_true:N \g__thesis_promotors_bool }
+\AddToHook { begindocument / before } { \bool_if:NT \g__thesis_promotors_bool { \__thesis_promotors_scan: } }
+\cs_new_protected:Npn \__thesis_promotors:nnn #1#2#3 % "the promotor", "the promotors", "and"
+  {
+    \int_compare:nNnTF { \seq_count:N \g__thesis_promotors_seq } > { 1 } {#2} {#1}
+    \c_space_tl
+    \seq_use:Nnnn \g__thesis_promotors_seq { \c_space_tl #3 \c_space_tl } { ,~ } { \c_space_tl #3 \c_space_tl }
+  }
+\providecommand \thesispromotors { \__thesis_promotors:nnn { the~promotor } { the~promotors } { and } }
+\providecommand \thesispromotorsdutch { \__thesis_promotors:nnn { de~promotor } { de~promotoren } { en } }
+\ExplSyntaxOff
 
 %% Optional fields in settings/thesisinfo.tex: \IfThesisEmpty{\thesisfunding}{if empty}{if filled in}.
 %% (\ifx against \empty fails for fields made with \newcommand, which are \long.)
@@ -782,4 +817,3 @@
     \AddToHook{include/end}{\begingroup\let\blx@warn@bibempty\relax
         \printbibliography[heading=subbibintoc, title={References}]\endgroup}
 \fi
-

@@ -1,6 +1,8 @@
-%% Commands for writing: maths notation, lists, file names, chapter notes. Add your own here.
+%% Your notation and commands: derivatives, vectors, operators, sets, dimensionless numbers. Change them to
+%% your field's conventions, and add your own here. (The template's own commands, such as \repeatcaption,
+%% \doi and \chapterbasedon, are in template/commands.tex.)
 
-%% Derivatives and differentials with the derivative package (loaded in packages.tex), upright d and D:
+%% Derivatives and differentials with the derivative package (loaded by the template), upright d and D:
 %%   \odv{y}{x}            dy/dx              \odv[order=2]{y}{x}     d^2y/dx^2 (also \odv[2]{y}{x})
 %%   \pdv{u}{t}            partial            \pdv[order={2,1}]{u}{x,y}  mixed: d^3u/dx^2 dy
 %%   \mdv{\vec{u}}{t}      material: Du/Dt    \odv*{}{x} f            the function after the fraction
@@ -33,24 +35,6 @@
 \newcommand{\Pe}{\mathword{Pe}}                   % Péclet number
 \newcommand{\Tu}{\mathword{Tu}}                   % Turbulence level
 
-%% The same figure a second time, with its original number: \repeatcaption{fig:label}{caption}
-%% (the caption without a full stop: "(repeated from page 13)." follows it)
-\newcommand{\repeatcaption}[2]{%
-  \renewcommand{\thefigure}{\ref{#1}}%
-  \renewcommand{\theHfigure}{repeated.\arabic{chapter}.\arabic{figure}}% (a link target of its own: the next figure gets this number)
-  \renewcommand{\addcontentsline}[3]{}% not in the list of figures a second time
-  \caption{#2 (repeated from page~\pageref{#1}).}% caption without a full stop: one is added
-  \addtocounter{figure}{-1}% So that next figure after the repeat gets the right number.
-}
-
-%% inf, max, min, lim and lim inf get the depth of a descender, as sup and lim sup have from their p, so
-%% the limits under operators side by side line up: \inf_{q} \sup_{v} puts q and v on one baseline.
-\AtBeginDocument{%
-    \renewcommand{\inf}{\operatorname*{inf\vphantom{p}}}%
-    \renewcommand{\max}{\operatorname*{max\vphantom{p}}}%
-    \renewcommand{\min}{\operatorname*{min\vphantom{p}}}%
-    \renewcommand{\lim}{\operatorname*{lim\vphantom{p}}}%
-    \renewcommand{\liminf}{\operatorname*{lim\,inf\vphantom{p}}}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
@@ -108,42 +92,3 @@
 %% (\thesisboldmath is the bold italic of the maths font, set in fontMath.tex.)
 \AtBeginDocument{\renewcommand{\vec}[1]{\thesisboldmath{#1}}} % vector:  \vec{u}
 \newcommand{\tensor}[1]{\thesisboldmath{#1}}    % tensor:  \tensor{\tau}
-
-%% Lists: dashes as bullets, no extra space between items (a list reads as part of the paragraph),
-%% and the item text at the paragraph indent, with the dash or number hanging in front of it.
-\tightlists
-\renewcommand{\labelitemi}{\textendash}\setlength{\leftmargini}{\parindent}
-\renewcommand{\labelitemii}{\textendash}\setlength{\leftmarginii}{\parindent}
-\renewcommand{\labelitemiii}{\textendash}\setlength{\leftmarginiii}{\parindent}
-\renewcommand{\labelitemiv}{\textendash}\setlength{\leftmarginiv}{\parindent}
-
-%% Dutch name prefixes: write {\VAN} in references.bib (e.g. author = {T. \VAN~Pelt}). It prints "Van"
-%% in the text (\citet) and "van" in the reference list (switched in main.tex).
-\DeclareRobustCommand{\VAN}[0]{Van}
-
-%% File and package names in typewriter type that may break across lines after . / _ (a long name in
-%% \texttt can't be broken and sticks out into the margin on a narrow page). Type underscores as they are:
-%% \file{settings/nomenclature.tex}, \file{figures/plots/thesis.mplstyle}
-\newcommand{\file}[1]{\nolinkurl{#1}}
-%% Identifiers outside the references, in typewriter and as links, set like the DOIs in the references:
-%% \doi{10.4121/00000000} gives "DOI: 10.4121/00000000", \orcid{0000-0002-1825-0097} the ORCID icon
-%% and the iD, both linking to the ORCID record.
-\newcommand{\doi}[1]{\textsc{doi}:\nobreakspace\href{https://doi.org/#1}{\expandafter\nolinkurl\expandafter{#1}}}
-\newcommand{\orcid}[1]{\expandafter\orcidlink\expandafter{#1}\,\href{https://orcid.org/#1}{\expandafter\nolinkurl\expandafter{#1}}}
-
-%% Chapter based on a paper: a small note at the start of the chapter text with the reference and the
-%% author contributions. \chapterbasedon{\cite{key}}{A.~Author: conceptualisation, ...; B.~Author: ...}
-\makeatletter
-\newcommand{\chapterbasedon}[2]{%
-    \par\begingroup\small\setlength{\parindent}{0pt}%
-    This chapter is based on #1.\par
-    \textit{Author contributions:} #2\par
-    \endgroup\bigskip
-    \@afterindentfalse\@afterheading % the text after the note starts unindented
-}
-\makeatother
-
-%% A panel of a figure as one link, letter included: \panelref{fig:x}{a} gives "Figure 2.2a"
-%% (\Panelref at the start of a sentence; several panels: \panelref{fig:x}{a,b}).
-\newcommand{\panelref}[2]{\hyperref[#1]{\cref*{#1}#2}}
-\newcommand{\Panelref}[2]{\hyperref[#1]{\Cref*{#1}#2}}
