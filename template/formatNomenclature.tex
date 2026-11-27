@@ -150,8 +150,6 @@
 \cs_new_protected:Npn \thesis@nomused #1 { \tl_gset:cn { g__thesis_nom_#1_inaux_tl } { } }
 \ExplSyntaxOff
 
-%% Definitions are set in-line: write U/a, not \frac{U}{a}, so the rows stay even.
-\newcommand{\thesis@definition}[1]{\ensuremath{#1}}
 %% Dimensions are given in maths ("\Lunit\Tunit^{-1}"); "--" gives an en dash for dimensionless quantities.
 \newcommand{\thesis@dims}[1]{%
     \def\thesis@arg{#1}\def\thesis@dash{--}%
@@ -241,12 +239,13 @@
     & \exp_not:N \thesis@dims { \__thesis_nom_raw:nn {#1} { dims } }
     & \__thesis_nom_raw:nn {#1} { units }
   }
-%% #1 width of the columns after Description, with their gaps; #2 their column spec; #3 their headers
-\cs_new_protected:Npn \__thesis_nom_print:nnnnn #1#2#3#4#5 % type, order, style, width, spec+headers
+%% #5 sets the table (\__thesis_nom_table:nnn with the columns after Description)
+\cs_new_protected:Npn \__thesis_nom_print:nnnnn #1#2#3#4#5 % type, order, style, title, table
   {
     \__thesis_nom_sorted:nn {#1} {#2}
     \seq_if_empty:NF \l__thesis_nom_labels_seq
       {
+        \nomtitle {#4}
         \group_begin:
           \setlength\tabcolsep{4pt}
           \setlength\LTleft{0pt}\setlength\LTright{0pt}\setlength\LTpre{0pt}\setlength\LTpost{0pt}
@@ -299,15 +298,13 @@
 %% nom-definition (... | Definition), nom-units (... | Units), nom-dimensions (... | Dimensions | Units).
 \NewDocumentCommand \printnom { m m m m }
   {
-    \__thesis_nom_sorted:nn {#1} {#4}
-    \seq_if_empty:NF \l__thesis_nom_labels_seq { \nomtitle {#2} }
     \str_case:nn {#3}
       {
-        { nom-acronyms } { \__thesis_nom_print:nnnnn {#1} {#4} { acronyms } { } { \__thesis_nom_table:nnn { 0pt } { } { } } }
-        { nom-plain } { \__thesis_nom_print:nnnnn {#1} {#4} { plain } { } { \__thesis_nom_table:nnn { 0pt } { } { } } }
+        { nom-acronyms } { \__thesis_nom_print:nnnnn {#1} {#4} { acronyms } {#2} { \__thesis_nom_table:nnn { 0pt } { } { } } }
+        { nom-plain } { \__thesis_nom_print:nnnnn {#1} {#4} { plain } {#2} { \__thesis_nom_table:nnn { 0pt } { } { } } }
         { nom-definition }
           {
-            \__thesis_nom_print:nnnnn {#1} {#4} { definition } { }
+            \__thesis_nom_print:nnnnn {#1} {#4} { definition } {#2}
               {
                 \__thesis_nom_table:nnn { \dimensionswidth+\unitswidth+4\tabcolsep }
                   { p{\dimexpr\dimensionswidth+\unitswidth+2\tabcolsep} } { & \nomheader{Definition} }
@@ -315,12 +312,12 @@
           }
         { nom-units }
           {
-            \__thesis_nom_print:nnnnn {#1} {#4} { units } { }
+            \__thesis_nom_print:nnnnn {#1} {#4} { units } {#2}
               { \__thesis_nom_table:nnn { \unitswidth+2\tabcolsep } { p{\unitswidth} } { & \nomheader{Units} } }
           }
         { nom-dimensions }
           {
-            \__thesis_nom_print:nnnnn {#1} {#4} { dimensions } { }
+            \__thesis_nom_print:nnnnn {#1} {#4} { dimensions } {#2}
               {
                 \__thesis_nom_table:nnn { \dimensionswidth+\unitswidth+4\tabcolsep }
                   { p{\dimensionswidth}p{\unitswidth} } { & \nomheader{Dimensions} & \nomheader{Units} }
