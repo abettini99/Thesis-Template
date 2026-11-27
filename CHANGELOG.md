@@ -2,7 +2,7 @@
 
 Versions follow [semantic versioning](https://semver.org): a change in the last number (1.0.1) only fixes things, in the middle number (1.1.0) adds something without changing what you have, and in the first number (2.0.0) asks you to change something in your thesis when you update; the entry says what.
 
-## 2.0.0 (26 November 2026)
+## 2.0.0 (27 November 2026)
 
 ### Simpler to use (version 2: your files change)
 
