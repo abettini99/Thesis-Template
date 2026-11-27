@@ -59,7 +59,7 @@
   }
 %% A field still holding its placeholder ([...], or the example ORCID iD) is left out of the metadata.
 \tl_new:N \l__thesis_field_tl
-\prg_new_protected_conditional:Npnn \thesis_if_filled:n #1 { T , F , TF }
+\prg_new_protected_conditional:Npnn \thesis_if_filled:n #1 { T }
   {
     \tl_set:Ne \l__thesis_field_tl { \tl_trim_spaces:e {#1} }
     \tl_if_empty:NTF \l__thesis_field_tl
@@ -73,7 +73,6 @@
           }
       }
   }
-\NewDocumentCommand \IfThesisFilledTF { m m m } { \thesis_if_filled:nTF {#1} {#2} {#3} }
 
 %% The metadata: title, author, subject, keywords, and the identifiers and licence once they are known.
 \tl_new:N \l__thesis_copyright_tl

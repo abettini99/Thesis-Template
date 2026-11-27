@@ -46,11 +46,11 @@
     \tl_greplace_all:Nnn \g_tmpb_tl { \\ } { \unskip \space \ignorespaces }
     \cs_gset:Npe \coverspinetitle { \exp_not:V \g_tmpb_tl }
     \cs_gset:Npe \coverspineleadin { \text_uppercase:n { \coverleadin } }
-    \cs_if_exist:NT \tag_suspend:n { \tag_suspend:n { cover } } % (a box for a picture: not tagged in a tagged PDF)
+    \tag_suspend:n { cover } % (a box for a picture: not tagged in a tagged PDF)
     %% the box is made before the title node, so it takes its colour here, not from the node
     \sbox{\covertitlebox}{\color{covertext}\coverfont\bfseries\covertrack{-8}\fontsize{56}{54}\selectfont
         \begin{tabular}{@{}c@{}}\g_tmpa_tl\end{tabular}}
-    \cs_if_exist:NT \tag_resume:n { \tag_resume:n { cover } }
+    \tag_resume:n { cover }
   }
 \ExplSyntaxOff
 

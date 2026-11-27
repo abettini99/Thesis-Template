@@ -352,7 +352,7 @@
 %% of text (not from below its descenders).
 \setlength{\skip\footins}{\bigskipamount}
 %% the mark in a box 1.8 em of the class's type size wide, the text then indented 1 em per paragraph
-\AddToHook{begindocument/before}{\ifdefined\footnotemargin \setlength{\footnotemargin}{1.8\thesis@em}\fi}
+\AddToHook{begindocument/before}{\setlength{\footnotemargin}{1.8\thesis@em}}
 \newdimen\thesis@footparindent \thesis@footparindent=\thesis@em
 \AddToHook{fntext/para}{\parindent\thesis@footparindent}
 \AddToHook{fntext}{\def\baselinestretch{1}}% footnotes single-spaced (as memoir)
@@ -597,11 +597,9 @@
 \newif\ifthesis@capcentre \thesis@capcentretrue % (the captions of algorithms are not centred)
 %% (tagged PDF: the caption is one paragraph, the one inside the box; the paragraph around the box only
 %% places it)
-\def\thesis@tagparaoff{\ifdefined\tagpdfparaOff\tagpdfparaOff\fi}
-\def\thesis@tagparaon{\ifdefined\tagpdfparaOn\tagpdfparaOn\fi}
 \newcommand{\thesis@captionbox}[2]{% label, text: the caption, as a box the width of the line
     \sbox\@tempboxa{\UseName{tag_suspend:n}{caption}\small{\captionlabelfont #1}\thesis@capsep #2\UseName{tag_resume:n}{caption}}% (measured only: not tagged, or its formulas were there twice, once empty)
-    \vbox{\thesis@tagparaon\small\parindent\z@
+    \vbox{\tagpdfparaOn\small\parindent\z@
         \ifdim\wd\@tempboxa>\hsize
             \parfillskip\z@\@plus1fil \ifdim\hsize<60mm \thesis@raggednohyphen\fi
         \else\ifthesis@capcentre
@@ -617,13 +615,13 @@
     \AssignTaggingSocketPlug{parbox/after}{noop}%
     \hbox to\z@{\hss\parbox[t]\linewidth{\reset@font\normalsize
       \vskip-\ht\strutbox
-      {\parindent\z@ \thesis@tagparaoff \leavevmode
+      {\parindent\z@ \tagpdfparaOff \leavevmode
        \cs_if_eq:NNTF #1 \@gobble {\thesis@captionnolabel{#3}} {\thesis@captionbox{#2}{#3}}\par
-       \thesis@tagparaon}%
+       \tagpdfparaOn}%
       \vskip\dimexpr\abovecaptionskip\relax \hrule\@height\z@}%
     \hss}}}
 \ExplSyntaxOff
-\newcommand{\thesis@captionnolabel}[1]{\vbox{\thesis@tagparaon\small\parindent\z@
+\newcommand{\thesis@captionnolabel}[1]{\vbox{\tagpdfparaOn\small\parindent\z@
     \leftskip\@flushglue \rightskip\@flushglue \parfillskip\z@skip \thesis@capstrut#1\@finalstrut\strutbox\par}}
 \AddToHook{begindocument}{\@ifpackageloaded{longtable}{\let\LT@makecaption\thesis@LTmakecaption}{}}
 %% (and spaces after \caption in a long table are ignored, as with the caption package)
@@ -650,7 +648,7 @@
         \ifthesis@captop \vskip\belowcaptionskip \else \hrule\@height\z@ \vskip\abovecaptionskip \fi
         \UseHookWithArguments{cmd/@makecaption/before}{2}{#1}{#2}%
         \UseTaggingSocket{caption/begin}{\@current@float@struct}%
-        {\parindent\z@ \thesis@tagparaoff\leavevmode \thesis@captionbox{#1}{#2}\par\thesis@tagparaon}%
+        {\parindent\z@ \tagpdfparaOff\leavevmode \thesis@captionbox{#1}{#2}\par\tagpdfparaOn}%
         \@minipagefalse % (as a paragraph did: the material below the caption is spaced as in the text)
         \UseTaggingSocket{caption/end}%
         \ifthesis@captop \vskip\dimexpr\abovecaptionskip\relax
@@ -713,7 +711,7 @@
     \bool_if:NF \l_tmpa_bool { \vskip \abovecaptionskip }
     \UseTaggingSocket { caption / begin } { \l__thesis_subfloat_struct_tl }
     \group_begin:
-      \parindent \z@ \thesis@tagparaoff \leavevmode
+      \parindent \z@ \tagpdfparaOff \leavevmode
       \cs_set_eq:NN \captionlabelfont \subcaptionlabelfont
       \bool_if:NTF \l__thesis_subcaption_letter_bool
         {
@@ -722,7 +720,7 @@
         }
         { \cs_set:Npn \thesis@capsep { } \thesis@captionbox { } {#2} } % (panels without letters)
       \par
-      \thesis@tagparaon
+      \tagpdfparaOn
     \group_end:
     \UseTaggingSocket { caption / end }
     \bool_if:NT \l_tmpa_bool { \vskip \abovecaptionskip }

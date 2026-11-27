@@ -8,7 +8,8 @@ or the committee: deleted text struck through in red, new text underlined in blu
 
 The earlier version is any git revision: a tag, a commit, a branch (HEAD~3 works too). It is
 compared with the files as they are now (saved, not necessarily committed). The chapters are
-followed through \\include and \\input, so the whole thesis is compared.
+followed through \\include and \\input, so the whole thesis is compared. The template's own files
+(template/) are left out of the comparison: they are read as they are when the result is compiled.
 
 Runs locally (Overleaf cannot run it): needs git, latexdiff and latexmk, which come with TeX Live.
 The result, main-diff.tex and main-diff.pdf, is ignored by git.
@@ -17,6 +18,7 @@ The result, main-diff.tex and main-diff.pdf, is ignored by git.
 from __future__ import annotations
 
 import io
+import re
 import shutil
 import subprocess
 import sys
@@ -25,6 +27,24 @@ import tempfile
 from pathlib import Path
 
 from common import ROOT, parser
+
+#: \input{template/...} hidden from latexdiff --flatten, which would otherwise paste the template's
+#: files into the comparison, also inside definitions (\frontmatter reads the title pages), where
+#: LaTeX cannot take them; put back in the result.
+HIDDEN = r"\thesisdiffinput{"
+TEMPLATE_INPUT = re.compile(r"\\input\{(?=template/)")
+
+
+def hide_template_inputs(tree: Path) -> None:
+    """Hide the template's \\input lines in every .tex file of `tree` outside template/."""
+    for tex in tree.rglob("*.tex"):
+        rel = tex.relative_to(tree)
+        if rel.parts[0] in ("template", ".git"):
+            continue
+        text = tex.read_text(encoding="utf-8", errors="surrogateescape")
+        new = TEMPLATE_INPUT.sub(lambda m: HIDDEN, text)
+        if new != text:
+            tex.write_text(new, encoding="utf-8", errors="surrogateescape")
 
 
 def main(argv=None) -> int:
@@ -40,7 +60,8 @@ def main(argv=None) -> int:
     stem = Path(args.main).stem
     out = ROOT / f"{stem}-diff.tex"
     with tempfile.TemporaryDirectory() as tmp:
-        old = Path(tmp)
+        old, new = Path(tmp) / "old", Path(tmp) / "new"
+        old.mkdir()
         r = subprocess.run(["git", "archive", "--format=tar", args.old], cwd=ROOT, capture_output=True)
         if r.returncode:
             sys.exit(f"git cannot find version '{args.old}': {r.stderr.decode().strip()}")
@@ -51,6 +72,15 @@ def main(argv=None) -> int:
                 t.extractall(old)
         if not (old / args.main).exists():
             sys.exit(f"{args.main} does not exist in version {args.old}")
+        # the current .tex files (saved, not necessarily committed), outside the template's own folder
+        for tex in ROOT.rglob("*.tex"):
+            rel = tex.relative_to(ROOT)
+            if rel.parts[0] in ("template", ".git") or rel.name.endswith("-diff.tex"):
+                continue
+            (new / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(tex, new / rel)
+        hide_template_inputs(old)
+        hide_template_inputs(new)
         print(f"Comparing {args.main} at {args.old} with the current files ...")
         r = subprocess.run(
             [
@@ -61,15 +91,15 @@ def main(argv=None) -> int:
                 "--math-markup=coarse",
                 "--encoding=utf8",
                 str(old / args.main),
-                str(ROOT / args.main),
+                str(new / args.main),
             ],
-            cwd=ROOT,
+            cwd=new,
             capture_output=True,
             text=True,
         )
         if r.returncode or not r.stdout.strip():
             sys.exit("latexdiff failed:\n" + r.stderr[-2000:])
-        out.write_text(r.stdout, encoding="utf-8")
+        out.write_text(r.stdout.replace(HIDDEN, r"\input{"), encoding="utf-8")
     print(f"written: {out.name}")
     if args.no_compile:
         return 0

@@ -59,17 +59,13 @@
 \AddToHook{shipout/background}{
     \tl_if_empty:NF \thesis@thumbside
       {
-        \cs_if_exist:NTF \tag_mc_end_push:
-          {
-            \tag_mc_end_push:
-            \tag_mc_begin:n {artifact}
-            \tag_suspend:n {thumb}
-            \__thesis_putthumb:
-            \tag_resume:n {thumb}
-            \tag_mc_end:
-            \tag_mc_begin_pop:n {}
-          }
-          { \__thesis_putthumb: }
+        \tag_mc_end_push:
+        \tag_mc_begin:n {artifact}
+        \tag_suspend:n {thumb}
+        \__thesis_putthumb:
+        \tag_resume:n {thumb}
+        \tag_mc_end:
+        \tag_mc_begin_pop:n {}
         \tl_gclear:N \thesis@thumbside
       }
 }
